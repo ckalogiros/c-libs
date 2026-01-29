@@ -1,0 +1,45 @@
+cmake_minimum_required(VERSION 3.21.0)
+project(C_TIMER VERSION 1.0 LANGUAGES C) # Solution name
+
+# C89/C90, C99, C11, C17, C23
+set(CMAKE_C_STANDARD 11)
+
+function(print var)
+    message(STATUS "${var} = ${${var}}")
+endfunction()
+
+
+########################################################################################
+print("----------------------------------- CMAKE PROJECT: ${PROJECT_NAME} -----------------------------------------------")
+
+##### Set Some CMake Paths
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
+set(VS_PATH "C:/Users/ckalo/BakedUp/Projects/VisualStudio")
+
+set(EXT_CORE_PATH  "${VS_PATH}/C_Libraries/Core/src")
+include("${EXT_CORE_PATH}/CMakeLists.txt")
+
+set(EXT_LOGGER_PATH  "${VS_PATH}/C_Libraries/C_Logger/C_Logger")
+include("${EXT_LOGGER_PATH}/CMakeLists.txt")
+
+
+include("${CMAKE_CURRENT_SOURCE_DIR}/C_Timer/CMakeLists.txt")
+
+
+add_executable (
+	Entry "test/Entry.c"
+	${CORE_SRC_FILES}
+	${LOGGER_SRC_FILES}
+	${TIMER_SRC_FILES}
+)
+
+include_directories(
+	PUBLIC "${CORE_INCLUDE_FILES}"
+	PUBLIC "${LOGGER_INCLUDE_FILES}"
+	PUBLIC "${TIMER_INCLUDE_FILES}"
+)
+
+print("----------------------------------- ${PROJECT_NAME} : CMAKE_LISTS.TXT END -----------------------------------------------")

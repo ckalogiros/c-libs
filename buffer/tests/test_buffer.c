@@ -1,0 +1,624 @@
+/*
+ * Created by ckalo on 1/8/26.
+ */
+
+#include "test_buffer.h"
+#include "buffer.h"
+#include "buffer_internals.h"
+#include "buffer_log.h"
+#include "logger.h"
+#include "mem_man.h"
+#include "slab_allocator_log.h"
+
+
+/*
+ * operations-helpers
+ */
+void fill(buffer_t* const buffer)
+{
+    for (uint32 i = 0; i < buffer->capacity; i++)
+    {
+        buffer_push_uint32(i+1, buffer);
+    }
+}
+void insert_at(const uint32 val, buffer_t* const buffer, const uint32 index)
+{
+    print("%s-- INSERT ELEMENT AT INDEX: %d%s\n\n", gc, index, CLEAR);
+    if (index != INT_NULL)
+        buffer_insert_uint32(val, buffer, index);
+}
+void remove_from(buffer_t* const buffer, const uint32 index)
+{
+    print("%s-- REMOVE ELEMENT AT INDEX:%d%s\n\n", gc, index, CLEAR);
+    buffer_remove_uint32(buffer, index);
+}
+
+
+void test_create_buffer(const uint32 capacity) {
+  const uint32_t num_pages = 10;
+  memory_manager_init(num_pages);
+
+  init_buffer_table();
+
+  // allocate new buffer
+  buffer_t* buffer = buffer_create_uint32(capacity);
+
+  fill(buffer);
+
+  buffer_print_uint32(buffer_print_config((buffer_print_p){
+      .buffer = buffer, .print_num_elems = buffer->capacity
+  }));
+
+
+}
+
+void test_buffer_fill_remove_insert()
+{
+    const uint32_t num_pages = 10;
+    memory_manager_init(num_pages);
+
+    init_buffer_table();
+
+    // allocate new buffer
+    const uint32 capacity  = 64;
+    buffer_t* buffer = buffer_create_uint32(capacity);
+
+    buffer_print_uint32(buffer_print_config((buffer_print_p){
+        .buffer = buffer, .print_num_elems = buffer->capacity
+    }));
+
+
+    // fill buffer
+    fill(buffer);
+
+
+    buffer_print_uint32(buffer_print_config((buffer_print_p){
+        .buffer = buffer, .print_num_elems = buffer->capacity
+    }));
+
+    const int32 index = 9;
+
+    // remove an element, using free buffer to store all free buffer elems
+    remove_from(buffer, index);
+    // remove_from(buffer, 10);
+    // remove_from(buffer, 11);
+    // remove_from(buffer, 12);
+    //
+    // // insert a value in the buffer at specific index, using the free buffer 'find' a free element
+    // insert_at(333333, buffer, index);
+    // insert_at(333333, buffer, 10);
+    // insert_at(333333, buffer, 11);
+    // insert_at(333333, buffer, 12);
+
+    memory_manager_terminate();
+
+}
+
+void test_buffer_different_capacity_buffers() {
+
+  print("%s-- -- -- TEST: -- -- --%s\n", GREEN, CLEAR);
+  print("%s create different capacity buffers%s\n\n", CYAN, CLEAR);
+
+  const uint32_t num_pages = 15;
+  memory_manager_init(num_pages);
+
+  init_buffer_table();
+
+  // allocate buffer: capacity=16
+  {
+    uint32 capacity  = 16;
+    print("CREATE %scapacity:%u%s\n", GREEN, capacity, CLEAR);
+    buffer_t* buffer_c16 = buffer_create_uint32(capacity);
+    fill(buffer_c16); // fill buffer
+    buffer_print_uint32(buffer_print_config((buffer_print_p){
+          .buffer = buffer_c16, .print_num_elems = buffer_c16->capacity
+      }));
+  }
+
+  // allocate buffer: capacity=32
+  {
+    uint32 capacity  = 32;
+    print("CREATE %scapacity:%u%s\n", GREEN, capacity, CLEAR);
+    buffer_t* buffer_c32 = buffer_create_uint32(capacity);
+    fill(buffer_c32); // fill buffer
+    buffer_print_uint32(buffer_print_config((buffer_print_p){
+          .buffer = buffer_c32, .print_num_elems = buffer_c32->capacity
+      }));
+  }
+
+  // allocate buffer: capacity=64
+  {
+    uint32 capacity  = 64;
+    print("CREATE %scapacity:%u%s\n", GREEN, capacity, CLEAR);
+    buffer_t* buffer_c64 = buffer_create_uint32(capacity);
+    fill(buffer_c64); // fill buffer
+    buffer_print_uint32(buffer_print_config((buffer_print_p){
+          .buffer = buffer_c64, .print_num_elems = buffer_c64->capacity
+      }));
+  }
+
+  // allocate buffer: capacity=256
+  {
+    uint32 capacity  = 256;
+    print("CREATE %scapacity:%u%s\n", GREEN, capacity, CLEAR);
+    buffer_t* buffer_c256 = buffer_create_uint32(capacity);
+    fill(buffer_c256); // fill buffer
+    buffer_print_uint32(buffer_print_config((buffer_print_p){
+          .buffer = buffer_c256, .print_num_elems = buffer_c256->capacity
+      }));
+  }
+
+  // allocate buffer: capacity=512
+  {
+    uint32 capacity  = 512;
+    print("CREATE %scapacity:%u%s\n", GREEN, capacity, CLEAR);
+    buffer_t* buffer_c512 = buffer_create_uint32(capacity);
+    fill(buffer_c512); // fill buffer
+    buffer_print_uint32(buffer_print_config((buffer_print_p){
+          .buffer = buffer_c512, .print_num_elems = buffer_c512->capacity
+      }));
+  }
+
+  memory_manager_terminate();
+}
+
+void test_buffer_remove_elements(const uint32 capacity) {
+
+  print("%s-- -- -- TEST: -- -- --%s\n", GREEN, CLEAR);
+  print("%s buffer remove elements %s\n\n", CYAN, CLEAR);
+
+  const uint32_t num_pages = 15;
+  memory_manager_init(num_pages);
+
+  init_buffer_table();
+
+  // allocate buffer
+  buffer_t* buffer = buffer_create_uint32(capacity);
+  fill(buffer); // fill buffer
+
+
+  // remove elements and print free list
+  uint32 k = 4;
+  print("%sREMOVE%s on every %uth bit\n", GREEN, CLEAR, k);
+  for (uint32 i = 0; i < 256; i++){
+
+      if (i%64==0 && i!=0) {
+        k*=2;
+        print("%sREMOVE%s on every %uth bit\n", GREEN, CLEAR, k);
+      }
+      if (i%k) {
+        buffer_remove_uint32(buffer, i);
+      }
+  }
+
+  buffer_print_uint32(buffer_print_config((buffer_print_p){
+      .buffer = buffer, .print_num_elems = buffer->capacity
+  }));
+
+  memory_manager_terminate();
+}
+
+void test_buffer_insert_elements(const uint32 capacity) {
+
+  print("%s-- -- -- TEST: -- -- --%s\n", GREEN, CLEAR);
+  print("%s buffer remove elements %s\n\n", CYAN, CLEAR);
+
+  const uint32_t num_pages = 15;
+  memory_manager_init(num_pages);
+
+  init_buffer_table();
+
+  // allocate buffer
+  buffer_t* buffer = buffer_create_uint32(capacity);
+
+
+  // remove elemnts and print free list
+  uint32 k = 4;
+  print("%sINSERT%s on every %uth bit\n", GREEN, CLEAR, k);
+  for (uint32 i = 0; i < 256; i++){
+
+      if (i%64==0 && i!=0) {
+        k*=2;
+        print("%sINSERT%s on every %uth bit\n", GREEN, CLEAR, k);
+      }
+      if (i%k) {
+        buffer_insert_uint32(i, buffer, i);
+      }
+  }
+
+
+  buffer_print_uint32(buffer_print_config((buffer_print_p){
+      .buffer = buffer, .print_num_elems = buffer->capacity
+  }));
+
+  memory_manager_terminate();
+}
+
+void test_buffer_realloc() {
+
+  print("%s-- -- -- TEST: -- -- --%s\n", GREEN, CLEAR);
+  print("%s buffer realloc%s\n\n", CYAN, CLEAR);
+
+  const uint32_t num_pages = 15;
+  memory_manager_init(num_pages);
+
+  init_buffer_table();
+
+  // allocate buffer
+  const uint32 capacity  = 16;
+  print("CREATE %scapacity:%u%s\n", GREEN, capacity, CLEAR);
+  buffer_t* buffer = buffer_create_uint32(capacity);
+  fill(buffer); // fill buffer
+  buffer_print_uint32(buffer_print_config((buffer_print_p){
+        .buffer = buffer, .print_num_elems = buffer->capacity
+    }));
+
+
+  // force buffer realloc
+  buffer_push_uint32(100, buffer);
+  print("REALLOC buffer %scapacity:%u%s\n", GREEN, buffer->capacity, CLEAR);
+  for (uint32 i = 0; i < buffer->capacity/2; i++) {
+    buffer_push_uint32(100+i, buffer);
+  }
+  mem_print_free_list();
+  print_mem_cache_list();
+  buffer_print_uint32(buffer_print_config((buffer_print_p){
+        .buffer = buffer, .print_num_elems = buffer->capacity
+    }));
+
+
+  // force buffer realloc
+  buffer_push_uint32(200, buffer);
+  print("REALLOC buffer %scapacity:%u%s\n", GREEN, buffer->capacity, CLEAR);
+  for (uint32 i = 0; i < buffer->capacity/2; i++) {
+    buffer_push_uint32(200+i, buffer);
+  }
+  mem_print_free_list();
+  print_mem_cache_list();
+  buffer_print_uint32(buffer_print_config((buffer_print_p){
+        .buffer = buffer, .print_num_elems = buffer->capacity
+    }));
+
+
+  // force buffer realloc
+  buffer_push_uint32(300, buffer);
+  print("REALLOC buffer %scapacity:%u%s\n", GREEN, buffer->capacity, CLEAR);
+  for (uint32 i = 0; i < buffer->capacity/2; i++) {
+    buffer_push_uint32(300+i, buffer);
+  }
+  mem_print_free_list();
+  print_mem_cache_list();
+  buffer_print_uint32(buffer_print_config((buffer_print_p){
+        .buffer = buffer, .print_num_elems = buffer->capacity
+    }));
+
+
+  // force buffer realloc
+  buffer_push_uint32(400, buffer);
+  print("REALLOC buffer %scapacity:%u%s\n", GREEN, buffer->capacity, CLEAR);
+  for (uint32 i = 0; i < buffer->capacity/2; i++) {
+    buffer_push_uint32(400+i, buffer);
+  }
+  mem_print_free_list();
+  print_mem_cache_list();
+  buffer_print_uint32(buffer_print_config((buffer_print_p){
+        .buffer = buffer, .print_num_elems = buffer->capacity
+    }));
+
+  memory_manager_terminate();
+}
+
+void test_destroy_buffer() {
+
+  print("%s-- -- -- TEST: -- -- --%s\n", GREEN, CLEAR);
+  print("%s buffer destroy - (no slabs realease)%s\n\n", CYAN, CLEAR);
+
+  const uint32_t num_pages = 15;
+  memory_manager_init(num_pages);
+
+  init_buffer_table();
+
+  print("%sTEST CREATE-DESTROY,\nSAME BUFFER TWICE%s\n", GREEN, CLEAR);
+  {
+
+    buffer_t* buffer = buffer_create_uint32(16);
+    const buffer_t* buffer_address = buffer;
+    fill(buffer);
+
+    print("\n%sBEFORE RECREATING%s\n", CYAN, CLEAR);
+    print("\n%sTEST REMOVING: 0,3,6,9,12 indices%s\n", GREEN, CLEAR);
+    buffer_remove_uint32(buffer, 0);
+    buffer_remove_uint32(buffer, 3);
+    buffer_remove_uint32(buffer, 6);
+    buffer_remove_uint32(buffer, 9);
+    buffer_remove_uint32(buffer, 12);
+    buffer_print_free_list(buffer);
+
+    buffer_destroy(buffer);
+
+    // recreate buffer
+    {
+      buffer = buffer_create_uint32(16);
+      fill(buffer);
+
+      if (buffer_address == buffer)
+        print("%sTEST PASSED%s\n", GREEN, CLEAR);
+      else
+        print("%sTEST FAILED%s\n", RED, CLEAR);
+      print(
+          "buffer1 %saddr:%x%s\n"
+          "buffer2 %saddr:%x%s\n",
+      GREEN, buffer_address, CLEAR,
+      GREEN, buffer, CLEAR
+      );
+    }
+
+    buffer_destroy(buffer);
+
+    // recreate buffer
+    {
+      buffer = buffer_create_uint32(16);
+      fill(buffer);
+
+      if (buffer_address == buffer)
+        print("%sTEST PASSED%s\n", GREEN, CLEAR);
+      else
+        print("%sTEST FAILED%s\n", RED, CLEAR);
+      print(
+          "buffer1 %saddr:%x%s\n"
+          "buffer2 %saddr:%x%s\n",
+      GREEN, buffer_address, CLEAR,
+      GREEN, buffer, CLEAR
+      );
+    }
+
+    print("\n%sAFTER RECREATING%s\n", CYAN, CLEAR);
+    print("\n%sTEST REMOVING: 0,3,6,9,12 indices%s\n", GREEN, CLEAR);
+    buffer_remove_uint32(buffer, 0);
+    buffer_remove_uint32(buffer, 3);
+    buffer_remove_uint32(buffer, 6);
+    buffer_remove_uint32(buffer, 9);
+    buffer_remove_uint32(buffer, 12);
+    buffer_print_free_list(buffer);
+
+  }
+
+  print("\n\n%sTEST CREATE-DESTROY,\n"
+        "create 2 buffers,\n"
+        "destroy 2 buffer,\n"
+        "recreate 2 buffers%s\n", GREEN, CLEAR);
+  {
+
+    buffer_t* buffer1 = buffer_create_uint32(16);
+    const buffer_t* buffer1_address = buffer1;
+    fill(buffer1);
+
+    buffer_t* buffer2 = buffer_create_uint32(16);
+    const buffer_t* buffer2_address = buffer2;
+    fill(buffer2);
+
+    print(
+        "buffer1 %saddr:%x%s\n"
+        "buffer2 %saddr:%x%s\n",
+    GREEN, buffer1_address, CLEAR,
+    GREEN, buffer2_address, CLEAR
+    );
+
+    {
+      print("\n%sBEFORE RECREATING%s\n", CYAN, CLEAR);
+      print("\n%sTEST REMOVING: 0,3,6,9,12 indices%s\n", GREEN, CLEAR);
+      buffer_remove_uint32(buffer1, 0);
+      buffer_remove_uint32(buffer1, 3);
+      buffer_remove_uint32(buffer1, 6);
+      buffer_remove_uint32(buffer1, 9);
+      buffer_remove_uint32(buffer1, 12);
+      buffer_print_free_list(buffer1);
+
+      print("\n%sTEST REMOVING: 7,9,11,13,15 indices%s\n", GREEN, CLEAR);
+      buffer_remove_uint32(buffer2, 7);
+      buffer_remove_uint32(buffer2, 9);
+      buffer_remove_uint32(buffer2, 11);
+      buffer_remove_uint32(buffer2, 13);
+      buffer_remove_uint32(buffer2, 15);
+      buffer_print_free_list(buffer2);
+    }
+
+
+
+    buffer_destroy(buffer1);
+    buffer_destroy(buffer2);
+
+    // recreate buffer1
+    {
+      buffer1 = buffer_create_uint32(16);
+      fill(buffer1);
+      if (buffer2_address == buffer1)
+        print("%sTEST PASSED%s\n", GREEN, CLEAR);
+      else
+        print("%sTEST FAILED%s\n", RED, CLEAR);
+      print(
+          "buffer1 %saddr:%x%s\n"
+          "buffer1 %saddr:%x%s\n",
+          GREEN, buffer1, CLEAR,
+          GREEN, buffer2_address, CLEAR
+      );
+    }
+
+
+    // recreate buffer2
+    {
+      buffer2 = buffer_create_uint32(16);
+      fill(buffer2);
+      if (buffer1_address == buffer2)
+        print("%sTEST PASSED%s\n", GREEN, CLEAR);
+      else
+        print("%sTEST FAILED%s\n", RED, CLEAR);
+      print(
+          "buffer2 %saddr:%x%s\n"
+          "buffer2 %saddr:%x%s\n",
+          GREEN, buffer2, CLEAR,
+          GREEN, buffer1_address, CLEAR
+      );
+    }
+
+    {
+      print("\n%sBEFORE RECREATING%s\n", CYAN, CLEAR);
+      print("\n%sTEST REMOVING: 0,3,6,9,12 indices%s\n", GREEN, CLEAR);
+      buffer_remove_uint32(buffer1, 0);
+      buffer_remove_uint32(buffer1, 3);
+      buffer_remove_uint32(buffer1, 6);
+      buffer_remove_uint32(buffer1, 9);
+      buffer_remove_uint32(buffer1, 12);
+      buffer_print_free_list(buffer1);
+
+      print("\n%sTEST REMOVING: 7,9,11,13,15 indices%s\n", GREEN, CLEAR);
+      buffer_remove_uint32(buffer2, 7);
+      buffer_remove_uint32(buffer2, 9);
+      buffer_remove_uint32(buffer2, 11);
+      buffer_remove_uint32(buffer2, 13);
+      buffer_remove_uint32(buffer2, 15);
+      buffer_print_free_list(buffer2);
+    }
+  }
+
+
+  print("\n\n%sTEST FILL ALL SLABS,\n"
+      "create that many buffers of total mem_cache slabs,\n"
+      "destroy all buffers,\n"
+      "recreate all buffers%s\n", GREEN, CLEAR);
+  {
+    const uint32 capacity = 32; // create 8 total slabs per page
+    buffer_t* buffers[capacity];
+    const uint32 typesize = sizeof(uint32);
+    const uint32 buffers_per_page = PAGE_SIZE/(capacity*typesize);
+
+    // CREATE
+    for(uint32 i = 0; i < buffers_per_page; i++) {
+
+      buffers[i] = buffer_create_uint32(capacity);
+      fill(buffers[i]);
+
+      print(
+          "buffers[i] %saddr:%x%s\n",
+          GREEN, buffers[i], CLEAR
+      );
+    }
+
+    // DESTROY
+    for(uint32 i = 0; i < buffers_per_page; i++) {
+
+      buffer_destroy(buffers[i]);
+    }
+
+
+    // RE-CREATE
+    buffer_t* recreated[capacity];
+    for(uint32 i = 0; i < buffers_per_page; i++) {
+      recreated[i] = buffer_create_uint32(capacity);
+      fill(recreated[i]);
+
+      print(
+          "recreated[i] %saddr:%x%s\n",
+          GREEN, recreated[i], CLEAR
+      );
+    }
+
+    for(uint32 i = 0; i < buffers_per_page; i++) {
+
+      if (buffers[i] == recreated[(buffers_per_page-1)-i])
+        print("buffer:[%u] %sTEST PASSED%s\n", i, GREEN, CLEAR);
+      else
+        print("buffer:[%u] %sTEST FAILED%s\n", i, RED, CLEAR);
+    }
+  }
+
+
+
+  memory_manager_terminate();
+}
+
+void test_generic_type_buffer() {
+
+  print("%s-- -- -- TEST: -- -- --%s\n", GREEN, CLEAR);
+  print("%s test_generic_type_buffer%s\n\n", CYAN, CLEAR);
+
+  const uint32_t num_pages = 15;
+  memory_manager_init(num_pages);
+
+  init_buffer_table();
+
+  // set the type here for convinience
+  buffer_t* buffer = buffer_create_gentype(32, sizeof(uint8));
+
+  // fill buffer
+  for (uint32 i = 0; i < buffer->capacity; i++)
+  {
+    const uint64 val = 0xffffffffffffffff;
+    // const uint64 val = 14;
+    buffer_push_gentype(&val, buffer);
+    // buffer_push_gentype_macro(val, buffer);
+  }
+
+
+  // print
+  const uint8* ptr = (uint8*) buffer->data;
+  for (uint32 i = 0; i < buffer->capacity; i++)
+  {
+    const uint32 index = i * buffer->typesize;
+    print(
+        "[%s%u%s]=%s%u%s, ",
+        YELLOW, i, CLEAR,
+        CYAN, *(ptr+index), CLEAR
+    );
+
+    if ((i+1)%3 == 0) print("\n    ");
+  }
+
+
+  memory_manager_terminate();
+}
+
+void test_vec_type_buffer() {
+
+  print("%s-- -- -- TEST: -- -- --%s\n", GREEN, CLEAR);
+  print("%s test_generic_type_buffer%s\n\n", CYAN, CLEAR);
+
+  const uint32_t num_pages = 15;
+  memory_manager_init(num_pages);
+
+  init_buffer_table();
+
+  buffer_t* buffer = buffer_create_vec4f(16);
+
+  // fill buffer
+  for (uint32 i = 0; i < buffer->capacity; i++)
+  {
+    const vec4f pos = {.x=1, .y=2, .z=3, .w=4};
+    buffer_push_vec4f(pos, buffer);
+  }
+
+  // print
+  const vec4f* data = buffer->data;
+  for (uint32 i = 0; i < buffer->capacity; i++)
+    print("[%s%u%s]=%sx:%.2f, y:%.2f, z:%.2f, w:%.2f%s\n",
+        YELLOW, i, data[i].x, data[i].y, data[i].z, data[i].w, CLEAR,CYAN, CLEAR);
+
+
+  print("%sREMOVE%s %uth elem\n", GREEN, CLEAR, 2);
+  buffer_remove_vec4f(buffer, 2);
+  print("%sREMOVE%s %uth elem\n", GREEN, CLEAR, 4);
+  buffer_remove_vec4f(buffer, 4);
+  print("%sREMOVE%s %uth elem\n", GREEN, CLEAR, 8);
+  buffer_remove_vec4f(buffer, 8);
+  print("%sREMOVE%s %uth elem\n", GREEN, CLEAR, 10);
+  buffer_remove_vec4f(buffer, 10);
+
+
+  // print
+  for (uint32 i = 0; i < buffer->capacity; i++)
+    print("[%s%u%s]=%sx:%.2f, y:%.2f, z:%.2f, w:%.2f%s\n",
+        YELLOW, i, data[i].x, data[i].y, data[i].z, data[i].w, CLEAR,CYAN, CLEAR);
+
+
+  memory_manager_terminate();
+}

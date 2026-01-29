@@ -1,0 +1,8 @@
+use bit:
+    uint8 for 8 capacity buffers
+    uint16 for 16 capacity buffers
+    uint32 for 32 capacity buffers
+
+buffer: sequencial, consolidate
+
+buffers of data structs type

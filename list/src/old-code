@@ -1,0 +1,237 @@
+linked_list.h
+
+/*
+ * Created by ckalo on 12/30/25.
+ *
+ * linked list with a buffer memory allocator
+ *
+ * Automatic memory allocations for growing the list
+ * What is guaranteed is the locality of the elements in the list
+ * What is not guaranteed is that list's elements in real memory be in the order of the links
+ * todo: Use the sort function to sort buffer in the order of the list links
+ */
+
+#include <stddef.h>
+
+#include "my_types.h"
+#ifndef LIST_LINKED_LIST_H
+#define LIST_LINKED_LIST_H
+
+struct list_node_t {
+    struct list_node_t *next;
+    uint32 data;
+    uint16 id;
+    bool exists; // todo: make a uint16 bitmap for metadata
+};
+
+struct list_node_t *linked_list_create(const uint32 data);
+void linked_list_insert(const uint32 data, struct list_node_t *const head);
+bool linked_list_delete_by_data(const uint32 data, struct list_node_t *head);
+void linked_list_print(struct list_node_t *const head);
+#endif //LIST_LINKED_LIST_H
+
+###########################################################################################################
+
+linked_list.c
+
+//
+// Created by ckalo on 12/30/25.
+//
+#include "linked_list_private.c"
+#include "test_allocator.h"
+/*
+ * A uint32 implementation
+ * todo: lists should be an interface and let the client define the type of the
+ * "data"
+ *
+ *
+ *
+ * todo: find by data (???) what if data is a struct
+ * todo: find by id
+ * todo: push at start
+ * todo: push at end
+ * todo: delete by data (???) what if data is a struct
+ * todo: delete by id
+ * todo: sort by list's links
+ * todo: sort by data
+ * todo: sort by id
+ * todo: consolidate - in case the buffer is fragmented
+ *
+ * todo: create buffer structures to store all lists created. dont forget the
+ * todo: decide if the client gets a handle or the pointer
+ * todo: implement node metadata/flags in a bitmap
+ * todo:
+ * todo:
+ * todo:
+ */
+
+struct list_node_t *linked_list_create(const uint32 data)
+{
+//    const pageid_t id = allocator_test_alloc(MIN_LIST_CAPACITY*sizeof(uint32));
+//    struct list_node_t *head = (struct list_node_t *)Temp_get_address_by_id(id);
+    struct list_node_t *head = (struct list_node_t *)malloc(MIN_LIST_CAPACITY*sizeof(uint32));
+    head->data               = data;
+    head->next               = NULL;
+    head->exists             = TRUE;
+    head->id                 = unique_id;
+    unique_id++;
+    return head;
+}
+
+void linked_list_insert(const uint32 data, struct list_node_t *const head)
+{
+    // for now... in the future we will implement an array type linked list
+    if (unique_id >= MIN_LIST_CAPACITY)
+    {
+        // todo realloc
+        printf("EXIT_FAILURE 1 at %s line:%d\n", __FILE_NAME__, __LINE__);
+        exit(EXIT_FAILURE);
+    }
+    // todo: also must check if head is valid (as a head and that it belongs to a
+    // valid linked list)
+    struct list_node_t *cur_node = head;
+    while (cur_node->next != NULL)
+    {
+        cur_node = cur_node->next;
+    }
+    if (cur_node->exists == TRUE)
+    {
+        struct list_node_t *next_node = linked_list_find_next_free_node(cur_node);
+        if (next_node == NULL)
+        {
+            /* WE FUCKED UP */
+            printf("EXIT_FAILURE 2 at %s line:%d\n", __FILE_NAME__, __LINE__);
+            exit(EXIT_FAILURE);
+        }
+        cur_node->next    = next_node; // connect last node with the new node
+        next_node->data   = data;
+        next_node->exists = TRUE;
+        next_node->next   = NULL;
+        next_node->id     = unique_id;
+        unique_id++;
+    }
+}
+
+bool linked_list_delete_by_data(const uint32 data, struct list_node_t *head)
+{
+    if (head == NULL) return FALSE; // case list is empty
+    // case head is the element to delete
+    if (head->data == data)
+    {
+        linked_list_reset_node(head);
+        head->data = 0;
+        if (head->next != NULL)
+        {
+            head = head->next; //  the next list element is now the head
+        }
+        return TRUE;
+    }
+    // else: continue searching
+    prev_next_node_t found = linked_list_find_node_by_data(head, data);
+    if (found.next != NULL)
+    {
+        if (found.prev != NULL) found.prev->next = found.next->next; //  connect previous with next
+        linked_list_reset_node(found.next);
+        found.next->data = 0;
+    }
+
+    return FALSE;
+}
+
+void linked_list_print(struct list_node_t *const head)
+{
+    printf("---- linked_list_print\n ----");
+    uint32 i                     = 0;
+    struct list_node_t *cur_node = head;
+    while (cur_node->next != NULL)
+    {
+        printf("node:%d data=%d id:%d exists:%d\n", i++, cur_node->data,
+               cur_node->id, cur_node->exists);
+        cur_node = cur_node->next;
+    }
+}
+
+###########################################################################################################
+
+linked_list_private.c
+
+/*
+ * Created by ckalo on 1/2/26.
+ */
+#include "linked_list.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include "mem_man.h"
+#define MIN_LIST_CAPACITY 16
+
+typedef struct {
+    struct list_node_t *prev;
+    struct list_node_t *next;
+} prev_next_node_t;
+
+static const char *single_linked_list = "single_linked_list";
+static int32 unique_id                = 1;
+
+static void linked_list_reset_node(struct list_node_t *const node)
+{
+    node->exists = FALSE;
+    node->next   = NULL;
+    node->id     = 0;
+}
+
+static struct list_node_t *linked_list_find_next_free_node(struct list_node_t *const list_node)
+{
+    // loop through the allocated memory as if it where a buffer
+    for (uint32 i = 0; i < MIN_LIST_CAPACITY; i++)
+    {
+        struct list_node_t *next_free = list_node + i;
+        if (next_free->exists != TRUE)
+        {
+            return next_free;
+        }
+    }
+    // case list is full
+    // todo: implement realloc
+    return NULL;
+}
+
+static prev_next_node_t linked_list_find_node_by_data(struct list_node_t *const node, const uint32 data)
+{
+    struct list_node_t *prev_node = node;
+    struct list_node_t *cur_node  = node->next;
+    while (cur_node != NULL)
+    {
+        if (cur_node->data == data)
+        {
+            return (prev_next_node_t){prev_node, cur_node};
+        }
+        prev_node = cur_node;
+        cur_node  = cur_node->next;
+    }
+    return (prev_next_node_t){NULL, NULL};
+}
+
+static prev_next_node_t linked_list_find_node_by_id(struct list_node_t *const node, const uint16 id)
+{
+    struct list_node_t *prev_node = node;
+    struct list_node_t *cur_node  = node->next;
+    while (cur_node != NULL)
+    {
+        if (cur_node->id == id)
+        {
+            return (prev_next_node_t){prev_node, cur_node};
+        }
+        prev_node = cur_node;
+        cur_node  = cur_node->next;
+    }
+    return (prev_next_node_t){NULL, NULL};
+}
+
+static void linked_list_print_node(const struct list_node_t *const node, const char *const name)
+{
+    if (node)
+    {
+        printf("node_id:%d data=%d exists:%d next:%x\n", node->id, node->data, node->exists, node->next);
+    }
+}
+
