@@ -25,7 +25,7 @@ int32 buffer_push_uint32(const uint32 val, buffer_t *const buffer);
 // uint32 buffer_push_gentype(const void* const val, buffer_t *const buffer);
 
 // sets up buffer's fields, but the data transform happens at caller site
-uint32 buffer_set_for_push(buffer_t *const buffer);
+uint16 buffer_set_for_push(buffer_t *const buffer);
 void buffer_set_for_insert(buffer_t *const buffer, const bufidx_t index);
 
 void buffer_insert_uint32(const uint32 val, buffer_t* const buffer, bufidx_t index);

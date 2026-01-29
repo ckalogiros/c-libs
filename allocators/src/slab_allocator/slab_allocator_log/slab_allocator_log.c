@@ -19,7 +19,9 @@ void print_mem_cache_list()
     while (list_node) {
         print("  addr:%s%x%s ", CYAN, REDUCE_ADDR(list_node, F6), CLEAR, CYAN);
         print("  name:%s\n", list_node->mem_cache.name.buf);
-        print("  slot_size:%u\n", list_node->mem_cache.slab_size);
+        print("  slab_size:%u\n", list_node->mem_cache.slab_size);
+        print("  type_size:%u\n", list_node->mem_cache.type_size);
+        print("  num_elems:%u\n", list_node->mem_cache.slab_size/list_node->mem_cache.type_size);
         list_node = list_node->next;
       k++;
     }
@@ -32,7 +34,7 @@ void print_mem_cache_struct(const struct mem_cache* const mem_cache)
     print("%s-- mem_cache struct --%s\n", ry, CLEAR);
     print("  name:%s\n", mem_cache->name.buf);
     print("  name len:%u\n", mem_cache->name.len);
-    print("  slot_size:%u\n", mem_cache->slab_size);
+    print("  slab_size:%u\n", mem_cache->slab_size);
     print("\n");
 }
 

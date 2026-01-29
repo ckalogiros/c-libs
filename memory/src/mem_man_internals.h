@@ -6,7 +6,7 @@
 
 #include "my_types.h"
 
-#define START_USED_COUNT 8
+#define START_USED_COUNT 128
 
 enum MEMORY_ERROR_CODE {
     NO_MEMORY_MANAGER_INIT = BIT_MASK_FROM_UINT(1),

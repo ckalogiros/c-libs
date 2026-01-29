@@ -18,18 +18,24 @@ include("${parent_dir}/perf_timer/src/CMakeLists.txt")
 include("${parent_dir}/logger/src/CMakeLists.txt")
 include("${parent_dir}/memory/src/CMakeLists.txt")
 include("${parent_dir}/memory/src/mem_log/CMakeLists.txt")
+#include("${parent_dir}/buffer/src/CMakeLists.txt")
+#include("${parent_dir}/buffer/src/buffer_logger/CMakeLists.txt")
 include("${parent_dir}/io/src/std_input/CMakeLists.txt")
 
 set(external_include
         ${g_includes}
         ${logger_include}
         ${precision_timer_include}
+#        ${buffer_include}
+#        ${buffer_logger_include}
 #        ${std_input_include}
 )
 set(external_source
         ${sys_utils}
         ${logger_source}
         ${precision_timer_source}
+#        ${buffer_source}
+#        ${buffer_logger_source}
 #        ${std_input_source}
 )
 

@@ -31,7 +31,7 @@ void buffer_print_uint32(buffer_print_p params)
         GREEN, REDUCE_ADDR(&buffer, F6), CLEAR
     );
 
-    uint64* free_list = buffer_get_free_list(buffer->free_list_idx);
+    uint64* free_list = buffer->free_list;
     print(" -PRINT free list bitmap\n");
     for (uint32 i = 0; i < buffer->free_list_cnt; i++) {
         bits_print_binary(free_list[i], sizeof(uint64));
@@ -57,7 +57,7 @@ void buffer_print_uint32(buffer_print_p params)
 
 void buffer_print_free_list(const buffer_t * const buffer) {
 
-  uint64* free_list = buffer_get_free_list(buffer->free_list_idx);
+  uint64* free_list = buffer->free_list;
   print(" -PRINT free list bitmap\n");
   for (uint32 i = 0; i < buffer->free_list_cnt; i++) {
     bits_print_binary(free_list[i], sizeof(uint64));
@@ -76,7 +76,7 @@ void buffer_print_error(const enum BUFFER_ERROR_CODE code)
   case NO_BUFFER_TABLE_INIT: {
       print("%sERROR:\n"
           "Buffer table is uninitialized\n"
-          "Call temp_init_buffer_table()%s\n",
+          "Call buffer_init_table()%s\n",
           RED, CLEAR
           );
       break;

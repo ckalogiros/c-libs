@@ -24,28 +24,18 @@ void constructor(struct timer* t) {
   t->count = 0;
 }
 
-static buffer_t* timer_table;
+static buffer_t* timer_table = NULL;
 void timer_init_table() {
+
+  if (timer_table) return;
 
   // allocate memory, construct buffer
   timer_table = buffer_create_gentype(MIN_TIMER_TABLE_CAPACITY, sizeof(struct timer));
 
-  // debug-delete
-  // for (uint32 i = 0; i < MIN_TIMER_TABLE_CAPACITY; i++) {
-  //
-  //   // struct timer t = {0};
-  //   // buffer_push_timer(t, timer_table);
-  // }
-  // for (uint32 i = 0; i < MIN_TIMER_TABLE_CAPACITY; i++) {
-  //
-  //   struct timer* data = timer_table->data;
-  //   temp_debug_print_timer(&data[i]);
-  //
-  // }
 }
 
 
-struct timer* timer_create_timer() {
+struct timer* timer_create_perf_timer() {
 
   // todo: we need to insert(), after we have a free index from buffer
   // OR implement insert at next free element in buffer.c

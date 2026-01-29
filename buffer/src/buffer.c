@@ -34,7 +34,7 @@ buffer_t* buffer_create_gentype(const uint32 capacity, const uint32 typesize)
 
 void buffer_destroy(buffer_t* buffer) {
 
-  buffer_destructor_uint32(buffer);
+  buffer_destructor(buffer);
 }
 
 int32 buffer_push_uint32(const uint32 val, buffer_t *const buffer)
@@ -49,8 +49,10 @@ int32 buffer_push_uint32(const uint32 val, buffer_t *const buffer)
         uint32* data = buffer->data;
         data[buffer->tail] = val;
         buffer->count++;
-        uint64* const free_list = buffer_get_free_list_with_offset(buffer->free_list_idx, buffer->tail);
-        buffer_free_buffer_remove(*free_list, buffer->tail);
+
+        const uint32 offset = buffer->tail / BITS64;
+        uint64* free_list = buffer->free_list+offset;
+        buffer_free_buffer_remove(*free_list, index);
 
       return buffer->tail;
 
@@ -156,7 +158,8 @@ void buffer_insert_uint32(const uint32 val, buffer_t *const buffer, const bufidx
     // increment tail only if index is greater
     if (index > buffer->tail) buffer->tail = index;
 
-    uint64* free_list = buffer_get_free_list_with_offset(buffer->free_list_idx, index);
+    const uint32 offset = index / BITS64;
+    uint64* free_list = buffer->free_list+offset;
     buffer_free_buffer_remove(*free_list, index);
 
   }
@@ -176,7 +179,8 @@ void buffer_remove_uint32(buffer_t *const buffer, const bufidx_t index)
      */
     if (index == buffer->tail) buffer->tail--;
 
-    uint64* free_list = buffer_get_free_list_with_offset(buffer->free_list_idx, index);
+    const uint32 offset = index / BITS64;
+    uint64* free_list = buffer->free_list+offset;
     buffer_free_buffer_insert(*free_list, index);
   }
 }
@@ -242,7 +246,7 @@ uint16 buffer_get_next_free(buffer_t* const buffer) {
 
 
 
-uint32 buffer_set_for_push(buffer_t *const buffer) {
+uint16 buffer_set_for_push(buffer_t *const buffer) {
   // todo: implement realloc
   if (buffer->tail+1 >= buffer->capacity) {
     buffer_reallocate(buffer);
@@ -277,7 +281,8 @@ void buffer_set_for_insert(buffer_t *const buffer, const bufidx_t index)
     // increment tail only if index is greater
     if (index > buffer->tail) buffer->tail = index;
 
-    uint64* free_list = buffer_get_free_list_with_offset(buffer->free_list_idx, index);
+    const uint32 offset = index / BITS64;
+    uint64* free_list = buffer->free_list+offset;
     buffer_free_buffer_remove(*free_list, index);
 
   }

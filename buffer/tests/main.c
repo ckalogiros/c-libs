@@ -29,12 +29,13 @@ int main(void)
         // test_destroy_buffer();
 
         // test_generic_type_buffer();
-        test_vec_type_buffer();
+        // test_vec_type_buffer();
     }
 
     {
         // perf_test_buffer_remove_insert();
         // perf_test_insert_abstruct_call();
+        perf_test_buffer_create_generic_vs_uint32();
     }
 
     return 0;

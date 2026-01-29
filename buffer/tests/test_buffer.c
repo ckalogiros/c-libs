@@ -3,8 +3,8 @@
  */
 
 #include "test_buffer.h"
-#include "buffer.h"
 #include "buffer_internals.h"
+#include "buffer.h"
 #include "buffer_log.h"
 #include "logger.h"
 #include "mem_man.h"
@@ -18,7 +18,10 @@ void fill(buffer_t* const buffer)
 {
     for (uint32 i = 0; i < buffer->capacity; i++)
     {
-        buffer_push_uint32(i+1, buffer);
+        // buffer_push_uint32(i+1, buffer);
+        buffer_set_for_push(buffer);
+        uint32* data = buffer->data;
+        data[i] = i+1;
     }
 }
 void insert_at(const uint32 val, buffer_t* const buffer, const uint32 index)
@@ -38,7 +41,7 @@ void test_create_buffer(const uint32 capacity) {
   const uint32_t num_pages = 10;
   memory_manager_init(num_pages);
 
-  init_buffer_table();
+  buffer_init_table();
 
   // allocate new buffer
   buffer_t* buffer = buffer_create_uint32(capacity);
@@ -49,7 +52,7 @@ void test_create_buffer(const uint32 capacity) {
       .buffer = buffer, .print_num_elems = buffer->capacity
   }));
 
-
+  memory_manager_terminate();
 }
 
 void test_buffer_fill_remove_insert()
@@ -57,7 +60,7 @@ void test_buffer_fill_remove_insert()
     const uint32_t num_pages = 10;
     memory_manager_init(num_pages);
 
-    init_buffer_table();
+    buffer_init_table();
 
     // allocate new buffer
     const uint32 capacity  = 64;
@@ -102,7 +105,7 @@ void test_buffer_different_capacity_buffers() {
   const uint32_t num_pages = 15;
   memory_manager_init(num_pages);
 
-  init_buffer_table();
+  buffer_init_table();
 
   // allocate buffer: capacity=16
   {
@@ -170,7 +173,7 @@ void test_buffer_remove_elements(const uint32 capacity) {
   const uint32_t num_pages = 15;
   memory_manager_init(num_pages);
 
-  init_buffer_table();
+  buffer_init_table();
 
   // allocate buffer
   buffer_t* buffer = buffer_create_uint32(capacity);
@@ -206,7 +209,7 @@ void test_buffer_insert_elements(const uint32 capacity) {
   const uint32_t num_pages = 15;
   memory_manager_init(num_pages);
 
-  init_buffer_table();
+  buffer_init_table();
 
   // allocate buffer
   buffer_t* buffer = buffer_create_uint32(capacity);
@@ -242,7 +245,7 @@ void test_buffer_realloc() {
   const uint32_t num_pages = 15;
   memory_manager_init(num_pages);
 
-  init_buffer_table();
+  buffer_init_table();
 
   // allocate buffer
   const uint32 capacity  = 16;
@@ -316,7 +319,7 @@ void test_destroy_buffer() {
   const uint32_t num_pages = 15;
   memory_manager_init(num_pages);
 
-  init_buffer_table();
+  buffer_init_table();
 
   print("%sTEST CREATE-DESTROY,\nSAME BUFFER TWICE%s\n", GREEN, CLEAR);
   {
@@ -545,7 +548,7 @@ void test_generic_type_buffer() {
   const uint32_t num_pages = 15;
   memory_manager_init(num_pages);
 
-  init_buffer_table();
+  buffer_init_table();
 
   // set the type here for convinience
   buffer_t* buffer = buffer_create_gentype(32, sizeof(uint8));
@@ -555,7 +558,9 @@ void test_generic_type_buffer() {
   {
     const uint64 val = 0xffffffffffffffff;
     // const uint64 val = 14;
-    buffer_push_gentype(&val, buffer);
+    uint8* data = buffer->data;
+    const uint16 idx = buffer_set_for_push(buffer);
+    data[idx] = val;
     // buffer_push_gentype_macro(val, buffer);
   }
 
@@ -577,48 +582,48 @@ void test_generic_type_buffer() {
 
   memory_manager_terminate();
 }
-
-void test_vec_type_buffer() {
-
-  print("%s-- -- -- TEST: -- -- --%s\n", GREEN, CLEAR);
-  print("%s test_generic_type_buffer%s\n\n", CYAN, CLEAR);
-
-  const uint32_t num_pages = 15;
-  memory_manager_init(num_pages);
-
-  init_buffer_table();
-
-  buffer_t* buffer = buffer_create_vec4f(16);
-
-  // fill buffer
-  for (uint32 i = 0; i < buffer->capacity; i++)
-  {
-    const vec4f pos = {.x=1, .y=2, .z=3, .w=4};
-    buffer_push_vec4f(pos, buffer);
-  }
-
-  // print
-  const vec4f* data = buffer->data;
-  for (uint32 i = 0; i < buffer->capacity; i++)
-    print("[%s%u%s]=%sx:%.2f, y:%.2f, z:%.2f, w:%.2f%s\n",
-        YELLOW, i, data[i].x, data[i].y, data[i].z, data[i].w, CLEAR,CYAN, CLEAR);
-
-
-  print("%sREMOVE%s %uth elem\n", GREEN, CLEAR, 2);
-  buffer_remove_vec4f(buffer, 2);
-  print("%sREMOVE%s %uth elem\n", GREEN, CLEAR, 4);
-  buffer_remove_vec4f(buffer, 4);
-  print("%sREMOVE%s %uth elem\n", GREEN, CLEAR, 8);
-  buffer_remove_vec4f(buffer, 8);
-  print("%sREMOVE%s %uth elem\n", GREEN, CLEAR, 10);
-  buffer_remove_vec4f(buffer, 10);
-
-
-  // print
-  for (uint32 i = 0; i < buffer->capacity; i++)
-    print("[%s%u%s]=%sx:%.2f, y:%.2f, z:%.2f, w:%.2f%s\n",
-        YELLOW, i, data[i].x, data[i].y, data[i].z, data[i].w, CLEAR,CYAN, CLEAR);
-
-
-  memory_manager_terminate();
-}
+//
+// void test_vec_type_buffer() {
+//
+//   print("%s-- -- -- TEST: -- -- --%s\n", GREEN, CLEAR);
+//   print("%s test_generic_type_buffer%s\n\n", CYAN, CLEAR);
+//
+//   const uint32_t num_pages = 15;
+//   memory_manager_init(num_pages);
+//
+//   init_buffer_table();
+//
+//   buffer_t* buffer = buffer_create_vec4f(16);
+//
+//   // fill buffer
+//   for (uint32 i = 0; i < buffer->capacity; i++)
+//   {
+//     const vec4f pos = {.x=1, .y=2, .z=3, .w=4};
+//     buffer_push_vec4f(pos, buffer);
+//   }
+//
+//   // print
+//   const vec4f* data = buffer->data;
+//   for (uint32 i = 0; i < buffer->capacity; i++)
+//     print("[%s%u%s]=%sx:%.2f, y:%.2f, z:%.2f, w:%.2f%s\n",
+//         YELLOW, i, data[i].x, data[i].y, data[i].z, data[i].w, CLEAR,CYAN, CLEAR);
+//
+//
+//   print("%sREMOVE%s %uth elem\n", GREEN, CLEAR, 2);
+//   buffer_remove_vec4f(buffer, 2);
+//   print("%sREMOVE%s %uth elem\n", GREEN, CLEAR, 4);
+//   buffer_remove_vec4f(buffer, 4);
+//   print("%sREMOVE%s %uth elem\n", GREEN, CLEAR, 8);
+//   buffer_remove_vec4f(buffer, 8);
+//   print("%sREMOVE%s %uth elem\n", GREEN, CLEAR, 10);
+//   buffer_remove_vec4f(buffer, 10);
+//
+//
+//   // print
+//   for (uint32 i = 0; i < buffer->capacity; i++)
+//     print("[%s%u%s]=%sx:%.2f, y:%.2f, z:%.2f, w:%.2f%s\n",
+//         YELLOW, i, data[i].x, data[i].y, data[i].z, data[i].w, CLEAR,CYAN, CLEAR);
+//
+//
+//   memory_manager_terminate();
+// }

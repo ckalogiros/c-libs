@@ -11,15 +11,11 @@
 void buffer_init_table();
 
 buffer_t* buffer_constructor_uint32(const bufidx_t capacity);
-buffer_t* buffer_constructor_vec4f(const bufidx_t capacity);
-buffer_t* buffer_constructor_vec3f(const bufidx_t capacity);
-buffer_t* buffer_constructor_vec2f(const bufidx_t capacity);
+// buffer_t* buffer_constructor_vec4f(const bufidx_t capacity);
+// buffer_t* buffer_constructor_vec3f(const bufidx_t capacity);
+// buffer_t* buffer_constructor_vec2f(const bufidx_t capacity);
 buffer_t *buffer_constructor_gentype(const bufidx_t capacity, const uint16 typesize);
-void buffer_destructor_uint32(buffer_t * buffer);
-
-
-uint64* const buffer_get_free_list(const uint16 free_list_idx);
-uint64* const buffer_get_free_list_with_offset(const uint16 free_list_idx, const bufidx_t index);
+void buffer_destructor(buffer_t * buffer);
 
 void buffer_reallocate(buffer_t *const buffer);
 

@@ -16,7 +16,7 @@
 
 void timer_init_table();
 
-struct timer* timer_create_timer();
+struct timer* timer_create_perf_timer();
 
 void perf_timer_start(struct timer*);
 void perf_timer_stop(struct timer*);

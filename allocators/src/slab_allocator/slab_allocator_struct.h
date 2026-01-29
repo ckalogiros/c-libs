@@ -54,7 +54,6 @@ struct mem_cache_node {
     struct slab_node* slab_address; // the memory address of the mem_cache.
     struct mem_cache mem_cache; // todo: maybe mem_cache should be stored later
                                 // in mem, so that list is compacted
-    // uint16 slot_size;
 };
 
 struct mem_cache_list {

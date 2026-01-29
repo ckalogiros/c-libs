@@ -21,80 +21,52 @@
 #include "std_input.h"
 #include "std_input_public.h"
 
-int32 has_input() {
-    struct pollfd pfd = { .fd = STDIN_FILENO, .events = POLLIN };
+int32
+has_input()
+{
+    struct pollfd pfd = {.fd = STDIN_FILENO, .events = POLLIN};
     return poll(&pfd, 1, 0) > 0; // 0 timeout = non-blocking
 }
 
 uint32 test_id = 0;
 
-void print_free_list() { mem_log_print_free_list(free_list_get_head()); }
+void
+print_free_list() { mem_log_print_free_list(free_list_get_head()); }
 
-void print_used_memory() { mem_log_print_all_used_mem(); }
+void
+print_used_memory() { mem_log_print_all_used_mem(); }
 
-void test_mem_init_alloc_dealloc();
-void test_slab_allocator_alloc_release();
+void
+test_mem_init_alloc_dealloc();
+
+void
+test_slab_allocator_alloc_release();
 
 
-int main(void)
+int
+main(void)
 {
     // test_mem_init_alloc_dealloc();
 
-    test_slab_allocator_alloc_release();
+    // test_slab_allocator_alloc_release();
 
     // test performance measurements
-    // test_perf_slab_allocation_release();
+    test_perf_slab_allocation_release();
 
 
-
-
-    struct pollfd pfd = { .fd = STDIN_FILENO, .events = POLLIN };
-    char c = '\0';
-    const uint16 read_num_bytes = 1;
-    const uint16 num_discriptors = 1;
-    bool running = TRUE;
-    const uint16 buffer_size = 32;
-
-    // ste callbacks
-    void* list_head = (void*)free_list_get_head();
-    op_set_callback((void*)mem_log_print_free_list, list_head, TO_STRING(mem_log_print_free_list));
-    op_set_callback((void*)print_all_slabs_free_list, (void*)0, TO_STRING(print_all_slabs_free_list));
-
-
-    // while (running) {
-    //
-    //     if (poll(&pfd, num_discriptors, 0) > 0) {
-    //
-    //         uint32 k = 0;
-    //         char buffer[32] = {0};
-    //
-    //         // while read function returns input, read characters to buffer
-    //         while (1){
-    //
-    //             read(STDIN_FILENO, &c, read_num_bytes);
-    //             if (c == '\n' || k > buffer_size) break;
-    //             buffer[k++] = c;
-    //         }
-    //
-    //         buffer[k] = '\0';
-    //
-    //         print("input: %s\n", buffer);
-    //
-    //         running = find_op(buffer);
-    //     }
-    // }
 
     return 0;
 }
 
-void test_slab_allocator_alloc_release()
+void
+test_slab_allocator_alloc_release()
 {
     memory_manager_init(5);
     mem_log_print_mem();
 
     const uint32 buffer_size = 16;
 #define buffer_type_t uint64
-    const uint32 type_size   = sizeof(buffer_type_t);
+    const uint32 type_size = sizeof(buffer_type_t);
 
     // different buffers to allocate
     buffer_type_t* buffer32_1 = NULL;
@@ -106,21 +78,21 @@ void test_slab_allocator_alloc_release()
     buffer_type_t* buffer32_7 = NULL;
     buffer_type_t* buffer32_8 = NULL;
 
-    buffer32_1 = (buffer_type_t*)mem_cache_alloc_buffer(buffer_size, type_size);
+    buffer32_1 = (buffer_type_t*) mem_cache_alloc_buffer(buffer_size, type_size);
     print("%sAllocating:%s:%x%s\n", yg, TO_STRING(buffer32_1), REDUCE_ADDR(buffer32_1, F6), CLEAR);
-    buffer32_2 = (buffer_type_t*)mem_cache_alloc_buffer(buffer_size, type_size);
+    buffer32_2 = (buffer_type_t*) mem_cache_alloc_buffer(buffer_size, type_size);
     print("%sAllocating:%s:%x%s\n", yg, TO_STRING(buffer32_2), REDUCE_ADDR(buffer32_2, F6), CLEAR);
-    buffer32_3 = (buffer_type_t*)mem_cache_alloc_buffer(buffer_size, type_size);
+    buffer32_3 = (buffer_type_t*) mem_cache_alloc_buffer(buffer_size, type_size);
     print("%sAllocating:%s:%x%s\n", yg, TO_STRING(buffer32_3), REDUCE_ADDR(buffer32_3, F6), CLEAR);
-    buffer32_4 = (buffer_type_t*)mem_cache_alloc_buffer(buffer_size, type_size);
+    buffer32_4 = (buffer_type_t*) mem_cache_alloc_buffer(buffer_size, type_size);
     print("%sAllocating:%s:%x%s\n", yg, TO_STRING(buffer32_4), REDUCE_ADDR(buffer32_4, F6), CLEAR);
-    buffer32_5 = (buffer_type_t*)mem_cache_alloc_buffer(buffer_size, type_size);
+    buffer32_5 = (buffer_type_t*) mem_cache_alloc_buffer(buffer_size, type_size);
     print("%sAllocating:%s:%x%s\n", yg, TO_STRING(buffer32_5), REDUCE_ADDR(buffer32_5, F6), CLEAR);
-    buffer32_6 = (buffer_type_t*)mem_cache_alloc_buffer(buffer_size, type_size);
+    buffer32_6 = (buffer_type_t*) mem_cache_alloc_buffer(buffer_size, type_size);
     print("%sAllocating:%s:%x%s\n", yg, TO_STRING(buffer32_6), REDUCE_ADDR(buffer32_6, F6), CLEAR);
-    buffer32_7 = (buffer_type_t*)mem_cache_alloc_buffer(buffer_size, type_size);
+    buffer32_7 = (buffer_type_t*) mem_cache_alloc_buffer(buffer_size, type_size);
     print("%sAllocating:%s:%x%s\n", yg, TO_STRING(buffer32_7), REDUCE_ADDR(buffer32_7, F6), CLEAR);
-    buffer32_8 = (buffer_type_t*)mem_cache_alloc_buffer(buffer_size, type_size);
+    buffer32_8 = (buffer_type_t*) mem_cache_alloc_buffer(buffer_size, type_size);
     print("%sAllocating:%s:%x%s\n", yg, TO_STRING(buffer32_8), REDUCE_ADDR(buffer32_8, F6), CLEAR);
 
     print_all_slabs_free_list();
@@ -136,14 +108,14 @@ void test_slab_allocator_alloc_release()
     mem_cache_release_buffer(buffer32_8, buffer_size, type_size);
 
     print("%sAllocating:%s:ALL BUFFERS AGAIN%s\n", yg, TO_STRING(buffer32_1), CLEAR);
-    buffer32_1 = (buffer_type_t*)mem_cache_alloc_buffer(buffer_size, type_size);
-    buffer32_2 = (buffer_type_t*)mem_cache_alloc_buffer(buffer_size, type_size);
-    buffer32_3 = (buffer_type_t*)mem_cache_alloc_buffer(buffer_size, type_size);
-    buffer32_4 = (buffer_type_t*)mem_cache_alloc_buffer(buffer_size, type_size);
-    buffer32_5 = (buffer_type_t*)mem_cache_alloc_buffer(buffer_size, type_size);
-    buffer32_6 = (buffer_type_t*)mem_cache_alloc_buffer(buffer_size, type_size);
-    buffer32_7 = (buffer_type_t*)mem_cache_alloc_buffer(buffer_size, type_size);
-    buffer32_8 = (buffer_type_t*)mem_cache_alloc_buffer(buffer_size, type_size);
+    buffer32_1 = (buffer_type_t*) mem_cache_alloc_buffer(buffer_size, type_size);
+    buffer32_2 = (buffer_type_t*) mem_cache_alloc_buffer(buffer_size, type_size);
+    buffer32_3 = (buffer_type_t*) mem_cache_alloc_buffer(buffer_size, type_size);
+    buffer32_4 = (buffer_type_t*) mem_cache_alloc_buffer(buffer_size, type_size);
+    buffer32_5 = (buffer_type_t*) mem_cache_alloc_buffer(buffer_size, type_size);
+    buffer32_6 = (buffer_type_t*) mem_cache_alloc_buffer(buffer_size, type_size);
+    buffer32_7 = (buffer_type_t*) mem_cache_alloc_buffer(buffer_size, type_size);
+    buffer32_8 = (buffer_type_t*) mem_cache_alloc_buffer(buffer_size, type_size);
 
 
     mem_cache_release_buffer(buffer32_8, buffer_size, type_size);
@@ -159,11 +131,10 @@ void test_slab_allocator_alloc_release()
     print_all_slabs_free_list();
 
     memory_manager_terminate();
-
-
 }
 
-void test_mem_init_alloc_dealloc()
+void
+test_mem_init_alloc_dealloc()
 {
     // print test info
     {
@@ -186,14 +157,14 @@ void test_mem_init_alloc_dealloc()
     // use memory in buffers sizeof(page)
     {
         const uint32 num_allocations = 4; // total allocations
-        const uint32 num_pages       = 1; // pages per allocation
-        char ch                      = 'a';
-        for (uint32 i = 0; i < num_allocations; i++) {
+        const uint32 num_pages = 1; // pages per allocation
+        char ch = 'a';
+        for(uint32 i = 0; i < num_allocations; i++) {
             const pageid_t buffer_id = allocator_test_alloc(num_pages);
-            uint64* const buffer     = Temp_get_address_by_id(buffer_id);
-            const uint32 count       = (PAGE_SIZE * num_pages) / sizeof(uint64);
-            for (uint32 j = 0; j < count; j++)
-                buffer[j] = (uint64)ch;
+            uint64* const buffer = Temp_get_address_by_id(buffer_id);
+            const uint32 count = (PAGE_SIZE * num_pages) / sizeof(uint64);
+            for(uint32 j = 0; j < count; j++)
+                buffer[j] = (uint64) ch;
             ch++;
         }
         print("\n");
