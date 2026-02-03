@@ -21,7 +21,7 @@ add_executable(logger main.c
         ${logger_source}
         ${external_source}
 )
-target_include_directories(logger PUBLIC
+target_include_directories(logger PRIVATE
         ${logger_include}
         ${external_include}
 )

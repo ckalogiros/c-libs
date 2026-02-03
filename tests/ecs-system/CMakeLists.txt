@@ -35,7 +35,11 @@ set(external_source
 )
 
 add_executable(ecs ecs_main.c
+        entity.c
+        groups.c
         ecs.c
+        component.c
+        tests.c
         ${external_source}
 )
 target_include_directories(ecs PRIVATE

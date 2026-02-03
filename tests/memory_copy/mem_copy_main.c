@@ -15,8 +15,6 @@ buffer_t* buffer;
 
 int main(void)
 {
-
-
   memory_manager_init(NUM_PAGES+8);
   buffer_init_table();
 

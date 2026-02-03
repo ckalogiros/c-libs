@@ -3,12 +3,12 @@
  */
 
 #include "perf_test_buffer.h"
-
 #include "buffer_internals.h"
 #include "buffer_log.h"
 #include "logger.h"
 #include "mem_man.h"
 #include "precision_timer.h"
+#include "precision_timer_logger.h"
 
 
 /*
@@ -16,74 +16,71 @@
  */
 
 struct perf_results {
-  uint32 fps;
-  uint32 nanosec;
-  uint32 microsec;
-  uint32 buffer_size;
-  uint32 type_size;
-  char* name;
+    uint32 fps;
+    uint32 nanosec;
+    uint32 microsec;
+    uint32 buffer_size;
+    uint32 type_size;
+    char* name;
 }
 static perf_results_buf[16];
+
 static uint32 perf_results_buf_cnt = 0;
 
+/*******************************************************************************
+ * private
+ ******************************************************************************/
 
-void perf_results_set(struct timer* t, const uint32 buffer_size, const char* name) {
-
-  perf_results_buf[perf_results_buf_cnt].fps = perf_timer_get_fps(t);
-  perf_results_buf[perf_results_buf_cnt].nanosec = perf_timer_get_avg(t);
-  perf_results_buf[perf_results_buf_cnt].microsec = perf_timer_get_avg(t);
-  perf_results_buf[perf_results_buf_cnt].buffer_size = buffer_size;
-  perf_results_buf[perf_results_buf_cnt].name = name;
-  perf_results_buf_cnt++;
+void
+perf_results_set(struct timer* t, const uint32 buffer_size, const char* name)
+{
+    perf_results_buf[perf_results_buf_cnt].fps = perf_timer_get_fps(t);
+    perf_results_buf[perf_results_buf_cnt].nanosec = perf_timer_get_avg(t);
+    perf_results_buf[perf_results_buf_cnt].microsec = perf_timer_get_avg(t);
+    perf_results_buf[perf_results_buf_cnt].buffer_size = buffer_size;
+    perf_results_buf[perf_results_buf_cnt].name = name;
+    perf_results_buf_cnt++;
 }
 
-void perf_print_timer_resuls(const struct perf_results* results,
-                              const uint32 results_cnt,
-                              const uint32 repeat)
+void
+perf_print_timer_resuls(const struct perf_results* results,
+                        const uint32 results_cnt, const uint32 repeat)
 {
+    print("%s--- Perf Timer Results ---%s\n", CYAN, CLEAR);
+    print("repeat:%s%u%s", br2, repeat, CLEAR);
 
-  print("%s--- Perf Timer Results ---%s\n", CYAN, CLEAR);
-  print("repeat:%s%u%s", br2, repeat, CLEAR);
+    for(uint32 i = 0; i < results_cnt; i++) {
+        if(i % 2 != 0) {
+            print("test:%s[%u]%s", YELLOW, i, CLEAR);
+            print(
+                " buffer_size:%s%u%s"
+                " type_size:%s%u%s\n",
+                CYAN, results[i].buffer_size, CLEAR,
+                CYAN, results[i].type_size, CLEAR
+            );
 
-  for (uint32 i = 0; i < results_cnt; i++) {
+            print(" %s%s%s", GREEN, results[i - 1].name, CLEAR);
+            print(" vs %s%s%s\n", GREEN, results[i].name, CLEAR);
 
-    if (i%2!=0) {
-      print("test:%s[%u]%s", YELLOW, i, CLEAR);
-      print(
-      " buffer_size:%s%u%s"
-      " type_size:%s%u%s\n",
-      CYAN, results[i].buffer_size, CLEAR,
-      CYAN, results[i].type_size, CLEAR
-      );
-
-      print(" %s%s%s", GREEN, results[i-1].name, CLEAR);
-      print(" vs %s%s%s\n", GREEN, results[i].name, CLEAR);
-
-      print(" avg: %d nano", results[i-1].nanosec);
-      print(" avg: %ld micro\n", results[i-1].nanosec / NANO_TO_MICRO);
-      print(" avg: %d nano", results[i].nanosec);
-      print(" avg: %ld micro\n", results[i].nanosec / NANO_TO_MICRO);
-
+            print(" avg: %d nano", results[i - 1].nanosec);
+            print(" avg: %ld micro\n", results[i - 1].nanosec / NANO_TO_MICRO);
+            print(" avg: %d nano", results[i].nanosec);
+            print(" avg: %ld micro\n", results[i].nanosec / NANO_TO_MICRO);
+        }
     }
-
-
-
-  }
 }
 
-void timer_print(struct timer* t,
-                      const uint32 repeat,
-                      const uint32 buffer_size,
-                      const uint32 type_size)
+void
+timer_print(struct timer* t, const uint32 repeat,
+            const uint32 buffer_size, const uint32 type_size)
 {
-
     print("%s--- Timer ---%s\n", CYAN, CLEAR);
     const uint32_t fps = perf_timer_get_fps(t);
     print("  fps: %d\n", fps);
     const uint32_t avg = perf_timer_get_avg(t);
     print("  avg: %d nanosec", avg);
     print("  avg: %ld microsec\n", avg / NANO_TO_MICRO);
-    perf_timer_reset(t);
+    // perf_timer_reset(t);
 
     print(
         "  repeat: %s%u%s"
@@ -92,33 +89,38 @@ void timer_print(struct timer* t,
         CYAN, repeat, CLEAR,
         CYAN, buffer_size, CLEAR,
         CYAN, type_size, CLEAR
-        );
+    );
 
     print("%s--- Timer ---%s\n", CYAN, CLEAR);
 }
 
-static void fill(buffer_t* const buffer)
+static void
+fill(buffer_t* const buffer)
 {
-  for (uint32 i = 0; i < buffer->capacity; i++)
-  {
-    buffer_set_for_push(buffer);
-    uint32* data = buffer->data;
-    data[i] = i+1;
-  }
+    for(uint32 i = 0; i < buffer->capacity; i++) {
+        buffer_set_for_push(buffer);
+        uint32* data = buffer->data;
+        data[i] = i + 1;
+    }
 }
-static void insert_at(const uint32 val, buffer_t* const buffer, const uint32 index)
+
+static void
+insert_at(const uint32 val, buffer_t* const buffer, const uint32 index)
 {
-    if (index != INT_NULL)
+    if(index != INT_NULL)
         buffer_insert_uint32(val, buffer, index);
 }
-static void remove_from(buffer_t* const buffer, const uint32 index)
+
+static void
+remove_from(buffer_t* const buffer, const uint32 index)
 {
-    buffer_remove_uint32(buffer, index);
+    buffer_free_elem(buffer, index);
 }
 
 // A function heavy on divisions that transforms a seed
 // This is intentionally inefficient with many division operations
-uint64_t division_heavy_hash(uint32 seed, uint32 i);
+uint64_t
+division_heavy_hash(uint32 seed, uint32 i);
 
 
 /*******************************************************************************
@@ -126,158 +128,158 @@ uint64_t division_heavy_hash(uint32 seed, uint32 i);
  * remove buffer element
  * insert buffer element
  ******************************************************************************/
-void perf_test_buffer_create_generic_vs_uint32() {
+void
+perf_test_buffer_create_generic_vs_uint32()
+{
+    print("%s-- -- -- TEST: -- -- --%s\n", GREEN, CLEAR);
+    print("%stest performance of allocating and releasing\n"
+          "uint32 buffer versus generic buffer.%s\n\n", CYAN, CLEAR);
 
-  print("%s-- -- -- TEST: -- -- --%s\n", GREEN, CLEAR);
-  print("%stest performance of allocating and releasing\n"
-        "uint32 buffer versus generic buffer.%s\n\n", CYAN, CLEAR);
+    const uint32_t num_pages = 16;
+    memory_manager_init(num_pages);
 
-  const uint32_t num_pages = 16;
-  memory_manager_init(num_pages);
-
-  buffer_init_table();
-
-
-  timer_init_table();
-  struct timer*  t = timer_create_perf_timer();
-
-  const uint32 repeat = 5000000;
-  // const uint32 repeat = 5000;
-  const uint32 type_size = sizeof(uint32);
+    buffer_init_table();
 
 
+    timer_init_table();
+    struct timer* t = timer_create_perf_timer();
 
-  /*****************************************************************************
-   *  buffer capacity: 32
-   ****************************************************************************/
-  { // test: buffer capacity 32
-    const uint32 capacity = 32;
+    const uint32 repeat = 5000000;
+    // const uint32 repeat = 5000;
+    const uint32 type_size = sizeof(uint32);
 
-    perf_timer_start(t);
-    for (uint32 i = 0; i < repeat; i++) {
-      buffer_t* buffer = buffer_create_uint32(capacity);
-      buffer_destroy(buffer);
+
+    /*****************************************************************************
+     *  buffer capacity: 32
+     ****************************************************************************/
+    { // test: buffer capacity 32
+        const uint32 capacity = 32;
+
+        perf_timer_start(t);
+        for(uint32 i = 0; i < repeat; i++) {
+            buffer_t* buffer = buffer_create_uint32(capacity);
+            buffer_destroy(buffer);
+        }
+        perf_timer_stop_with_count(repeat, t);
+        perf_results_set(t, capacity, "buffer uint32");
+        // timer_print(t, repeat, capacity, sizeof(uint32));
+        perf_timer_reset(t);
     }
-    perf_timer_stop_with_count(repeat, t);
-    perf_results_set(t, capacity, "buffer uint32");
-    // timer_print(t, repeat, capacity, sizeof(uint32));
-    perf_timer_reset(t);
-  }
-  { // test: generic
-    const uint32 capacity = 32;
+    { // test: generic
+        const uint32 capacity = 32;
 
-    perf_timer_start(t);
-    for (uint32 i = 0; i < repeat; i++) {
-      buffer_t* buffer = buffer_create_gentype(capacity, type_size);
-      buffer_destroy(buffer);
+        perf_timer_start(t);
+        for(uint32 i = 0; i < repeat; i++) {
+            buffer_t* buffer = buffer_create_gentype(capacity, type_size);
+            buffer_destroy(buffer);
+        }
+        perf_timer_stop_with_count(repeat, t);
+        perf_results_set(t, capacity, "buffer generic");
+        // timer_print(t, repeat, capacity, sizeof(uint32));
+        perf_timer_reset(t);
     }
-    perf_timer_stop_with_count(repeat, t);
-    perf_results_set(t, capacity, "buffer generic");
-    // timer_print(t, repeat, capacity, sizeof(uint32));
-    perf_timer_reset(t);
-  }
 
 
-  /*****************************************************************************
-  *  buffer capacity: 64
-  ****************************************************************************/
-  { // test: uint32
-    const uint32 capacity = 64;
+    /*****************************************************************************
+    *  buffer capacity: 64
+    ****************************************************************************/
+    { // test: uint32
+        const uint32 capacity = 64;
 
-    perf_timer_start(t);
-    for (uint32 i = 0; i < repeat; i++) {
-      buffer_t* buffer = buffer_create_uint32(capacity);
-      buffer_destroy(buffer);
+        perf_timer_start(t);
+        for(uint32 i = 0; i < repeat; i++) {
+            buffer_t* buffer = buffer_create_uint32(capacity);
+            buffer_destroy(buffer);
+        }
+        perf_timer_stop_with_count(repeat, t);
+        perf_results_set(t, capacity, "buffer uint32");
+        // timer_print(t, repeat, capacity, sizeof(uint32));
+        perf_timer_reset(t);
     }
-    perf_timer_stop_with_count(repeat, t);
-    perf_results_set(t, capacity, "buffer uint32");
-    // timer_print(t, repeat, capacity, sizeof(uint32));
-    perf_timer_reset(t);
-  }
-  { // test: buffer capacity 64
-    // allocate new buffer
-    const uint32 capacity = 64;
+    { // test: buffer capacity 64
+        // allocate new buffer
+        const uint32 capacity = 64;
 
-    perf_timer_start(t);
-    for (uint32 i = 0; i < repeat; i++) {
-      buffer_t* buffer = buffer_create_uint32(capacity);
-      buffer_destroy(buffer);
+        perf_timer_start(t);
+        for(uint32 i = 0; i < repeat; i++) {
+            buffer_t* buffer = buffer_create_uint32(capacity);
+            buffer_destroy(buffer);
+        }
+        perf_timer_stop_with_count(repeat, t);
+        perf_results_set(t, capacity, "buffer generic");
+        // timer_print(t, repeat, capacity, type_size);
+        perf_timer_reset(t);
     }
-    perf_timer_stop_with_count(repeat, t);
-    perf_results_set(t, capacity, "buffer generic");
-    // timer_print(t, repeat, capacity, type_size);
-    perf_timer_reset(t);
-  }
 
 
-  /*****************************************************************************
-  *  buffer capacity: 128
-  ****************************************************************************/
-  { // test: uint32
-    const uint32 capacity = 128;
+    /*****************************************************************************
+    *  buffer capacity: 128
+    ****************************************************************************/
+    { // test: uint32
+        const uint32 capacity = 128;
 
-    perf_timer_start(t);
-    for (uint32 i = 0; i < repeat; i++) {
-      buffer_t* buffer = buffer_create_uint32(capacity);
-      buffer_destroy(buffer);
+        perf_timer_start(t);
+        for(uint32 i = 0; i < repeat; i++) {
+            buffer_t* buffer = buffer_create_uint32(capacity);
+            buffer_destroy(buffer);
+        }
+        perf_timer_stop_with_count(repeat, t);
+        perf_results_set(t, capacity, "buffer uint32");
+        // timer_print(t, repeat, capacity, sizeof(uint32));
+        perf_timer_reset(t);
     }
-    perf_timer_stop_with_count(repeat, t);
-    perf_results_set(t, capacity, "buffer uint32");
-    // timer_print(t, repeat, capacity, sizeof(uint32));
-    perf_timer_reset(t);
-  }
-  { // test: buffer capacity 128
-    // allocate new buffer
-    const uint32 capacity = 128;
+    { // test: buffer capacity 128
+        // allocate new buffer
+        const uint32 capacity = 128;
 
-    perf_timer_start(t);
-    for (uint32 i = 0; i < repeat; i++) {
-      buffer_t* buffer = buffer_create_uint32(capacity);
-      buffer_destroy(buffer);
+        perf_timer_start(t);
+        for(uint32 i = 0; i < repeat; i++) {
+            buffer_t* buffer = buffer_create_uint32(capacity);
+            buffer_destroy(buffer);
+        }
+        perf_timer_stop_with_count(repeat, t);
+        perf_results_set(t, capacity, "buffer generic");
+        // timer_print(t, repeat, capacity, type_size);
+        perf_timer_reset(t);
     }
-    perf_timer_stop_with_count(repeat, t);
-    perf_results_set(t, capacity, "buffer generic");
-    // timer_print(t, repeat, capacity, type_size);
-    perf_timer_reset(t);
-  }
 
 
-  /*****************************************************************************
-  *  buffer capacity: 256
-  ****************************************************************************/
-  { // test: uint32
-    // allocate new buffer
-    const uint32 capacity = 256;
+    /*****************************************************************************
+    *  buffer capacity: 256
+    ****************************************************************************/
+    { // test: uint32
+        // allocate new buffer
+        const uint32 capacity = 256;
 
-    perf_timer_start(t);
-    for (uint32 i = 0; i < repeat; i++) {
-      buffer_t* buffer = buffer_create_uint32(capacity);
-      buffer_destroy(buffer);
+        perf_timer_start(t);
+        for(uint32 i = 0; i < repeat; i++) {
+            buffer_t* buffer = buffer_create_uint32(capacity);
+            buffer_destroy(buffer);
+        }
+        perf_timer_stop_with_count(repeat, t);
+        perf_results_set(t, capacity, "buffer uint32");
+        // timer_print(t, repeat, capacity, sizeof(uint32));
+        perf_timer_reset(t);
     }
-    perf_timer_stop_with_count(repeat, t);
-    perf_results_set(t, capacity, "buffer uint32");
-    // timer_print(t, repeat, capacity, sizeof(uint32));
-    perf_timer_reset(t);
-  }
-  { // test: buffer capacity 256
-    // allocate new buffer
-    const uint32 capacity = 256;
+    { // test: buffer capacity 256
+        // allocate new buffer
+        const uint32 capacity = 256;
 
-    perf_timer_start(t);
-    for (uint32 i = 0; i < repeat; i++) {
-      buffer_t* buffer = buffer_create_uint32(capacity);
-      buffer_destroy(buffer);
+        perf_timer_start(t);
+        for(uint32 i = 0; i < repeat; i++) {
+            buffer_t* buffer = buffer_create_uint32(capacity);
+            buffer_destroy(buffer);
+        }
+        perf_timer_stop_with_count(repeat, t);
+        perf_results_set(t, capacity, "buffer generic");
+        // timer_print(t, repeat, capacity, type_size);
+        perf_timer_reset(t);
     }
-    perf_timer_stop_with_count(repeat, t);
-    perf_results_set(t, capacity, "buffer generic");
-    // timer_print(t, repeat, capacity, type_size);
-    perf_timer_reset(t);
-  }
 
 
-  perf_print_timer_resuls(perf_results_buf, perf_results_buf_cnt, repeat);
+    perf_print_timer_resuls(perf_results_buf, perf_results_buf_cnt, repeat);
 
-  memory_manager_terminate();
+    memory_manager_terminate();
 }
 
 /*******************************************************************************
@@ -285,24 +287,28 @@ void perf_test_buffer_create_generic_vs_uint32() {
  * remove buffer element
  * insert buffer element
  ******************************************************************************/
-void perf_test_buffer_remove_insert()
+void
+perf_test_buffer_remove_insert()
 {
-    const uint32_t num_pages = 4;
+    const uint32_t num_pages = 10;
     memory_manager_init(num_pages);
 
-    const uint32 repeat = 1000000;
+    // const uint32 repeat = 1000000;
+    const uint32 repeat = 2000;
 
     buffer_init_table();
 
+    timer_init_table();
+
     // allocate new buffer
-    const uint32 capacity  = 64;
+    const uint32 capacity = 64;
     buffer_t* buffer = buffer_create_uint32(capacity);
 
 
     // fill buffer
     fill(buffer);
 
-    buffer_print_uint32((buffer_print_config((buffer_print_p){
+    buffer_print_uint32((buffer_print_config((buffer_print_params){
         .buffer = buffer, .print_num_elems = buffer->capacity
     })));
 
@@ -313,29 +319,51 @@ void perf_test_buffer_remove_insert()
     // remove an element, using free buffer to store all free buffer elems
     print("%s-- REMOVE ELEMENTS AT INDEX:%d%s\n\n", gc, index, CLEAR);
     perf_timer_start(t);
-    for (uint32 i = 0; i < repeat; i++) {
-        for (uint32 j = 0; j < buffer->capacity; j++) {
+    for(uint32 i = 0; i < repeat; i++) {
+
+        /* cheat: */
+        // set free list as if the buffer is full
+        for(uint32 i = 0; i < buffer->free_list_capacity; i++)
+            buffer->free_list[i] = MAX_UINT64;
+        // set tail as if the buffer is full
+        buffer->tail = capacity-1;
+
+        for(uint32 j = 0; j < buffer->capacity; j++) {
             remove_from(buffer, j);
         }
     }
-    perf_timer_stop_with_count(repeat*buffer->capacity, t);
-    timer_print(t, repeat, buffer->capacity, sizeof(buffer->data[0]));
+    perf_timer_stop_with_count(repeat * buffer->capacity, t);
+    perf_timer_print(timer_print_config((timer_print_params){
+        .t = t, .repeat = repeat, .buf_capacity = buffer->capacity,
+        .flags = PERF_T_COMMON|PERF_T_INLINE }));
+    perf_timer_reset(t);
 
 
     // insert a value in the buffer at specific index, using the free buffer 'find' a free element
     print("%s-- INSERT ELEMENTS AT INDEX:%d%s\n\n", gc, index, CLEAR);
     perf_timer_start(t);
-    for (uint32 i = 0; i < repeat; i++) {
-        for (uint32 j = 0; j < buffer->capacity; j++) {
-            const uint32 v = (((i+1) / 2) * i) / 2;
+    for(uint32 i = 0; i < repeat; i++) {
+
+        /* cheat: */
+        // set free list as if the buffer is empty
+        for(uint32 i = 0; i < buffer->free_list_capacity; i++)
+            buffer->free_list[i] = 0;
+        // set tail as if the buffer is empty
+        buffer->tail = -1;
+
+        for(uint32 j = 0; j < buffer->capacity; j++) {
+            const uint32 v = (((i + 1) / 2) * i) / 2;
             // const uint32 v = division_heavy_hash(i, i);
             insert_at(v, buffer, j);
         }
     }
-    perf_timer_stop_with_count(repeat*buffer->capacity, t);
-    timer_print(t, repeat, buffer->capacity, sizeof(buffer->data[0]));
+    perf_timer_stop_with_count(repeat * buffer->capacity, t);
+    perf_timer_print(timer_print_config((timer_print_params){
+        .t = t, .repeat = repeat, .buf_capacity = buffer->capacity,
+        .flags = PERF_T_COMMON|PERF_T_INLINE|PERF_T_IN_CONTINUATION }));
+    perf_timer_reset(t);
 
-    // buffer_log_print_uint32((buffer_print_config((buffer_print_p){
+    // buffer_print_uint32((buffer_print_config((buffer_print_p){
     //     .buffer = buffer, .print_num_elems = buffer->capacity
     // })));
 
@@ -343,36 +371,39 @@ void perf_test_buffer_remove_insert()
 }
 
 
-
 /*******************************************************************************
  * test: measure performance overhead of pushing to buffer
  * inside the loop compare to push via function overhead (using the buffer id)
  ******************************************************************************/
-void push_abstructed(const uint16 id, const uint32 index, uint32 val)
+void
+push_abstructed(const uint16 id, const uint32 index, uint32 val)
 {
-    void* address         = Temp_get_address_by_id(id); // Get memory directly from mem manager
-    buffer_t* buffer      = (buffer_t*)address;
+    void* address = Temp_get_address_by_id(id); // Get memory directly from mem manager
+    buffer_t* buffer = (buffer_t*) address;
     uint32* data = buffer->data;
-    data[index]   = val;
+    data[index] = val;
     buffer->tail++;
     buffer->count++;
 }
 
-void perf_test_insert_abstruct_call()
+void
+perf_test_insert_abstruct_call()
 {
     print("%s-- TEST: --\n", ry, CLEAR);
     print("%s measure performance overhead\n of pushing to buffer\n"
-    " from inside the loop\n compare to push via function\n using  the buffer id%s\n\n",
-    ry, CLEAR);
+          " from inside the loop\n compare to push via function\n using  the buffer id%s\n\n",
+          ry, CLEAR);
 
-    const uint32_t num_pages = 4;
+    const uint32_t num_pages = 8;
     memory_manager_init(num_pages);
 
 
     buffer_init_table();
 
+    timer_init_table();
+
     // allocate new buffer
-    const uint32 capacity  = 16;
+    const uint32 capacity = 16;
     buffer_t* buffer = buffer_create_uint32(capacity);
 
 
@@ -389,14 +420,12 @@ void perf_test_insert_abstruct_call()
         struct timer* t = timer_create_perf_timer();
         print("%s-- test: with function call overhead%s\n", BLUE, CLEAR);
         perf_timer_start(t);
-        for (uint32 k = 0; k < repeat; k++)
-        {
-            for (uint32 i = 0; i < len; i++)
-            {
+        for(uint32 k = 0; k < repeat; k++) {
+            for(uint32 i = 0; i < len; i++) {
                 push_abstructed(buffer->id, i, 1);
             }
         }
-        perf_timer_stop_with_count(repeat*len, t);
+        perf_timer_stop_with_count(repeat * len, t);
         timer_print(t, repeat, len, sizeof(buffer->data[0]));
 
 
@@ -406,16 +435,14 @@ void perf_test_insert_abstruct_call()
         print("%s-- test: push inside the loop%s\n", BLUE, CLEAR);
         perf_timer_start(t);
         uint32* data = buffer->data;
-        for (uint32 k = 0; k < repeat; k++)
-        {
-            for (uint32 i = 0; i < len; i++)
-            {
+        for(uint32 k = 0; k < repeat; k++) {
+            for(uint32 i = 0; i < len; i++) {
                 data[i] = 0;
                 buffer->tail++;
                 buffer->count++;
             }
         }
-        perf_timer_stop_with_count(repeat*len, t);
+        perf_timer_stop_with_count(repeat * len, t);
         timer_print(t, repeat, len, sizeof(buffer->data[0]));
     }
 
@@ -426,11 +453,13 @@ void perf_test_insert_abstruct_call()
 
      */
 
-  memory_manager_terminate();
+    memory_manager_terminate();
 }
 
 
-uint64_t division_heavy_hash(uint32 seed, uint32 i) {
+uint64_t
+division_heavy_hash(uint32 seed, uint32 i)
+{
     uint64_t value = seed;
 
     // Chain multiple division operations with varying divisors
@@ -463,7 +492,120 @@ uint64_t division_heavy_hash(uint32 seed, uint32 i) {
     // value = ((value / 167) + i) * ((value % 173) - i);
 
     // Ensure value doesn't become zero (avoid division by zero later)
-    if (value == 0) value = seed + i + 1;
+    if(value == 0) value = seed + i + 1;
 
     return value;
+}
+
+
+
+void
+perf_test_buffer_find_tail()
+{
+    print("%s-- -- -- TEST: -- -- --%s\n", GREEN, CLEAR);
+    print("%s test_buffer_find_tail%s\n\n", CYAN, CLEAR);
+
+    const uint32_t num_pages = 15;
+    memory_manager_init(num_pages);
+
+    buffer_init_table();
+
+    timer_init_table();
+
+    const uint32 repeat = 1000000;
+    const uint32 type_size = sizeof(uint32);
+
+    struct timer* t = timer_create_perf_timer();
+
+    // capacity 64
+    {
+        const uint32 capacity = 64;
+        buffer_t* buffer = buffer_create_gentype(capacity, type_size);
+
+        perf_timer_start(t);
+        for(uint32 r = 0; r < repeat; r++) {
+
+            /* cheat: */
+            // set free list as if the buffer is full
+            for(uint32 i = 0; i < buffer->free_list_capacity; i++)
+                buffer->free_list[i] = 0;
+            // set tail as if the buffer is full
+            buffer->tail = capacity-1;
+
+            for(uint32 i = 0; i < buffer->capacity; i++) {
+                buffer_free_elem(buffer, i);
+            }
+        }
+        perf_timer_stop_with_count(repeat*capacity, t);
+        timer_print(t, repeat, capacity, sizeof(uint32));
+    }
+    // capacity 128
+    {
+        const uint32 capacity = 128;
+        buffer_t* buffer = buffer_create_gentype(capacity, type_size);
+
+        perf_timer_start(t);
+        for(uint32 r = 0; r < repeat; r++) {
+
+            /* cheat: */
+            // set free list as if the buffer is full
+            for(uint32 i = 0; i < buffer->free_list_capacity; i++)
+                buffer->free_list[i] = 0;
+            // set tail as if the buffer is full
+            buffer->tail = capacity-1;
+
+            for(uint32 i = 0; i < buffer->capacity; i++) {
+                buffer_free_elem(buffer, i);
+            }
+        }
+        perf_timer_stop_with_count(repeat*capacity, t);
+        timer_print(t, repeat, capacity, sizeof(uint32));
+    }
+    // capacity 256
+    {
+        const uint32 capacity = 256;
+        buffer_t* buffer = buffer_create_gentype(capacity, type_size);
+
+        perf_timer_start(t);
+        for(uint32 r = 0; r < repeat; r++) {
+
+            /* cheat: */
+            // set free list as if the buffer is full
+            for(uint32 i = 0; i < buffer->free_list_capacity; i++)
+                buffer->free_list[i] = 0;
+            // set tail as if the buffer is full
+            buffer->tail = capacity-1;
+
+            for(uint32 i = 0; i < buffer->capacity; i++) {
+                buffer_free_elem(buffer, i);
+            }
+        }
+        perf_timer_stop_with_count(repeat*capacity, t);
+        timer_print(t, repeat, capacity, sizeof(uint32));
+    }
+    // capacity 512
+    {
+        const uint32 capacity = 512;
+        buffer_t* buffer = buffer_create_gentype(capacity, type_size);
+
+        perf_timer_start(t);
+        for(uint32 r = 0; r < repeat; r++) {
+
+            /* cheat: */
+            // set free list as if the buffer is full
+            for(uint32 i = 0; i < buffer->free_list_capacity; i++)
+                buffer->free_list[i] = 0;
+            // set tail as if the buffer is full
+            buffer->tail = capacity-1;
+
+            for(uint32 i = 0; i < buffer->capacity; i++) {
+                buffer_free_elem(buffer, i);
+            }
+        }
+        perf_timer_stop_with_count(repeat*capacity, t);
+        timer_print(t, repeat, capacity, sizeof(uint32));
+    }
+
+
+    memory_manager_terminate();
 }

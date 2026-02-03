@@ -8,35 +8,39 @@
 
 
 enum BUFFER_ERROR_CODE {
-  NO_BUFFER_TABLE_INIT = BIT_MASK_FROM_UINT(1),
+    NO_BUFFER_TABLE_INIT = BIT_MASK_FROM_UINT(1),
+    BUFFER_INDEX_GREATER_THAN_TAIL = BIT_MASK_FROM_UINT(2),
+    BUFFER_INDEX_GREATER_THAN_CAPACITY = BIT_MASK_FROM_UINT(3),
+    BUFFER_TAIL_GREATER_THAN_CAPACITY = BIT_MASK_FROM_UINT(4),
 };
 
 typedef struct buffer_t {
-    void* data;              // buffer start (allocations of type allocations_t)
-    uint64* free_list;       // pointer to the start of the free elems list
-    uint16 free_list_cnt;    // total free list uint64's (Ex. buf capacity=128 => free_list=2 uin64)
-    bufidx_t capacity;       // total buffer  elements count
-    bufidx_t count;          // used elements count
-    int16   tail;            // last element's index
-    bufidx_t id;             // self reference index
-    int16   typesize;        // last element's index
-
+    void* data; // buffer start (allocations of type allocations_t)
+    uint64* free_list; // pointer to the start of the free elems list
+    uint16 free_list_capacity; // total free list uint64's (Ex. buf capacity=128 => free_list=2 uin64)
+    bufidx_t capacity; // total buffer  elements count
+    bufidx_t count; // used elements count
+    int16 tail; // last element's index
+    bufidx_t id; // self reference index
+    int16 typesize; // last element's index
 } buffer_t;
 
 
-
 typedef struct {
-  float x;
-  float y;
+    float x;
+    float y;
 } vec2f;
-struct vec2i32{
-  float x;
-  float y;
+
+struct vec2i32 {
+    float x;
+    float y;
 };
-struct vec2u32{
-  float x;
-  float y;
+
+struct vec2u32 {
+    float x;
+    float y;
 };
+
 // // Union containing all representations
 // union vec2_32 {
 //   struct { float x, y; };          // vec2f
@@ -53,26 +57,26 @@ struct vec2u32{
 // typedef union vec2_32 vec2u;
 
 typedef struct {
-  float x;
-  float y;
-  float z;
-} vec3f;
-
-typedef union {
-  struct {
     float x;
     float y;
     float z;
-    float w;
-  };
-  struct {
-    float r;
-    float g;
-    float b;
-    float a;
-  };
-} vec4f;
+} vec3f;
 
+typedef union {
+    struct {
+        float x;
+        float y;
+        float z;
+        float w;
+    };
+
+    struct {
+        float r;
+        float g;
+        float b;
+        float a;
+    };
+} vec4f;
 
 
 #endif //BUFFER_BUFFER_STRUCT_H
@@ -110,4 +114,3 @@ typedef union {
         int i = ctz(mask);
         mask &= mask - 1; // clear lowest set bit
  */
-

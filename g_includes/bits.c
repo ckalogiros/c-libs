@@ -5,32 +5,30 @@
 #include "bits.h"
 #include "logger.h"
 
-void bits_print_binary(const uint64 val, const uint32 type_size)
+void
+bits_print_binary(const uint64 val, const uint32 type_size)
 {
-
     print("    read: right to left <---------");
-    const int32 num_bits = (int32)(type_size * 8);
-    for (int32 i = num_bits-1; i >= 0; i--)
-    {
+    const int32 num_bits = (int32) (type_size * 8);
+    for(int32 i = num_bits - 1; i >= 0; i--) {
         const uint8 bit = bit_get(val, i);
 
-        if ((i+1)%16 == 0)
-            print("\n    byte:[%u]    ", i/16);
+        if((i + 1) % 16 == 0)
+            print("\n    byte:[%u]    ", i / 16);
 
-        if (bit) print("%s%u%s", YELLOW, bit, CLEAR);
+        if(bit) print("%s%u%s", YELLOW, bit, CLEAR);
         else print("%u", bit);
 
-        if (i%4 == 0)
+        if(i % 4 == 0)
             print(" ");
-
     }
     print("\n");
     print("  hex:%s%llx%s\n", br2, val, CLEAR);
-
 }
 
 
-void test_bits_binary_operations()
+void
+test_bits_binary_operations()
 {
     { // clear bit
         uint16 val = 0;
@@ -79,7 +77,7 @@ void test_bits_binary_operations()
             bit_clear(val, 12, uint16);
             bit_clear(val, 13, uint16);
             bit_clear(val, 14, uint16);
-//            bit_clear(val, 15, uint16);
+            //            bit_clear(val, 15, uint16);
             bits_print_binary(val, sizeof(val));
         }
 
@@ -89,13 +87,15 @@ void test_bits_binary_operations()
         {
             print("%sis bit set:%s\n        ", ry, CLEAR);
             uint32 k = 0;
-            for (int32 i = 16-1; i >= 0; i--)
-            {
+            for(int32 i = 16 - 1; i >= 0; i--) {
                 const uint8 bit = bit_is_set(val, i, uint8);
-                if (bit) print("%s%llu%s", YELLOW, bit, CLEAR);
+                if(bit) print("%s%llu%s", YELLOW, bit, CLEAR);
                 else print("%u", bit);
                 k++;
-                if (k == 4) { print(" "); k=0; }
+                if(k == 4) {
+                    print(" ");
+                    k = 0;
+                }
             }
             print("\n");
             bits_print_binary(val, sizeof(val));
@@ -109,18 +109,19 @@ void test_bits_binary_operations()
             bits_print_binary(val, sizeof(val));
             print("toggle:         ");
             uint32 k = 0;
-            for (int32 i = 16-1; i >= 0; i--)
-            {
-//                const uint8 bit = bit_toggle(val, i, uint16);
+            for(int32 i = 16 - 1; i >= 0; i--) {
+                //                const uint8 bit = bit_toggle(val, i, uint16);
                 bit_toggle(val, i, uint16);
-                if ((val >> i)&1) print("%s%u%s", YELLOW, (val >> i)&1, CLEAR);
-                else print("%u", (val >> i)&1);
+                if((val >> i) & 1) print("%s%u%s", YELLOW, (val >> i) & 1, CLEAR);
+                else print("%u", (val >> i) & 1);
                 k++;
-                if (k == 4) { print(" "); k=0; }
+                if(k == 4) {
+                    print(" ");
+                    k = 0;
+                }
             }
             print("\nafter: ");
             bits_print_binary(val, sizeof(val));
         }
     }
 }
-

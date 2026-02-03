@@ -10,18 +10,19 @@
 typedef struct {
     buffer_t* buffer;
     uint32 print_num_elems;
-} buffer_print_p;
+} buffer_print_params;
 
-static inline buffer_print_p buffer_print_config(buffer_print_p in)
+static buffer_print_params
+buffer_print_config(buffer_print_params in)
 {
-    buffer_print_p out = {
+    buffer_print_params out = {
         .buffer = NULL,
         .print_num_elems = 0,
     };
 
     /* override defaults if user provided values */
-    if (in.buffer)      out.buffer = in.buffer;
-    if (in.print_num_elems) out.print_num_elems = in.print_num_elems;
+    if(in.buffer) out.buffer = in.buffer;
+    if(in.print_num_elems) out.print_num_elems = in.print_num_elems;
 
     return out;
 }

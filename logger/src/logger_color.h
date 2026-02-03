@@ -22,4 +22,3 @@
 #define br3 (FG_RGB(240, 50, 100))
 
 #endif // LOGGER_COLORS_H
-

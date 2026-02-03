@@ -8,19 +8,26 @@
 #define DEBUG_PRINT_MEM
 //#undef DEBUG_PRINT_MEM // undef to remove print info
 
-void mem_log_print_init_mem() {
-  print("%s#####################\n"
-        "  INITIALIZE MEMORY\n"
-        "#####################%s\n\n", YELLOW, CLEAR);
-}
-void mem_log_print_terminate_mem() {
-  print("\n\n%s#####################\n"
-        "  TERMINATE MEMORY\n"
-        "#####################%s\n\n", YELLOW, CLEAR);
-}
-void mem_log_print_mem()
+void
+mem_log_print_init_mem()
 {
-    #ifdef DEBUG_PRINT_MEM
+    print("%s#####################\n"
+          "  INITIALIZE MEMORY\n"
+          "#####################%s\n\n", YELLOW, CLEAR);
+}
+
+void
+mem_log_print_terminate_mem()
+{
+    print("\n\n%s#####################\n"
+          "  TERMINATE MEMORY\n"
+          "#####################%s\n\n", YELLOW, CLEAR);
+}
+
+void
+mem_log_print_mem()
+{
+#ifdef DEBUG_PRINT_MEM
     print("-- %smemory block%s --\n", ry, CLEAR);
     print(
         " size bytes: %s%lu%s\n"
@@ -37,11 +44,13 @@ void mem_log_print_mem()
         CYAN, REDUCE_ADDR(mem.addr+mem.size, F6), CLEAR
     );
     print("\n");
-    #endif
+#endif
 }
-void mem_log_print_all_used_mem()
+
+void
+mem_log_print_all_used_mem()
 {
-    #ifdef DEBUG_PRINT_MEM
+#ifdef DEBUG_PRINT_MEM
 
     const used_mem_t* used_mem_buf = used_mem_get_used_mem();
     const uint32 count = used_mem_get_count();
@@ -55,42 +64,44 @@ void mem_log_print_all_used_mem()
     );
 
     print("-- %sused memory%s --\n", ry, CLEAR);
-    for (uint32 i = 0; i < tail+1; i++)
-    {
+    for(uint32 i = 0; i < tail + 1; i++) {
         print(
             "[%s%u%s] id:%s%u%s num_pages:%s%u%s"
             " addr:%s%x%s\n",
-            YELLOW, i&0xfffffff, CLEAR,
+            YELLOW, i & 0xfffffff, CLEAR,
             CYAN, used_mem_buf[i].id, CLEAR,
             CYAN, used_mem_buf[i].num_pages, CLEAR,
-            br2, (uint64)(used_mem_buf[i].addr)&F6, CLEAR
+            br2, (uint64) (used_mem_buf[i].addr) & F6, CLEAR
         );
     }
 
     print("-- %sused mem buf%s --\n\n", ry, CLEAR);
-    #endif
+#endif
 }
-void mem_log_print_used_mem_buf(const char* operation, const used_mem_t* const used_mem)
+
+void
+mem_log_print_used_mem_buf(const char* operation, const used_mem_t* const used_mem)
 {
-    #ifdef DEBUG_PRINT_MEM
+#ifdef DEBUG_PRINT_MEM
     print("-- %sused %s%s", ry, operation, CLEAR);
     print(
         "  id:%s%u%s pages:%s%u%s"
         " addr:%s%x%s\n",
         YELLOW, used_mem->id, CLEAR,
         CYAN, used_mem->num_pages, CLEAR,
-        br2, (uint64)(used_mem->addr)&F6, CLEAR
+        br2, (uint64) (used_mem->addr) & F6, CLEAR
     );
-    #endif
+#endif
 }
-void mem_log_print_free_list(const free_list_t* const head)
+
+void
+mem_log_print_free_list(const free_list_t* const head)
 {
-    #ifdef DEBUG_PRINT_MEM
+#ifdef DEBUG_PRINT_MEM
     print("-- %smem man sys free list%s --\n", ry, CLEAR);
     const free_list_t* node = head;
     uint32 k = 0;
-    while (node)
-    {
+    while(node) {
         // print(
         //     "[%s%u%s] addr:%s%x%s"
         //     " next:%s%x%s\n",
@@ -101,37 +112,48 @@ void mem_log_print_free_list(const free_list_t* const head)
         node = node->next;
         k++;
     }
-    print("free pages:%s%u%s  bytesize:%s%u%s\n", YELLOW, k, CLEAR, YELLOW, k*PAGE_SIZE, CLEAR);
+    print("free pages:%s%u%s  bytesize:%s%u%s\n", YELLOW, k, CLEAR, YELLOW, k * PAGE_SIZE, CLEAR);
     print("-- %sfree list%s --\n\n", ry, CLEAR);
-    #endif
+#endif
 }
-void mem_log_print_list_node(const char* operation, const free_list_t* const node)
+
+void
+mem_log_print_list_node(const char* operation, const free_list_t* const node)
 {
-    #ifdef DEBUG_PRINT_MEM
+#ifdef DEBUG_PRINT_MEM
     print("-- %slist %s%s", ry, operation, CLEAR);
     print("  page id:%s%u%s addr:%s%x%s\n",
-        YELLOW, node->page_id, CLEAR,
-        br2, REDUCE_ADDR(node->addr, F6), CLEAR
+          YELLOW, node->page_id, CLEAR,
+          br2, REDUCE_ADDR(node->addr, F6), CLEAR
     );
-    #endif
+#endif
 }
 
 // ERROR handling
-void mem_print_error(const enum MEMORY_ERROR_CODE code)
+void
+mem_print_error(const enum MEMORY_ERROR_CODE code)
 {
-    switch (code) {
+    switch(code) {
         case NO_MEMORY_MANAGER_INIT: {
             print("%sERROR:\n"
-                "Memory manager is uninitialized\n"
-                "Call memory_manager_init() and don't forget memory_manager_terminate()%s\n",
-                RED, CLEAR
-                );
+                  "Memory manager is uninitialized\n"
+                  "Call memory_manager_init() and don't forget memory_manager_terminate()%s\n",
+                  RED, CLEAR
+            );
             break;
-        }        case NO_FREE_MEMORY: {
+        }
+        case NO_FREE_MEMORY: {
             print("%sERROR:\n"
-                "There is no free memory%s\n",
-                RED, CLEAR
-                );
+                  "There is no free memory%s\n",
+                  RED, CLEAR
+            );
+            break;
+        }
+        case MEMMAN_ALREADY_INITIALIZED: {
+            print("%sERROR:\n"
+                  "Memory manager already initialized%s\n",
+                  RED, CLEAR
+            );
             break;
         }
     }

@@ -2,43 +2,72 @@
 #include "mem_man.h"
 #include "precision_timer_logger.h"
 #include "src/precision_timer.h"
-#include <stdio.h>
 #include "src/cpu_time_stamp.h"
-
+#include <stdio.h>
 #include <stdint.h>
+#include <unistd.h>
 
-void test_perf_timer(struct timer* t, int num);
+#include "logger.h"
+
+void test_perf_timer();
 void test_cpu_time_stamps(int num);
 void test_timer_table_impl();
 
 
 int main(void) {
 
-    // const int num = 100000;
-    // test_perf_timer(num);
+    test_perf_timer();
+
     // test_cpu_time_stamps(num);
 
-    test_timer_table_impl();
+    // test_timer_table_impl();
 
     return 0;
 }
 
-void test_perf_timer(struct timer* t, const int num) {
+void test_perf_timer() {
 
-    for (int i = 0; i < num; i++) {
-        perf_timer_start(t);
+    memory_manager_init(6);
+    buffer_init();
+    timer_init_table();
+
+    const uint32 repeat = 1000000;
+    struct timer* t = timer_create_perf_timer();
+
+
+    perf_timer_start(t);
+    for (int i = 0; i < repeat; i++) {
         // printf(".");
-        // sleep(0);
-        perf_timer_stop(t);
+        // usleep(10);
     }
+    perf_timer_stop(t);
 
-    printf("--- Timer\n");
-    const uint32 fps = perf_timer_get_fps(t);
-    printf("fps: %d\n", fps);
-    const uint32 avg = perf_timer_get_avg(t);
-    printf("avg: %d nanosec\n", avg);
-    const uint64_t accum = perf_timer_get_accum(t);
-    printf("accum: %ld nanosec\n", accum);
+    // perf_timer_print_simple(t, repeat, 0);
+    // perf_timer_print_simple_with_repeat(t, repeat, 0);
+
+    perf_timer_print(timer_print_config((timer_print_params){
+        .t = t, .repeat = repeat,
+        .flags = PERF_T_ALL
+    }));
+    print("ALL-INLINE\n");
+    perf_timer_print(timer_print_config((timer_print_params){
+        .t = t, .repeat = repeat,
+        .flags = PERF_T_ALL|PERF_T_INLINE
+    }));
+    print("COMON\n");
+    perf_timer_print(timer_print_config((timer_print_params){
+        .t = t, .repeat = repeat,
+        .flags = PERF_T_COMMON|PERF_T_IN_CONTINUATION,
+    }));
+    print("COMON-INLINE\n");
+    perf_timer_print(timer_print_config((timer_print_params){
+        .t = t, .repeat = repeat,
+        .flags = PERF_T_COMMON|PERF_T_IN_CONTINUATION|PERF_T_INLINE
+    }));
+
+
+
+    memory_manager_terminate();
 }
 
 void test_cpu_time_stamps(const int num) {
@@ -70,14 +99,14 @@ void test_timer_table_impl() {
   timer_init_table();
 
 
-  struct timer* t = timer_create_timer();
+  struct timer* t = timer_create_perf_timer();
 
-  temp_debug_print_timer(t);
+  // perf_timer_print(t);
 
   perf_timer_start(t);
   perf_timer_stop(t);
 
-  temp_debug_print_timer(t);
+  // perf_timer_print(t);
 
   memory_manager_terminate();
 

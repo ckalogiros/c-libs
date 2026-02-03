@@ -6,9 +6,9 @@
 
 int main(void)
 {
-    // test();
+    test();
 
-    test_prerf_basic_operations();
+    // test_prerf_basic_operations();
 
     // test_perf_unaligned_memory_buffers();
 

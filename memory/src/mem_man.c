@@ -7,12 +7,19 @@
 #include "mem_man_internals.h"
 #include <stdlib.h>
 
+#include "sys_utils.h"
+
 static bool is_mem_initialize = FALSE;
 
 // public
 void
 memory_manager_init(const uint32 num_pages)
 {
+    if(mem.addr) {
+        mem_print_error(MEMMAN_ALREADY_INITIALIZED);
+        my_exit("MEMMAN_ALREADY_INITIALIZED", __FILE__, __LINE__);
+    }
+
     mem_log_print_init_mem();
     mem.addr = aligned_alloc(PAGE_SIZE, num_pages * PAGE_SIZE);
     mem.size = num_pages * PAGE_SIZE;

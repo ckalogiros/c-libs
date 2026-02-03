@@ -9,6 +9,7 @@ set(project_dir "${CMAKE_SOURCE_DIR}")
 #include("${project_dir}/src/CMakeLists.txt")
 #include("${project_dir}/src/buffer_logger/CMakeLists.txt")
 add_subdirectory(${project_dir}/tests)
+add_subdirectory(${project_dir}/tests_level2)
 
 
 ################# external directories #################
@@ -20,6 +21,8 @@ include("${parent_dir}/memory/src/CMakeLists.txt")
 include("${parent_dir}/memory/src/mem_log/CMakeLists.txt")
 include("${parent_dir}/allocators/src/slab_allocator/CMakeLists.txt")
 include("${parent_dir}/allocators/src/slab_allocator/slab_allocator_log/CMakeLists.txt")
+include("${parent_dir}/buffer/src/CMakeLists.txt")
+include("${parent_dir}/buffer/src/buffer_logger/CMakeLists.txt")
 include("/home/ckalo/data/projects/third_party/glad/src/CMakeLists.txt")
 set(external_include
         ${g_includes}
@@ -29,6 +32,8 @@ set(external_include
         ${slab_allocator_include}
         ${slab_allocator_log_include}
         ${mms_loger_include}
+        ${buffer_include}
+        ${buffer_log_include}
         ${glad_include}
 
 
@@ -42,6 +47,8 @@ set(external_source
         ${slab_allocator_source}
         ${slab_allocator_log_source}
         ${mms_loger_source}
+        ${buffer_source}
+        ${buffer_log_source}
         ${glad_source}
 
 )

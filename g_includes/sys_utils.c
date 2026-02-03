@@ -3,12 +3,11 @@
  */
 
 #include "sys_utils.h"
-
 #include "logger_color.h"
-
 #include <stdio.h>
 
-void my_exit(const char* msg, const char* file, const uint32 line)
+void
+my_exit(const char* msg, const char* file, const uint32 line)
 {
     printf("%s%s%s\nEXIT AT %s\nline:%u\n", RED, msg, CLEAR, file, line);
     exit(1);

@@ -20,6 +20,7 @@ void print_mem_cache_list()
         print("  addr:%s%x%s ", CYAN, REDUCE_ADDR(list_node, F6), CLEAR, CYAN);
         print("  name:%s\n", list_node->mem_cache.name.buf);
         print("  slab_size:%u\n", list_node->mem_cache.slab_size);
+        print("  num slabs:%u\n", list_node->mem_cache.slabs_count);
         print("  type_size:%u\n", list_node->mem_cache.type_size);
         print("  num_elems:%u\n", list_node->mem_cache.slab_size/list_node->mem_cache.type_size);
         list_node = list_node->next;

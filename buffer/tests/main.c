@@ -12,8 +12,8 @@
 #include "test_buffer.h"
 
 
-
-int main(void)
+int
+main(void)
 {
     {
         // test_create_buffer(16);
@@ -23,19 +23,21 @@ int main(void)
 
         // test_buffer_remove_elements(256);
         // test_buffer_insert_elements(256);
-
+        //
         // test_buffer_realloc();
 
         // test_destroy_buffer();
 
         // test_generic_type_buffer();
-        // test_vec_type_buffer();
+
+        // test_buffer_find_tail();
     }
 
     {
-        // perf_test_buffer_remove_insert();
+        perf_test_buffer_remove_insert();
         // perf_test_insert_abstruct_call();
-        perf_test_buffer_create_generic_vs_uint32();
+        // perf_test_buffer_create_generic_vs_uint32();
+        // perf_test_buffer_find_tail();
     }
 
     return 0;

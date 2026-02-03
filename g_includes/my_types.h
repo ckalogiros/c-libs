@@ -38,10 +38,10 @@ typedef uint8 bool;
 #define BYTE_SIZE 8
 
 
-#define HEX_8 0xff
-#define HEX_16 0xffff
-#define HEX_32 0xffffffff
-#define HEX_64 0xffffffffffffffff
+#define MAX_UINT8 0xff
+#define MAX_UINT16 0xffff
+#define MAX_UINT32 0xffffffff
+#define MAX_UINT64 0xffffffffffffffff
 
 
 #define BIT_MASK_FROM_UINT(n) (1ULL << (n))
@@ -60,6 +60,33 @@ typedef uint8 bool;
 typedef uint16 pageid_t;
 
 typedef uint16 bufidx_t;
+
+// // For IDs/counters (usually positive)
+// #define INVALID_ID 0
+// #define NO_INDEX -1
+// #define UNUSED_SLOT 0xFFFFFFFF
+//
+// // For array indices
+// #define INDEX_NONE -1
+// ssize_t index = INDEX_NONE;
+//
+// // For handles
+// #define INVALID_HANDLE 0
+// #define NULL_HANDLE ((void*)0)
+// 2. Use functions for validation:
+// c
+//
+// static inline bool is_valid_id(uint32_t id) {
+//     return id != USER_ID_NONE;
+// }
+//
+// static inline bool is_index_valid(ssize_t idx) {
+//     return idx >= 0;
+// }
+//
+// static inline bool is_handle_valid(void* handle) {
+//     return handle != NULL;
+// }
 
 
 #define get_type_bytes(T) _Generic((T), uint8: 1, uint16: 2, uint32: 4, uint64: 8 )

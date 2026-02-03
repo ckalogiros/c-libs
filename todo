@@ -1,0 +1,93 @@
+https://chat.deepseek.com/a/chat/s/6b0b9513-7909-4d43-afe4-a72bf5e824c6
+----------------
+Option 2: GCC vector extension
+c
+
+// GCC/Clang specific
+void memset64(void *dest, uint64_t pattern, size_t count) {
+    typedef uint64_t v2u64 __attribute__((vector_size(16)));
+    v2u64 *d = dest;
+    v2u64 p = {pattern, pattern};
+    
+    size_t i;
+    for (i = 0; i + 1 < count; i += 2) {
+        d[i/2] = p;
+    }
+    // Handle remainder
+    if (i < count) {
+        ((uint64_t *)d)[i] = pattern;
+    }
+}
+
+----------------
+Option 4: SIMD intrinsics (x86-64)
+c
+
+#include <immintrin.h>
+
+void memset64_avx(void *dest, uint64_t pattern, size_t count) {
+    uint64_t *d = dest;
+    __m256i p = _mm256_set1_epi64x(pattern);
+    
+    size_t i = 0;
+    for (; i + 3 < count; i += 4) {
+        _mm256_storeu_si256((__m256i*)&d[i], p);
+    }
+    // Handle remainder
+    for (; i < count; i++) {
+        d[i] = pattern;
+    }
+}
+
+----------------
+Option 5: Assembly (x86-64)
+c
+
+void memset64_asm(void *dest, uint64_t pattern, size_t count) {
+    uint64_t *d = dest;
+    
+    __asm__ volatile (
+        "rep stosq"
+        : "+D"(d), "+c"(count)
+        : "a"(pattern)
+        : "memory"
+    );
+}
+
+----------------
+----------------
+----------------
+Performance test comparison:
+c
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <string.h>
+#include <time.h>
+
+#define SIZE (1024*1024*16)  // 16 million elements
+
+void benchmark() {
+    uint64_t *data = malloc(SIZE * sizeof(uint64_t));
+    uint64_t pattern = 0x123456789ABCDEF0ULL;
+    
+    // Method 1: Standard memset (byte-oriented, WRONG for pattern!)
+    clock_t start = clock();
+    memset(data, (int)pattern, SIZE * sizeof(uint64_t));
+    clock_t end = clock();
+    printf("memset: %.3f ms (WRONG - only sets bytes to 0xF0)\n", 
+           (double)(end - start) * 1000 / CLOCKS_PER_SEC);
+    
+    // Method 2: Manual loop
+    start = clock();
+    for (size_t i = 0; i < SIZE; i++) {
+        data[i] = pattern;
+    }
+    end = clock();
+    printf("Manual loop: %.3f ms\n", 
+           (double)(end - start) * 1000 / CLOCKS_PER_SEC);
+    
+    free(data);
+}
+#################################################################################

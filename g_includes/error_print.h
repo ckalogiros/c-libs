@@ -14,5 +14,4 @@
 // #define ERROR(file, line) ERROR_ERROR(TO_STRING(file), TO_STRING(line))
 
 
-
 #endif //ERROR_PRINT_H

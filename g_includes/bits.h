@@ -100,15 +100,13 @@ default : 32)
 // get the lower half part of any uint
 #define bits_mask_high(v) ( ( (v) >> half_type_bits(v) ) & (half_type_mask(v)) )
 
-typedef struct { uint64 b1; uint64 b2; uint64 b3; uint64 b4; } bits256_t;
-typedef struct { uint64 b1; uint64 b2; } bits128_t;
-
 
 // print-debug
-void bits_print_binary(uint64 val, uint32 type_size);
+void
+bits_print_binary(uint64 val, uint32 type_size);
 
-void test_bits_binary_operations();
-
+void
+test_bits_binary_operations();
 
 
 #endif //BITS_H

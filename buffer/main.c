@@ -6,9 +6,14 @@
 #include "buffer_log.h"
 #include "precision_timer.h"
 
-void keyboard_input1();
-void keyboard_input2();
-int main(void)
+void
+keyboard_input1();
+
+void
+keyboard_input2();
+
+int
+main(void)
 {
     const uint32_t num_pages = 4;
     memory_manager_init(num_pages);
@@ -22,10 +27,11 @@ int main(void)
 }
 
 enum KEYS {
-    X='x',
+    X = 'x',
 };
 
-void keyboard_input1()
+void
+keyboard_input1()
 {
     int charIn;
 
@@ -37,7 +43,9 @@ void keyboard_input1()
     printf("\nYou entered: ");
     putchar(charIn);
 }
-void keyboard_input2()
+
+void
+keyboard_input2()
 {
     // Create an int and a char variable
     int myNum;

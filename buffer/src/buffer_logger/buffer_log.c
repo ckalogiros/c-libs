@@ -6,13 +6,15 @@
 #include "bits.h"
 #include "buffer_internals.h"
 #include "logger.h"
+#include "sys_utils.h"
 
 #define DEBUG_PRINT_BUFFER
 //#undef DEBUG_PRINT_BUFFER // undef to remove print info
 
-void buffer_print_uint32(buffer_print_p params)
+void
+buffer_print_uint32(buffer_print_params params)
 {
-    #ifdef DEBUG_PRINT_BUFFER
+#ifdef DEBUG_PRINT_BUFFER
 
     buffer_t* const buffer = params.buffer;
     const uint32 print_num_elems = params.print_num_elems;
@@ -33,53 +35,78 @@ void buffer_print_uint32(buffer_print_p params)
 
     uint64* free_list = buffer->free_list;
     print(" -PRINT free list bitmap\n");
-    for (uint32 i = 0; i < buffer->free_list_cnt; i++) {
+    for(uint32 i = 0; i < buffer->free_list_capacity; i++) {
         bits_print_binary(free_list[i], sizeof(uint64));
     }
 
     uint32* data = buffer->data;
     print("    ");
-    for (uint32 i = 0; i < print_num_elems; i++)
-    {
+    for(uint32 i = 0; i < print_num_elems; i++) {
         print(
             "[%s%u%s]=%s%u%s, ",
             YELLOW, i, CLEAR,
             CYAN, data[i], CLEAR
         );
 
-        if ((i+1)%3 == 0) print("\n    ");
+        if((i + 1) % 3 == 0) print("\n    ");
     }
     print("\n");
 
     print("-- %sbuffer%s --\n\n", ry, CLEAR);
-    #endif
+#endif
 }
 
-void buffer_print_free_list(const buffer_t * const buffer) {
-
-  uint64* free_list = buffer->free_list;
-  print(" -PRINT free list bitmap\n");
-  for (uint32 i = 0; i < buffer->free_list_cnt; i++) {
-    bits_print_binary(free_list[i], sizeof(uint64));
-  }
-
+void
+buffer_print_free_list(const buffer_t* const buffer)
+{
+    uint64* free_list = buffer->free_list;
+    print(" -PRINT free list bitmap\n");
+    for(uint32 i = 0; i < buffer->free_list_capacity; i++) {
+        bits_print_binary(free_list[i], sizeof(uint64));
+    }
 }
 
-void buffer_print_char(const buffer_t * const buffer) {}
-
+void
+buffer_print_char(const buffer_t* const buffer) {}
 
 
 // ERROR handling
-void buffer_print_error(const enum BUFFER_ERROR_CODE code)
+void
+buffer_print_error(const enum BUFFER_ERROR_CODE code)
 {
-  switch (code) {
-  case NO_BUFFER_TABLE_INIT: {
-      print("%sERROR:\n"
-          "Buffer table is uninitialized\n"
-          "Call buffer_init_table()%s\n",
-          RED, CLEAR
-          );
-      break;
+    switch(code) {
+        case NO_BUFFER_TABLE_INIT: {
+            print("%sERROR:\n"
+                  "Buffer table is uninitialized\n"
+                  "Call buffer_init_table()%s\n",
+                  RED, CLEAR
+            );
+            break;
+        }
+        case BUFFER_INDEX_GREATER_THAN_TAIL: {
+            print("%sERROR:\n"
+                  "trying to make use of index\n"
+                  "that is greater than the buffer tail%s\n",
+                  RED, CLEAR
+            );
+            break;
+        }
+        case BUFFER_INDEX_GREATER_THAN_CAPACITY: {
+            print("%sERROR:\n"
+                  "trying to make use of index\n"
+                  "that is greater than the buffer capacity%s\n",
+                  RED, CLEAR
+            );
+            break;
+        }
+        case BUFFER_TAIL_GREATER_THAN_CAPACITY: {
+            print("%sERROR:\n"
+                  "buffer tail is greater than the buffer capacity%s\n",
+                  RED, CLEAR
+            );
+            break;
+        }
     }
-  }
+
+    // my_exit("buffer_print_error", __FILE__, __LINE__);
 }
