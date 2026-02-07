@@ -1,6 +1,7 @@
 set(project_dir "${CMAKE_SOURCE_DIR}")
 include("${project_dir}/src/slab_allocator/CMakeLists.txt")
 include("${project_dir}/src/slab_allocator/slab_allocator_log/CMakeLists.txt")
+include("${project_dir}/src/stack_allocator/CMakeLists.txt")
 include("${project_dir}/src/generic_allocator/CMakeLists.txt")
 
 

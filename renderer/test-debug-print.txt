@@ -1,0 +1,15 @@
+* 
+*** renderer.c
+ * 
+*** opengl.c ***
+ * glXGetProcAddress test: 0x7d0664b796c0
+ * GL Vendor: NVIDIA Corporation
+ * GL Renderer: NVIDIA GeForce GTX 1050 Ti/PCIe/SSE2
+ * GL Version: 4.6.0 NVIDIA 535.288.01
+ * GL Shading Language: 4.60 NVIDIA
+ * OpenGL version 4.6.0 NVIDIA 535.288.01
+* 
+*** shader_build.c ***
+  * SHADER::VERTEX::COMPILATION SUCCEEDED
+  * SHADER::FRAGMENT::COMPILATION SUCCEEDED
+  * SHADER::PROGRAM::LINKING SUCCEEDED

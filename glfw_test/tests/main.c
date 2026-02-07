@@ -5,6 +5,10 @@
 #include "instanced.h"
 #include "triangle.h"
 #include "line.h"
+// #include "glad.h"
+#include "X11/Xlib.h"
+#include "wayland-client.h"
+
 
 int main(void)
 {
@@ -14,6 +18,7 @@ int main(void)
     // line_render();
     instanced_render();
     // geometry_shader_render();
+
 
 
   return 0;

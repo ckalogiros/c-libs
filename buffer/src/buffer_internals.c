@@ -11,7 +11,8 @@
 
 #include <string.h>
 
-#define BUFFER_TABLE_MIN_CAPACITY 32
+// todo: must be dynamicaly reallocated
+#define BUFFER_TABLE_MIN_CAPACITY 512
 
 /*******************************************************************************
  * buffer_table: a buffer to store all applications buffer structures
@@ -19,6 +20,11 @@
  ******************************************************************************/
 static buffer_t* buffer_table = NULL; // ptr to memory block
 static uint32 buffer_table_count = 0;
+
+void TEMP_PRINT_BUFFER_TABLE_COUNT()
+{
+    print("TEMP_PRINT_BUFFER_TABLE_COUNT:%u\n", buffer_table_count);
+}
 
 struct buffer_table_free_list {
     struct buffer_table_free_list* next;
@@ -75,6 +81,7 @@ buffer_init_table()
     // assign memory to buffer's free list
     void* const address =
             (buffer_t*) mem_cache_alloc_buffer(BUFFER_TABLE_MIN_CAPACITY, btable_typesize);
+
     buffer_table = address;
 
     buffer_t* btable_ptr = buffer_table;
@@ -103,6 +110,11 @@ buffer_constructor_uint32(const bufidx_t capacity)
         buffer_print_error(NO_BUFFER_TABLE_INIT);
         my_exit("buffer_constructor_uint32", __FILE__, __LINE__);
     }
+    if(capacity <= 0) {
+        buffer_print_error(BUFFER_CAPACITY_LESS_THAN_1);
+        my_exit("buffer_constructor_uint32", __FILE__, __LINE__);
+    }
+
 
     // how many uint64's do we need to cover all buffer elements. 16 uint64's for buffer capacity=1024
     const uint32 free_list_uint64_count = ((capacity - 1) / BITS64) + 1;
@@ -137,6 +149,10 @@ buffer_constructor_gentype(const bufidx_t capacity, const uint16 typesize)
 {
     if(!buffer_table) {
         buffer_print_error(NO_BUFFER_TABLE_INIT);
+        my_exit("buffer_constructor_uint32", __FILE__, __LINE__);
+    }
+    if(capacity <= 0) {
+        buffer_print_error(BUFFER_CAPACITY_LESS_THAN_1);
         my_exit("buffer_constructor_uint32", __FILE__, __LINE__);
     }
 
@@ -282,13 +298,13 @@ buffer_reallocate(buffer_t* const buffer)
     const bufidx_t new_capacity = buffer->capacity * 2;
 
     // 1.
-    void* const data_ptr = (uint32*) mem_cache_alloc_buffer(new_capacity, sizeof(uint32));
+    void* const data_ptr = (uint32*) mem_cache_alloc_buffer(new_capacity, buffer->typesize);
 
     // 2.
-    memcpy(data_ptr, buffer->data, buffer->capacity * sizeof(uint32));
+    memcpy(data_ptr, buffer->data, buffer->capacity * buffer->typesize);
 
     // 3.
-    mem_cache_release_buffer(buffer->data, buffer->capacity, sizeof(uint32));
+    mem_cache_release_buffer(buffer->data, buffer->capacity, buffer->typesize);
 
     // 4.
     const uint32 flist_old_capacity = ((buffer->capacity - 1) / BITS64) + 1;

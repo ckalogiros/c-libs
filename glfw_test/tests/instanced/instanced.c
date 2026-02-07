@@ -3,9 +3,7 @@
  */
 
 #include "instanced.h"
-
 #include <string.h>
-
 #include "glad.h"
 #include "glfw3.h"
 #include "gl_perf_timer.h"

@@ -6,8 +6,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
 
 set(project_dir "${CMAKE_SOURCE_DIR}")
 include("${project_dir}/src/std_input/CMakeLists.txt")
-#include("${project_dir}/src/slab_allocator/slab_allocator_log/CMakeLists.txt")
-
+include("${project_dir}/src/x11/CMakeLists.txt")
 #add_subdirectory(${project_dir}/tests)
 
 

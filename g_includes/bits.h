@@ -10,31 +10,6 @@
 #include "my_types.h"
 
 
-/* HALF TYPES */
-//#define half_type_t(T) _Generic((T), \
-//uint8 : uint8, \
-//uint16 : uint8, \
-//uint32 : uint16, \
-//uint64 : uint32, \
-//default : uint16)
-
-//#define ttt(T) (u##T)
-
-//#define cast(x) _Generic((x), \
-//uint8 : (uint8)(x), \
-//uint16 : (uint16)(x), \
-//uint32 : (uint32)(x), \
-//uint64 : (uint64)(x), \
-//)
-
-/* TYPES */
-//#define type_t(T) _Generic((T), \
-//uint8 : uint8, \
-//uint16 : uint16, \
-//uint32 : uint32, \
-//uint64 : uint64, \
-//default : uint32)
-
 /* MASKS */
 #define half_type_mask(T) _Generic((T), \
 uint8 : 0xff, \

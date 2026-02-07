@@ -21,4 +21,33 @@
 #define br2 (FG_RGB(200,50, 255))
 #define br3 (FG_RGB(240, 50, 100))
 
+
+
+/***************************************************************************************************
+ * hex predifined colors
+ */
+#define hex_red1 (#ef2334)
+#define hex_red2 (#ef238d)
+#define hex_red3 (#ef3b23)
+#define hex_purple1 (#ef23e2)
+#define hex_purple2 (#e223ef)
+#define hex_purple3 (#b223ef)
+#define hex_purple4 (#8623ef)
+#define hex_blue1 (#232eef)
+#define hex_blue2 (#2367ef)
+#define hex_blue3 (#23a1ef)
+#define hex_cyan1 (#23dbef)
+#define hex_cyan2 (#23efd7)
+
+
+
+/***************************************************************************************************
+ * HTML builder: css style colors
+ */
+// #define HTML_RED(s)     "<span style='color:red;font-weight:bold'>" s "</span>"
+// #define HTML_GREEN(s)   "<span style='color:green'>" s "</span>"
+// #define HTML_YELLOW(s)  "<span style='color:orange'>" s "</span>"
+// #define HTML_BLUE(s)    "<span style='color:blue'>" s "</span>"
+// #define HTML_GRAY(s)    "<span style='color:gray'>" s "</span>"
+
 #endif // LOGGER_COLORS_H

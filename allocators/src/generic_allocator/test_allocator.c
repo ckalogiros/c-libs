@@ -73,7 +73,7 @@ pageid_t allocator_test_alloc(const uint32 byte_size)
     if (byte_size < PAGE_SIZE) { num_pages = 1; }
     else if (byte_size < PAGE_SIZE*2) { num_pages = 2; }
     else if (byte_size < PAGE_SIZE*3) { num_pages = 3; }
-    const pageid_t page_id = mmu_allocate_pages(num_pages);
+    const pageid_t page_id = mms_allocate_pages(num_pages);
 
     return page_id;
 }

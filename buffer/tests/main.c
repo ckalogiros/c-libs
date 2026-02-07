@@ -34,7 +34,14 @@ main(void)
     }
 
     {
-        perf_test_buffer_remove_insert();
+
+        // test_buffer_with_children();
+        perf_test_buffer_with_children();
+        // perf_test_buffer_with_children_in_dif_slabs();
+    }
+
+    {
+        // perf_test_buffer_remove_insert();
         // perf_test_insert_abstruct_call();
         // perf_test_buffer_create_generic_vs_uint32();
         // perf_test_buffer_find_tail();

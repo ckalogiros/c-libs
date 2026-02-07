@@ -1,0 +1,117 @@
+/*
+ * Created by ckalo on 2/5/26.
+ */
+
+#include "logger_to_html.h"
+
+#include <stdio.h>
+
+#include "logger.h"
+#include "logger_to_html_css.h"
+#include "sys_utils.h"
+#include <stdarg.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define GROUP_SIZE_BYTES 4096
+
+
+static void* mem = NULL;
+
+
+
+static void mem_alloc(const uint32 size){}
+static void mem_append(const uint32 size){}
+
+
+static char* groups[HTML_GROUP_CAPACITY];
+static uint32 pointers[HTML_GROUP_CAPACITY];
+
+
+static bool temp_file_created = FALSE;
+
+void
+printhtml_init(const char* dir)
+{
+    char mode[] = "a";
+    if(!temp_file_created) {mode[0] = 'w'; temp_file_created = TRUE;}
+    FILE* file;
+    // file = fopen("/data/projects/clion/logger/test.html", mode);
+    file = fopen(dir, mode);
+    if (file == NULL) my_exit("ERROR opening file: ", __FILE__, __LINE__);
+
+    char buffer[2048] = {'\0'};
+    const uint32 max_len = 2048;
+
+
+    const uint32 len = snprintf(buffer, max_len,
+        "%s"
+        "%s%s%s%s%s"
+        "%s%s%s"
+        "%s%s%s"
+        "%s%s",
+        html_header,
+        css_all, css_tag_body, css_tag_div, css_tag_p, css_class_container,
+        css_text_color_blue1, css_text_color_blue2, css_text_color_blue3,
+        css_text_color_red1, css_text_color_red2, css_text_color_red3,
+        html_header_close, html_body
+        );
+    fputs(buffer, file);
+
+    print("total char len = %u\n", len);
+
+    fclose(file);
+
+    const uint32 size = (sizeof(char) * GROUP_SIZE_BYTES * HTML_GROUP_CAPACITY);
+    mem = aligned_alloc(GROUP_SIZE_BYTES, size);
+    memset(mem, 0, size);
+    char* addr = mem;
+    for(uint32 i = 0; i < HTML_GROUP_CAPACITY; i++) {
+        groups[i] = addr;
+        addr += GROUP_SIZE_BYTES;
+    }
+}
+
+void
+printhtml_close(const char* dir)
+{
+    char mode[] = "a";
+    if(!temp_file_created) {mode[0] = 'w'; temp_file_created = TRUE;}
+    FILE* file;
+    file = fopen(dir, mode);
+    if (file == NULL) my_exit("ERROR opening file: ", __FILE__, __LINE__);
+
+
+    fputs("<div class=\"container\";>\n", file);
+    fputs(groups[0], file);
+    fputs("</div>\n", file);
+
+    print("mem:\n%s\n", mem);
+
+    fputs(html_body_close, file);
+    fclose(file);
+}
+
+void printhtml_group_append_code(uint32 group, uint32 class, const char* format, ...)
+{
+    uint32 pointer = pointers[group];
+    char* cur_address = groups[group] + (pointer * sizeof(char));
+    const uint32 max_len = GROUP_SIZE_BYTES - pointer;
+
+    va_list args;
+    va_start(args, format);
+    uint32 input_len = snprintf(cur_address, max_len, format, args);
+    va_end(args);
+
+    pointers[group] += input_len;
+
+    print("pointer: %u\naddress:%p\n", pointers[group], cur_address);
+
+}
+
+void printhtml_destroy()
+{
+    print("destroy mem:\n%s\n", mem);
+    if(mem != NULL) free(mem);
+}
+

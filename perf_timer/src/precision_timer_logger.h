@@ -8,8 +8,7 @@
 #include "precision_timer_struct.h"
 
 void
-perf_timer_print(const timer_print_params params)
-;
+perf_timer_print(const timer_print_params params);
 
 // void
 // perf_timer_print(struct timer* t, const uint32 repeat, const uint32 buf_capacity);

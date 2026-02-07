@@ -6,6 +6,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
 
 set(project_dir "${CMAKE_SOURCE_DIR}")
 include("${project_dir}/src/CMakeLists.txt")
+include("${project_dir}/src/to_html/CMakeLists.txt")
 
 
 ################# external directories #################
@@ -15,13 +16,16 @@ set(external_include
         ${g_includes}
 )
 set(external_source
+        ${sys_utils}
 )
 
 add_executable(logger main.c
         ${logger_source}
+        ${logger_to_html_source}
         ${external_source}
 )
 target_include_directories(logger PRIVATE
         ${logger_include}
+        ${logger_to_html_include}
         ${external_include}
 )

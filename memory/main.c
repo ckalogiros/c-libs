@@ -5,9 +5,11 @@
 #include "mem_log/mem_log.h"
 #include "mem_man.h"
 
-int main(void)
+int
+main(void)
 {
     memory_manager_init(4);
+;
 
     mem_log_print_mem(mem_get_mem());
     mem_log_print_free_list(free_list_get_head());

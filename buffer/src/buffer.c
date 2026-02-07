@@ -137,12 +137,14 @@ buffer_set_for_push(buffer_t* const buffer)
     // todo: implement realloc
     if(buffer->tail + 1 >= buffer->capacity) {
         buffer_reallocate(buffer);
-        my_exit("ERROR in buffer_set_for_push().\n"
-                "buffer_reallocate deals with uint32 buffer type\n"
-                "but buffer_set_for_push is a generic type function\n"
-                "SO REALLOC DOES  NOT WORK!!!",
-                __FILE__, __LINE__);
-    } else {
+        print("%s#### BUFFER REALLOC\n new capacity:%u%s\n", YELLOW, buffer->capacity, CLEAR);
+        // my_exit("ERROR in buffer_set_for_push().\n"
+        //         "buffer_reallocate deals with uint32 buffer type\n"
+        //         "but buffer_set_for_push is a generic type function\n"
+        //         "SO REALLOC DOES  NOT WORK!!!",
+        //         __FILE__, __LINE__);
+    }
+    // else {
         buffer->tail++;
         buffer->count++;
         const bufidx_t offset = buffer->tail / BITS64;
@@ -150,7 +152,7 @@ buffer_set_for_push(buffer_t* const buffer)
         buffer_free_list_remove(*free_list, buffer->tail);
 
         return buffer->tail;
-    }
+    // }
 
     return INT_NULL;
 }

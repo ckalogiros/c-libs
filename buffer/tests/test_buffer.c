@@ -7,6 +7,7 @@
 #include "buffer.h"
 #include "buffer_log.h"
 #include "logger.h"
+#include "mem_log.h"
 #include "mem_man.h"
 #include "precision_timer.h"
 #include "slab_allocator_log.h"
@@ -280,7 +281,6 @@ test_buffer_realloc()
     for(uint32 i = 0; i < buffer->capacity / 2; i++) {
         buffer_push_uint32(100 + i, buffer);
     }
-    mem_print_free_list();
     print_mem_cache_list();
     buffer_print_uint32(buffer_print_config((buffer_print_params){
         .buffer = buffer, .print_num_elems = buffer->capacity
@@ -293,7 +293,6 @@ test_buffer_realloc()
     for(uint32 i = 0; i < buffer->capacity / 2; i++) {
         buffer_push_uint32(200 + i, buffer);
     }
-    mem_print_free_list();
     print_mem_cache_list();
     buffer_print_uint32(buffer_print_config((buffer_print_params){
         .buffer = buffer, .print_num_elems = buffer->capacity
@@ -306,7 +305,6 @@ test_buffer_realloc()
     for(uint32 i = 0; i < buffer->capacity / 2; i++) {
         buffer_push_uint32(300 + i, buffer);
     }
-    mem_print_free_list();
     print_mem_cache_list();
     buffer_print_uint32(buffer_print_config((buffer_print_params){
         .buffer = buffer, .print_num_elems = buffer->capacity
@@ -319,7 +317,6 @@ test_buffer_realloc()
     for(uint32 i = 0; i < buffer->capacity / 2; i++) {
         buffer_push_uint32(400 + i, buffer);
     }
-    mem_print_free_list();
     print_mem_cache_list();
     buffer_print_uint32(buffer_print_config((buffer_print_params){
         .buffer = buffer, .print_num_elems = buffer->capacity
@@ -332,7 +329,6 @@ test_buffer_realloc()
     for(uint32 i = 0; i < buffer->capacity / 2; i++) {
         buffer_push_uint32(400 + i, buffer);
     }
-    mem_print_free_list();
     print_mem_cache_list();
     buffer_print_uint32(buffer_print_config((buffer_print_params){
         .buffer = buffer, .print_num_elems = buffer->capacity
@@ -658,3 +654,67 @@ test_buffer_get_next_free()
 {
 
 }
+
+
+/***************************************************************************************************
+ * buffers inside of buffers !
+ */
+void
+test_buffer_with_children()
+{
+    print("%s-- -- -- TEST: -- -- --%s\n", GREEN, CLEAR);
+    print("%s test_buffer_with_children%s\n\n", CYAN, CLEAR);
+
+    const uint32_t num_pages = 15;
+    memory_manager_init(num_pages);
+
+    buffer_init_table();
+
+    struct node {
+        uint32 nameid;
+        buffer_t* children;
+    };
+
+    const uint32 repeat = 1;
+    const uint32 capacity = 4;
+    const uint32 type_size = sizeof(struct node);
+    buffer_t* buffer = buffer_create_gentype(capacity, type_size);
+    print("add buffer at:%x\n", REDUCE_ADDR(buffer->data, F6));
+    // fill buffer
+    for(uint32 i = 0; i < buffer->capacity; i++) {
+
+        buffer_set_for_insert(buffer, i);
+        struct node* data = buffer->data;
+        data[i].nameid = i+1;
+
+        data[i].children = buffer_create_gentype(capacity, type_size);
+        print("add child at:%x\n", REDUCE_ADDR(data[i].children->data, F6));
+        // for(uint32 j = 0; j < data[i].children->capacity; j++) {
+        for(uint32 j = 0; j < capacity; j++) {
+            buffer_set_for_insert(data[i].children, j);
+            struct node* cdata = data[i].children->data;
+            cdata[j].nameid = j+1;
+            cdata[j].children = NULL;;
+
+        }
+    }
+
+    for(uint32 i = 0; i < buffer->capacity; i++) {
+
+        struct node* data = (struct node*)buffer->data;
+        print("elem:[%u]: id:%u\n", i, data[i].nameid);
+
+        for(uint32 j = 0; j < data[i].children->capacity; j++) {
+            struct node* cdata = data[i].children->data;
+            print("  child:[%u]: id:%u\n", j, cdata[j].nameid);
+        }
+    }
+
+
+    // buffer_print_uint32(buffer_print_config((buffer_print_params){
+    //     .buffer = buffer, .print_num_elems = buffer->capacity
+    // }));
+
+    memory_manager_terminate();
+}
+

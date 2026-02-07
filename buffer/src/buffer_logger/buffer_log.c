@@ -106,6 +106,13 @@ buffer_print_error(const enum BUFFER_ERROR_CODE code)
             );
             break;
         }
+        case BUFFER_CAPACITY_LESS_THAN_1: {
+            print("%sERROR:\n"
+                  "buffer capacity is 0 or negative number%s\n",
+                  RED, CLEAR
+            );
+            break;
+        }
     }
 
     // my_exit("buffer_print_error", __FILE__, __LINE__);

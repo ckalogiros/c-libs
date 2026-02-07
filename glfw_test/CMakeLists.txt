@@ -9,7 +9,6 @@ set(project_dir "${CMAKE_SOURCE_DIR}")
 #include("${project_dir}/src/CMakeLists.txt")
 #include("${project_dir}/src/buffer_logger/CMakeLists.txt")
 add_subdirectory(${project_dir}/tests)
-add_subdirectory(${project_dir}/tests_level2)
 
 
 ################# external directories #################
@@ -35,8 +34,6 @@ set(external_include
         ${buffer_include}
         ${buffer_log_include}
         ${glad_include}
-
-
 )
 set(external_source
         ${sys_utils}

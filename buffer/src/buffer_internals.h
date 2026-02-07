@@ -7,6 +7,7 @@
 
 #include "buffer.h"
 
+void TEMP_PRINT_BUFFER_TABLE_COUNT();
 
 void
 buffer_init_table();

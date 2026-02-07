@@ -2,25 +2,41 @@
  * Created by ckalo on 1/5/26.
  */
 
+#include "buffer_internals.h"
 #include "mem_log.h"
 #include "mem_man.h"
 #include "my_types.h"
+#include "precision_timer.h"
+#include "precision_timer_logger.h"
+#include "tests.h"
 
 uint32 test_id = 0;
 
 
-int main(void)
+
+int
+main(void)
 {
-    memory_manager_init(4);
+    perf_mem_big_chunk_allocation();
 
-    mem_log_print_mem(mem_get_mem());
-    mem_log_print_free_list(free_list_get_head());
-    mem_log_print_all_used_mem();
+    // test_alloc_release_insequence_at_start_by_1();
+    // test_alloc_release_insequence_at_start_by_2();
+    // test_alloc_release_insequence_at_start_by_3();
+    // test_alloc_release_insequence_at_start_by_4();
 
-    memory_manager_terminate();
+    // test_alloc_release_insequence_at_start_mix();
+
+
+    // test_alloc_release_unordered_at_start_by_1();
+    // test_alloc_release_unordered_at_start_by_2();
+    // test_alloc_release_unordered_at_start_by_3();
+    // test_alloc_release_unordered_at_start_by_4();
+
+    // test_alloc_release_mixed_all();
+    // test_alloc_release_fragment_mem();
+
+    // test_logger_to_html();
+
 
     return 0;
 }
-
-// todo:compare malloc with custom
-void name_me_compare_perf_of_malloc_and_mem_manager() {}
