@@ -70,11 +70,11 @@ mem_log_print_all_used_mem()
 {
 #ifdef DEBUG_PRINT_MEM
 
-    const used_mem_t* used_mem_buf = used_mem_get_used_mem();
+    const used_m* used_mem_buf = used_mem_get_used_mem();
     const uint32 count = used_mem_get_count();
     const int32 tail = used_mem_get_tail();
 
-    print("-- %sused mem_block buf%s --\n", ry, CLEAR);
+    print("-- %sused mem_chunk buf%s --\n", ry, CLEAR);
     print(
         "count:%s%u%s tail:%s%d%s\n",
         CYAN, count, CLEAR,
@@ -93,12 +93,12 @@ mem_log_print_all_used_mem()
         );
     }
 
-    print("-- %sused mem_block buf%s --\n\n", ry, CLEAR);
+    print("-- %sused mem_chunk buf%s --\n\n", ry, CLEAR);
 #endif
 }
 
 void
-mem_log_print_used_mem_buf(const char* operation, const used_mem_t* const used_mem)
+mem_log_print_used_mem_buf(const char* operation, const used_m* const used_mem)
 {
 #ifdef DEBUG_PRINT_MEM
     print("-- %sused %s%s", ry, operation, CLEAR);

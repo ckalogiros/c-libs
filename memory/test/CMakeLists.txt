@@ -1,5 +1,6 @@
 set(project_dir "${CMAKE_SOURCE_DIR}")
 include("${project_dir}/src/CMakeLists.txt")
+include("${project_dir}/src/internal/CMakeLists.txt")
 include("${project_dir}/src/mem_log/CMakeLists.txt")
 
 ################# external directories #################
@@ -38,11 +39,13 @@ add_executable(tests
         main.c
         tests.c
         ${mms_source}
+        ${mms_internal_source}
         ${mms_loger_source}
         ${external_source}
 )
 target_include_directories(tests PRIVATE
         ${mms_include}
+        ${mms_internal_include}
         ${mms_loger_include}
         ${external_include}
 )

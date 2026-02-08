@@ -31,7 +31,7 @@ if((uint64*)((uint8*)p1+offset) < (uint64*)p2){\
 /***************************************************************************************************
  * memory manager -> mms
  * is a single allocation at the start of a program, no realloc is implemented,
- * so is plug&play to find the appropriate total mem_block size a program needs.
+ * so is plug&play to find the appropriate total mem_chunk size a program needs.
  **************************************************************************************************/
 
 
@@ -187,6 +187,7 @@ free_list_insert(const pageid_t id, pageid_t num_pages)
 }
 
 
+
 /***************************************************************************************************
  * used memory
  * is a buffer registering only calls to mms_alloc().
@@ -196,15 +197,15 @@ free_list_insert(const pageid_t id, pageid_t num_pages)
  * where as for the free_list we run a loop to set free each
  * individual page.
  **************************************************************************************************/
-used_mem_t used_mem[START_USED_COUNT];
+used_m used_mem[START_USED_COUNT];
 uint32 used_mem_count = 0; // number of used elements
 int32 used_mem_tail = INT_NULL; // index of the last element in use. Ex. [1, 0,
 // 0, 1, 0, 0]: tail should be at index 3
 
-used_mem_t*
+used_m*
 const used_mem_get_used_mem() { return used_mem; }
 
-used_mem_t*
+used_m*
 const used_mem_get_used_mem_by_id(const uint32 id) { return &used_mem[id]; }
 
 uint32
@@ -256,7 +257,7 @@ used_mem_remove(const pageid_t id)
  */
 void* const get_address(const pageid_t id) { return used_mem[id].addr; }
 
-pageid_t
+memid_t
 mms_alloc(const pageid_t num_pages)
 {
     CHECK_MEM_NULL(mem_block.addr, NO_MEMORY_MANAGER_INIT, "mms_alloc");
@@ -265,7 +266,7 @@ mms_alloc(const pageid_t num_pages)
     mem_log_print_free_list(free_list_head);
     // print("%s allocated address:%x\n", RED, REDUCE_ADDR(addr, F6), CLEAR);
 
-    const pageid_t id = used_mem_insert(addr, num_pages);
+    const memid_t id = used_mem_insert(addr, num_pages);
     return id;
 }
 

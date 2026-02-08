@@ -19,7 +19,7 @@ uint64 : 0xffffffff, \
 default : 0xffffffff)
 
 /* BITS */
-#define type_bits(T) _Generic((T), \
+#define type_size_to_bits(T) _Generic((T), \
 uint8 : 8, \
 uint16 : 16, \
 uint32 : 32, \
@@ -35,13 +35,13 @@ default : 16)
 // get number of bits from type
 #define type_size_bits(v) (sizeof(v) * (8))
 
-/* force value literal */
-#define force_value_width(T) _Generic((T), \
+/* force type bit width for shifts */
+#define force_type_width(T) _Generic((T), \
 uint8 : UINT8_C(1), \
 uint16 : UINT16_C(1), \
 uint32 : UINT32_C(1), \
 uint64 : UINT64_C(1), \
-default : 16)
+default : UINT64_C(1))
 /* mask unecessary bits */
 #define force_width_mask(T) _Generic((T), \
 uint8 : 8, \
@@ -58,13 +58,13 @@ default : 32)
 #define flag_is_set64(v, flag)  ((v) & (flag))
 
 // set a bit
-#define bit_set(v, bit, type)  ((v) |= ((force_value_width(v)) << ((type)bit)))
+#define bit_set(v, bit, type)  ((v) |= ((force_type_width(v)) << ((type)bit)))
 
 // clear a bit
-#define bit_clear(v, bit, type)  ((v) &= ~((force_value_width(v)) << ((type)bit)))
+#define bit_clear(v, bit, type)  ((v) &= ~((force_type_width(v)) << ((type)bit)))
 
 // toggle a bit
-#define bit_toggle(v, bit, type)  ( (v) ^= (type) ( (force_value_width(v) ) << ( (bit)&(force_width_mask(v)) ) ) )
+#define bit_toggle(v, bit, type)  ( (v) ^= (type) ( (force_type_width(v) ) << ( (bit)&(force_width_mask(v)) ) ) )
 
 // get single bit
 #define bit_get(v, bit) ((((v) >> bit) & (1)))

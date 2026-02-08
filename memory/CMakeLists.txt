@@ -6,6 +6,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
 
 set(project_dir "${CMAKE_SOURCE_DIR}")
 include("${project_dir}/src/CMakeLists.txt")
+include("${project_dir}/src/internal/CMakeLists.txt")
 include("${project_dir}/src/mem_log/CMakeLists.txt")
 add_subdirectory(${project_dir}/test)
 

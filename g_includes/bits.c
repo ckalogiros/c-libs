@@ -8,13 +8,13 @@
 void
 bits_print_binary(const uint64 val, const uint32 type_size)
 {
-    print("    read: right to left <---------");
+    // print("    read: right to left <---------");
     const int32 num_bits = (int32) (type_size * 8);
     for(int32 i = num_bits - 1; i >= 0; i--) {
         const uint8 bit = bit_get(val, i);
 
-        if((i + 1) % 16 == 0)
-            print("\n    byte:[%u]    ", i / 16);
+        // if((i + 1) % 16 == 0)
+            // print("byte:[%u]    ", i / 16);
 
         if(bit) print("%s%u%s", YELLOW, bit, CLEAR);
         else print("%u", bit);
@@ -22,7 +22,7 @@ bits_print_binary(const uint64 val, const uint32 type_size)
         if(i % 4 == 0)
             print(" ");
     }
-    print("\n");
+    // print("\n");
     print("  hex:%s%llx%s\n", br2, val, CLEAR);
 }
 

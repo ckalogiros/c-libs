@@ -18,7 +18,7 @@ enum BUFFER_ERROR_CODE {
 typedef struct buffer_t {
     void* data; // buffer start (allocations of type allocations_t)
     uint64* free_list; // pointer to the start of the free elems list
-    uint16 free_list_capacity; // total free list uint64's (Ex. buf capacity=128 => free_list=2 uin64)
+    uint16 free_list_capacity; // total free list uint64's (Ex. buf size=128 => free_list=2 uin64)
     bufidx_t capacity; // total buffer  elements count
     bufidx_t count; // used elements count
     int16 tail; // last element's index

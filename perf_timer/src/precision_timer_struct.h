@@ -62,9 +62,9 @@ enum PERF_TIMER_PRINT_FLAGS {
     PERF_T_ACCUM = BIT_MASK_FROM_UINT(5), // perf timer print: delta accumulator (in nanoseconds)
     PERF_T_DELTA = BIT_MASK_FROM_UINT(6), // perf timer print: delta time (in nanoseconds)
     PERF_T_REPEAT = BIT_MASK_FROM_UINT(7), // perf timer print: how many times the measurment was repeated
-    PERF_T_BUF_CAPACITY = BIT_MASK_FROM_UINT(8), // perf timer print: buffer capacity, if buffer is used for the measurment
+    PERF_T_BUF_CAPACITY = BIT_MASK_FROM_UINT(8), // perf timer print: buffer size, if buffer is used for the measurment
     PERF_T_USE_REPEAT = BIT_MASK_FROM_UINT(9), // perf timer print: use repeat in the calculation
-    PERF_T_USE_BUF_CAPACITY = BIT_MASK_FROM_UINT(10), // perf timer print: use buffer capacity in the calculation
+    PERF_T_USE_BUF_CAPACITY = BIT_MASK_FROM_UINT(10), // perf timer print: use buffer size in the calculation
     PERF_T_IN_CONTINUATION = BIT_MASK_FROM_UINT(11), // perf timer print: continued timer printings. skip some new lines and printing header
 
 

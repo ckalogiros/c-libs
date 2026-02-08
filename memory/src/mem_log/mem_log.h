@@ -22,7 +22,7 @@ void mem_log_print_mem();
 
 void mem_log_print_all_used_mem();
 
-void mem_log_print_used_mem_buf(const char* operation, const used_mem_t* const used_mem);
+void mem_log_print_used_mem_buf(const char* operation, const used_m* const used_mem);
 
 void mem_log_print_free_list(const free_list_t* const head);
 

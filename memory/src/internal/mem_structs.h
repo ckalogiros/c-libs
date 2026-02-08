@@ -3,7 +3,11 @@
  */
 #ifndef MEMORY_MEM_STRUCTS_H
 #define MEMORY_MEM_STRUCTS_H
+
 #include "my_types.h"
+#include "bits.h"
+#include  "mem_man_types.h"
+
 
 enum MEMORY_ERROR_CODE {
     NO_MEMORY_MANAGER_INIT = BIT_MASK_FROM_UINT(1),
@@ -13,10 +17,144 @@ enum MEMORY_ERROR_CODE {
     MEMORY_IS_IN_USE = BIT_MASK_FROM_UINT(5),
 };
 
-struct mem_block {
-    void* addr;
-    uint64 size;
-    uint32 num_pages;
+#define NUM_CHUNKS 16
+// if mem manager needs to register: 1024 chunks max, that is 32768 pages = 33.554432 megabyte
+// needs 10 bits: [0011 1111 1111] = 0-1023
+#define TYPE_CHUNK_ID_BITSIZE 10
+
+#define PAGES_PER_CHUNK 32
+// to register: 32 pages (per chunk),
+// needs 5 bits: [0001 1111] = 0-31, plus 1 more for safety
+#define TYPE_PAGE_ID_BITSIZE (5+1)
+
+#define MEM_OFF_BOUNDARIES_CHECK 0x0abccbcabeffdfdac
+static bool check_mem_off_boundaries_writes(void* mem_start, const uint32 byte_size)
+{
+    uint64* ptr = (uint64*) mem_start;
+    const uint32 len = byte_size / sizeof(uint64);
+    for(uint32 i = 0; i < len; i++) {
+        if(ptr[i] != MEM_OFF_BOUNDARIES_CHECK) {
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
+
+
+#define GET_ADDR_OF_MEM(mptr) (mptr)
+#define GET_ADDR_OF_CHUNK_BY_ID(mptr, chunk_id)\
+        ( (char*) mptr + sizeof(struct mem) + (sizeof(struct mem_chunk) * chunk_id) )
+// #define GET_ADDR_OF_CHUNK_BY_ID(mptr, chunk_id)
+
+
+/* *****************************************************************
+ * clear nbits = 6
+ *
+ * 0000 0000 0000 0000 1111 1111 1111 1111 value
+ * 0000 0000 0000 0000 0000 0000 0011 1111 mask
+ *
+ * 0000 0000 0000 0000 1111 1111 1100 0000  mask << nbits
+ * 1111 1111 1111 1111 1111 1111 11(00 0000)  invert with ~,
+ * but because of << nbits, the last first 6 bits remain untouched */
+#define bitfield_clear(val, mask, nbits) ( (val) &= ~(mask << nbits) )
+
+/* *****************************************************************
+ * set nbits = 4
+ *
+ * 0110 1001 0100 1110 (original) value
+ * 0000 0000 0000 0101 (store) value
+ * 0000 0000 1111 0000 mask
+ *
+ * invert mask
+ * 1111 1111 0000 1111 mask
+ *
+ * 'AND' inverted mask with original value, not touching other bits
+ * 0110 1001 0100 1110 (original) value
+ *                    AND
+ * 1111 1111 0000 1111 mask
+ * 0110 1001 0000 1110 (original) value masked
+ *
+ * LEFT-SHIFT value to proper bit position
+ * 0000 0000 0000 0101 (store) value << nbits
+ * 0000 0000 0101 0000 shifted (store) value
+ *
+ *
+ * 0110 1001 0000 1110 (original) value masked
+ *                    OR
+ * 0000 0000 0101 0000 shifted (store) value
+ * 0110 1001 0101 0101 final result
+ *
+ */
+#define bitfield_set(val, sval, mask, shift)\
+    ( (val & (~mask)) | ((sval << shift) & mask) )
+
+#define bitfield_get(val, mask, shift) \
+    ( ((val) & (mask)) >> (shift) )
+
+
+
+/* ***********************************************
+ * calculates the full mask of n bits, from bit 0.
+ * Ex.                  3    F
+ *      6 bits mask = 0011 1111, hex 0x3F        */
+#define bits_calc_bitmask(type, nbits) ( (force_type_width(type) << (nbits)) - 1 )
+
+
+/* *********************************************
+ * Create mask for bits [start, end] inclusive */
+#define bits_calc_bitmask_from_start_end_bits(type, start, end) \
+( ( (force_type_width(type) << ((end) - (start))) - force_type_width(type)) << (start) )
+
+
+
+struct mem_flags {
+    uint32 is_init;
 };
+
+
+
+struct mem {
+    void* start;                // allocated start address
+    void* alloc_start;          // the actual memory for storage
+    uint16 size;                // total allocated size
+    uint16 chunks_count;        // number of allocated chunks
+};
+
+struct mem_chunk {
+    uint16 id;
+    struct mem_flags flags;
+};
+
+/* ******************************************************
+ * flag ids is a helper struct, declaring the bit offsets
+ * of varius ids that are part of a bitfield flag.
+ * Ex. chunk_id: needs 10 bits,
+ *     page_id: needs 5 bits (+1 for safety), etc       */
+struct flag_ids {
+   uint8 chunk_id_start_bit;
+   uint8 chunk_id_end_bit;
+   uint8 page_id_start_bit;
+   uint8 page_id_end_bit;
+};
+static struct flag_ids flag_ids = {
+    .chunk_id_start_bit = 0,
+    .chunk_id_end_bit = TYPE_CHUNK_ID_BITSIZE-1,
+    .page_id_start_bit = TYPE_CHUNK_ID_BITSIZE,
+    .page_id_end_bit = (TYPE_CHUNK_ID_BITSIZE + TYPE_PAGE_ID_BITSIZE)-1,
+};
+
+struct mem_used {
+    memid_t ids; // chunk_id, page_id
+};
+
+struct free_list {
+    struct free_list* next;
+};
+
+
+void mem_init();
+
+
 
 #endif //MEMORY_MEM_STRUCTS_H

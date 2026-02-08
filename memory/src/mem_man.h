@@ -6,6 +6,7 @@
 #define MEMORY_MEMORY_MANAGER_H
 
 #include "my_types.h"
+#include "mem_man_types.h"
 
 #define PAGE_SIZE 1024
 
@@ -15,7 +16,7 @@ void memory_manager_init(const uint32 num_pages);
 
 void memory_manager_terminate();
 
-pageid_t mms_allocate_pages(pageid_t num_pages);
+memid_t mms_allocate_pages(pageid_t num_pages);
 
 bool TEMP_free_list_insert(const pageid_t id);
 

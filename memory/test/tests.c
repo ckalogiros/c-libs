@@ -28,7 +28,7 @@ perf_mem_big_chunk_allocation()
 
     perf_timer_start(t);
 
-    memory_manager_init(512);
+    // memory_manager_init(512);
 
     perf_timer_stop(t);
     perf_timer_print(timer_print_config((timer_print_params){

@@ -5,12 +5,28 @@
 #define MEM_MAN_H
 
 #include "my_types.h"
+#include "mem_structs.h"
 
 #define START_USED_COUNT 128
 
 
+struct mem_block {
+    void* addr;
+    uint64 size;
+    uint16 id;
+    uint16 num_pages;
+    struct mem_flags flags;
+};
 
-extern struct mem_chunk mem_block;
+typedef struct used_mem {
+    void* addr;
+    uint32 id;
+    uint32 num_pages;
+}used_m;
+
+
+
+extern struct mem_block mem_block;
 
 void* mem_get_mem();
 
@@ -36,16 +52,11 @@ void* free_list_get_next_free_page(const pageid_t num_pages);
 
 bool free_list_insert(const pageid_t id, const pageid_t num_pages);
 
-typedef struct used_mem_t {
-    void* addr;
-    uint32 id; // handle
-    uint32 num_pages;
-} used_mem_t;
 
-used_mem_t* const used_mem_get_used_mem();
+used_m* const used_mem_get_used_mem();
 
 
-used_mem_t* const used_mem_get_used_mem_by_id(const uint32 id);
+used_m* const used_mem_get_used_mem_by_id(const uint32 id);
 
 uint32 used_mem_get_count();
 
@@ -57,7 +68,7 @@ void used_mem_remove(const pageid_t id);
 
 void* const get_address(const pageid_t id);
 
-pageid_t mms_alloc(pageid_t num_pages);
+memid_t mms_alloc(pageid_t num_pages);
 
 bool mms_release(const pageid_t id);
 

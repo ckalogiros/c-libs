@@ -2,6 +2,7 @@
   <dictionary name="project">
     <words>
       <w>kmem</w>
+      <w>memid</w>
     </words>
   </dictionary>
 </component>

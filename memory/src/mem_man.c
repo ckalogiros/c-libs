@@ -20,7 +20,7 @@ memory_manager_init(const uint32 num_pages)
 
         mem_log_print_init_mem();
         const uint32 alignment = (num_pages > 2) ? PAGE_SIZE * 64 : PAGE_SIZE * 16;
-        // mem_block.addr = aligned_alloc(PAGE_SIZE, num_pages * PAGE_SIZE);
+        // mem_chunk.addr = aligned_alloc(PAGE_SIZE, num_pages * PAGE_SIZE);
         mem_block.addr = aligned_alloc(alignment, num_pages * PAGE_SIZE);
         mem_block.size = num_pages * PAGE_SIZE;
         mem_block.num_pages = num_pages;
@@ -29,7 +29,7 @@ memory_manager_init(const uint32 num_pages)
 
     mem_log_print_init_mem();
     const uint32 alignment = (num_pages > 2) ? PAGE_SIZE * 64 : PAGE_SIZE * 16;
-    // mem_block.addr = aligned_alloc(PAGE_SIZE, num_pages * PAGE_SIZE);
+    // mem_chunk.addr = aligned_alloc(PAGE_SIZE, num_pages * PAGE_SIZE);
     mem_block.addr = aligned_alloc(alignment, num_pages * PAGE_SIZE);
     mem_block.size = num_pages * PAGE_SIZE;
     mem_block.num_pages = num_pages;
@@ -43,10 +43,10 @@ memory_manager_terminate()
     free(mem_block.addr);
 }
 
-pageid_t
+memid_t
 mms_allocate_pages(const pageid_t num_pages)
 {
-    const pageid_t id = mms_alloc(num_pages);
+    const memid_t id = mms_alloc(num_pages);
     return id;
 }
 
@@ -62,7 +62,7 @@ TEMP_free_list_insert(const pageid_t id)
 void
 memory_manager_memset(const uint32 id, const uint32 num_pages, const uint64 val)
 {
-    used_mem_t* um = used_mem_get_used_mem_by_id(id);
+    used_m* um = used_mem_get_used_mem_by_id(id);
     memset(um->addr, val, num_pages * PAGE_SIZE);
 }
 
