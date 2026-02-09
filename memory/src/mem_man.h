@@ -6,25 +6,25 @@
 #define MEMORY_MEMORY_MANAGER_H
 
 #include "my_types.h"
-#include "mem_man_types.h"
+#include "mem_man_interface.h"
 
 #define PAGE_SIZE 1024
 
 // mms: memory manager system
 
-void memory_manager_init(const uint32 num_pages);
+void memory_manager_init();
 
 void memory_manager_terminate();
 
-memid_t mms_allocate_pages(pageid_t num_pages);
+struct memhnd_t mms_allocate_pages(const uint16 num_pages, enum MEM_CHUNK_SELECTOR);
 
-bool TEMP_free_list_insert(const pageid_t id);
+// bool TEMP_free_list_insert(const memid_t id);
 
 
-void memory_manager_memset(const uint32 id, const uint32 num_pages, const uint64 val);
+void memory_manager_memset(const memid_t id, const uint16 num_pages, const uint64 val);
 
 // todo: Belongs to internal. Should not be called by anyone
-void* const Temp_get_address_by_id(const pageid_t id);
+void* const Temp_get_address_by_id(const struct memhnd_t hnd);
 
 
 #endif //MEMORY_MEMORY_MANAGER_H

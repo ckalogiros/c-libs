@@ -48,11 +48,7 @@ typedef uint8 bool;
 #define GREATER_THAN(a, b) (((a) > (b)) ? (a) : (b))
 #define LESS_THAN(a, b)    (((a) < (b)) ? (a) : (b))
 
-#define PAGE_SIZE 1024
-
-typedef uint16 pageid_t;
-
-typedef uint16 bufidx_t;
+typedef uint16 bufidx_t; // todo remove
 
 #define get_type_bytes(T) _Generic((T), uint8: 1, uint16: 2, uint32: 4, uint64: 8 )
 

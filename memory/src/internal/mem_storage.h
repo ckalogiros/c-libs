@@ -5,6 +5,7 @@
 #define MEMORY_MEM_STORAGE_H
 #include "my_types.h"
 
+// TODO: correct message
 /***************************************************************************************************
  * memory storage layout *
  *

@@ -20,16 +20,23 @@ int
 main(void)
 {
 
-    mem_init();
-    mem_test();
+    temp_print_mem_structs_sizes();
+    // mem_init();
+    // mem_test();
     // temp_print_mem_structs_sizes();
     // perf_mem_big_chunk_allocation();
 
     // Some bit tests, see everything is working
     // test_calc_bitmask_from_start_end_bits();
     // test_bitfield_set();
-    // test_macr0_impl_bitfield_set();
+    // test_macro_impl_bitfield_set();
 
+
+    struct memhnd_t memhnd = mms_allocate_pages(1, MEM_CHUNK_ALLOCATOR_SLAB);
+
+
+
+    // tests
     // test_alloc_release_insequence_at_start_by_1();
     // test_alloc_release_insequence_at_start_by_2();
     // test_alloc_release_insequence_at_start_by_3();

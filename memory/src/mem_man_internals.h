@@ -7,6 +7,10 @@
 #include "my_types.h"
 #include "mem_structs.h"
 
+
+typedef uint16 chunkid_t;
+typedef uint16 pageid_t;
+
 #define START_USED_COUNT 128
 
 
@@ -48,7 +52,7 @@ const free_list_t* const free_list_get_head();
 
 void free_list_init(void* addr, const pageid_t num_pages);
 
-void* free_list_get_next_free_page(const pageid_t num_pages);
+void* flist_get_next_free_page(const pageid_t num_pages, const memid_t chunk_id);
 
 bool free_list_insert(const pageid_t id, const pageid_t num_pages);
 
@@ -68,8 +72,8 @@ void used_mem_remove(const pageid_t id);
 
 void* const get_address(const pageid_t id);
 
-memid_t mms_alloc(pageid_t num_pages);
+struct memhnd_t mms_alloc(pageid_t num_pages, enum MEM_CHUNK_SELECTOR);
 
-bool mms_release(const pageid_t id);
+bool mms_release(const struct memhnd_t handle);
 
 #endif //MEM_MAN_H

@@ -6,18 +6,11 @@
 
 #include "my_types.h"
 #include "bits.h"
-#include  "mem_man_types.h"
+#include  "mem_man_interface.h"
 
 
-enum MEMORY_ERROR_CODE {
-    NO_MEMORY_MANAGER_INIT = BIT_MASK_FROM_UINT(1),
-    NO_FREE_MEMORY = BIT_MASK_FROM_UINT(2),
-    MEMMAN_ALREADY_INITIALIZED = BIT_MASK_FROM_UINT(3),
-    ALLOC_NOT_CONTIGUOUS_MEM = BIT_MASK_FROM_UINT(4),
-    MEMORY_IS_IN_USE = BIT_MASK_FROM_UINT(5),
-};
 
-#define NUM_CHUNKS 16
+
 // if mem manager needs to register: 1024 chunks max, that is 32768 pages = 33.554432 megabyte
 // needs 10 bits: [0011 1111 1111] = 0-1023
 #define TYPE_CHUNK_ID_BITSIZE 10
@@ -103,7 +96,7 @@ static bool check_mem_off_boundaries_writes(void* mem_start, const uint32 byte_s
 
 /* *********************************************
  * Create mask for bits [start, end] inclusive */
-#define bits_calc_bitmask_from_start_end_bits(type, start, end) \
+#define bits_calc_bitmask_from_bits(type, start, end) \
 ( ( (force_type_width(type) << ((end) - (start))) - force_type_width(type)) << (start) )
 
 
@@ -111,8 +104,6 @@ static bool check_mem_off_boundaries_writes(void* mem_start, const uint32 byte_s
 struct mem_flags {
     uint32 is_init;
 };
-
-
 
 struct mem {
     void* start;                // allocated start address
@@ -139,13 +130,15 @@ struct flag_ids {
 };
 static struct flag_ids flag_ids = {
     .chunk_id_start_bit = 0,
-    .chunk_id_end_bit = TYPE_CHUNK_ID_BITSIZE-1,
-    .page_id_start_bit = TYPE_CHUNK_ID_BITSIZE,
-    .page_id_end_bit = (TYPE_CHUNK_ID_BITSIZE + TYPE_PAGE_ID_BITSIZE)-1,
+    .chunk_id_end_bit   = TYPE_CHUNK_ID_BITSIZE-1,
+    .page_id_start_bit  = TYPE_CHUNK_ID_BITSIZE,
+    .page_id_end_bit    = (TYPE_CHUNK_ID_BITSIZE + TYPE_PAGE_ID_BITSIZE)-1,
 };
 
 struct mem_used {
-    memid_t ids; // chunk_id, page_id
+    // memids_t ids; // chunk_id, page_id
+    uint16 ids; // chunk_id, page_id
+    // uint8 num_pages;
 };
 
 struct free_list {
@@ -153,7 +146,10 @@ struct free_list {
 };
 
 
-void mem_init();
+
+
+
+bool mem_init();
 
 
 

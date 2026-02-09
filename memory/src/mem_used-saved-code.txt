@@ -1,0 +1,82 @@
+// static memid_t mem_get_chunkid_by_ids(const memids_t ids)
+// {
+//     memid_t val = ids;
+//     memid_t start_bit = flag_ids.chunk_id_start_bit;
+//     memid_t end_bit = flag_ids.chunk_id_end_bit;
+//     uint32 mask = bits_calc_bitmask_from_bits(val, start_bit, end_bit);
+//     const memid_t chunk_id = bitfield_get(val, mask, start_bit);
+//
+//     return chunk_id;
+//
+// }
+// static memid_t mem_get_pageid_by_ids(const memids_t ids)
+// {
+//     memid_t val = ids;
+//     memid_t start_bit = flag_ids.page_id_start_bit;
+//     memid_t end_bit = flag_ids.page_id_end_bit;
+//     uint32 mask = bits_calc_bitmask_from_bits(val, start_bit, end_bit);
+//     const memid_t page_id = bitfield_get(val, mask, start_bit);
+//
+//     return page_id;
+//
+// }
+// static bool mem_used_set_chunkid(const pageid_t page_id, const memid_t id)
+// {
+//
+//     /* *****************************************
+//      * calc mask and set bitfield of chunks id */
+//     memid_t val       = mem_used_table[page_id].ids;
+//     memid_t sval      = id; // id is the index (as offset) of a chunk in the table
+//     memid_t start_bit = flag_ids.chunk_id_start_bit;
+//     memid_t end_bit   = flag_ids.chunk_id_end_bit;
+//
+//     uint32 chunk_id_mask = bits_calc_bitmask_from_bits(val, start_bit, end_bit);
+//     mem_used_table[page_id].ids = bitfield_set(val, sval, chunk_id_mask, start_bit);
+//     return TRUE;
+// }
+// static bool mem_used_set_pageid(const pageid_t page_id, const memid_t id)
+// {
+//     /* *****************************************
+//      * calc mask and set bitfield of page id */
+//     memid_t val       = mem_used_table[page_id].ids;
+//     memid_t sval      = id;  // id is the index (as offset) of a page in the table
+//     memid_t start_bit = flag_ids.page_id_start_bit;
+//     memid_t end_bit   = flag_ids.page_id_end_bit;
+//
+//     uint32 page_id_mask = bits_calc_bitmask_from_bits(val, start_bit, end_bit);
+//     mem_used_table[page_id].ids = bitfield_set(val, sval, page_id_mask, start_bit);
+//
+//     return TRUE;
+// }
+
+// void mem_init_used_mem_table()
+// {
+//     /*************************************************************
+//      * mem_used_table storage layout
+//      *************************************************************/
+//
+//     void* ptr = GET_ADDR_OF_MEM(mem);
+//     // advance pointer to free memory, where we can store mem_used_table
+//     ptr = ptr + sizeof(struct mem); // advance through struct mem
+//     // advance through struct mem_chunk * number of chunks
+//     ptr = ptr + ( sizeof(struct mem_chunk) * mem->chunks_count);
+//
+//     mem_used_table = ptr; // start of struct mem_used_table storage
+//
+//
+//     for(uint32 chunk_id = 0; chunk_id < mem->chunks_count; chunk_id++) {
+//         for(uint32 page_id = 0; page_id < PAGES_PER_CHUNK; page_id++) {
+//
+//             /* ****************************************
+//              * passing page_id as the index to current
+//              * used_mem in table and set the chunk id */
+//             mem_used_set_chunkid((pageid_t) page_id, chunk_id);
+//
+//             mem_used_set_pageid((pageid_t) page_id, page_id);
+//
+//             // print-debug bitfield chunk_ids and page_ids
+//             print("[%u] page_id:%u ", page_id, mem_get_pageid_by_ids(mem_used_table[page_id].ids));
+//             print("chunk_id:%u\n", mem_get_chunkid_by_ids(mem_used_table[page_id].ids));
+//         }
+//     }
+// }

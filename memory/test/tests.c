@@ -57,8 +57,8 @@ test_alloc_release_insequence_at_start_by_1()
     // mem_log_print_all_used_mem();
 
     for(uint32 i = 0; i < repeat; i++) {
-        const uint32 pageid = mms_alloc(num_pages);
-        mms_release(pageid);
+        struct memhnd_t hnd = mms_alloc(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
+        mms_release(hnd);
     }
 
 
@@ -78,8 +78,8 @@ test_alloc_release_insequence_at_start_by_2()
     // mem_log_print_all_used_mem();
 
     for(uint32 i = 0; i < repeat; i++) {
-        const uint32 pageid = mms_alloc(num_pages);
-        mms_release(pageid);
+        struct memhnd_t hnd = mms_alloc(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
+        mms_release(hnd);
     }
 
 
@@ -99,8 +99,8 @@ test_alloc_release_insequence_at_start_by_3()
     // mem_log_print_all_used_mem();
 
     for(uint32 i = 0; i < repeat; i++) {
-        const uint32 pageid = mms_alloc(num_pages);
-        mms_release(pageid);
+        struct memhnd_t hnd = mms_alloc(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
+        mms_release(hnd);
     }
 
     memory_manager_terminate();
@@ -119,8 +119,8 @@ test_alloc_release_insequence_at_start_by_4()
     // mem_log_print_all_used_mem();
 
     for(uint32 i = 0; i < repeat; i++) {
-        const uint32 pageid = mms_alloc(num_pages);
-        mms_release(pageid);
+        struct memhnd_t hnd = mms_alloc(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
+        mms_release(hnd);
     }
 
 
@@ -140,22 +140,22 @@ test_alloc_release_insequence_at_start_mix()
     // mem_log_print_all_used_mem();
 
     {
-        const uint32 pageid = mms_alloc(1);
-        mms_release(pageid);
+        struct memhnd_t hnd = mms_alloc(1, MEM_CHUNK_ALLOCATOR_SLAB);
+        mms_release(hnd);
     }
     {
-        const uint32 pageid = mms_alloc(2);
-        mms_release(pageid);
-    }
-
-    {
-        const uint32 pageid = mms_alloc(3);
-        mms_release(pageid);
+        struct memhnd_t hnd = mms_alloc(2, MEM_CHUNK_ALLOCATOR_SLAB);
+        mms_release(hnd);
     }
 
     {
-        const uint32 pageid = mms_alloc(4);
-        mms_release(pageid);
+        struct memhnd_t hnd = mms_alloc(3, MEM_CHUNK_ALLOCATOR_SLAB);
+        mms_release(hnd);
+    }
+
+    {
+        struct memhnd_t hnd = mms_alloc(4, MEM_CHUNK_ALLOCATOR_SLAB);
+        mms_release(hnd);
     }
 
 
@@ -179,9 +179,9 @@ test_alloc_release_unordered_at_start_by_1()
           "  release in order, %s\n", GREEN, CLEAR);
     {
         mem_log_print_free_list(free_list_get_head());
-        uint32 id1 = mms_alloc(num_pages);
-        uint32 id2 = mms_alloc(num_pages);
-        uint32 id3 = mms_alloc(num_pages);
+        struct memhnd_t id1 = mms_alloc(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
+        struct memhnd_t id2 = mms_alloc(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
+        struct memhnd_t id3 = mms_alloc(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
 
         mms_release(id1);
         mms_release(id2);
@@ -195,9 +195,9 @@ test_alloc_release_unordered_at_start_by_1()
           "  release NOT in order, %s\n", GREEN, CLEAR);
     {
         mem_log_print_free_list(free_list_get_head());
-        uint32 id1 = mms_alloc(num_pages);
-        uint32 id2 = mms_alloc(num_pages);
-        uint32 id3 = mms_alloc(num_pages);
+        struct memhnd_t id1 = mms_alloc(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
+        struct memhnd_t id2 = mms_alloc(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
+        struct memhnd_t id3 = mms_alloc(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
 
         mms_release(id2);
         mms_release(id3);
@@ -221,9 +221,9 @@ test_alloc_release_unordered_at_start_by_2()
           "  release in order, %s\n", GREEN, CLEAR);
     {
         mem_log_print_free_list(free_list_get_head());
-        uint32 id1 = mms_alloc(num_pages);
-        uint32 id2 = mms_alloc(num_pages);
-        uint32 id3 = mms_alloc(num_pages);
+        struct memhnd_t id1 = mms_alloc(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
+        struct memhnd_t id2 = mms_alloc(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
+        struct memhnd_t id3 = mms_alloc(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
 
         mms_release(id1);
         mms_release(id2);
@@ -237,9 +237,9 @@ test_alloc_release_unordered_at_start_by_2()
           "  release NOT in order, %s\n", GREEN, CLEAR);
     {
         mem_log_print_free_list(free_list_get_head());
-        uint32 id1 = mms_alloc(num_pages);
-        uint32 id2 = mms_alloc(num_pages);
-        uint32 id3 = mms_alloc(num_pages);
+        struct memhnd_t id1 = mms_alloc(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
+        struct memhnd_t id2 = mms_alloc(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
+        struct memhnd_t id3 = mms_alloc(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
 
         mms_release(id2);
         mms_release(id3);
@@ -263,9 +263,9 @@ test_alloc_release_unordered_at_start_by_3()
           "  release in order, %s\n", GREEN, CLEAR);
     {
         mem_log_print_free_list(free_list_get_head());
-        uint32 id1 = mms_alloc(num_pages);
-        uint32 id2 = mms_alloc(num_pages);
-        uint32 id3 = mms_alloc(num_pages);
+        struct memhnd_t id1 = mms_alloc(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
+        struct memhnd_t id2 = mms_alloc(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
+        struct memhnd_t id3 = mms_alloc(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
 
         mms_release(id1);
         mms_release(id2);
@@ -279,9 +279,9 @@ test_alloc_release_unordered_at_start_by_3()
           "  release NOT in order, %s\n", GREEN, CLEAR);
     {
         mem_log_print_free_list(free_list_get_head());
-        uint32 id1 = mms_alloc(num_pages);
-        uint32 id2 = mms_alloc(num_pages);
-        uint32 id3 = mms_alloc(num_pages);
+        struct memhnd_t id1 = mms_alloc(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
+        struct memhnd_t id2 = mms_alloc(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
+        struct memhnd_t id3 = mms_alloc(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
 
         mms_release(id2);
         mms_release(id3);
@@ -305,9 +305,9 @@ test_alloc_release_unordered_at_start_by_4()
           "  release in order, %s\n", GREEN, CLEAR);
     {
         mem_log_print_free_list(free_list_get_head());
-        uint32 id1 = mms_alloc(num_pages);
-        uint32 id2 = mms_alloc(num_pages);
-        uint32 id3 = mms_alloc(num_pages);
+        struct memhnd_t id1 = mms_alloc(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
+        struct memhnd_t id2 = mms_alloc(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
+        struct memhnd_t id3 = mms_alloc(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
 
         mms_release(id1);
         mms_release(id2);
@@ -321,9 +321,9 @@ test_alloc_release_unordered_at_start_by_4()
           "  release NOT in order, %s\n", GREEN, CLEAR);
     {
         mem_log_print_free_list(free_list_get_head());
-        uint32 id1 = mms_alloc(num_pages);
-        uint32 id2 = mms_alloc(num_pages);
-        uint32 id3 = mms_alloc(num_pages);
+        struct memhnd_t id1 = mms_alloc(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
+        struct memhnd_t id2 = mms_alloc(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
+        struct memhnd_t id3 = mms_alloc(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
 
         mms_release(id2);
         mms_release(id3);
@@ -351,10 +351,10 @@ test_alloc_release_mixed_all()
           "  release in order, %s\n", GREEN, CLEAR);
     {
         mem_log_print_free_list(free_list_get_head());
-        uint32 id1 = mms_alloc(1);
-        uint32 id2 = mms_alloc(3);
-        uint32 id3 = mms_alloc(2);
-        uint32 id4 = mms_alloc(2);
+        struct memhnd_t id1 = mms_alloc(1, MEM_CHUNK_ALLOCATOR_SLAB);
+        struct memhnd_t id2 = mms_alloc(3, MEM_CHUNK_ALLOCATOR_SLAB);
+        struct memhnd_t id3= mms_alloc(2, MEM_CHUNK_ALLOCATOR_SLAB);
+        struct memhnd_t id4 = mms_alloc(2, MEM_CHUNK_ALLOCATOR_SLAB);
 
         mms_release(id1);
         mms_release(id2);
@@ -369,10 +369,10 @@ test_alloc_release_mixed_all()
           "  release NOT in order, %s\n", GREEN, CLEAR);
     {
         mem_log_print_free_list(free_list_get_head());
-        uint32 id1 = mms_alloc(1);
-        uint32 id2 = mms_alloc(3);
-        uint32 id3 = mms_alloc(2);
-        uint32 id4 = mms_alloc(2);
+        struct memhnd_t id1 = mms_alloc(1, MEM_CHUNK_ALLOCATOR_SLAB);
+        struct memhnd_t id2 = mms_alloc(3, MEM_CHUNK_ALLOCATOR_SLAB);
+        struct memhnd_t id3= mms_alloc(2, MEM_CHUNK_ALLOCATOR_SLAB);
+        struct memhnd_t id4 = mms_alloc(2, MEM_CHUNK_ALLOCATOR_SLAB);
 
         mms_release(id4);
         mms_release(id1);
@@ -396,16 +396,16 @@ test_alloc_release_fragment_mem()
           "  TODO %s\n", GREEN, CLEAR);
     {
         mem_log_print_free_list(free_list_get_head());
-        uint32 id1 = mms_alloc(num_pages);
-        uint32 id2 = mms_alloc(num_pages);
-        uint32 id3 = mms_alloc(num_pages);
-        uint32 id4 = mms_alloc(num_pages);
-        uint32 id5 = mms_alloc(num_pages);
-        uint32 id6 = mms_alloc(num_pages);
-        uint32 id7 = mms_alloc(num_pages);
-        uint32 id8 = mms_alloc(num_pages);
-        uint32 id9 = mms_alloc(num_pages);
-        uint32 id10 = mms_alloc(num_pages);
+        struct memhnd_t id1 = mms_alloc(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
+        struct memhnd_t id2 = mms_alloc(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
+        struct memhnd_t id3= mms_alloc(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
+        struct memhnd_t id4 = mms_alloc(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
+        struct memhnd_t id5 = mms_alloc(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
+        struct memhnd_t id6 = mms_alloc(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
+        struct memhnd_t id7 = mms_alloc(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
+        struct memhnd_t id8 = mms_alloc(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
+        struct memhnd_t id9 = mms_alloc(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
+        struct memhnd_t id10 = mms_alloc(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
 
         mms_release(id3);
         mms_release(id4);
@@ -415,7 +415,7 @@ test_alloc_release_fragment_mem()
         mem_log_print_free_list(free_list_get_head());
 
 
-        uint32 id11 = mms_alloc(3);
+        struct memhnd_t id11 = mms_alloc(3, MEM_CHUNK_ALLOCATOR_SLAB);
 
         print("%s#### ALLOCATED NEW MEM HERE%s\n", YELLOW, CLEAR);
         mem_log_print_free_list(free_list_get_head());
@@ -442,9 +442,9 @@ test_alloc_release_fragment_mem()
           "  TODO %s\n", GREEN, CLEAR);
     // {
     //     mem_log_print_free_list(free_list_get_head());
-    //     uint32 id1 = mms_alloc(1); memory_manager_memset(id1, 1, 0x0f);
-    //     uint32 id2 = mms_alloc(1); memory_manager_memset(id2, 1, 0x0ff);
-    //     uint32 id3 = mms_alloc(1); memory_manager_memset(id3, 1, 0x0f);
+    //     struct memhnd_t id1 = mms_alloc(1); memory_manager_memset(id1, 1, 0x0f);
+    //     struct memhnd_t id2 = mms_alloc(1); memory_manager_memset(id2, 1, 0x0ff);
+    //     struct memhnd_t id3= mms_alloc(1); memory_manager_memset(id3, 1, 0x0f);
     //     uint32 id4 = mms_alloc(1); memory_manager_memset(id4, 1, 0x0f);
     //     uint32 id5 = mms_alloc(1); memory_manager_memset(id5, 1, 0x0f);
     //     uint32 id6 = mms_alloc(1); memory_manager_memset(id6, 1, 0x0f);
@@ -503,10 +503,10 @@ test_logger_to_html()
     mem_log_print_all_used_mem();
 
     {
-        const uint32 pageid = mms_alloc(3);
+        struct memhnd_t hnd = mms_alloc(3, MEM_CHUNK_ALLOCATOR_SLAB);
     }
     {
-        const uint32 pageid = mms_alloc(2);
+        struct memhnd_t hnd = mms_alloc(2, MEM_CHUNK_ALLOCATOR_SLAB);
     }
 
     memory_manager_terminate();

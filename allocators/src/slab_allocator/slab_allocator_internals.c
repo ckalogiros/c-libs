@@ -54,8 +54,8 @@ mem_cache_init()
           "  SLAB ALLOCATOR%s\n\n", YELLOW, CLEAR);
 
     // Allocate memory to store a list of all size caches
-    const pageid_t page_id = mms_allocate_pages(1);
-    void* mem_cache_address = Temp_get_address_by_id(page_id);
+    struct memhnd_t hnd = mms_allocate_pages(1, MEM_CHUNK_ALLOCATOR_SLAB);
+    void* mem_cache_address = Temp_get_address_by_id(hnd);
 
     void* addr_ptr = mem_cache_address;
 
@@ -142,10 +142,10 @@ slab_alloc(const uint32 slab_size_bytes, struct mem_cache* mem_cache)
     const uint16 slabs_count = (num_pages * PAGE_SIZE) / slab_size_bytes;
 
     // allocate memory for slabs
-    const pageid_t page_id = mms_allocate_pages(num_pages);
-    void* addr_ptr = Temp_get_address_by_id(page_id);
+    struct memhnd_t hnd = mms_allocate_pages(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
+    void* addr_ptr = Temp_get_address_by_id(hnd);
 
-    memset(addr_ptr, page_id, num_pages * PAGE_SIZE); // debug mem
+    memset(addr_ptr, hnd.page_id, num_pages * PAGE_SIZE); // debug mem
 
     // update free list
     void* ptr = addr_ptr;
