@@ -1,6 +1,8 @@
 #include "logger.h"
 #include <stdio.h>
 #include <stdarg.h>
+#include <string.h>
+
 #include "sys_utils.h"
 
 void
@@ -27,7 +29,26 @@ logger_test_variadic(const uint32 args_count, ...)
     va_end(args);
 }
 
+void
+print_test_result(const char* test_name, bool passed, const char* file, int line, const char* msg)
+{
+    // reduce the file directory
+    const uint32 path_len = strlen(file);
+    const uint32 keep_chars = (path_len > 20) ? 20 : path_len;
+    const char* path = &(file[path_len-keep_chars]);
+    if(passed) {
+        printf("%s[PASS]%s %s%s%s \"at %s:%d\" msg:%s", GREEN, CLEAR, br3, test_name, CLEAR, path, line, msg);
+    } else {
+        printf("%s[FAIL]%s %s%s%s \"at %s:%d\" msg:%s", RED, CLEAR, br3, test_name, CLEAR, path, line, msg);
+    }
+    printf("\n");
+}
 
+
+
+/***************************************************************************************************
+ * write to file prints
+ **************************************************************************************************/
 
 static bool temp_file_created = FALSE;
 // static uint16 indentations = 0;
@@ -36,12 +57,14 @@ void
 dprint(struct _IO_FILE* file, uint16 indent, const char* format, ...)
 {
     char mode[] = "a";
-    if(!temp_file_created) {mode[0] = 'w'; temp_file_created = TRUE;}
-
+    if(!temp_file_created) {
+        mode[0] = 'w';
+        temp_file_created = TRUE;
+    }
 
 
     file = fopen("../../test-debug-print.md", mode);
-    if (file == NULL)
+    if(file == NULL)
         my_exit("ERROR opening file: test-debug-print.md", __FILE__, __LINE__);
 
 
@@ -64,7 +87,9 @@ dprint(struct _IO_FILE* file, uint16 indent, const char* format, ...)
 }
 
 
-void html_log_init(FILE* f) {
+void
+html_log_init(FILE* f)
+{
     fprintf(f, "<!DOCTYPE html>\n");
     fprintf(f, "<html>\n<head>\n");
     fprintf(f, "<title>Debug Log</title>\n");
@@ -81,7 +106,9 @@ void html_log_init(FILE* f) {
     fprintf(f, "<h2>Debug Log</h2>\n<div id='log'>\n");
 }
 
-void html_log_close(FILE* f) {
+void
+html_log_close(FILE* f)
+{
     fprintf(f, "</div>\n</body>\n</html>\n");
 }
 
@@ -89,7 +116,10 @@ void
 dprintmd(struct _IO_FILE* file, const char* dir, const char* filename, uint16 indent, const char* format, ...)
 {
     char mode[] = "a";
-    if(!temp_file_created) {mode[0] = 'w'; temp_file_created = TRUE;}
+    if(!temp_file_created) {
+        mode[0] = 'w';
+        temp_file_created = TRUE;
+    }
 
 
     char path[256];
@@ -98,7 +128,7 @@ dprintmd(struct _IO_FILE* file, const char* dir, const char* filename, uint16 in
 
     // file = fopen("../../test-debug-print.md", mode);
     file = fopen(path, mode);
-    if (file == NULL)
+    if(file == NULL)
         my_exit("ERROR opening file: ", __FILE__, __LINE__);
 
 #define MD_COLOR_STYLE "<style>" \
@@ -127,6 +157,3 @@ dprintmd(struct _IO_FILE* file, const char* dir, const char* filename, uint16 in
 
     fclose(file);
 }
-
-
-

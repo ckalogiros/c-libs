@@ -26,6 +26,22 @@ typedef struct buffer_t {
     int16 typesize; // last element's index
 } buffer_t;
 
+/*
+ * Can do this instead and have buffer and data in contiguous memory
+ *
+ * typedef struct buffer_t {
+ *    uint16 free_list_capacity;
+ *    bufidx_t capacity;
+ *    bufidx_t count;
+ *    int16 tail;
+ *    bufidx_t id;
+ *    int16 typesize;
+ *    uint8 free_list[size/8]; // with min size=8
+ *    void data[1];
+ * } buffer_t;
+ */
+
+
 
 typedef struct {
     float x;

@@ -3,20 +3,15 @@
  */
 #ifndef MEMORY_TESTS_H
 #define MEMORY_TESTS_H
+#include "my_types.h"
 
 void perf_mem_big_chunk_allocation();
 
-void test_alloc_release_insequence_at_start_by_1();
-void test_alloc_release_insequence_at_start_by_2();
-void test_alloc_release_insequence_at_start_by_3();
-void test_alloc_release_insequence_at_start_by_4();
+void test_alloc_release_insequence(const uint32 num_pages, const bool print_list);
+void test_alloc_first_release_after(const uint32 num_pages, const bool print_list);
 
-void test_alloc_release_insequence_at_start_mix();
+void test_alloc_first_release_after_backwards(const uint32 num_pages, const bool print_list);
 
-void test_alloc_release_unordered_at_start_by_1();
-void test_alloc_release_unordered_at_start_by_2();
-void test_alloc_release_unordered_at_start_by_3();
-void test_alloc_release_unordered_at_start_by_4();
 
 void test_alloc_release_mixed_all();
 void test_alloc_release_fragment_mem();

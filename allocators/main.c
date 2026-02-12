@@ -3,15 +3,15 @@
  */
 
 
-#include "mem_man.h"
+// #include "mem_man.h"
 
 
 int
 main(void)
 {
-    memory_manager_init(4);
-
-    memory_manager_terminate();
+    // mem_init(4);
+    //
+    // mem_terminate();
 
     return 0;
 }

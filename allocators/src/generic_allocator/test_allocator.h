@@ -6,6 +6,6 @@
 
 #include "my_types.h"
 
-pageid_t allocator_test_alloc(const uint32 byte_size);
+// pageid_t allocator_test_alloc(const uint32 byte_size);
 
 #endif //MEMORY_TEST_ALLOCATOR_H

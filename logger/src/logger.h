@@ -14,6 +14,11 @@ const char *get_color(const char *name);
 void print(const char *format, ...);
 void logger_test_variadic(const uint32 args_count, ...);
 
+/* ***************
+ * Test printing */
+void print_test_result(const char* test_name, bool passed, const char* file, int line, const char* message);
+
+
 
 struct _IO_FILE;
 void
@@ -21,6 +26,7 @@ dprint(struct _IO_FILE* file, const uint16 indent, const char* format, ...);
 
 void
 dprintmd(struct _IO_FILE* file, const char* dir, const char* filename, uint16 indent, const char* format, ...);
+
 
 
 #endif //LOGGER_H

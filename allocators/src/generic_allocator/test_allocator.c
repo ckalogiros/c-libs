@@ -5,9 +5,9 @@
  */
 
 #include "test_allocator.h"
-#include "mem_man.h"
-#include "mem_man_internals.h"
-#include "mem_log.h"
+// #include "mem_man_interface.h"
+// // #include "mem_man_internals.h"
+// #include "mem_log.h"
 #include <stdlib.h>
 
 
@@ -60,20 +60,21 @@ void allocator_init()
 
     s_allocator = allocator; // one instance, global access to allocator source code
 }
-pageid_t allocator_test_alloc(const uint32 byte_size)
-{
-    void* mem_ptr = mem_get_address();
-    if (!mem_ptr) {
-        mem_print_error(NO_MEMORY_MANAGER_INIT);
-    }
+// pageid_t allocator_test_alloc(const uint32 byte_size)
+// {
+//     // void* mem_ptr = mem_get_address();
+//     // if (!mem_ptr) {
+//     //     mem_print_error(NO_MEMORY_MANAGER_INIT);
+//     // }
+//     //
+//     // // todo: check if no memory left
+//     // // todo: create an apropriate allocators num pages allocation
+//     // pageid_t num_pages = 0;
+//     // if (byte_size < PAGE_SIZE) { num_pages = 1; }
+//     // else if (byte_size < PAGE_SIZE*2) { num_pages = 2; }
+//     // else if (byte_size < PAGE_SIZE*3) { num_pages = 3; }
+//     // const pageid_t page_id = mms_allocate_pages(num_pages);
+//     //
+//     // return page_id;
+// }
 
-    // todo: check if no memory left
-    // todo: create an apropriate allocators num pages allocation
-    pageid_t num_pages = 0;
-    if (byte_size < PAGE_SIZE) { num_pages = 1; }
-    else if (byte_size < PAGE_SIZE*2) { num_pages = 2; }
-    else if (byte_size < PAGE_SIZE*3) { num_pages = 3; }
-    const pageid_t page_id = mms_allocate_pages(num_pages);
-
-    return page_id;
-}

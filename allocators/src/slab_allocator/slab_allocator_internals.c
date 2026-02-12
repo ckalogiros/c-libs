@@ -8,9 +8,11 @@
 
 #include "slab_allocator_internals.h"
 #include "logger.h"
-#include "mem_man.h"
+// #include "mem_man_interface.h"
 #include "slab_allocator_log.h"
 #include <string.h>
+
+#include "../../../memory/src/mem_man_internals.h"
 
 
 static struct mem_cache_list* mem_cache_list = NULL;
@@ -54,8 +56,8 @@ mem_cache_init()
           "  SLAB ALLOCATOR%s\n\n", YELLOW, CLEAR);
 
     // Allocate memory to store a list of all size caches
-    struct memhnd_t hnd = mms_allocate_pages(1, MEM_CHUNK_ALLOCATOR_SLAB);
-    void* mem_cache_address = Temp_get_address_by_id(hnd);
+    struct memhnd_t hnd = mem_alloc(1, MEM_CHUNK_ALLOCATOR_SLAB);
+    void* mem_cache_address = memman_get_alloc_mem_by_handle(hnd);
 
     void* addr_ptr = mem_cache_address;
 
@@ -142,8 +144,8 @@ slab_alloc(const uint32 slab_size_bytes, struct mem_cache* mem_cache)
     const uint16 slabs_count = (num_pages * PAGE_SIZE) / slab_size_bytes;
 
     // allocate memory for slabs
-    struct memhnd_t hnd = mms_allocate_pages(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
-    void* addr_ptr = Temp_get_address_by_id(hnd);
+    const struct memhnd_t hnd = memman_alloc_pages(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
+    void* addr_ptr = memman_get_alloc_mem_by_handle(hnd);
 
     memset(addr_ptr, hnd.page_id, num_pages * PAGE_SIZE); // debug mem
 

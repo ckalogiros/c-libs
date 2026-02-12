@@ -67,7 +67,7 @@ default : 32)
 #define bit_toggle(v, bit, type)  ( (v) ^= (type) ( (force_type_width(v) ) << ( (bit)&(force_width_mask(v)) ) ) )
 
 // get single bit
-#define bit_get(v, bit) ((((v) >> bit) & (1)))
+#define bit_get(v, bit) ((((v) >> (bit)) & (1)))
 
 // get the upper half part of any uint
 #define bits_mask_low(v) ((v) & (half_type_mask(v)))

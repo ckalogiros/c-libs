@@ -1,0 +1,20 @@
+## Debug: global properties
+## use to debug the cmake_utils functions
+get_property(ALL_SOURCES GLOBAL PROPERTY GLOBAL_SOURCES)
+get_property(ALL_HEADERS GLOBAL PROPERTY GLOBAL_HEADERS)
+get_property(ALL_INCLUDE_DIRS GLOBAL PROPERTY GLOBAL_INCLUDE_DIRS)
+message("Sources: ${ALL_SOURCES}")
+message("Headers: ${ALL_HEADERS}")
+message("Include dirs: ${ALL_INCLUDE_DIRS}")
+
+
+
+## Debug: use after "add_subdirectory(...)" 
+## print what was registered
+get_property(ALL_INCLUDE_DIRS GLOBAL PROPERTY GLOBAL_INCLUDE_DIRS)
+message("Include dirs registered: ${ALL_INCLUDE_DIRS}")
+
+
+# Debug: check what include directories are actually set on the target
+#get_target_property(INCLUDES ${PROJECT_NAME} ALL_INCLUDE_DIRS)
+#message("Target include directories: ${INCLUDES}")

@@ -80,3 +80,12 @@
 //         }
 //     }
 // }
+
+
+pageid_t flist_get_pageid_magically(struct free_list* fnode)
+{ // todo: make sure the free list node is actually free
+    // a pageid exists right after the free list node
+    const memids_t ids = *((pageid_t*)fnode +  1);
+    const pageid_t pageid = mem_get_pageid_by_ids(ids);
+    return pageid;
+}
