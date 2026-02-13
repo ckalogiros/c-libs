@@ -1,27 +1,33 @@
-cmake_minimum_required(VERSION 4.1)
+cmake_minimum_required(VERSION 3.28.3)
 project(memory C)
 
 set(CMAKE_C_STANDARD 11)
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
+
+get_filename_component(parent_dir ${CMAKE_CURRENT_LIST_DIR} DIRECTORY)
 
 
-include(/home/ckalo/data/projects/clion/cmake_utils/proj_utils.cmake)
+# 1. include utility functions
+set(cmake_utils "${parent_dir}/cmake_utils/proj_utils.cmake")
+include(${cmake_utils})
 
+# 2. add /src that adds .c.h files and adds other sub-directories
 add_subdirectory(src)
+add_subdirectory(test)
 
-add_executable(memory main.c ${ALL_SOURCES})
+include_project(${parent_dir}/g_includes)
+include_project(${parent_dir}/logger/src)
+include_project(${parent_dir}/perf_timer/src)
 
-target_include_directories(memory PRIVATE ${ALL_INCLUDE_DIRS})
+# 3. create executable with all the source files
+add_project_executable(memory main.c)
 
-## Debug: global properties
-get_property(ALL_SOURCES GLOBAL PROPERTY GLOBAL_SOURCES)
-get_property(ALL_HEADERS GLOBAL PROPERTY GLOBAL_HEADERS)
-get_property(ALL_INCLUDE_DIRS GLOBAL PROPERTY GLOBAL_INCLUDE_DIRS)
-
+# Debug: global properties
 print_all_registered()
 
 
-#set(project_dir "${CMAKE_SOURCE_DIR}")
+
+
+#set(project_dir "${CMAKE_CURRENT_LIST_DIR}")
 #add_subdirectory(${project_dir}/test)
 #include("${project_dir}/src/CMakeLists.txt")
 #include("${project_dir}/src/internal/CMakeLists.txt")
@@ -29,7 +35,7 @@ print_all_registered()
 
 #
 ################## external directories #################
-#get_filename_component(parent_dir ${CMAKE_SOURCE_DIR} DIRECTORY)
+#get_filename_component(parent_dir ${CMAKE_CURRENT_LIST_DIR} DIRECTORY)
 #include("${parent_dir}/g_includes/CMakeLists.txt")
 #include("${parent_dir}/perf_timer/src/CMakeLists.txt")
 #include("${parent_dir}/logger/src/CMakeLists.txt")

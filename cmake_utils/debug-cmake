@@ -9,12 +9,45 @@ message("Include dirs: ${ALL_INCLUDE_DIRS}")
 
 
 
+#####################################################################
 ## Debug: use after "add_subdirectory(...)" 
 ## print what was registered
 get_property(ALL_INCLUDE_DIRS GLOBAL PROPERTY GLOBAL_INCLUDE_DIRS)
 message("Include dirs registered: ${ALL_INCLUDE_DIRS}")
 
 
+#####################################################################
 # Debug: check what include directories are actually set on the target
 #get_target_property(INCLUDES ${PROJECT_NAME} ALL_INCLUDE_DIRS)
 #message("Target include directories: ${INCLUDES}")
+
+
+
+
+#####################################################################
+# Force write a file with the include paths
+file(WRITE ${CMAKE_BINARY_DIR}/include_dirs.txt
+        "Include directories for cmake target:\n${ALL_INCLUDE_DIRS}")
+
+
+        memory
+└── CMakeLists.txt
+├── src/
+│   ├── CMakeLists.txt
+│   ├── mem_man.c
+│   ├── mem_man_internals.c
+│   ├── mem_man_internals.h
+│   ├── mem_man_interface.c
+│   └── internal/
+|       ├── CMakeLists.txt
+│       └── mem_structs.c
+|   └── mem_log/
+|       ├── CMakeLists.txt
+|       └── mem_log.c
+|       └── mem_log.h
+└── test/
+|      ├── CMakeLists.txt
+|      └── main.c
+|      └── tests.c
+|      └── tests.h
+└── main.c

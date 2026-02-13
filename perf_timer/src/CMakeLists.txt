@@ -1,8 +1,19 @@
-set(precision_timer_include "${CMAKE_CURRENT_LIST_DIR}/")
-set(precision_timer_source
-        "${CMAKE_CURRENT_LIST_DIR}/precision_timer.c"
-        "${CMAKE_CURRENT_LIST_DIR}/cpu_time_stamp.c"
-        "${CMAKE_CURRENT_LIST_DIR}/buffer_impl.c"
-        "${CMAKE_CURRENT_LIST_DIR}/precision_timer_logger.c"
+include(${cmake_utils})
+
+register_module(
+        sources
+        ${CMAKE_CURRENT_LIST_DIR}/precision_timer.c
+        ${CMAKE_CURRENT_LIST_DIR}/cpu_time_stamp.c
+        ${CMAKE_CURRENT_LIST_DIR}/buffer_impl.c
+        headers
+        ${CMAKE_CURRENT_LIST_DIR}/precision_timer.h
+        ${CMAKE_CURRENT_LIST_DIR}/precision_timer_struct.h
+        ${CMAKE_CURRENT_LIST_DIR}/buffer_impl.h
+        ${CMAKE_CURRENT_LIST_DIR}/cpu_time_stamp.h
+        include_dirs
+        ${CMAKE_CURRENT_LIST_DIR}
+        compiler_macros
+        ENABLE_DEBUG=1
+        VERSION_MAJOR=0
 )
 

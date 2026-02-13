@@ -1,4 +1,14 @@
-set(buffer_log_include "${CMAKE_CURRENT_LIST_DIR}/")
-set(buffer_log_source
-        "${CMAKE_CURRENT_LIST_DIR}/buffer_log.c"
+
+include(${cmake_utils})
+
+register_module(
+        sources
+        ${CMAKE_CURRENT_LIST_DIR}/buffer_log.c
+        headers
+        ${CMAKE_CURRENT_LIST_DIR}/buffer_log.h
+        include_dirs
+        ${CMAKE_CURRENT_LIST_DIR}
+        compiler_macros
+        ENABLE_DEBUG=1
+        VERSION_MAJOR=0
 )

@@ -1,4 +1,26 @@
-set(project_dir "${CMAKE_SOURCE_DIR}")
+cmake_minimum_required(VERSION 3.28.3)
+
+set(CMAKE_C_STANDARD 11)
+
+# 1. include utility functions
+include(${cmake_utils})
+
+# 2. add /src that adds .c.h files and adds other sub-directories
+#add_subdirectory(src)
+
+include_project(${parent_dir}/g_includes)
+include_project(${parent_dir}/logger/src)
+
+# 3. create executable with all the source files
+add_project_executable(tests main.c)
+#add_executable(tests main.c)
+
+# Debug: global properties
+print_all_registered()
+
+
+
+#set(project_dir "${CMAKE_SOURCE_DIR}")
 #include("${project_dir}/src/CMakeLists.txt")
 #include("${project_dir}/src/internal/CMakeLists.txt")
 #include("${project_dir}/src/mem_log/CMakeLists.txt")
