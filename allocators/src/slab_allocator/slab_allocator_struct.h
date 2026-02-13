@@ -4,6 +4,8 @@
 #ifndef ALLOCATORS_SLAB_ALLOCATOR_STRUCT_H
 #define ALLOCATORS_SLAB_ALLOCATOR_STRUCT_H
 
+#include <stdio.h>
+
 #include "char_buf.h"
 #include "my_types.h"
 
@@ -60,5 +62,14 @@ struct mem_cache_list {
     struct mem_cache_node* head;
     uint16 count;
 };
+
+static void slab_alloc_print_structs_sizes()
+{
+    printf("mem_cache_list: %u\n", sizeof(struct mem_cache_list));
+    printf("mem_cache_node: %u\n", sizeof(struct mem_cache_node));
+    printf("mem_cache: %u\n", sizeof(struct mem_cache));
+    printf("-- mem_cache struct has a slabs list\n");
+    printf("   slab_list: %u\n", sizeof(struct slab_list));
+}
 
 #endif // MEMORY_SLAB_ALLOCATOR_STRUCT_H

@@ -35,12 +35,16 @@ uint32 test_id = 0;
 void
 test_slab_allocator_alloc_release();
 
+void test();
+
 
 int
 main(void)
 {
+    test();
 
-    test_slab_allocator_alloc_release();
+
+    // test_slab_allocator_alloc_release();
 
     // test performance measurements
     // test_perf_slab_allocation_release();
@@ -50,10 +54,29 @@ main(void)
     return 0;
 }
 
+void test()
+{
+    memman_init();
+
+    slab_alloc_print_structs_sizes();
+
+    const uint32 buffer_size = 512;
+    const uint32 type_size = sizeof(uint32);
+    uint32* buffer = (uint32*) mem_cache_alloc_buffer(buffer_size, type_size);
+    for(uint32 i = 0; i < buffer_size; i++) {
+        // buffer[i] = 'A'+'D'+'G'+'V';
+        buffer[i] = 'ADGV';
+    }
+    print("%sAllocating:%s:%x%s\n", yg, TO_STRING(buffer), REDUCE_ADDR(buffer, F6), CLEAR);
+
+    memman_terminate();
+}
+
 void
 test_slab_allocator_alloc_release()
 {
     memman_init();
+
 
     const uint32 buffer_size = 16;
 #define buffer_type_t uint64
@@ -123,55 +146,3 @@ test_slab_allocator_alloc_release()
 
     memman_terminate();
 }
-//
-// void
-// test_mem_init_alloc_dealloc()
-// {
-//     // print test info
-//     {
-//         const char* test_name = "Allocate memory block\
-// \nSet up used memory control\
-// \nSet up free list control\
-// \nAllocate-release-use memory pages\
-// \nDestroy memory block";
-//         printf("-- -- -- TEST:%u -- -- --\n", test_id);
-//         print("%s %s %s\n", ry, test_name, CLEAR);
-//         printf("-- -- -- TEST:%u -- -- --\n\n", test_id);
-//         test_id++;
-//     }
-//
-//     memman_init();
-//
-//     // use memory in buffers sizeof(page)
-//     {
-//         const uint32 num_allocations = 4; // total allocations
-//         const uint32 num_pages = 1; // pages per allocation
-//         char ch = 'a';
-//         for(uint32 i = 0; i < num_allocations; i++) {
-//             const struct memhnd_t hnd = memman_alloc_pages(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
-//             uint64* const buffer = memman_get_alloc_mem_by_handle(hnd);
-//             const uint32 count = (PAGE_SIZE * num_pages) / sizeof(uint64);
-//             for(uint32 j = 0; j < count; j++)
-//                 buffer[j] = (uint64) ch;
-//             ch++;
-//         }
-//         print("\n");
-//     }
-//
-//
-//     // release pages - inserts to free list
-//     {
-//         // manually pass id of allocated object(should be 'buffer_id:see above')
-//         memman_release(2);
-//         memman_release(0);
-//         memman_release(1);
-//         memman_release(3);
-//         print("\n");
-//     }
-//
-//     // removes
-//     // // todo: release memory
-//     // // todo: enable perf timers, and all other external
-//
-//     memman_terminate();
-// }

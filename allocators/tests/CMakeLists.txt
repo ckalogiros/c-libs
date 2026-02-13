@@ -20,9 +20,6 @@ register_module(
         ${CMAKE_CURRENT_LIST_DIR}/test_performance.h
         include_dirs
         ${CMAKE_CURRENT_LIST_DIR}
-        compiler_macros
-        ENABLE_DEBUG=1
-        VERSION_MAJOR=0
 )
 
 include_project(${parent_dir}/g_includes)
@@ -30,6 +27,9 @@ include_project(${parent_dir}/logger/src)
 include_project(${parent_dir}/memory/src)
 include_project(${parent_dir}/memory/src/mem_log)
 include_project(${parent_dir}/memory/src/internal)
+include_project(${parent_dir}/buffer/src)
+include_project(${parent_dir}/buffer/src/buffer_logger)
+include_project(${parent_dir}/perf_timer/src)
 
 
 # 3. create executable with all the source files

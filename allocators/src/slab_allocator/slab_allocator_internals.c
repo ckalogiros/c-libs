@@ -61,7 +61,7 @@ mem_cache_init()
 
     void* addr_ptr = mem_cache_address;
 
-    memset(mem_cache_address, 0xff, PAGE_SIZE);
+    memset(mem_cache_address, 0xcd, PAGE_SIZE);
 
     // initialize static global mem_cache_list
     mem_cache_list = (struct mem_cache_list*) mem_cache_address;
