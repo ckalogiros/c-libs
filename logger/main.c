@@ -32,7 +32,7 @@ main(void)
     //
     // printhtml_destroy();
 
-    // print("This is %syellow%s color.", YELLOW, CLEAR);
+    print("This is %syellow%s color.", YELLOW, CLEAR);
 
     return 0;
 }

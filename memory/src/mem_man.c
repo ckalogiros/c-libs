@@ -32,6 +32,12 @@ memman_alloc_pages(const uint16 num_pages, enum MEM_CHUNK_SELECTOR chunk_selecto
     return hnd;
 }
 
+bool
+memman_release(const struct memhnd_t hnd)
+{
+    return mem_release(hnd);
+}
+
 void* memman_get_alloc_mem_by_handle(const struct memhnd_t handle)
 {
     return mem_get_addr_by_handle(handle);

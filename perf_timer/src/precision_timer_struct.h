@@ -6,13 +6,13 @@
 
 #include "my_types.h"
 
-struct timer{
-  uint64 start;
-  uint64 stop;
-  uint64 accum;
-  uint32 delta;
-  uint32 avg;
-  uint32 count;
+struct timer {
+    uint64 start;
+    uint64 stop;
+    uint64 accum;
+    uint32 delta;
+    uint32 avg;
+    uint32 count;
 };
 
 /* https://chat.deepseek.com/a/chat/s/6b0b9513-7909-4d43-afe4-a72bf5e824c6
@@ -50,7 +50,6 @@ FLAG_LIST
 // FLAG_LIST  // Uncomment to use #defines
 // #undef FLAG_ENTRY
  */
-
 
 
 enum PERF_TIMER_PRINT_FLAGS {

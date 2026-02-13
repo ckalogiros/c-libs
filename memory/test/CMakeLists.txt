@@ -10,6 +10,7 @@ include(${cmake_utils})
 
 include_project(${parent_dir}/g_includes)
 include_project(${parent_dir}/logger/src)
+include_project(${parent_dir}/perf_timer/src)
 
 # 3. create executable with all the source files
 add_project_executable(tests main.c)

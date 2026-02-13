@@ -39,12 +39,10 @@ endfunction()
 # Include another project's source registration
 function(include_project PROJECT_PATH)
     # Construct path to the project's src/CMakeLists.txt
-#    set(SRC_CMAKE "${PROJECT_PATH}/src/CMakeLists.txt")
     set(SRC_CMAKE "${PROJECT_PATH}/CMakeLists.txt")
-#    set("${PROJECT_PATH}/CMakeLists.txt")
 
     if(EXISTS ${SRC_CMAKE})
-        message("=== Including project: ${PROJECT_PATH} ===")
+        message("=== Including sub directory: ${PROJECT_PATH} ===")
         include(${SRC_CMAKE})
     else()
         message(FATAL_ERROR "Cannot find ${SRC_CMAKE}")

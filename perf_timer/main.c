@@ -1,5 +1,6 @@
+#include "logger.h"
 #include "buffer_internals.h"
-#include "mem_man.h"
+#include "mem_man_interface.h"
 #include "precision_timer_logger.h"
 #include "src/precision_timer.h"
 #include "src/cpu_time_stamp.h"
@@ -7,7 +8,6 @@
 #include <stdint.h>
 #include <unistd.h>
 
-#include "logger.h"
 
 void test_perf_timer();
 void test_cpu_time_stamps(int num);
@@ -27,7 +27,7 @@ int main(void) {
 
 void test_perf_timer() {
 
-    memory_manager_init(6);
+    memman_init(6);
     buffer_init();
     timer_init_table();
 
@@ -67,7 +67,7 @@ void test_perf_timer() {
 
 
 
-    memory_manager_terminate();
+    memman_terminate();
 }
 
 void test_cpu_time_stamps(const int num) {
@@ -93,7 +93,7 @@ void test_cpu_time_stamps(const int num) {
 
 void test_timer_table_impl() {
 
-  memory_manager_init(10);
+  memman_init(10);
   buffer_init_table();
 
   timer_init_table();
@@ -108,6 +108,6 @@ void test_timer_table_impl() {
 
   // perf_timer_print(t);
 
-  memory_manager_terminate();
+  memman_terminate();
 
 }

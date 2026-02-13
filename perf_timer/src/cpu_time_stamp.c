@@ -9,35 +9,44 @@
 #include "cpu_time_stamp.h"
 
 
-static uint64_t rdtsc() {
+static uint64_t
+rdtsc()
+{
     unsigned int lo, hi;
     __asm__ volatile ("rdtsc" : "=a" (lo), "=d" (hi));
-    return ((uint64_t)hi << 32) | lo;
+    return ((uint64_t) hi << 32) | lo;
 }
 
 // For CPUs with constant/invariant TSC (most modern Intel/AMD)
-uint64_t get_tsc_frequency() {
-    const uint64_t freq = sysconf(_SC_CLK_TCK);  // Not exact TSC frequency
+uint64_t
+get_tsc_frequency()
+{
+    const uint64_t freq = sysconf(_SC_CLK_TCK); // Not exact TSC frequency
     // Better: read from CPU model-specific registers or /proc/cpuinfo
-    return freq * 1000000;  // Approximate
+    return freq * 1000000; // Approximate
 }
 
 typedef struct {
-    uint64_t start;
-    uint64_t stop;
-    uint64_t accum;
-    uint32_t delta;
-    uint32_t avg;
-    uint32_t count;
-}cycles;
-static cycles t = {0,0,0};
+    uint64 start;
+    uint64 stop;
+    uint64 accum;
+    uint32 delta;
+    uint32 avg;
+    uint32 count;
+} cycles;
 
-void cycle_counter_start() {
+static cycles t = {0, 0, 0};
+
+void
+cycle_counter_start()
+{
     // t.start = rdtsc();
     t.start = get_tsc_frequency();
 }
 
-void cycle_counter_stop() {
+void
+cycle_counter_stop()
+{
     // t.stop = rdtsc();
     t.stop = get_tsc_frequency();
     t.delta = t.stop - t.start;
@@ -48,8 +57,16 @@ void cycle_counter_stop() {
     t.avg = t.accum / t.count;
 }
 
-uint32_t cycle_counter_get_delta() { return t.delta; }
-uint32_t cycle_counter_get_avg()   { return t.avg;   }
-uint32_t cycle_counter_get_count() { return t.count; }
-uint64_t cycle_counter_get_accum() { return t.accum; }
+uint32
+cycle_counter_get_delta() { return t.delta; }
+
+uint32
+cycle_counter_get_avg() { return t.avg; }
+
+uint32
+cycle_counter_get_count() { return t.count; }
+
+uint64
+cycle_counter_get_accum() { return t.accum; }
+
 // uint32_t cycle_counter_get_fps()   { return NANO_SEC / t.avg; }

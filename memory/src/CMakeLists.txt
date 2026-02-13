@@ -13,6 +13,3 @@ register_module(
             ENABLE_DEBUG=1
             VERSION_MAJOR=0
 )
-
-add_subdirectory(internal)
-add_subdirectory(mem_log)

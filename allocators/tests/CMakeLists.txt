@@ -1,60 +1,41 @@
-set(project_dir "${CMAKE_SOURCE_DIR}")
-include("${project_dir}/src/slab_allocator/CMakeLists.txt")
-include("${project_dir}/src/slab_allocator/slab_allocator_log/CMakeLists.txt")
-include("${project_dir}/src/stack_allocator/CMakeLists.txt")
-include("${project_dir}/src/generic_allocator/CMakeLists.txt")
+cmake_minimum_required(VERSION 3.28.3)
 
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
 
-################# external directories #################
 get_filename_component(parent_dir ${CMAKE_SOURCE_DIR} DIRECTORY)
-include("${parent_dir}/g_includes/CMakeLists.txt")
 
-#include("${parent_dir}/memory/src/CMakeLists.txt")
-#include("${parent_dir}/memory/src/internal/CMakeLists.txt")
-#include("${parent_dir}/memory/src/mem_log/CMakeLists.txt")
-include("${parent_dir}/memory/CMakeLists.txt")
+# 1. include utility functions
+set(cmake_utils "${parent_dir}/cmake_utils/proj_utils.cmake")
+include(${cmake_utils})
 
-#include("${parent_dir}/perf_timer/src/CMakeLists.txt")
-include("${parent_dir}/logger/src/CMakeLists.txt")
-#include("${parent_dir}/buffer/src/CMakeLists.txt")
-#include("${parent_dir}/buffer/src/buffer_logger/CMakeLists.txt")
-#include("${parent_dir}/io/src/std_input/CMakeLists.txt")
-
-set(external_include
-        ${g_includes}
-        ${logger_include}
-        ${mms_source}
-        ${mms_internal_source}
-        ${mms_logger_source}
-#        ${precision_timer_include}
-#        ${buffer_include}
-#        ${buffer_log_include}
-##        ${std_input_include}
-)
-set(external_source
-        ${sys_utils}
-        ${bitfields}
-        ${logger_source}
-        ${mms_source}
-        ${mms_internal_source}
-        ${mms_logger_source}
-#        ${precision_timer_source}
-#        ${buffer_source}
-#        ${buffer_log_source}
-##        ${std_input_source}
+# 2. add /src that adds .c.h files and adds other sub-directories
+include(${CMAKE_SOURCE_DIR}/src/slab_allocator/CMakeLists.txt)
+include(${CMAKE_SOURCE_DIR}/src/slab_allocator/slab_allocator_log/CMakeLists.txt)
+include(${CMAKE_SOURCE_DIR}/src/generic_allocator/CMakeLists.txt)
+register_module(
+        sources
+        ${CMAKE_CURRENT_LIST_DIR}/test_performance.c
+        headers
+        ${CMAKE_CURRENT_LIST_DIR}/test_performance.h
+        include_dirs
+        ${CMAKE_CURRENT_LIST_DIR}
+        compiler_macros
+        ENABLE_DEBUG=1
+        VERSION_MAJOR=0
 )
 
-add_executable(tests main.c
-        test_performance.c
-        ${external_source}
-        ${allocators_source}
-        ${slab_allocator_source}
-        ${slab_allocator_log_source}
-)
-target_include_directories(tests PRIVATE
-        ${external_include}
-        ${allocators_include}
-        ${slab_allocator_include}
-        ${slab_allocator_log_include}
-)
+include_project(${parent_dir}/g_includes)
+include_project(${parent_dir}/logger/src)
+include_project(${parent_dir}/memory/src)
+include_project(${parent_dir}/memory/src/mem_log)
+include_project(${parent_dir}/memory/src/internal)
 
+
+# 3. create executable with all the source files
+add_project_executable(tests main.c)
+#add_executable(tests main.c)
+
+
+# Debug: global properties
+print_all_registered()

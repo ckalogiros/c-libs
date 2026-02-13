@@ -56,6 +56,8 @@ void memman_terminate();
 
 struct memhnd_t memman_alloc_pages(const uint16 num_pages, enum MEM_CHUNK_SELECTOR);
 
+bool memman_release(const struct memhnd_t hnd);
+
 void* memman_get_alloc_mem_by_handle(const struct memhnd_t handle);
 
 

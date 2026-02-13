@@ -37,37 +37,37 @@ perf_timer_print(const timer_print_params params)
     if(!(params.flags & PERF_T_IN_CONTINUATION))
         print("\n%s-- Perf Timer --%s\n",YELLOW, CLEAR);
 
-    if(params.flags & (PERF_T_COUNT|PERF_T_ALL|PERF_T_COMMON))
+    if(params.flags & (PERF_T_COUNT | PERF_T_ALL | PERF_T_COMMON))
         print("  %scount%s: %s%u%s", ry, CLEAR, GREEN, params.t->count, CLEAR);
-    if(params.flags & (PERF_T_ACCUM|PERF_T_ALL))
+    if(params.flags & (PERF_T_ACCUM | PERF_T_ALL))
         print("  %saccum%s: %s%llu%s", ry, CLEAR, GREEN, params.t->accum, CLEAR);
-    if(params.flags & (PERF_T_DELTA|PERF_T_ALL))
+    if(params.flags & (PERF_T_DELTA | PERF_T_ALL))
         print("  %sdelta%s: %s%u%s", ry, CLEAR, GREEN, params.t->delta, CLEAR);
     if(!(params.flags & PERF_T_INLINE) &&
-        params.flags & (PERF_T_COUNT|PERF_T_ACCUM|PERF_T_DELTA|(PERF_T_ALL|PERF_T_COMMON)))
+       params.flags & (PERF_T_COUNT | PERF_T_ACCUM | PERF_T_DELTA | (PERF_T_ALL | PERF_T_COMMON)))
         print("\n");
 
 
-    if(params.flags & (PERF_T_REPEAT|PERF_T_ALL))
+    if(params.flags & (PERF_T_REPEAT | PERF_T_ALL))
         print("  %srepeat%s: %s%u%s", br2, CLEAR, GREEN, params.repeat, CLEAR);
-    if(params.flags & (PERF_T_BUF_CAPACITY|PERF_T_ALL))
+    if(params.flags & (PERF_T_BUF_CAPACITY | PERF_T_ALL))
         print("  %sbuf_capacity%s: %s%u%s\n", br2, CLEAR, GREEN, params.buf_capacity, CLEAR);
 
-    if(params.flags & (PERF_T_FPS|PERF_T_ALL|PERF_T_COMMON)) {
+    if(params.flags & (PERF_T_FPS | PERF_T_ALL | PERF_T_COMMON)) {
         uint32_t fps = 0;
-        if(avg!=0)
+        if(avg != 0)
             fps = perf_timer_calc_fps_from_nano(avg);
         print("  %sfps%s: %s%d%s\n", ry, CLEAR, YELLOW, fps, CLEAR);
     }
 
 
-    if(params.flags & (PERF_T_AVG_NANO|PERF_T_ALL|PERF_T_COMMON))
+    if(params.flags & (PERF_T_AVG_NANO | PERF_T_ALL | PERF_T_COMMON))
         print("  %savg%s: %s%d%s nano", ry, CLEAR, YELLOW, avg, CLEAR);
-    if(params.flags & (PERF_T_AVG_MICRO|PERF_T_ALL|PERF_T_COMMON))
+    if(params.flags & (PERF_T_AVG_MICRO | PERF_T_ALL | PERF_T_COMMON))
         print("  %savg%s: %s%ld%s micro", ry, CLEAR, YELLOW, avg / NANO_TO_MICRO, CLEAR);
-    if(params.flags & (PERF_T_AVG_MILI|PERF_T_ALL))
+    if(params.flags & (PERF_T_AVG_MILI | PERF_T_ALL))
         print("  %savg%s: %s%ld%s micro", ry, CLEAR, YELLOW, avg / NANO_TO_MILI, CLEAR);
-    if(params.flags & (PERF_T_AVG_NANO|PERF_T_AVG_MICRO|PERF_T_AVG_MILI | (PERF_T_ALL|PERF_T_COMMON)))
+    if(params.flags & (PERF_T_AVG_NANO | PERF_T_AVG_MICRO | PERF_T_AVG_MILI | (PERF_T_ALL | PERF_T_COMMON)))
         print("\n");
 
 
@@ -96,7 +96,6 @@ perf_timer_print_simple(struct timer* t, const uint32 repeat, const uint32 buf_c
 void
 perf_timer_print_simple_with_repeat(struct timer* t, const uint32 repeat, const uint32 buf_capacity)
 {
-
     print(
         "\n%s-PerfTimer%s: %srepeat%s: %s%u%s"
         "  %sbuf_capacity%s: %s%u%s\n",
@@ -106,11 +105,10 @@ perf_timer_print_simple_with_repeat(struct timer* t, const uint32 repeat, const 
     );
 
 
-
     const uint32_t avg = perf_timer_get_avg(t);
-    print("%savg%s: %s%d%s nano", ry, CLEAR, YELLOW, avg/repeat, CLEAR);
+    print("%savg%s: %s%d%s nano", ry, CLEAR, YELLOW, avg / repeat, CLEAR);
     // print("  %savg%s: %s%ld%s micro", ry, CLEAR, YELLOW, avg / NANO_TO_MICRO, CLEAR);
-    const uint32_t fps = perf_timer_calc_fps_from_nano(avg/repeat);
+    const uint32_t fps = perf_timer_calc_fps_from_nano(avg / repeat);
     print(" %sfps%s: %s%d%s\n", ry, CLEAR, YELLOW, fps, CLEAR);
 
 

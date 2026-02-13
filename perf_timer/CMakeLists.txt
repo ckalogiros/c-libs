@@ -13,15 +13,25 @@ include(${cmake_utils})
 add_subdirectory(src)
 
 
+
 include_project(${parent_dir}/g_includes)
 include_project(${parent_dir}/logger/src)
+include_project(${parent_dir}/memory/src)
+include_project(${parent_dir}/memory/src/mem_log)
+include_project(${parent_dir}/memory/src/internal)
+include_project(${parent_dir}/allocators/src/slab_allocator)
+include_project(${parent_dir}/allocators/src/slab_allocator/slab_allocator_log)
 include_project(${parent_dir}/buffer/src)
+include_project(${parent_dir}/buffer/src/buffer_logger)
 
-# 3. create executable with all the source files
-add_project_executable(perf_timer main.c)
 
 # Debug: global properties
 print_all_registered()
+
+# 3. create executable with all the source files
+add_project_executable(perf_timer main.c)
+#add_executable(perf_timer main.c)
+
 
 
 #

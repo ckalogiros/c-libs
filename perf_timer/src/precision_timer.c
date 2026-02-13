@@ -3,7 +3,6 @@
 //
 
 #include "precision_timer.h"
-
 #include "buffer.h"
 #include "buffer_impl.h"
 #include "precision_timer_logger.h"
