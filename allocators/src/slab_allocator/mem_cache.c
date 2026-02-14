@@ -9,8 +9,8 @@
 #include <string.h>
 
 
-struct slab_list*
-mem_cache_update_slabs_free_list(void* address, struct slab_list* slabs_free_list)
+struct slab_flist*
+mem_cache_update_slabs_free_list(void* address, struct slab_flist* slabs_free_list)
 {
     if(address == slabs_free_list) {
         print("%sERROR%s\n"
@@ -21,7 +21,7 @@ mem_cache_update_slabs_free_list(void* address, struct slab_list* slabs_free_lis
         );
     }
 
-    struct slab_list* free_list = (struct slab_list*) address;
+    struct slab_flist* free_list = (struct slab_flist*) address;
     free_list->next = slabs_free_list;
     slabs_free_list = free_list;
 
@@ -44,7 +44,7 @@ mem_cache_alloc_buffer(const buffer_size_t buffer_size, const uint8 type_size)
 
     mcache->slabs_used++;
 
-    struct slab_list* free_slab = mcache->slabs_free_list;
+    struct slab_flist* free_slab = mcache->slabs_free_list;
     // point mem_cache free_list to the "next" free slab in the list
     mcache->slabs_free_list = mcache->slabs_free_list->next;
 

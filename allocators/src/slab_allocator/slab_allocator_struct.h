@@ -4,6 +4,24 @@
 #ifndef ALLOCATORS_SLAB_ALLOCATOR_STRUCT_H
 #define ALLOCATORS_SLAB_ALLOCATOR_STRUCT_H
 
+/*
+ * MEMORY IMPLEMENTATION
+ *
+ * memory manager should malloc()
+ *
+ * 1. storage for memory manager structs
+ * 2. storage for allocators
+ *      slab allocator's mem_caches and slab lists
+ * 3. actual storage data
+ *      buffer container should be close
+ *
+ * That way we keep actual program's data together
+ * and all structures for handling that data on their own storage.
+ * if slab allocator needs to access its structures to handle slabs
+ * then the cpu caches does not realy matter
+ */
+
+
 #include <stdio.h>
 
 #include "char_buf.h"
@@ -33,15 +51,15 @@ struct slab_node {
     struct slab* slab;
 };
 
-struct slab_list {
-    struct slab_list* next;
+struct slab_flist {
+    struct slab_flist* next;
 };
 
 
 
 struct mem_cache {
     void* slabs_address;
-    struct slab_list* slabs_free_list;
+    struct slab_flist* slabs_free_list;
     uint16 slab_size; // each slab's size in bytes
     uint16 slabs_count; // total slabs count
     uint16 slabs_used; // used slabs count
@@ -69,7 +87,7 @@ static void slab_alloc_print_structs_sizes()
     printf("mem_cache_node: %u\n", sizeof(struct mem_cache_node));
     printf("mem_cache: %u\n", sizeof(struct mem_cache));
     printf("-- mem_cache struct has a slabs list\n");
-    printf("   slab_list: %u\n", sizeof(struct slab_list));
+    printf("   slab_list: %u\n", sizeof(struct slab_flist));
 }
 
 #endif // MEMORY_SLAB_ALLOCATOR_STRUCT_H

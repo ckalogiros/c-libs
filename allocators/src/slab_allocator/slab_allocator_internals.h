@@ -13,7 +13,7 @@ mem_cache_get_list();
 void
 mem_cache_init();
 
-struct slab_list*
+struct slab_flist*
 slab_alloc(const uint32 slab_size_bytes, struct mem_cache* mem_cache);
 
 

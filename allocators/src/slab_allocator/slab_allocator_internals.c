@@ -16,6 +16,7 @@
 
 
 static struct mem_cache_list* mem_cache_list = NULL;
+static struct mem_cache* mem_cache_table = NULL;
 
 
 /************************************************************************
@@ -123,7 +124,7 @@ mem_cache_create(const buffer_size_t buffer_size, const uint8 type_size)
     return &new_cache_node->mem_cache;
 }
 
-struct slab_list*
+struct slab_flist*
 slab_alloc(const uint32 slab_size_bytes, struct mem_cache* mem_cache)
 {
     // create that many pages, acording to requested size
@@ -152,7 +153,7 @@ slab_alloc(const uint32 slab_size_bytes, struct mem_cache* mem_cache)
     // update free list
     void* ptr = addr_ptr;
     for(uint16 i = 0; i < slabs_count; i++) {
-        struct slab_list* free_list = (struct slab_list*) ptr;
+        struct slab_flist* free_list = (struct slab_flist*) ptr;
         free_list->next = mem_cache->slabs_free_list;
         mem_cache->slabs_free_list = free_list;
         ptr += slab_size_bytes;

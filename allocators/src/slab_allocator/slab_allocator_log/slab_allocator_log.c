@@ -60,11 +60,11 @@ void print_mem_cache_create(const uint32 slab_size, const uint8 slabs_num_pages,
     print("%s-----------------------%s\n", YELLOW, CLEAR);
 }
 
-void print_slabs_free_list(struct slab_list* slabs_free_list) {
+void print_slabs_free_list(struct slab_flist* slabs_free_list) {
 
     print("%s-- SLABS FREE LIST --%s\n", YELLOW, CLEAR);
 
-    struct slab_list* list = slabs_free_list;
+    struct slab_flist* list = slabs_free_list;
     uint32 slabs_count = 0;
     while (list){
         print("[%s%u%s]"
