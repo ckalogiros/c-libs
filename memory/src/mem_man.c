@@ -8,7 +8,7 @@
 
 
 void
-memman_init()
+memman_init(void)
 {
     bool initialized = mem_init();
 
@@ -17,7 +17,7 @@ memman_init()
 }
 
 void
-memman_terminate()
+memman_terminate(void)
 {
     mem_log_print_terminate_mem();
     bool success = mem_free();

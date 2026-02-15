@@ -8,13 +8,13 @@
 #include "mem_man_internals.h"
 
 
-void mem_log_print_init_mem();
+void mem_log_print_init_mem(void);
 
-void mem_log_print_terminate_mem();
+void mem_log_print_terminate_mem(void);
 
 void mem_log_print_mem(const struct mem* const mem);
 
-void mem_log_print_all_used_mem();
+void mem_log_print_all_used_mem(void);
 
 void mem_log_print_free_list_of_chunk(const memid_t chunk_id);
 void mem_log_print_free_list_table();
@@ -25,8 +25,8 @@ void mem_print_mem_release(void* released_addr, const struct memhnd_t hnd);
 
 
 // external: logger to html
-void logger_to_html_init();
-void logger_to_html_destroy();
+void logger_to_html_init(void);
+void logger_to_html_destroy(void);
 
 // ERROR handling
 void mem_print_error(enum MEMORY_ERROR_CODE code);

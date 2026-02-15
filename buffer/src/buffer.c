@@ -21,7 +21,7 @@
 
 
 void
-buffer_init()
+buffer_init(void)
 {
     buffer_init_table();
 }

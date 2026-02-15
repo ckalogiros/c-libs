@@ -7,11 +7,21 @@
 #include "slab_allocator_struct.h"
 
 
+/*********************************************************************************************/
+// nen implementation
+
+void mem_chache_table_init(void);
+void mem_cache_table_destroy(void);
+void mem_cache_init2(enum MEM_CACHE_SIZES type);
+
+/*********************************************************************************************/
+
+
 struct mem_cache_list*
-mem_cache_get_list();
+mem_cache_get_list(void);
 
 void
-mem_cache_init();
+mem_cache_init(void);
 
 struct slab_flist*
 slab_alloc(const uint32 slab_size_bytes, struct mem_cache* mem_cache);

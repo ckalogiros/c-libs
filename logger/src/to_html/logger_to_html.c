@@ -41,13 +41,13 @@ struct node {
 uint32 temp_html_node_capacity = 0; // devide allocated memory by the node struct size
 struct node* html_head = NULL; // head to the allocated memory
 
-struct node* html_create_node()
+struct node* html_create_node(void)
 {
     // struct node
 }
 
 void
-log_to_html_init()
+log_to_html_init(void)
 {
     // alloc buffer for head until groups and the html close nodes and end
     // alloc buffer for groups
@@ -115,7 +115,7 @@ printhtml_close(const char* dir)
 }
 
 
-void printhtml_destroy()
+void printhtml_destroy(void)
 {
     print("destroy mem_block:\n%s\n", mem);
     if(mem != NULL) free(mem);

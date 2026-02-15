@@ -27,8 +27,22 @@
 #include "char_buf.h"
 #include "my_types.h"
 
-#define SLABS_PER_CACHE 8
-#define CACHE_NAME_LEN  16
+enum MEM_CACHE_SIZES {
+    MEM_CACHE_SIZE_8 = 0,
+    MEM_CACHE_SIZE_16,
+    MEM_CACHE_SIZE_32,
+    MEM_CACHE_SIZE_64,
+    MEM_CACHE_SIZES_CAPACITY,
+    MEM_CACHE_SIZE_128,
+    MEM_CACHE_SIZE_256,
+    MEM_CACHE_SIZE_512,
+    MEM_CACHE_SIZE_1024, /// this is the current memory page size
+    MEM_CACHE_SIZE_2048,
+    MEM_CACHE_SIZE_4096,
+    MEM_CACHE_SIZE_8192,
+    MEM_CACHE_SIZE_16384,
+    MEM_CACHE_SIZE_32768, /// this is the current memory chunk size. Above that we ask for whole chunks
+};
 
 enum SLAB_ALLOCATOR_ERROR_CODE {
   SLAB_ALLOC_MEMCACHE_NOT_FOUND = 0,
@@ -81,13 +95,13 @@ struct mem_cache_list {
     uint16 count;
 };
 
-static void slab_alloc_print_structs_sizes()
+static void slab_alloc_print_structs_sizes(void)
 {
-    printf("mem_cache_list: %u\n", sizeof(struct mem_cache_list));
-    printf("mem_cache_node: %u\n", sizeof(struct mem_cache_node));
-    printf("mem_cache: %u\n", sizeof(struct mem_cache));
+    printf("mem_cache_list: %lu\n", sizeof(struct mem_cache_list));
+    printf("mem_cache_node: %lu\n", sizeof(struct mem_cache_node));
+    printf("mem_cache: %lu\n", sizeof(struct mem_cache));
     printf("-- mem_cache struct has a slabs list\n");
-    printf("   slab_list: %u\n", sizeof(struct slab_flist));
+    printf("   slab_list: %lu\n", sizeof(struct slab_flist));
 }
 
 #endif // MEMORY_SLAB_ALLOCATOR_STRUCT_H

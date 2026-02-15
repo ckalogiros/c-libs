@@ -17,12 +17,13 @@
 #include <unistd.h>
 
 #include "mem_man_interface.h"
+#include "slab_allocator_internals.h"
 #include "slab_allocator_log.h"
 // #include "std_input.h"
 // #include "std_input_public.h"
 
 int32
-has_input()
+has_input(void)
 {
     struct pollfd pfd = {.fd = STDIN_FILENO, .events = POLLIN};
     return poll(&pfd, 1, 0) > 0; // 0 timeout = non-blocking
@@ -33,15 +34,18 @@ uint32 test_id = 0;
 
 
 void
-test_slab_allocator_alloc_release();
+test_slab_allocator_alloc_release(void);
 
-void test();
+void test(void);
+void test_new_impl(void);
+
 
 
 int
 main(void)
 {
-    test();
+    // test();
+    test_new_impl();
 
 
     // test_slab_allocator_alloc_release();
@@ -54,7 +58,8 @@ main(void)
     return 0;
 }
 
-void test()
+// some basic initialization of slab allocator
+void test(void)
 {
     memman_init();
 
@@ -71,9 +76,24 @@ void test()
 
     memman_terminate();
 }
+// some basic initialization of new implemetation slab allocator
+void test_new_impl(void)
+{
+    memman_init();
+    mem_chache_table_init();
+    mem_cache_init2(MEM_CACHE_SIZE_8);
+
+    // for(uint32 i = 0; i < buffer_size; i++)
+
+    // print("%sAllocating:%s:%x%s\n", yg, TO_STRING(buffer), REDUCE_ADDR(buffer, F6), CLEAR);
+
+    mem_cache_table_destroy();
+    memman_terminate();
+}
+
 
 void
-test_slab_allocator_alloc_release()
+test_slab_allocator_alloc_release(void)
 {
     memman_init();
 

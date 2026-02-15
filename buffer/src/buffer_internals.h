@@ -7,10 +7,10 @@
 
 #include "buffer.h"
 
-void TEMP_PRINT_BUFFER_TABLE_COUNT();
+void TEMP_PRINT_BUFFER_TABLE_COUNT(void);
 
 void
-buffer_init_table();
+buffer_init_table(void);
 
 buffer_t*
 buffer_constructor_uint32(const bufidx_t capacity);

@@ -31,13 +31,13 @@ if((uint64*)((uint8*)p1+offset) < (uint64*)p2){\
  * so is plug&play to find the appropriate total mem_chunk size a program needs.
  **************************************************************************************************/
 
-static struct mem* mem;
-static struct mem_chunk* chunks_table; // mem is devided into chunks
-static struct free_list** flist_heads_table; // table stores:flist heads per chunk
+static struct mem* mem = NULL;
+static struct mem_chunk* chunks_table = NULL; // mem is devided into chunks
+static struct free_list** flist_heads_table = NULL; // table stores:flist heads per chunk
 
 
 bool
-mem_init()
+mem_init(void)
 {
     if(mem) return FALSE;
 

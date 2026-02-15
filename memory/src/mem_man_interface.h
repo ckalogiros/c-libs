@@ -50,9 +50,9 @@ struct memhnd_t {
 
 #define PAGE_SIZE 1024
 
-void memman_init();
+void memman_init(void);
 
-void memman_terminate();
+void memman_terminate(void);
 
 struct memhnd_t memman_alloc_pages(const uint16 num_pages, enum MEM_CHUNK_SELECTOR);
 

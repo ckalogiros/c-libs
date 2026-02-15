@@ -7,11 +7,11 @@
 
 #include "my_types.h"
 
-void cycle_counter_start();
-void cycle_counter_stop();
-uint32 cycle_counter_get_avg();
-uint32 cycle_counter_get_count();
-uint32 cycle_counter_get_fps();
-uint64 cycle_counter_get_accum();
+void cycle_counter_start(void);
+void cycle_counter_stop(void);
+uint32 cycle_counter_get_avg(void);
+uint32 cycle_counter_get_count(void);
+uint32 cycle_counter_get_fps(void);
+uint64 cycle_counter_get_accum(void);
 
 #endif //PERF_TIMER_CPU_TIME_STAMP_H

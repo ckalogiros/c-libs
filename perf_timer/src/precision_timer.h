@@ -14,9 +14,9 @@
 #define NANO_TO_MILI (NANO_SEC/MILI_SEC)
 
 
-void timer_init_table();
+void timer_init_table(void);
 
-struct timer* timer_create_perf_timer();
+struct timer* timer_create_perf_timer(void);
 
 void perf_timer_start(struct timer*);
 

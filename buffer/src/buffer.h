@@ -9,7 +9,7 @@
 
 
 void
-buffer_init();
+buffer_init(void);
 
 buffer_t*
 buffer_create_uint32(const uint32 capacity);

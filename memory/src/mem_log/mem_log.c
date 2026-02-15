@@ -14,18 +14,18 @@
 
 
 
-void logger_to_html_init()
+void logger_to_html_init(void)
 {
     // printhtml_init(DEBUG_HTML_DIR);
 }
-void logger_to_html_destroy()
+void logger_to_html_destroy(void)
 {
     // printhtml_close(DEBUG_HTML_DIR);
     // printhtml_destroy();
 }
 
 void
-mem_log_print_init_mem()
+mem_log_print_init_mem(void)
 {
 #ifdef DEBUG_PRINT_MEM
     print("%s# INITIALIZE MEMORY #%s\n\n", YELLOW, CLEAR);
@@ -33,7 +33,7 @@ mem_log_print_init_mem()
 }
 
 void
-mem_log_print_terminate_mem()
+mem_log_print_terminate_mem(void)
 {
 #ifdef DEBUG_PRINT_MEM
     print("\n\n%s# TERMINATE MEMORY #%s\n", YELLOW, CLEAR);
@@ -103,7 +103,7 @@ mem_log_print_free_list_of_chunk(const memid_t chunk_id)
 }
 
 void
-mem_log_print_free_list_table()
+mem_log_print_free_list_table(void)
 {
 #ifdef DEBUG_PRINT_MEM
     print("-- %sfree list heads table%s --\n", ry, CLEAR);

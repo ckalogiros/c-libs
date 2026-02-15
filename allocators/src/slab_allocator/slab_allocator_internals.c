@@ -9,14 +9,91 @@
 #include "slab_allocator_internals.h"
 #include "logger.h"
 // #include "mem_man_interface.h"
+#include <stdlib.h>
+
 #include "slab_allocator_log.h"
 #include <string.h>
 
+#include "my_macros.h"
 #include "../../../memory/src/mem_man_internals.h"
 
 
+#define SLABS_FREE_LIST_GET_PAGE_COLOR_START(fnode) ((char*)fnode + sizeof(struct slab_flist))
+
 static struct mem_cache_list* mem_cache_list = NULL;
 static struct mem_cache* mem_cache_table = NULL;
+
+void
+mem_chache_table_init(void)
+{
+    const uint32 min_size = sizeof(struct mem_cache) * MEM_CACHE_SIZES_CAPACITY;
+    const uint32 table_size = ROUND_UP(min_size, PAGE_SIZE);
+    mem_cache_table = aligned_alloc(1024, table_size);
+
+    uint32 i = 0, type_sizes = sizeof(char*);
+    for(; i < MEM_CACHE_SIZES_CAPACITY; i++) {
+
+        struct mem_cache mem_cache = (struct mem_cache){
+            .type_size = type_sizes,
+        };
+        mem_cache_table[i] = mem_cache;
+
+        type_sizes *= 2;
+    }
+
+    // todo: slab allocator logger print table init
+
+}
+
+void
+mem_cache_table_destroy(void)
+{
+    if(mem_cache_table)
+        free(mem_cache_table);
+
+    // todo: slab allocator logger print table destroy
+}
+
+void
+mem_cache_init2(enum MEM_CACHE_SIZES type)
+{
+    // todo: alloc size is depended on the mem cache size type. min allocation = 1 PAGE
+    const uint32 mem_size = PAGE_SIZE;
+    const uint32 num_pages = 1;
+    struct mem_cache* mem_cache = &mem_cache_table[type];
+    const struct memhnd_t hnd = memman_alloc_pages(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
+    char* ptr = (char*)memman_get_alloc_mem_by_handle(hnd);
+    mem_cache->slabs_address = (struct slab_flist*)ptr;
+
+    /* initialize slabs free list */
+    struct slab_flist* flist = mem_cache->slabs_address;
+    const uint32 slabs_total_count = mem_size / mem_cache->type_size;
+    uint32 i = 0;
+    for(; i < slabs_total_count; i++) {
+
+        // char* color_page = SLABS_FREE_LIST_GET_PAGE_COLOR_START(flist);
+        // color_page[0] = 'S'; color_page[1] = 'L'; color_page[2] = 'A'; color_page[3] = 'B';
+
+        ptr += sizeof(struct slab_flist*);
+        flist->next = (struct slab_flist*)ptr;
+        flist = flist->next;
+
+    }
+}
+
+/*
+    struct mem_cache {
+        void* slabs_address;
+        struct slab_flist* slabs_free_list;
+        uint16 slab_size;
+        uint16 slabs_count;
+        uint16 slabs_used;
+        uint8 slabs_num_pages;
+        uint8 type_size;
+        char_buf16_t name;
+    };
+
+ */
 
 
 /************************************************************************

@@ -29,7 +29,7 @@ constructor(struct timer* t)
 static buffer_t* timer_table = NULL;
 
 void
-timer_init_table()
+timer_init_table(void)
 {
     if(timer_table) return;
 
@@ -39,7 +39,7 @@ timer_init_table()
 
 
 struct timer*
-timer_create_perf_timer()
+timer_create_perf_timer(void)
 {
     if(!timer_table) {
         print("%sERROR\nNO timer_table initialization%s", RED, CLEAR);
@@ -58,7 +58,7 @@ timer_create_perf_timer()
 
 
 static uint64
-perf_timer_get()
+perf_timer_get(void)
 { // https://www.man7.org/linux/man-pages/man3/clock_gettime.3.html
 
     //  tv_sec: seconds, tv_nsec: nanoseconds

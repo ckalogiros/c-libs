@@ -10,7 +10,7 @@
 
 
 static uint64_t
-rdtsc()
+rdtsc(void)
 {
     unsigned int lo, hi;
     __asm__ volatile ("rdtsc" : "=a" (lo), "=d" (hi));
@@ -19,7 +19,7 @@ rdtsc()
 
 // For CPUs with constant/invariant TSC (most modern Intel/AMD)
 uint64_t
-get_tsc_frequency()
+get_tsc_frequency(void)
 {
     const uint64_t freq = sysconf(_SC_CLK_TCK); // Not exact TSC frequency
     // Better: read from CPU model-specific registers or /proc/cpuinfo
@@ -38,14 +38,14 @@ typedef struct {
 static cycles t = {0, 0, 0};
 
 void
-cycle_counter_start()
+cycle_counter_start(void)
 {
     // t.start = rdtsc();
     t.start = get_tsc_frequency();
 }
 
 void
-cycle_counter_stop()
+cycle_counter_stop(void)
 {
     // t.stop = rdtsc();
     t.stop = get_tsc_frequency();
@@ -58,15 +58,15 @@ cycle_counter_stop()
 }
 
 uint32
-cycle_counter_get_delta() { return t.delta; }
+cycle_counter_get_delta(void) { return t.delta; }
 
 uint32
-cycle_counter_get_avg() { return t.avg; }
+cycle_counter_get_avg(void) { return t.avg; }
 
 uint32
-cycle_counter_get_count() { return t.count; }
+cycle_counter_get_count(void) { return t.count; }
 
 uint64
-cycle_counter_get_accum() { return t.accum; }
+cycle_counter_get_accum(void) { return t.accum; }
 
 // uint32_t cycle_counter_get_fps()   { return NANO_SEC / t.avg; }
