@@ -2,38 +2,35 @@
  * Created by ckalo on 1/22/26.
  *
  * todo:
- *    . mem_cache_list should be inserting at the head, NOT the tail
- *      so that inserting a new cache is with no CHECK
  */
 
 #include "slab_allocator_internals.h"
 #include "logger.h"
-// #include "mem_man_interface.h"
 #include <stdlib.h>
-
-#include "slab_allocator_log.h"
 #include <string.h>
 
+#include "slab_allocator_log.h"
 #include "my_macros.h"
-#include "../../../memory/src/mem_man_internals.h"
+#include "mem_man_internals.h"
 
 
 #define SLABS_FREE_LIST_GET_PAGE_COLOR_START(fnode) ((char*)fnode + sizeof(struct slab_flist))
 
-static struct mem_cache_list* mem_cache_list = NULL;
+// hardcoded byte sizes of each cache's slab (buffer) capacity (in bytes). todo: automate
+static uint16 cache_size_bytes[] = {8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768};
+
 static struct mem_cache* mem_cache_table = NULL;
 
 void
 mem_chache_table_init(void)
 {
-    const uint32 min_size = sizeof(struct mem_cache) * MEM_CACHE_SIZES_CAPACITY;
+    const uint32 min_size = sizeof(struct mem_cache) * SLAB_SIZES_LEN;
     const uint32 table_size = ROUND_UP(min_size, PAGE_SIZE);
     mem_cache_table = aligned_alloc(1024, table_size);
 
     uint32 i = 0, type_sizes = sizeof(char*);
-    for(; i < MEM_CACHE_SIZES_CAPACITY; i++) {
-
-        struct mem_cache mem_cache = (struct mem_cache){
+    for(; i < SLAB_SIZES_LEN; i++) {
+        const struct mem_cache mem_cache = (struct mem_cache){
             .type_size = type_sizes,
         };
         mem_cache_table[i] = mem_cache;
@@ -42,219 +39,121 @@ mem_chache_table_init(void)
     }
 
     // todo: slab allocator logger print table init
+}
 
+struct mem_cache*
+mem_cache_create(const buffer_size_t buffer_size, const uint8 type_size)
+{
+    const uint32 slab_size = buffer_size * type_size;
+    // todo: alloc size is depended on the mem cache size type. min allocation = 1 PAGE
+
+    const uint32 mem_size = PAGE_SIZE;
+    const uint32 num_pages = 1;
+    const uint32 slabs_capacity = mem_size / slab_size;
+
+    // allocate memory
+    struct mem_cache* mcache = &mem_cache_table[0];
+    const struct memhnd_t hnd = memman_alloc_pages(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
+    char* ptr = (char*) memman_get_alloc_mem_by_handle(hnd);
+    memset(ptr, 0x0, slab_size);
+
+    mcache->mem_handle = hnd;
+    mcache->type_size = type_size;
+    mcache->slab_size = slab_size;
+    mcache->slabs_capacity = slabs_capacity;
+    mcache->is_active = TRUE;
+    mcache->slabs_free_list = (struct slab_flist*) ptr;
+
+    /* initialize slabs free list */
+    struct slab_flist* flist = (struct slab_flist*) ptr;
+    uint32 i = 0;
+    for(; i < slabs_capacity; i++) {
+        // char* color_page = SLABS_FREE_LIST_GET_PAGE_COLOR_START(flist);
+        // color_page[0] = 'S'; color_page[1] = 'L'; color_page[2] = 'A'; color_page[3] = 'B';
+        ptr += slab_size;
+        flist->next = (struct slab_flist*) ptr;
+        flist = flist->next;
+    }
+
+    flist->next = NULL;
+
+    print_mem_cache_create(slab_size, slabs_capacity, mcache, mcache->slabs_free_list);
+
+    return mcache;
 }
 
 void
 mem_cache_table_destroy(void)
 {
+    uint32 i = 0;
+    for(; i < SLAB_SIZES_LEN; i++) {
+        if(mem_cache_table[i].is_active) {
+            memman_release(mem_cache_table[i].mem_handle);
+        }
+    }
+
     if(mem_cache_table)
         free(mem_cache_table);
 
     // todo: slab allocator logger print table destroy
 }
 
-void
-mem_cache_init2(enum MEM_CACHE_SIZES type)
-{
-    // todo: alloc size is depended on the mem cache size type. min allocation = 1 PAGE
-    const uint32 mem_size = PAGE_SIZE;
-    const uint32 num_pages = 1;
-    struct mem_cache* mem_cache = &mem_cache_table[type];
-    const struct memhnd_t hnd = memman_alloc_pages(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
-    char* ptr = (char*)memman_get_alloc_mem_by_handle(hnd);
-    mem_cache->slabs_address = (struct slab_flist*)ptr;
-
-    /* initialize slabs free list */
-    struct slab_flist* flist = mem_cache->slabs_address;
-    const uint32 slabs_total_count = mem_size / mem_cache->type_size;
-    uint32 i = 0;
-    for(; i < slabs_total_count; i++) {
-
-        // char* color_page = SLABS_FREE_LIST_GET_PAGE_COLOR_START(flist);
-        // color_page[0] = 'S'; color_page[1] = 'L'; color_page[2] = 'A'; color_page[3] = 'B';
-
-        ptr += sizeof(struct slab_flist*);
-        flist->next = (struct slab_flist*)ptr;
-        flist = flist->next;
-
-    }
-}
-
-/*
-    struct mem_cache {
-        void* slabs_address;
-        struct slab_flist* slabs_free_list;
-        uint16 slab_size;
-        uint16 slabs_count;
-        uint16 slabs_used;
-        uint8 slabs_num_pages;
-        uint8 type_size;
-        char_buf16_t name;
-    };
-
- */
-
-
-/************************************************************************
- * private
- ************************************************************************/
-void
-mem_cache_constructor(struct mem_cache* mcache)
-{
-    mcache->slab_size = 0;
-    mcache->slabs_num_pages = 0;
-    mcache->slabs_used = 0;
-    mcache->slabs_count = 0;
-    mcache->slabs_free_list = NULL;
-    mcache->slabs_address = NULL;
-}
-
-struct mem_cache_node*
-mem_cache_alloc(struct mem_cache_node* mlist)
-{
-    void* addr_ptr = mlist + 1;
-
-    if(mem_cache_list == NULL) {}
-
-    struct mem_cache_node* new_list_node = addr_ptr;
-    mlist->next = new_list_node;
-    new_list_node->next = NULL;
-    new_list_node->slab_address = NULL;
-    mem_cache_list->count++;
-
-    return new_list_node;
-}
-
-// initialize cache list
-void
-mem_cache_init()
-{
-    print("\n%s##################\n"
-          "  SLAB ALLOCATOR%s\n\n", YELLOW, CLEAR);
-
-    // Allocate memory to store a list of all size caches
-    struct memhnd_t hnd = mem_alloc(1, MEM_CHUNK_ALLOCATOR_SLAB);
-    void* mem_cache_address = memman_get_alloc_mem_by_handle(hnd);
-
-    void* addr_ptr = mem_cache_address;
-
-    memset(mem_cache_address, 0xcd, PAGE_SIZE);
-
-    // initialize static global mem_cache_list
-    mem_cache_list = (struct mem_cache_list*) mem_cache_address;
-    addr_ptr += sizeof(struct mem_cache_list);
-    mem_cache_list->count = 0;
-
-    // assign memory for the "head" node of mem_cache_list struct
-    mem_cache_list->head = (struct mem_cache_node*) addr_ptr;
-    mem_cache_list->head->next = NULL;
-}
-
-struct mem_cache*
-mem_cache_create(const buffer_size_t buffer_size, const uint8 type_size)
-{
-    /*******************
-    * mem cache creation
-    ********************/
-
-    struct mem_cache_node* new_cache_node = NULL;
-
-    if(mem_cache_list == NULL) {
-        mem_cache_init();
-        new_cache_node = mem_cache_list->head;
-    } else {
-        // find the last cache and get the address+cache size to get the free memory for the new cache
-        struct mem_cache_node* last_cache_node = mem_cache_list->head;
-        while(last_cache_node->next)
-            last_cache_node = last_cache_node->next;
-
-        new_cache_node = mem_cache_alloc(last_cache_node);
-    }
-
-
-    // members initialization
-    mem_cache_constructor(&new_cache_node->mem_cache);
-    new_cache_node->mem_cache.slabs_count = 0;
-    new_cache_node->mem_cache.slabs_used = 0;
-    new_cache_node->mem_cache.type_size = type_size;
-    // !IMPORTANT: slabs_free_list must be set to NULL for every new mem_cache(for the build of slabs_free_list)
-    new_cache_node->mem_cache.slabs_free_list = NULL;
-
-
-    /*****************
-     * slabs creation
-     *****************/
-    const uint32 slab_size_bytes = buffer_size * type_size;
-    new_cache_node->mem_cache.slab_size = slab_size_bytes;
-
-    // create memory for slabs and initialize slabs free list
-    new_cache_node->mem_cache.slabs_address = slab_alloc(slab_size_bytes, &new_cache_node->mem_cache);
-
-
-    const char* name = number_to_string("mem_cache_", slab_size_bytes).buf; // cache's name
-    char_buf16_copy_from_str(name, &new_cache_node->mem_cache.name);
-
-    // print("------- MCACHE-------\n");
-    // print_mem_cache_list();
-
-    return &new_cache_node->mem_cache;
-}
 
 struct slab_flist*
-slab_alloc(const uint32 slab_size_bytes, struct mem_cache* mem_cache)
+mem_cache_alloc_slab(struct mem_cache* mcache)
 {
-    // create that many pages, acording to requested size
-    uint16 num_pages = 1;
-    while(num_pages * PAGE_SIZE < slab_size_bytes) {
-        num_pages++;
-    }
-    mem_cache->slabs_num_pages += num_pages;
+    // TODO: if there are no more free slabs, allocate new page and setup slabs
 
-    if(slab_size_bytes > num_pages * PAGE_SIZE) {
-        print("%sERROR\nslab size > num_pages to be allocated\n"
-              "slab_size_bytes:%u\nnum_pages*PAGE_SIZE:%u\n%s",
-              RED, slab_size_bytes, num_pages * PAGE_SIZE, CLEAR);
-        my_exit("ERROR\n slab size > num_pages", __FILE__, __LINE__);
-    }
+    struct slab_flist* free = mcache->slabs_free_list;
+    const struct slab_flist* flist = mcache->slabs_free_list;
+    mcache->slabs_free_list = flist->next;
+    mcache->slabs_used++;
 
-    // calculate num slabs for this size
-    const uint16 slabs_count = (num_pages * PAGE_SIZE) / slab_size_bytes;
+    return free;
+}
 
-    // allocate memory for slabs
-    const struct memhnd_t hnd = memman_alloc_pages(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
-    void* addr_ptr = memman_get_alloc_mem_by_handle(hnd);
+bool
+mem_cache_free_slab(struct mem_cache* mcache, void* slab_address)
+{
+    // TODO: write test
+    struct slab_flist* released = (struct slab_flist*) slab_address;
+    struct slab_flist* node = mcache->slabs_free_list;
 
-    memset(addr_ptr, hnd.page_id, num_pages * PAGE_SIZE); // debug mem
-
-    // update free list
-    void* ptr = addr_ptr;
-    for(uint16 i = 0; i < slabs_count; i++) {
-        struct slab_flist* free_list = (struct slab_flist*) ptr;
-        free_list->next = mem_cache->slabs_free_list;
-        mem_cache->slabs_free_list = free_list;
-        ptr += slab_size_bytes;
-        mem_cache->slabs_count++;
+    // insert at the begining of the free list
+    if(node > released) {
+        mcache->slabs_free_list = released;
+        mcache->slabs_free_list->next = node;
+        memset(slab_address, 0xcd, mcache->slab_size);
+        return TRUE;
     }
 
-    // print_slabs_free_list(mem_cache->slabs_free_list);
+    // else search for the last free with smaller address value
+    while(node->next < released) {
+        node = node->next;
+    }
 
-    return addr_ptr;
+    // if smaller address found, insert in between
+    if(node->next != NULL) {
+        struct slab_flist* temp = node->next;
+        node->next = released;
+        node->next->next = temp;
+        memset(slab_address, 0xcd, mcache->slab_size);
+        return TRUE;
+    }
+    // else insert at the end of the free list
+    node->next = (struct slab_flist*) slab_address;
+    memset(slab_address, 0xcd, mcache->slab_size);
+    return TRUE;
 }
 
 struct mem_cache*
 mem_cache_find_cache(const slab_size_t slab_size)
 {
-    // todo: we cannot afford to check if mem_cache list is initialized on every find_cache() call
-    if(mem_cache_list == NULL) return NULL;
-    if(mem_cache_list->head == NULL) return NULL;
-
-    struct mem_cache_node* mcache_list = mem_cache_list->head;
-    while(mcache_list) {
-        if(mcache_list->mem_cache.slab_size == slab_size)
-            return &mcache_list->mem_cache;
-
-        mcache_list = mcache_list->next;
+    uint32 i = 0;
+    for(; i < SLAB_SIZES_LEN; i++) {
+        if(mem_cache_table[i].slab_size == slab_size) {
+            return &mem_cache_table[i];
+        }
     }
 
     return NULL;
@@ -295,6 +194,3 @@ number_to_string(const char* str, const uint32 integer)
 
     return buf;
 }
-
-struct mem_cache_list*
-mem_cache_get_list() { return mem_cache_list; }

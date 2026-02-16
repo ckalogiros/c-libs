@@ -16,8 +16,10 @@ include(${CMAKE_SOURCE_DIR}/src/generic_allocator/CMakeLists.txt)
 register_module(
         sources
         ${CMAKE_CURRENT_LIST_DIR}/test_performance.c
+        ${CMAKE_CURRENT_LIST_DIR}/test_slab_allocator.c
         headers
         ${CMAKE_CURRENT_LIST_DIR}/test_performance.h
+        ${CMAKE_CURRENT_LIST_DIR}/test_slab_allocator.h
         include_dirs
         ${CMAKE_CURRENT_LIST_DIR}
 )
@@ -34,7 +36,6 @@ include_project(${parent_dir}/perf_timer/src)
 
 # 3. create executable with all the source files
 add_project_executable(tests main.c)
-#add_executable(tests main.c)
 
 
 # Debug: global properties

@@ -14,11 +14,13 @@
 #include "test_performance.h"
 
 #include <poll.h>
+#include <string.h>
 #include <unistd.h>
 
 #include "mem_man_interface.h"
 #include "slab_allocator_internals.h"
 #include "slab_allocator_log.h"
+#include "test_slab_allocator.h"
 // #include "std_input.h"
 // #include "std_input_public.h"
 
@@ -37,7 +39,7 @@ void
 test_slab_allocator_alloc_release(void);
 
 void test(void);
-void test_new_impl(void);
+void test_mem_cache_alloc_release_slabs(void);
 
 
 
@@ -45,7 +47,7 @@ int
 main(void)
 {
     // test();
-    test_new_impl();
+    test_mem_cache_alloc_release_slabs();
 
 
     // test_slab_allocator_alloc_release();
@@ -76,16 +78,96 @@ void test(void)
 
     memman_terminate();
 }
+
+/**************************************************************************************************/
 // some basic initialization of new implemetation slab allocator
-void test_new_impl(void)
+
+
+void test_mem_cache_alloc_release_slabs(void)
 {
     memman_init();
     mem_chache_table_init();
-    mem_cache_init2(MEM_CACHE_SIZE_8);
 
-    // for(uint32 i = 0; i < buffer_size; i++)
+    print(" %sTEST-slab allocator%s\n", ry, CLEAR);
 
-    // print("%sAllocating:%s:%x%s\n", yg, TO_STRING(buffer), REDUCE_ADDR(buffer, F6), CLEAR);
+
+    const uint8 type_size = sizeof(uint8);
+    const uint32 type_size_bytes = type_size*8;
+    const buffer_size_t buffer_size = 128;
+    const buffer_size_t slab_size = buffer_size*type_size;
+
+    // print(" %sTEST-%s\n", ry, CLEAR);
+    const uint32 page_size = PAGE_SIZE;
+    const uint32 total_slabs = page_size/slab_size;
+    uint8* buffer[page_size/slab_size];
+
+    print(" type size in bytes: %s%u%s\n", YELLOW, type_size_bytes, CLEAR);
+    print(" buffer size: %s%u%s\n", YELLOW, buffer_size, CLEAR);
+    print(" slab size: %s%u%s\n", YELLOW, slab_size, CLEAR);
+    print(" num slabs: %s%u%s\n", YELLOW, total_slabs, CLEAR);
+
+    print("%s-- ALLOCATION + WRITE --%s\n", ry, CLEAR);
+    uint32 c = CHAR_A;
+    for(uint32 i = 0; i < total_slabs; i++){
+        buffer[i] = (uint8*)mem_cache_alloc_buffer(buffer_size, type_size);
+        memset(buffer[i], (char)c, slab_size);
+        check_buffer(buffer[i], slab_size, c);
+        c++;
+        if(c>CHAR_END) c = CHAR_A;
+    }
+
+
+    // const void* buffer_start = &(buffer[0][0]);
+    const char* buffer_start = (*buffer);
+    // 0x7ffff7f1c7f8
+    const char* buffer_end = ((*buffer)+(total_slabs*slab_size));
+    print(" alloc start: %s%x%s\n", CYAN, REDUCE_ADDR(buffer_start, F5), CLEAR);
+    print(" alloc end:   %s%x%s\n", CYAN, REDUCE_ADDR(buffer_end, F5), CLEAR);
+    print(" alloc size:  %s%llu%s bytes\n", CYAN, buffer_end-buffer_start, CLEAR);
+    if((uint64)buffer_end-(uint64)buffer_start == page_size)
+        print(" Allocation size :: %sPASS%s\n", GREEN, CLEAR);
+    else print(" Allocation size ::  %sFAIL%s\n", RED, CLEAR);
+
+    print("\n\n");
+
+
+
+    /*
+     * . release all slabs of the allocated memory cache
+     * . use a buffer to store all free slabs addresses for testing
+     * . the release slab functions are copies of the implementation(for debugging)
+     *   so make sure they are updated on any changes
+     */
+    uint64 free_buffer[total_slabs] = {};
+    print("%s-- DEALLOCATION + ERASE --%s\n", ry, CLEAR);
+    for(uint32 i = 0; i < total_slabs; i++){
+        mem_cache_release_buffer_test_debug(buffer[i], buffer_size, type_size, free_buffer, i);
+    }
+
+    /*
+     * . print all free slabs addresses
+     * . all slabs ought to be free at this point
+     * . if the difference between 2 consecutive slabs
+     *   is the size of the slab in bytes: TEST PASSES, else TEST: FAILS
+     */
+    uint64 dif = free_buffer[0];
+    print(" slab_size:%u\n", slab_size);
+    for(uint32 i = 1; i < total_slabs; i++) {
+
+        dif = (uint64)free_buffer[i] - dif;
+
+        print("[%s%u%s]"
+          " addr:%s%x%s"
+          "",
+            CYAN, i, CLEAR,
+            CYAN, REDUCE_ADDR(free_buffer[i], F6), CLEAR
+        );
+        if(dif == slab_size) print(" %sPASS%s\n", GREEN, CLEAR);
+        else print(" %sFAIL%s\n", RED, CLEAR);
+
+        dif = free_buffer[i];
+    }
+
 
     mem_cache_table_destroy();
     memman_terminate();
@@ -129,8 +211,6 @@ test_slab_allocator_alloc_release(void)
     buffer32_8 = (buffer_type_t*) mem_cache_alloc_buffer(buffer_size, type_size);
     print("%sAllocating:%s:%x%s\n", yg, TO_STRING(buffer32_8), REDUCE_ADDR(buffer32_8, F6), CLEAR);
 
-    print_all_slabs_free_list();
-
 
     mem_cache_release_buffer(buffer32_1, buffer_size, type_size);
     mem_cache_release_buffer(buffer32_2, buffer_size, type_size);
@@ -160,9 +240,6 @@ test_slab_allocator_alloc_release(void)
     mem_cache_release_buffer(buffer32_6, buffer_size, type_size);
     mem_cache_release_buffer(buffer32_4, buffer_size, type_size);
     mem_cache_release_buffer(buffer32_5, buffer_size, type_size);
-
-    print_mem_cache_list();
-    print_all_slabs_free_list();
 
     memman_terminate();
 }

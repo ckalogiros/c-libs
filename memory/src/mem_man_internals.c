@@ -128,9 +128,9 @@ mem_release(const struct memhnd_t hnd)
 
     /*
      * we have 3 cases
-     * 1. free.id < head.id
-     * 2. free.id > head.id && free.id < 31
-     * 3. free.id + num_pages == 31
+     * 1. free.id < head.id (first)
+     * 2. free.id > head.id && free.id < 31 (in-between)
+     * 3. free.id + num_pages == 31 (last)
      */
 
     struct free_list* head = flist_table_get_head(hnd.chunk_id);
@@ -192,6 +192,19 @@ mem_get_addr_by_handle(const struct memhnd_t hnd)
 /* *************************************************************************************************
  * private
  * ************************************************************************************************/
+
+/* DEBUG */
+struct mem*
+debug_mem_get() { return mem; }
+
+uint16
+debug_mem_get_chunks_count() { return mem->chunks_count; }
+
+struct mem_chunk*
+debug_chunks_table_get() { return chunks_table; }
+
+struct free_list**
+debug_free_list_table_get() { return flist_heads_table; }
 
 void
 mem_init_chunks_table()
@@ -265,6 +278,7 @@ mem_init_free_list_table()
     }
 }
 
+
 void*
 flist_get_next_free_page(pageid_t num_pages, const memid_t chunk_id)
 {
@@ -318,6 +332,7 @@ flist_table_set_head(const memid_t chunk_id, struct free_list* head)
 }
 
 
+
 memid_t
 chunk_selector_get_chunk(const enum MEM_CHUNK_SELECTOR chunk_selector)
 {
@@ -359,18 +374,3 @@ check_mem_off_boundaries_writes(void* mem_start, const uint32 byte_size)
     }
     return FALSE;
 }
-
-
-
-/* DEBUG */
-struct mem*
-debug_mem_get() { return mem; }
-
-uint16
-debug_mem_get_chunks_count() { return mem->chunks_count; }
-
-struct mem_chunk*
-debug_chunks_table_get() { return chunks_table; }
-
-struct free_list**
-debug_free_list_table_get() { return flist_heads_table; }
