@@ -93,7 +93,7 @@ void test_mem_cache_alloc_release_slabs(void)
 
     const uint8 type_size = sizeof(uint8);
     const uint32 type_size_bytes = type_size*8;
-    const buffer_size_t buffer_size = 128;
+    const buffer_size_t buffer_size = 16;
     const buffer_size_t slab_size = buffer_size*type_size;
 
     // print(" %sTEST-%s\n", ry, CLEAR);

@@ -9,11 +9,10 @@
 #include "slab_allocator_internals.h"
 #include "slab_allocator_log.h"
 #include <string.h>
-
 #include "logger.h"
 
 
-void print_buffer(void* buffer, const uint32 buffer_size, const char c)
+void print_buffer(void* buffer, const uint32 buffer_size)
 {
     uint32 i = 0;
     char* buf = (char*)buffer;
@@ -41,7 +40,7 @@ void check_buffer(void* buffer, const uint32 buffer_size, const char c)
 
 
 /*
- * this is a copy of the function(s), for testing purposes
+ * these are a copies of the function(s) of slab_allocator, for testing purposes
  * MUST BE KEPT UPDATED TO THE ACTUAL SLAB ALLOCATOR'S FUNCTIONS
  */
 

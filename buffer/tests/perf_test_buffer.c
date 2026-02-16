@@ -129,7 +129,7 @@ division_heavy_hash(uint32 seed, uint32 i);
  * insert buffer element
  ******************************************************************************/
 void
-perf_test_buffer_create_generic_vs_uint32()
+perf_test_buffer_create_generic_vs_uint32(void)
 {
     print("%s-- -- -- TEST: -- -- --%s\n", GREEN, CLEAR);
     print("%stest performance of allocating and releasing\n"
@@ -288,7 +288,7 @@ perf_test_buffer_create_generic_vs_uint32()
  * insert buffer element
  ******************************************************************************/
 void
-perf_test_buffer_remove_insert()
+perf_test_buffer_remove_insert(void)
 {
     const uint32_t num_pages = 10;
     memory_manager_init(num_pages);
@@ -387,7 +387,7 @@ push_abstructed(const uint16 id, const uint32 index, uint32 val)
 }
 
 void
-perf_test_insert_abstruct_call()
+perf_test_insert_abstruct_call(void)
 {
     print("%s-- TEST: --\n", ry, CLEAR);
     print("%s measure performance overhead\n of pushing to buffer\n"
@@ -500,7 +500,7 @@ division_heavy_hash(uint32 seed, uint32 i)
 
 
 void
-perf_test_buffer_find_tail()
+perf_test_buffer_find_tail(void)
 {
     print("%s-- -- -- TEST: -- -- --%s\n", GREEN, CLEAR);
     print("%s test_buffer_find_tail%s\n\n", CYAN, CLEAR);
@@ -615,7 +615,7 @@ perf_test_buffer_find_tail()
  * buffers inside of buffers !
  */
 void // test buffer with children. All buffers with same (slab) capacity
-perf_test_buffer_with_children()
+perf_test_buffer_with_children(void)
 {
 
     print("%s-- -- -- TEST: -- -- --%s\n", GREEN, CLEAR);
@@ -879,7 +879,7 @@ perf_test_buffer_with_children()
 }
 
 void // test buffer with children. All buffers with different (slab) capacities
-perf_test_buffer_with_children_in_dif_slabs()
+perf_test_buffer_with_children_in_dif_slabs(void)
 {
 
     print("%s-- -- -- TEST: -- -- --%s\n", GREEN, CLEAR);

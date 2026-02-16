@@ -1,7 +1,7 @@
 #include <stdio.h>
 
 #include "logger.h"
-#include "mem_man.h"
+#include "mem_man_interface.h"
 #include "buffer.h"
 #include "buffer_log.h"
 #include "precision_timer.h"
@@ -15,14 +15,13 @@ keyboard_input2();
 int
 main(void)
 {
-    const uint32_t num_pages = 4;
-    memory_manager_init(num_pages);
+    memman_init();
 
 
     keyboard_input2();
 
 
-    memory_manager_terminate();
+    memman_terminate();
     return 0;
 }
 

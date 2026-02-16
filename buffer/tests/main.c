@@ -6,7 +6,7 @@
 #include "buffer.h"
 #include "logger.h"
 #include "mem_log.h"
-#include "mem_man.h"
+#include "mem_man_interface.h"
 #include "precision_timer.h"
 #include "perf_test_buffer.h"
 #include "test_buffer.h"

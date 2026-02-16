@@ -1,50 +1,40 @@
+cmake_minimum_required(VERSION 3.28.3)
 
-set(project_dir "${CMAKE_SOURCE_DIR}")
-include("${project_dir}/src/CMakeLists.txt")
-include("${project_dir}/src/buffer_logger/CMakeLists.txt")
+set(CMAKE_C_STANDARD 11)
 
-
-################# external directories #################
 get_filename_component(parent_dir ${CMAKE_SOURCE_DIR} DIRECTORY)
-include("${parent_dir}/g_includes/CMakeLists.txt")
-include("${parent_dir}/perf_timer/src/CMakeLists.txt")
-include("${parent_dir}/logger/src/CMakeLists.txt")
-include("${parent_dir}/memory/src/CMakeLists.txt")
-include("${parent_dir}/memory/src/mem_log/CMakeLists.txt")
-include("${parent_dir}/allocators/src/slab_allocator/CMakeLists.txt")
-include("${parent_dir}/allocators/src/slab_allocator/slab_allocator_log/CMakeLists.txt")
-set(external_include
-        ${g_includes}
-        ${precision_timer_include}
-        ${logger_include}
-        ${mms_include}
-        ${slab_allocator_include}
-        ${slab_allocator_log_include}
-        ${mms_loger_include}
 
-)
-set(external_source
-        ${sys_utils}
-        ${bitfields}
-        ${precision_timer_source}
-        ${logger_source}
-        ${mms_source}
-        ${slab_allocator_source}
-        ${slab_allocator_log_source}
-        ${mms_loger_source}
+# 1. include utility functions
+set(cmake_utils "${parent_dir}/cmake_utils/proj_utils.cmake")
+include(${cmake_utils})
 
+# 2. add /src that adds .c.h files and adds other sub-directories
+#include(${CMAKE_SOURCE_DIR}/src/CMakeLists.txt)
+#include(${CMAKE_SOURCE_DIR}/src/buffer_logger/CMakeLists.txt)
+register_module(
+        sources
+        ${CMAKE_CURRENT_LIST_DIR}/test_buffer.c
+        ${CMAKE_CURRENT_LIST_DIR}/perf_test_buffer.c
+        headers
+        ${CMAKE_CURRENT_LIST_DIR}/test_buffer.h
+        ${CMAKE_CURRENT_LIST_DIR}/perf_test_buffer.h
+        include_dirs
+        ${CMAKE_CURRENT_LIST_DIR}
 )
 
-add_executable(tests main.c
-        test_buffer.c
-        perf_test_buffer.c
-        ${buffer_source}
-        ${buffer_log_source}
-        ${external_source}
-)
-target_include_directories(tests PRIVATE
-        ${buffer_include}
-        ${buffer_log_include}
-        ${external_include}
-)
+include_project(${parent_dir}/g_includes)
+include_project(${parent_dir}/logger/src)
+include_project(${parent_dir}/memory/src)
+include_project(${parent_dir}/memory/src/mem_log)
+include_project(${parent_dir}/memory/src/internal)
+include_project(${parent_dir}/buffer/src)
+include_project(${parent_dir}/buffer/src/buffer_logger)
+include_project(${parent_dir}/allocators/src/slab_allocator)
+include_project(${parent_dir}/allocators/src/slab_allocator/slab_allocator_log)
+include_project(${parent_dir}/perf_timer/src)
 
+# 3. create executable with all the source files
+add_project_executable(test main.c)
+
+# Debug: global properties
+print_all_registered()

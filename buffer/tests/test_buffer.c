@@ -8,7 +8,7 @@
 #include "buffer_log.h"
 #include "logger.h"
 #include "mem_log.h"
-#include "mem_man.h"
+#include "mem_man_interface.h"
 #include "precision_timer.h"
 #include "slab_allocator_log.h"
 
@@ -46,7 +46,7 @@ void
 test_create_buffer(const uint32 capacity)
 {
     const uint32_t num_pages = 10;
-    memory_manager_init(num_pages);
+    memman_init();
 
     buffer_init_table();
 
@@ -59,14 +59,14 @@ test_create_buffer(const uint32 capacity)
         .buffer = buffer, .print_num_elems = buffer->capacity
     }));
 
-    memory_manager_terminate();
+    memman_terminate();
 }
 
 void
 test_buffer_fill_remove_insert()
 {
     const uint32_t num_pages = 10;
-    memory_manager_init(num_pages);
+    memman_init();
 
     buffer_init_table();
 
@@ -110,7 +110,7 @@ test_buffer_fill_remove_insert()
         .buffer = buffer, .print_num_elems = buffer->capacity
     }));
 
-    memory_manager_terminate();
+    memman_terminate();
 }
 
 void
@@ -120,7 +120,7 @@ test_buffer_different_capacity_buffers()
     print("%s create different capacity buffers%s\n\n", CYAN, CLEAR);
 
     const uint32_t num_pages = 15;
-    memory_manager_init(num_pages);
+    memman_init();
 
     buffer_init_table();
 
@@ -179,7 +179,7 @@ test_buffer_different_capacity_buffers()
         }));
     }
 
-    memory_manager_terminate();
+    memman_terminate();
 }
 
 void
@@ -189,7 +189,7 @@ test_buffer_remove_elements(const uint32 capacity)
     print("%s buffer remove elements %s\n\n", CYAN, CLEAR);
 
     const uint32_t num_pages = 15;
-    memory_manager_init(num_pages);
+    memman_init();
 
     buffer_init_table();
 
@@ -215,7 +215,7 @@ test_buffer_remove_elements(const uint32 capacity)
         .buffer = buffer, .print_num_elems = buffer->capacity
     }));
 
-    memory_manager_terminate();
+    memman_terminate();
 }
 
 void
@@ -225,7 +225,7 @@ test_buffer_insert_elements(const uint32 capacity)
     print("%s buffer remove elements %s\n\n", CYAN, CLEAR);
 
     const uint32_t num_pages = 15;
-    memory_manager_init(num_pages);
+    memman_init();
 
     buffer_init_table();
 
@@ -251,7 +251,7 @@ test_buffer_insert_elements(const uint32 capacity)
         .buffer = buffer, .print_num_elems = buffer->capacity
     }));
 
-    memory_manager_terminate();
+    memman_terminate();
 }
 
 void
@@ -261,7 +261,7 @@ test_buffer_realloc()
     print("%s buffer realloc%s\n\n", CYAN, CLEAR);
 
     const uint32_t num_pages = 15;
-    memory_manager_init(num_pages);
+    memman_init();
 
     buffer_init_table();
 
@@ -281,7 +281,7 @@ test_buffer_realloc()
     for(uint32 i = 0; i < buffer->capacity / 2; i++) {
         buffer_push_uint32(100 + i, buffer);
     }
-    print_mem_cache_list();
+    
     buffer_print_uint32(buffer_print_config((buffer_print_params){
         .buffer = buffer, .print_num_elems = buffer->capacity
     }));
@@ -293,7 +293,7 @@ test_buffer_realloc()
     for(uint32 i = 0; i < buffer->capacity / 2; i++) {
         buffer_push_uint32(200 + i, buffer);
     }
-    print_mem_cache_list();
+    
     buffer_print_uint32(buffer_print_config((buffer_print_params){
         .buffer = buffer, .print_num_elems = buffer->capacity
     }));
@@ -305,7 +305,7 @@ test_buffer_realloc()
     for(uint32 i = 0; i < buffer->capacity / 2; i++) {
         buffer_push_uint32(300 + i, buffer);
     }
-    print_mem_cache_list();
+    
     buffer_print_uint32(buffer_print_config((buffer_print_params){
         .buffer = buffer, .print_num_elems = buffer->capacity
     }));
@@ -317,7 +317,7 @@ test_buffer_realloc()
     for(uint32 i = 0; i < buffer->capacity / 2; i++) {
         buffer_push_uint32(400 + i, buffer);
     }
-    print_mem_cache_list();
+    
     buffer_print_uint32(buffer_print_config((buffer_print_params){
         .buffer = buffer, .print_num_elems = buffer->capacity
     }));
@@ -329,14 +329,14 @@ test_buffer_realloc()
     for(uint32 i = 0; i < buffer->capacity / 2; i++) {
         buffer_push_uint32(400 + i, buffer);
     }
-    print_mem_cache_list();
+    
     buffer_print_uint32(buffer_print_config((buffer_print_params){
         .buffer = buffer, .print_num_elems = buffer->capacity
     }));
 
-    print_mem_cache_list();
+    
 
-    memory_manager_terminate();
+    memman_terminate();
 }
 
 void
@@ -346,7 +346,7 @@ test_destroy_buffer()
     print("%s buffer destroy - (no slabs realease)%s\n\n", CYAN, CLEAR);
 
     const uint32_t num_pages = 15;
-    memory_manager_init(num_pages);
+    memman_init();
 
     buffer_init_table();
 
@@ -558,7 +558,7 @@ test_destroy_buffer()
     }
 
 
-    memory_manager_terminate();
+    memman_terminate();
 }
 
 void
@@ -568,7 +568,7 @@ test_generic_type_buffer()
     print("%s test_generic_type_buffer%s\n\n", CYAN, CLEAR);
 
     const uint32_t num_pages = 15;
-    memory_manager_init(num_pages);
+    memman_init();
 
     buffer_init_table();
 
@@ -599,7 +599,7 @@ test_generic_type_buffer()
     }
 
 
-    memory_manager_terminate();
+    memman_terminate();
 }
 
 void
@@ -609,7 +609,7 @@ test_buffer_free_elem()
     print("%s test_buffer_find_tail%s\n\n", CYAN, CLEAR);
 
     const uint32_t num_pages = 15;
-    memory_manager_init(num_pages);
+    memman_init();
 
     buffer_init_table();
 
@@ -641,7 +641,7 @@ test_buffer_free_elem()
         .buffer = buffer, .print_num_elems = buffer->capacity
     }));
 
-    memory_manager_terminate();
+    memman_terminate();
 }
 
 void // todo
@@ -666,7 +666,7 @@ test_buffer_with_children()
     print("%s test_buffer_with_children%s\n\n", CYAN, CLEAR);
 
     const uint32_t num_pages = 15;
-    memory_manager_init(num_pages);
+    memman_init();
 
     buffer_init_table();
 
@@ -715,6 +715,6 @@ test_buffer_with_children()
     //     .buffer = buffer, .print_num_elems = buffer->capacity
     // }));
 
-    memory_manager_terminate();
+    memman_terminate();
 }
 
