@@ -10,6 +10,7 @@
 #include "mem_log.h"
 #include "mem_man_interface.h"
 #include "precision_timer.h"
+#include "slab_allocator_internals.h"
 #include "slab_allocator_log.h"
 
 

@@ -296,10 +296,7 @@ flist_get_next_free_page(pageid_t num_pages, const memid_t chunk_id)
 
         // remove page free coloring
         char* color_page = FREE_LIST_GET_PAGE_COLOR_START(flist_head);
-        color_page[0] = '\0';
-        color_page[1] = '\0';
-        color_page[2] = '\0';
-        color_page[3] = '\0';
+        color_page[0] = '\0'; color_page[1] = '\0'; color_page[2] = '\0'; color_page[3] = '\0';
 
         flist_head = fnode->next;
         fnode = fnode->next;

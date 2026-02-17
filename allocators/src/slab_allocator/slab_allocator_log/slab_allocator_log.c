@@ -27,23 +27,18 @@ print_mem_cache_struct(const struct mem_cache* const mem_cache)
 }
 
 void
-print_mem_cache_create(const uint32 slab_size, const uint8 slabs_num_pages,
-                       struct mem_cache* mcahche, void* slabs_addr)
+print_mem_cache_create(const struct mem_cache* const mem_cache)
 {
     // debug-print
-    print("\n%s-- Create Mem Cache --%s\n"
-          "struct mem_cache: %s%u%s bytes\n"
-          "slab size:        %s%u%s bytes\n"
-          "slab pages:       %s%u%s\n"
-          "mem_cache addr: %s%x%s\n"
-          "slabs addr:     %s%x%s\n",
-          YELLOW, CLEAR,
-          YELLOW, sizeof(struct mem_cache), CLEAR,
-          YELLOW, slab_size, CLEAR,
-          YELLOW, slabs_num_pages, CLEAR,
-          CYAN, REDUCE_ADDR(mcahche, F6), CLEAR,
-          CYAN, REDUCE_ADDR(slabs_addr, F6), CLEAR
-    );
+    print("\n%s-- Create Mem Cache --%s\n", YELLOW, CLEAR);
+    print("  name: %s\n", mem_cache->name.buf);
+    print("  slab_size:      %s%u%s\n", YELLOW, mem_cache->slab_size, CLEAR);
+    print("  slabs_count:    %s%u%s\n", YELLOW, mem_cache->slabs_count, CLEAR);
+    print("  slabs_capacity: %s%u%s\n", YELLOW, mem_cache->slabs_capacity, CLEAR);
+    print("  slabs_num_pages:%s%u%s\n", YELLOW, mem_cache->slabs_num_pages, CLEAR);
+    print("  type_size:      %s%u%s\n", YELLOW, mem_cache->type_size, CLEAR);
+    print("  is_active:      %s%u%s\n", YELLOW, mem_cache->is_active, CLEAR);
+    print("  slabs_free_list:%s%x%s\n", YELLOW, REDUCE_ADDR(mem_cache->slabs_free_list, F6), CLEAR);
     print("%s-----------------------%s\n", YELLOW, CLEAR);
 }
 

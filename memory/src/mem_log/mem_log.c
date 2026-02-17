@@ -167,7 +167,7 @@ mem_print_error(const enum MEMORY_ERROR_CODE code)
         case NO_MEMORY_MANAGER_INIT: {
             print("%sERROR:\n"
                   "Memory manager is uninitialized\n"
-                  "Call memman_init() and don't forget memory_manager_terminate()%s\n",
+                  "Call memman_init() and don't forget memman_terminate()%s\n",
                   RED, CLEAR
             );
             break;

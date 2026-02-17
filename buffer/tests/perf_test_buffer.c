@@ -6,9 +6,9 @@
 #include "buffer_internals.h"
 #include "buffer_log.h"
 #include "logger.h"
-#include "mem_man.h"
 #include "precision_timer.h"
 #include "precision_timer_logger.h"
+#include "slab_allocator_internals.h"
 
 
 /*
@@ -136,7 +136,7 @@ perf_test_buffer_create_generic_vs_uint32(void)
           "uint32 buffer versus generic buffer.%s\n\n", CYAN, CLEAR);
 
     const uint32_t num_pages = 16;
-    memory_manager_init(num_pages);
+    memman_init();
 
     buffer_init_table();
 
@@ -279,7 +279,7 @@ perf_test_buffer_create_generic_vs_uint32(void)
 
     perf_print_timer_resuls(perf_results_buf, perf_results_buf_cnt, repeat);
 
-    memory_manager_terminate();
+    memman_terminate();
 }
 
 /*******************************************************************************
@@ -291,7 +291,7 @@ void
 perf_test_buffer_remove_insert(void)
 {
     const uint32_t num_pages = 10;
-    memory_manager_init(num_pages);
+    memman_init();
 
     // const uint32 repeat = 1000000;
     const uint32 repeat = 2000;
@@ -367,7 +367,7 @@ perf_test_buffer_remove_insert(void)
     //     .buffer = buffer, .print_num_elems = buffer->capacity
     // })));
 
-    memory_manager_terminate();
+    memman_terminate();
 }
 
 
@@ -378,12 +378,12 @@ perf_test_buffer_remove_insert(void)
 void
 push_abstructed(const uint16 id, const uint32 index, uint32 val)
 {
-    void* address = Temp_get_address_by_id(id); // Get memory directly from mem manager
-    buffer_t* buffer = (buffer_t*) address;
-    uint32* data = buffer->data;
-    data[index] = val;
-    buffer->tail++;
-    buffer->count++;
+    // void* address = mem_cache_alloc_slab(id); // Get memory directly from mem manager
+    // buffer_t* buffer = (buffer_t*) address;
+    // uint32* data = buffer->data;
+    // data[index] = val;
+    // buffer->tail++;
+    // buffer->count++;
 }
 
 void
@@ -394,8 +394,7 @@ perf_test_insert_abstruct_call(void)
           " from inside the loop\n compare to push via function\n using  the buffer id%s\n\n",
           ry, CLEAR);
 
-    const uint32_t num_pages = 8;
-    memory_manager_init(num_pages);
+    memman_init();
 
 
     buffer_init_table();
@@ -453,7 +452,7 @@ perf_test_insert_abstruct_call(void)
 
      */
 
-    memory_manager_terminate();
+    memman_terminate();
 }
 
 
@@ -506,7 +505,7 @@ perf_test_buffer_find_tail(void)
     print("%s test_buffer_find_tail%s\n\n", CYAN, CLEAR);
 
     const uint32_t num_pages = 15;
-    memory_manager_init(num_pages);
+    memman_init();
 
     buffer_init_table();
 
@@ -607,7 +606,7 @@ perf_test_buffer_find_tail(void)
     }
 
 
-    memory_manager_terminate();
+    memman_terminate();
 }
 
 
@@ -623,7 +622,7 @@ perf_test_buffer_with_children(void)
     print("%s SAME BUFFER CAPACITIES FOR CHILDREN%s\n\n", CYAN, CLEAR);
 
     const uint32_t num_pages = 1000000;
-    memory_manager_init(num_pages);
+    memman_init();
 
     buffer_init_table();
     timer_init_table();
@@ -875,7 +874,7 @@ perf_test_buffer_with_children(void)
 
     TEMP_PRINT_BUFFER_TABLE_COUNT();
 
-    memory_manager_terminate();
+    memman_terminate();
 }
 
 void // test buffer with children. All buffers with different (slab) capacities
@@ -887,7 +886,7 @@ perf_test_buffer_with_children_in_dif_slabs(void)
     print("%s DIFFERENT BUFFER CAPACITIES FOR CHILDREN%s\n\n", CYAN, CLEAR);
 
     const uint32_t num_pages = 100;
-    memory_manager_init(num_pages);
+    memman_init();
 
     buffer_init_table();
     timer_init_table();
@@ -1155,6 +1154,6 @@ perf_test_buffer_with_children_in_dif_slabs(void)
 
     TEMP_PRINT_BUFFER_TABLE_COUNT();
 
-    memory_manager_terminate();
+    memman_terminate();
 }
 

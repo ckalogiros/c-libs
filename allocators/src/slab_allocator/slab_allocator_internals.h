@@ -16,7 +16,7 @@ void mem_cache_table_destroy(void);
 
 void mem_cache_init(enum MEM_CACHE_SIZES slab_size);
 
-
+void mem_cache_table_destroy(void);
 /*********************************************************************************************/
 
 

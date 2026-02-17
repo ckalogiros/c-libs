@@ -42,7 +42,6 @@ typedef struct buffer_t {
  */
 
 
-
 typedef struct {
     float x;
     float y;
@@ -57,21 +56,6 @@ struct vec2u32 {
     float x;
     float y;
 };
-
-// // Union containing all representations
-// union vec2_32 {
-//   struct { float x, y; };          // vec2f
-//   struct { int32_t x, y; };        // vec2i
-//   struct { uint32_t x, y; };       // vec2u
-//   float f[2];
-//   int32_t i[2];
-//   uint32_t u[2];
-// };
-//
-// // Type aliases for convenience
-// typedef union vec2_32 vec2f;
-// typedef union vec2_32 vec2i;
-// typedef union vec2_32 vec2u;
 
 typedef struct {
     float x;

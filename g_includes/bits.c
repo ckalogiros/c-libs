@@ -19,8 +19,8 @@ bits_print_binary(const uint64 val, const uint32 type_size)
         if(bit) print("%s%u%s", YELLOW, bit, CLEAR);
         else print("%u", bit);
 
-        if(i % 4 == 0)
-            print(" ");
+        if(i % 4 == 0) print(" ");
+        if(i % 32 == 0) print("\n");
     }
     // print("\n");
     print("  hex:%s%llx%s\n", br2, val, CLEAR);

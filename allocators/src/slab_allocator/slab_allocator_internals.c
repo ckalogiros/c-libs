@@ -55,12 +55,13 @@ mem_cache_create(const buffer_size_t buffer_size, const uint8 type_size)
     struct mem_cache* mcache = &mem_cache_table[0];
     const struct memhnd_t hnd = memman_alloc_pages(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
     char* ptr = (char*) memman_get_alloc_mem_by_handle(hnd);
-    memset(ptr, 0x0, slab_size);
+    memset(ptr, 0x0, mem_size);
 
     mcache->mem_handle = hnd;
     mcache->type_size = type_size;
     mcache->slab_size = slab_size;
     mcache->slabs_capacity = slabs_capacity;
+    mcache->slabs_num_pages = num_pages;
     mcache->is_active = TRUE;
     mcache->slabs_free_list = (struct slab_flist*) ptr;
 
@@ -75,9 +76,10 @@ mem_cache_create(const buffer_size_t buffer_size, const uint8 type_size)
         flist = flist->next;
     }
 
-    flist->next = NULL;
+    // flist->next = NULL;
 
-    print_mem_cache_create(slab_size, slabs_capacity, mcache, mcache->slabs_free_list);
+    print_mem_cache_create(mcache);
+    print_slabs_free_list(mcache->slabs_free_list);
 
     return mcache;
 }

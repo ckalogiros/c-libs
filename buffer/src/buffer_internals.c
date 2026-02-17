@@ -11,8 +11,10 @@
 
 #include <string.h>
 
+#include "slab_allocator_internals.h"
+
 // todo: must be dynamicaly reallocated
-#define BUFFER_TABLE_MIN_CAPACITY 512
+#define BUFFER_TABLE_MIN_CAPACITY 16
 
 /*******************************************************************************
  * buffer_table: a buffer to store all applications buffer structures
@@ -21,7 +23,8 @@
 static buffer_t* buffer_table = NULL; // ptr to memory block
 static uint32 buffer_table_count = 0;
 
-void TEMP_PRINT_BUFFER_TABLE_COUNT()
+void
+TEMP_PRINT_BUFFER_TABLE_COUNT()
 {
     print("TEMP_PRINT_BUFFER_TABLE_COUNT:%u\n", buffer_table_count);
 }
@@ -75,8 +78,28 @@ buffer_init_table()
 {
     if(buffer_table) return;
 
+
+    mem_chache_table_init();
+
     const uint32 btable_typesize = sizeof(buffer_t);
     assert(sizeof(buffer_t) > sizeof(void*));
+
+    // HERE: initialize buffer table in seperate
+// {
+//     const uint32 min_size = sizeof(struct mem_cache) * SLAB_SIZES_LEN;
+//     const uint32 table_size = ROUND_UP(min_size, PAGE_SIZE);
+//     mem_cache_table = aligned_alloc(1024, table_size);
+//
+//     uint32 i = 0, type_sizes = sizeof(char*);
+//     for(; i < SLAB_SIZES_LEN; i++) {
+//         const struct mem_cache mem_cache = (struct mem_cache){
+//             .type_size = type_sizes,
+//         };
+//         mem_cache_table[i] = mem_cache;
+//
+//         type_sizes *= 2;
+//     }
+// }
 
     // assign memory to buffer's free list
     void* const address =

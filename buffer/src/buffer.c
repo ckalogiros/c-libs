@@ -95,7 +95,7 @@ buffer_free_elem(buffer_t* const buffer, const bufidx_t index)
 
 
     const uint32 offset = index / BITS64; // calc which uint64
-    uint32 sindex = index - (offset*BITS64); // find index in that uint64
+    uint32 sindex = index - (offset * BITS64); // find index in that uint64
     uint64* free_list = (buffer->free_list + offset);
 
     // print("index:%u  sindex:%u \n", index, sindex);
@@ -107,7 +107,6 @@ buffer_free_elem(buffer_t* const buffer, const bufidx_t index)
         // do not decrement tail if tail < index
         if(index == buffer->tail) buffer->tail--;
     }
-
 }
 
 void // sets all elems as free. buffer data remain untouched
@@ -145,13 +144,13 @@ buffer_set_for_push(buffer_t* const buffer)
         //         __FILE__, __LINE__);
     }
     // else {
-        buffer->tail++;
-        buffer->count++;
-        const bufidx_t offset = buffer->tail / BITS64;
-        uint64* free_list = &buffer->free_list[offset];
-        buffer_free_list_remove(*free_list, buffer->tail);
+    buffer->tail++;
+    buffer->count++;
+    const bufidx_t offset = buffer->tail / BITS64;
+    uint64* free_list = &buffer->free_list[offset];
+    buffer_free_list_remove(*free_list, buffer->tail);
 
-        return buffer->tail;
+    return buffer->tail;
     // }
 
     return INT_NULL;

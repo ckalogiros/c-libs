@@ -146,7 +146,7 @@ name_me_compare_perf_of_malloc_and_mem_manager() {}
 void
 perf_mem_big_chunk_allocation()
 {
-    memman_init(32);
+    memman_init();
     buffer_init_table();
     timer_init_table();
 
@@ -541,7 +541,7 @@ test_alloc_release_mixed_all()
 {
     uint32 num_pages = 1;
 
-    memman_init(10);
+    memman_init();
 
     print("%s -- TEST --\n"
           "  alloc:(1),(3),(2),(2) x 3times\n"
@@ -584,7 +584,7 @@ test_alloc_release_fragment_mem()
 {
     uint32 num_pages = 1;
 
-    memman_init(10);
+    memman_init();
 
     print("%s -- TEST --\n"
           "  TODO\n"
@@ -685,7 +685,7 @@ void
 test_logger_to_html()
 {
     logger_to_html_init();
-    memman_init(10);
+    memman_init();
 
     {
         struct memhnd_t hnd = mem_alloc(3, MEM_CHUNK_ALLOCATOR_SLAB);
