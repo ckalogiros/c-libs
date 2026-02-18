@@ -3,6 +3,9 @@
  */
 
 #include "buffer_internals.h"
+
+#include <stdlib.h>
+
 #include "bits.h"
 #include "buffer_log.h"
 #include "logger.h"
@@ -44,7 +47,7 @@ btable_flist_add(void* ptr)
 }
 
 buffer_t*
-btable_flist_get_free()
+btable_flist_get_free(void)
 {
     struct buffer_table_free_list* list = buffer_table_free_list_head;
     buffer_table_free_list_head = buffer_table_free_list_head->next;
@@ -74,7 +77,7 @@ buffer_flist_memset(const buffer_t* const buffer, const uint64 val)
 }
 
 void
-buffer_init_table()
+buffer_init_table(void)
 {
     if(buffer_table) return;
 
@@ -84,26 +87,9 @@ buffer_init_table()
     const uint32 btable_typesize = sizeof(buffer_t);
     assert(sizeof(buffer_t) > sizeof(void*));
 
-    // HERE: initialize buffer table in seperate
-// {
-//     const uint32 min_size = sizeof(struct mem_cache) * SLAB_SIZES_LEN;
-//     const uint32 table_size = ROUND_UP(min_size, PAGE_SIZE);
-//     mem_cache_table = aligned_alloc(1024, table_size);
-//
-//     uint32 i = 0, type_sizes = sizeof(char*);
-//     for(; i < SLAB_SIZES_LEN; i++) {
-//         const struct mem_cache mem_cache = (struct mem_cache){
-//             .type_size = type_sizes,
-//         };
-//         mem_cache_table[i] = mem_cache;
-//
-//         type_sizes *= 2;
-//     }
-// }
-
     // assign memory to buffer's free list
     void* const address =
-            (buffer_t*) mem_cache_alloc_buffer(BUFFER_TABLE_MIN_CAPACITY, btable_typesize);
+            (buffer_t*) memman_temp_alloc_sys_call(4096, BUFFER_TABLE_MIN_CAPACITY * btable_typesize);
 
     buffer_table = address;
 
@@ -114,6 +100,13 @@ buffer_init_table()
     }
 }
 
+void
+buffer_destroy_table(void)
+{
+    if(buffer_table) {
+        free(buffer_table);
+    }
+}
 
 /*
  * constructors-destructors
@@ -156,6 +149,8 @@ buffer_constructor_uint32(const bufidx_t capacity)
     buffer->tail = INT_NULL;
     buffer->id = 0;
     buffer->typesize = sizeof(uint32);
+    // buffer->count = 'AA';
+    // buffer->id = 'CC';
 
 
     // init buffer data
@@ -223,6 +218,7 @@ buffer_destructor(buffer_t* buffer)
 
     // free buffer from buffer table
     btable_flist_add(ptr);
+
 }
 
 

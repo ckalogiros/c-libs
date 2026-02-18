@@ -7,8 +7,8 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "buffer.h"
-#include "mem_man.h"
+#include "buffer_internals.h"
+#include "mem_man_interface.h"
 #include "precision_timer.h"
 #include "precision_timer_logger.h"
 
@@ -137,10 +137,10 @@ calc_magnitude2(obj2_t* obj, const uint32 len, const float f)
 }
 
 void
-test()
+test_data_oriented()
 {
-    memory_manager_init(10);
-    buffer_init();
+    memman_init();
+    buffer_init_table();
     timer_init_table();
     struct timer* t = timer_create_perf_timer();
 
@@ -184,5 +184,5 @@ test()
     }
 
 
-    memory_manager_terminate();
+    memman_terminate();
 }

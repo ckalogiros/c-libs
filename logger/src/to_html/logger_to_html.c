@@ -59,7 +59,7 @@ log_to_html_init(void)
 
     //
     // const uint32_t num_pages = 15;
-    // memory_manager_init(num_pages);
+    // memman_init();
     //
     // buffer_init_table();
     //

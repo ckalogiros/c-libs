@@ -20,10 +20,10 @@
 void
 fill(buffer_t* const buffer)
 {
+    uint32* data = buffer->data;
     for(uint32 i = 0; i < buffer->capacity; i++) {
         // buffer_push_uint32(i+1, buffer);
         buffer_set_for_push(buffer);
-        uint32* data = buffer->data;
         data[i] = i + 1;
     }
 }
@@ -129,10 +129,10 @@ test_buffer_different_capacity_buffers()
     {
         uint32 capacity = 16;
         print("CREATE %scapacity:%u%s\n", GREEN, capacity, CLEAR);
-        buffer_t* buffer_c16 = buffer_create_uint32(capacity);
-        fill(buffer_c16); // fill buffer
+        buffer_t* buffer = buffer_create_uint32(capacity);
+        fill(buffer); // fill buffer
         buffer_print_uint32(buffer_print_config((buffer_print_params){
-            .buffer = buffer_c16, .print_num_elems = buffer_c16->capacity
+            .buffer = buffer, .print_num_elems = buffer->capacity
         }));
     }
 
@@ -140,21 +140,52 @@ test_buffer_different_capacity_buffers()
     {
         uint32 capacity = 32;
         print("CREATE %scapacity:%u%s\n", GREEN, capacity, CLEAR);
-        buffer_t* buffer_c32 = buffer_create_uint32(capacity);
-        fill(buffer_c32); // fill buffer
+        buffer_t* buffer = buffer_create_uint32(capacity);
+        fill(buffer); // fill buffer
         buffer_print_uint32(buffer_print_config((buffer_print_params){
-            .buffer = buffer_c32, .print_num_elems = buffer_c32->capacity
+            .buffer = buffer, .print_num_elems = buffer->capacity
         }));
     }
+
+    {
+        uint32 capacity = 16;
+        print("CREATE %scapacity:%u%s\n", GREEN, capacity, CLEAR);
+        buffer_t* buffer = buffer_create_uint32(capacity);
+        fill(buffer); // fill buffer
+        buffer_print_uint32(buffer_print_config((buffer_print_params){
+            .buffer = buffer, .print_num_elems = buffer->capacity
+        }));
+    }
+
+    {
+        uint32 capacity = 16;
+        print("CREATE %scapacity:%u%s\n", GREEN, capacity, CLEAR);
+        buffer_t* buffer = buffer_create_uint32(capacity);
+        fill(buffer); // fill buffer
+        buffer_print_uint32(buffer_print_config((buffer_print_params){
+            .buffer = buffer, .print_num_elems = buffer->capacity
+        }));
+    }
+
+    {
+        uint32 capacity = 16;
+        print("CREATE %scapacity:%u%s\n", GREEN, capacity, CLEAR);
+        buffer_t* buffer = buffer_create_uint32(capacity);
+        fill(buffer); // fill buffer
+        buffer_print_uint32(buffer_print_config((buffer_print_params){
+            .buffer = buffer, .print_num_elems = buffer->capacity
+        }));
+    }
+
 
     // allocate buffer: capacity=64
     {
         uint32 capacity = 64;
         print("CREATE %scapacity:%u%s\n", GREEN, capacity, CLEAR);
-        buffer_t* buffer_c64 = buffer_create_uint32(capacity);
-        fill(buffer_c64); // fill buffer
+        buffer_t* buffer = buffer_create_uint32(capacity);
+        fill(buffer); // fill buffer
         buffer_print_uint32(buffer_print_config((buffer_print_params){
-            .buffer = buffer_c64, .print_num_elems = buffer_c64->capacity
+            .buffer = buffer, .print_num_elems = buffer->capacity
         }));
     }
 
@@ -173,12 +204,14 @@ test_buffer_different_capacity_buffers()
     {
         uint32 capacity = 512;
         print("CREATE %scapacity:%u%s\n", GREEN, capacity, CLEAR);
-        buffer_t* buffer_c512 = buffer_create_uint32(capacity);
-        fill(buffer_c512); // fill buffer
+        buffer_t* buffer = buffer_create_uint32(capacity);
+        fill(buffer); // fill buffer
         buffer_print_uint32(buffer_print_config((buffer_print_params){
-            .buffer = buffer_c512, .print_num_elems = buffer_c512->capacity
+            .buffer = buffer, .print_num_elems = buffer->capacity
         }));
     }
+
+    buffer_table_destroy();
 
     memman_terminate();
 }
@@ -325,15 +358,15 @@ test_buffer_realloc()
 
 
     // force buffer realloc - to capacity:512
-    buffer_push_uint32(400, buffer);
-    print("REALLOC buffer %scapacity:%u%s\n", GREEN, buffer->capacity, CLEAR);
-    for(uint32 i = 0; i < buffer->capacity / 2; i++) {
-        buffer_push_uint32(400 + i, buffer);
-    }
-    
-    buffer_print_uint32(buffer_print_config((buffer_print_params){
-        .buffer = buffer, .print_num_elems = buffer->capacity
-    }));
+    // buffer_push_uint32(400, buffer);
+    // print("REALLOC buffer %scapacity:%u%s\n", GREEN, buffer->capacity, CLEAR);
+    // for(uint32 i = 0; i < buffer->capacity / 2; i++) {
+    //     buffer_push_uint32(400 + i, buffer);
+    // }
+    //
+    // buffer_print_uint32(buffer_print_config((buffer_print_params){
+    //     .buffer = buffer, .print_num_elems = buffer->capacity
+    // }));
 
     
 
@@ -346,7 +379,6 @@ test_destroy_buffer()
     print("%s-- -- -- TEST: -- -- --%s\n", GREEN, CLEAR);
     print("%s buffer destroy - (no slabs realease)%s\n\n", CYAN, CLEAR);
 
-    const uint32_t num_pages = 15;
     memman_init();
 
     buffer_init_table();

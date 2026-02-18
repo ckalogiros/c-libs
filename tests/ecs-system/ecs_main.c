@@ -3,7 +3,7 @@
  */
 
 #include "logger.h"
-#include "mem_man.h"
+#include "mem_man_interface.h"
 #include "tests.h"
 
 

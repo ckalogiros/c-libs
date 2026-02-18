@@ -38,9 +38,14 @@ memman_release(const struct memhnd_t hnd)
     return mem_release(hnd);
 }
 
-void* memman_get_alloc_mem_by_handle(const struct memhnd_t handle)
+void*
+memman_get_alloc_mem_by_handle(const struct memhnd_t handle)
 {
     return mem_get_addr_by_handle(handle);
 }
 
-
+void*
+memman_temp_alloc_sys_call(const uint32 alignment, const uint32 total_size)
+{
+    return mem_temp_alloc_sys_call(alignment, total_size);
+}

@@ -29,8 +29,10 @@ bool mem_cache_free_slab(struct mem_cache* mcache, void* slab_address);
 
 struct mem_cache* mem_cache_find_cache(const slab_size_t slab_size);
 
+struct mem_cache* mem_cache_get_free_cache_QUICK_IMPL(void);
 
-// TEMPORARY
+
+// TEMPORARY: move to another module
 char_buf16_t number_to_string(const char* str, const uint32 integer);
 
 

@@ -4,6 +4,7 @@
 
 #include "ecs.h"
 
+#include "buffer_internals.h"
 #include "component.h"
 #include "entity.h"
 #include "logger.h"
@@ -27,7 +28,7 @@ void
 test_ecs()
 {
     // init
-    buffer_init();
+    buffer_init_table();
     init_entity_table();
     init_pos_table();
     init_scale_table();

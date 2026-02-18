@@ -21,7 +21,13 @@
 
 
 void
-buffer_init(void)
+buffer_table_init(void)
+{
+    buffer_init_table();
+}
+
+void
+buffer_table_destroy(void)
 {
     buffer_init_table();
 }

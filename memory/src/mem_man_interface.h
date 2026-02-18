@@ -60,5 +60,6 @@ bool memman_release(const struct memhnd_t hnd);
 
 void* memman_get_alloc_mem_by_handle(const struct memhnd_t handle);
 
+void* memman_temp_alloc_sys_call(const uint32 alignment, const uint32 total_size);
 
 #endif //MEMORY_MEM_MAN_INTERFACE_H

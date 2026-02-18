@@ -188,6 +188,17 @@ mem_get_addr_by_handle(const struct memhnd_t hnd)
     return addr;
 }
 
+void* // temporary function: allocate memory seperately from mem man alloc system
+mem_temp_alloc_sys_call(const uint32 alignment, const uint32 total_size)
+{
+    void* addr = aligned_alloc(alignment, total_size);
+    if(!addr) {
+        mem_print_error(MALLOC_FAILED_TO_ALLOC_MEMORY);
+        my_exit("FAILED TO ALLOCATE MEMORY\nat:mem_temp_alloc_sys_call()\n", __FILE__, __LINE__);
+    }
+    return addr;
+}
+
 
 /* *************************************************************************************************
  * private

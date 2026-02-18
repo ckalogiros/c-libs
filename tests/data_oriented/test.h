@@ -4,6 +4,6 @@
 #ifndef PRECISION_TIMER_TEST_H
 #define PRECISION_TIMER_TEST_H
 
-void test();
+void test_data_oriented();
 
 #endif //PRECISION_TIMER_TEST_H

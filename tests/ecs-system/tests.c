@@ -4,11 +4,12 @@
 
 #include "tests.h"
 
+#include "buffer_internals.h"
 #include "component.h"
 #include "ecs.h"
 #include "entity.h"
 #include "logger.h"
-#include "mem_man.h"
+#include "mem_man_interface.h"
 #include "precision_timer_logger.h"
 
 
@@ -18,8 +19,8 @@ static const uint32 REPEAT = 100000;
 void
 test_create_entities(const uint32 count)
 {
-    memory_manager_init(10);
-    buffer_init();
+    memman_init();
+    buffer_init_table();
     init_entity_table();
 
 
@@ -31,14 +32,14 @@ test_create_entities(const uint32 count)
     print_entities();
 
 
-    memory_manager_terminate();
+    memman_terminate();
 }
 
 void // adding to each component in its own for loop
 test_components_seperate_add(const uint32 count)
 {
-    memory_manager_init(50);
-    buffer_init();
+    memman_init();
+    buffer_init_table();
     timer_init_table();
 
     init_entity_table();
@@ -87,15 +88,15 @@ test_components_seperate_add(const uint32 count)
 
     // print_components();
 
-    memory_manager_terminate();
+    memman_terminate();
 }
 
 
 void // adding to components in 1 for loop
 test_components_together_add(const uint32 count)
 {
-    memory_manager_init(50);
-    buffer_init();
+    memman_init();
+    buffer_init_table();
     timer_init_table();
 
     init_entity_table();
@@ -138,15 +139,15 @@ test_components_together_add(const uint32 count)
 
     // print_components();
 
-    memory_manager_terminate();
+    memman_terminate();
 }
 
 
 void
 test_components_all_attribs(const uint32 count)
 {
-    memory_manager_init(50);
-    buffer_init();
+    memman_init();
+    buffer_init_table();
     timer_init_table();
 
     init_entity_table();
@@ -182,7 +183,7 @@ test_components_all_attribs(const uint32 count)
 
     // print_components();
 
-    memory_manager_terminate();
+    memman_terminate();
 }
 
 
@@ -275,8 +276,8 @@ test_perf_ecs_insert_to_comp_helper(uint32 count, uint32 repeat, struct timer* t
 void
 test_perf_ecs_insert_to_comp()
 {
-    memory_manager_init(20 + 100);
-    buffer_init();
+    memman_init();
+    buffer_init_table();
     timer_init_table();
 
     init_entity_table();
@@ -316,14 +317,14 @@ test_perf_ecs_insert_to_comp()
     print("Entities count:%u   repeat: %u\n", count, repeat);
     test_perf_ecs_insert_to_comp_helper(count, repeat, t);
 
-    memory_manager_terminate();
+    memman_terminate();
 }
 
 void
 test_ecs_groups()
 {
-    memory_manager_init(10);
-    buffer_init();
+    memman_init();
+    buffer_init_table();
     init_entity_table();
 
     // create many entities
@@ -335,5 +336,5 @@ test_ecs_groups()
     // create group
 
 
-    memory_manager_terminate();
+    memman_terminate();
 }

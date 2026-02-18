@@ -33,13 +33,13 @@ enum MEM_CACHE_SIZES {
     SLAB_SIZE_16,
     SLAB_SIZE_32,
     SLAB_SIZE_64,
-    SLAB_SIZES_LEN,
     SLAB_SIZE_128,
     SLAB_SIZE_256,
     SLAB_SIZE_512,
     SLAB_SIZE_1024, /// this is the current memory page size
     SLAB_SIZE_2048,
     SLAB_SIZE_4096,
+    SLAB_SIZES_LEN,
     SLAB_SIZE_8192,
     SLAB_SIZE_16384,
     SLAB_SIZE_32768, /// this is the current memory chunk size. Above that we ask for whole chunks
@@ -53,13 +53,6 @@ typedef uint16 slot_size_t;
 typedef uint16 buffer_size_t;
 typedef uint16 slab_size_t;
 
-struct slab {
-    void* addr;
-    uint32 inuse;
-    uint32 capacity;
-    // If slots are too small the bufctl is stored outside allocated cache
-    uint64 mem_bufctl; // array of uint, as many as the slots of the slab.
-};
 
 struct slab_flist {
     struct slab_flist* next;
@@ -89,4 +82,4 @@ slab_alloc_print_structs_sizes(void)
     printf("   slab_list: %lu\n", sizeof(struct slab_flist));
 }
 
-#endif // MEMORY_SLAB_ALLOCATOR_STRUCT_H
+#endif // ALLOCATORS_SLAB_ALLOCATOR_STRUCT_H

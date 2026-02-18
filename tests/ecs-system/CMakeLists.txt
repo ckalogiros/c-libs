@@ -1,50 +1,54 @@
-################# external directories #################
+cmake_minimum_required(VERSION 3.28.3)
+
+set(CMAKE_C_STANDARD 11)
+
 get_filename_component(parent_dir ${CMAKE_SOURCE_DIR} DIRECTORY)
-include("${parent_dir}/g_includes/CMakeLists.txt")
-include("${parent_dir}/perf_timer/src/CMakeLists.txt")
-include("${parent_dir}/logger/src/CMakeLists.txt")
-include("${parent_dir}/memory/src/CMakeLists.txt")
-include("${parent_dir}/memory/src/mem_log/CMakeLists.txt")
-include("${parent_dir}/allocators/src/slab_allocator/CMakeLists.txt")
-include("${parent_dir}/allocators/src/slab_allocator/slab_allocator_log/CMakeLists.txt")
-include("${parent_dir}/buffer/src/CMakeLists.txt")
-include("${parent_dir}/buffer/src/buffer_logger/CMakeLists.txt")
-set(external_include
-        ${g_includes}
-        ${precision_timer_include}
-        ${logger_include}
-        ${mms_include}
-        ${mms_loger_include}
-        ${slab_allocator_include}
-        ${slab_allocator_log_include}
-        ${buffer_include}
-        ${buffer_log_include}
 
-)
-set(external_source
-        ${sys_utils}
-        ${bitfields}
-        ${precision_timer_source}
-        ${logger_source}
-        ${mms_source}
-        ${mms_loger_source}
-        ${slab_allocator_source}
-        ${slab_allocator_log_source}
-        ${buffer_source}
-        ${buffer_log_source}
+# 1. include utility functions
+set(cmake_utils "${parent_dir}/cmake_utils/proj_utils.cmake")
+include(${cmake_utils})
+
+# 2. add /src that adds .c.h files and adds other sub-directories
+#include(${CMAKE_SOURCE_DIR}/src/CMakeLists.txt)
+
+include(${cmake_utils})
+
+register_module(
+        sources
+        ${CMAKE_CURRENT_LIST_DIR}/entity.c
+        ${CMAKE_CURRENT_LIST_DIR}/groups.c
+        ${CMAKE_CURRENT_LIST_DIR}/ecs.c
+        ${CMAKE_CURRENT_LIST_DIR}/component.c
+        ${CMAKE_CURRENT_LIST_DIR}/tests.c
+        headers
+        ${CMAKE_CURRENT_LIST_DIR}/entity.h
+        ${CMAKE_CURRENT_LIST_DIR}/groups.h
+        ${CMAKE_CURRENT_LIST_DIR}/ecs.h
+        ${CMAKE_CURRENT_LIST_DIR}/component.h
+        ${CMAKE_CURRENT_LIST_DIR}/tests.h
+        include_dirs
+        ${CMAKE_CURRENT_LIST_DIR}
+        compiler_macros
+        ENABLE_DEBUG=1
+        VERSION_MAJOR=0
 )
 
-add_executable(ecs ecs_main.c
-        entity.c
-        groups.c
-        ecs.c
-        component.c
-        tests.c
-        ${external_source}
-)
-target_include_directories(ecs PRIVATE
-        ${external_include}
-)
+include_project(${parent_dir}/g_includes)
+include_project(${parent_dir}/logger/src)
+include_project(${parent_dir}/memory/src)
+include_project(${parent_dir}/memory/src/mem_log)
+include_project(${parent_dir}/memory/src/internal)
+include_project(${parent_dir}/buffer/src)
+include_project(${parent_dir}/buffer/src/buffer_logger)
+include_project(${parent_dir}/allocators/src/slab_allocator)
+include_project(${parent_dir}/allocators/src/slab_allocator/slab_allocator_log)
+include_project(${parent_dir}/perf_timer/src)
+
+# 3. create executable with all the source files
+add_project_executable(ecs ecs_main.c)
 
 # Link the math library (libm) to the "math_app" executable
-#target_link_libraries(tests m)  # "m" is the linker name for libm
+target_link_libraries(ecs m)  # "m" is the linker name for libm
+
+# Debug: global properties
+print_all_registered()

@@ -5,7 +5,7 @@
 #include "buffer_internals.h"
 #include "buffer_struct.h"
 #include "logger.h"
-#include "mem_man.h"
+#include "mem_man_interface.h"
 
 #define NUM_PAGES 10
 #define CHAR_NUM_ELEMENTS (NUM_PAGES * PAGE_SIZE)
@@ -15,7 +15,7 @@ buffer_t* buffer;
 
 int main(void)
 {
-  memory_manager_init(NUM_PAGES+8);
+  memman_init();
   buffer_init_table();
 
   buffer = buffer_create_gentype(CHAR_NUM_ELEMENTS, sizeof(uint8));
@@ -33,12 +33,9 @@ int main(void)
     print("[%u] = %u\n", i, data[i]);
   }
 
-
-
-
   // test_ecs();
 
-  memory_manager_terminate();
+  memman_terminate();
 
   return 0;
 }

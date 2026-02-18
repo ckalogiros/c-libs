@@ -32,6 +32,7 @@ mem_chache_table_init(void)
     for(; i < SLAB_SIZES_LEN; i++) {
         const struct mem_cache mem_cache = (struct mem_cache){
             .type_size = type_sizes,
+            .is_active = FALSE,
         };
         mem_cache_table[i] = mem_cache;
 
@@ -52,7 +53,7 @@ mem_cache_create(const buffer_size_t buffer_size, const uint8 type_size)
     const uint32 slabs_capacity = mem_size / slab_size;
 
     // allocate memory
-    struct mem_cache* mcache = &mem_cache_table[0];
+    struct mem_cache* mcache = mem_cache_get_free_cache_QUICK_IMPL();
     const struct memhnd_t hnd = memman_alloc_pages(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
     char* ptr = (char*) memman_get_alloc_mem_by_handle(hnd);
     memset(ptr, 0x0, mem_size);
@@ -67,7 +68,7 @@ mem_cache_create(const buffer_size_t buffer_size, const uint8 type_size)
 
     /* initialize slabs free list */
     struct slab_flist* flist = (struct slab_flist*) ptr;
-    uint32 i = 0;
+    uint32 i = 1;
     for(; i < slabs_capacity; i++) {
         // char* color_page = SLABS_FREE_LIST_GET_PAGE_COLOR_START(flist);
         // color_page[0] = 'S'; color_page[1] = 'L'; color_page[2] = 'A'; color_page[3] = 'B';
@@ -123,9 +124,9 @@ mem_cache_free_slab(struct mem_cache* mcache, void* slab_address)
 
     // insert at the begining of the free list
     if(node > released) {
+        memset(slab_address, 0x0, mcache->slab_size);
         mcache->slabs_free_list = released;
         mcache->slabs_free_list->next = node;
-        memset(slab_address, 0xcd, mcache->slab_size);
         return TRUE;
     }
 
@@ -136,15 +137,15 @@ mem_cache_free_slab(struct mem_cache* mcache, void* slab_address)
 
     // if smaller address found, insert in between
     if(node->next != NULL) {
+        memset(slab_address, 0x0, mcache->slab_size);
         struct slab_flist* temp = node->next;
         node->next = released;
         node->next->next = temp;
-        memset(slab_address, 0xcd, mcache->slab_size);
         return TRUE;
     }
     // else insert at the end of the free list
+    memset(slab_address, 0x0, mcache->slab_size);
     node->next = (struct slab_flist*) slab_address;
-    memset(slab_address, 0xcd, mcache->slab_size);
     return TRUE;
 }
 
@@ -160,6 +161,22 @@ mem_cache_find_cache(const slab_size_t slab_size)
 
     return NULL;
 }
+
+struct mem_cache* mem_cache_get_free_cache_QUICK_IMPL(void)
+{
+    uint32 i = 0;
+    for(; i < SLAB_SIZES_LEN; i++) {
+        if(mem_cache_table[i].is_active == FALSE) {
+            return &mem_cache_table[i];
+        }
+    }
+
+    return NULL;
+}
+
+
+
+// TODO: implement mem cache release cache(for reuse)
 
 // TEMPORARY
 char_buf16_t

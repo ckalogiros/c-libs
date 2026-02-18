@@ -5,15 +5,13 @@
 #include "perf_operations.h"
 
 #include <math.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include "logger.h"
 #include "precision_timer.h"
 #include "precision_timer_logger.h"
-#include "../buffer/src/buffer.h"
-#include "../memory/src/mem_man.h"
+#include "buffer_internals.h"
+#include "mem_man_interface.h"
 
 #define LEN 64
 
@@ -36,8 +34,8 @@ init_buffer_float(const uint32 len, float* buffer)
 void
 test_prerf_basic_operations()
 {
-    memory_manager_init(10);
-    buffer_init();
+    memman_init();
+    buffer_init_table();
     timer_init_table();
 
     volatile uint32 buffer[LEN] = {0};
@@ -465,14 +463,14 @@ test_prerf_basic_operations()
 
         print("%s%u%snano %s\n", YELLOW, ti_results[k].avg, CLEAR, ti_results[k].name);
     }
-    memory_manager_terminate();
+    memman_terminate();
 }
 
 void
 test_perf_unaligned_memory_buffers()
 {
-    memory_manager_init(10);
-    buffer_init();
+    memman_init();
+    buffer_init_table();
     timer_init_table();
     struct timer* t = timer_create_perf_timer();
 

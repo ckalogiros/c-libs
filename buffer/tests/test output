@@ -1,0 +1,140 @@
+/home/ckalo/data/projects/clion/buffer/cmake-build-debug/tests/test
+-- -- -- TEST: -- -- --
+ buffer realloc
+
+# INITIALIZE MEMORY #
+
+-- memory --
+ size bytes:  526336, 514kb
+ data size:   524288, 512kb
+ num chunks:  16
+ total pages: 512
+ page size:   1024
+ mem start:      778000
+ chunks start:   778020
+ data start:     778400
+ data last page: 7f8000
+ last page:      7f8400
+ unauth page:    7f8800
+
+CREATE capacity:16
+
+-- Create Mem Cache --
+  name:
+  slab_size:      64
+  slabs_count:    0
+  slabs_capacity: 16
+  slabs_num_pages:1
+  type_size:      4
+  is_active:      1
+  slabs_free_list:778400
+-----------------------
+
+
+-- Create Mem Cache --
+  name:
+  slab_size:      8
+  slabs_count:    0
+  slabs_capacity: 128
+  slabs_num_pages:1
+  type_size:      8
+  is_active:      1
+  slabs_free_list:778800
+-----------------------
+
+
+
+-- Create Mem Cache --
+  name:
+  slab_size:      128
+  slabs_count:    0
+  slabs_capacity: 8
+  slabs_num_pages:1
+  type_size:      4
+  is_active:      1
+  slabs_free_list:778c00
+-----------------------
+
+
+REALLOC buffer capacity:32
+-- Create Mem Cache --
+  name:
+  slab_size:      256
+  slabs_count:    0
+  slabs_capacity: 4
+  slabs_num_pages:1
+  type_size:      4
+  is_active:      1
+  slabs_free_list:779000
+-----------------------
+
+---------------------
+
+REALLOC buffer capacity:64
+-- Create Mem Cache --
+  name:
+  slab_size:      512
+  slabs_count:    0
+  slabs_capacity: 2
+  slabs_num_pages:1
+  type_size:      4
+  is_active:      1
+  slabs_free_list:779400
+-----------------------
+
+
+
+-- Create Mem Cache --
+  name:
+  slab_size:      16
+  slabs_count:    0
+  slabs_capacity: 64
+  slabs_num_pages:1
+  type_size:      8
+  is_active:      1
+  slabs_free_list:779800
+-----------------------
+
+
+
+
+REALLOC buffer capacity:128
+-- Create Mem Cache --
+  name:
+  slab_size:      1024
+  slabs_count:    0
+  slabs_capacity: 1
+  slabs_num_pages:1
+  type_size:      4
+  is_active:      1
+  slabs_free_list:779c00
+-----------------------
+
+
+-- Create Mem Cache --
+  name:
+  slab_size:      32
+  slabs_count:    0
+  slabs_capacity: 32
+  slabs_num_pages:1
+  type_size:      8
+  is_active:      1
+  slabs_free_list:77a000
+-----------------------
+
+
+REALLOC buffer capacity:256
+-- Create Mem Cache --
+  name:
+  slab_size:      2048
+  slabs_count:    0
+  slabs_capacity: 0
+  slabs_num_pages:1
+  type_size:      4
+  is_active:      1
+  slabs_free_list:77a400
+-----------------------
+
+
+
+Process finished with exit code 139 (interrupted by signal 11:SIGSEGV)

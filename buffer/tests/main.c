@@ -19,12 +19,12 @@ main(void)
         // test_create_buffer(16);
 
         // test_buffer_fill_remove_insert();
-        test_buffer_different_capacity_buffers();
+        // test_buffer_different_capacity_buffers();
 
         // test_buffer_remove_elements(256);
         // test_buffer_insert_elements(256);
         //
-        // test_buffer_realloc();
+        test_buffer_realloc();
 
         // test_destroy_buffer();
 

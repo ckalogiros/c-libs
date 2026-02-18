@@ -539,8 +539,6 @@ test_alloc_first_release_after_backwards(const uint32 num_pages, const bool prin
 void
 test_alloc_release_mixed_all()
 {
-    uint32 num_pages = 1;
-
     memman_init();
 
     print("%s -- TEST --\n"
