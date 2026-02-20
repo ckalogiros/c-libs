@@ -560,7 +560,7 @@ test_destroy_buffer()
 
             print(
                 "buffers[i] %saddr:%x%s\n",
-                GREEN, buffers[i], CLEAR
+                GREEN, buffers[i]->data, CLEAR
             );
         }
 
@@ -578,7 +578,7 @@ test_destroy_buffer()
 
             print(
                 "recreated[i] %saddr:%x%s\n",
-                GREEN, recreated[i], CLEAR
+                GREEN, recreated[i]->data, CLEAR
             );
         }
 

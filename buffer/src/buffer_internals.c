@@ -17,7 +17,7 @@
 #include "slab_allocator_internals.h"
 
 // todo: must be dynamicaly reallocated
-#define BUFFER_TABLE_MIN_CAPACITY 16
+#define BUFFER_TABLE_MIN_CAPACITY 512
 
 /*******************************************************************************
  * buffer_table: a buffer to store all applications buffer structures
@@ -179,8 +179,8 @@ buffer_constructor_gentype(const bufidx_t capacity, const uint16 typesize)
 
     // alloc storage for bufer data
     const void* const data_ptr = mem_cache_alloc_buffer(capacity, typesize);
-    // alloc storage for buffer free-list data (a uint64 for each 64 buffer elements)
-    uint64* const buffer_flist_ptr = mem_cache_alloc_buffer(free_list_uint64_count, sizeof(uint64));
+    // alloc storage for buffer free-list data (an uint64 for each 64 buffer elements)
+    uint64* const buffer_flist_ptr = mem_cache_alloc_buffer(free_list_uint64_count, typesize);
 
     buffer_t* buffer = btable_flist_get_free();
     buffer->free_list = buffer_flist_ptr;

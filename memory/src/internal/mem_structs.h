@@ -86,7 +86,8 @@ struct mem {
 
 struct mem_chunk {
     uint16 id;
-    struct mem_flags flags;
+    // struct mem_flags flags;
+    uint32 flags;
 };
 
 

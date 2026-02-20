@@ -12,6 +12,11 @@
 #include "logger.h"
 
 
+#define MEM_CHUNK_FLAGS_FREE     BIT_MASK_FROM_UINT(1) // chunk is not in use
+#define MEM_CHUNK_FLAGS_OCCUPIED BIT_MASK_FROM_UINT(2) // chunk is in use but has free pages
+#define MEM_CHUNK_FLAGS_FULL     BIT_MASK_FROM_UINT(3) // chunk is full
+
+
 #define CHECK_MEM_NULL(p, error_code, msg) if(p==NULL){\
     mem_print_error(error_code);\
     my_exit(msg, __FILE__, __LINE__);\
@@ -106,8 +111,56 @@ mem_alloc(const pageid_t num_pages, const enum MEM_CHUNK_SELECTOR chunk_selector
     CHECK_MEM_NULL(mem, NO_MEMORY_MANAGER_INIT, "mem_alloc");
 
     const memid_t chunk_id = chunk_selector_get_chunk(chunk_selector);
-    const void* addr = flist_get_next_free_page(num_pages, chunk_id);
+    // const void* addr = flist_get_next_free_page(num_pages, chunk_id);
+    struct memhnd_t handle = flist_get_next_free_page(num_pages, chunk_id);
+    const void* addr = mem_get_addr_by_handle(handle);
     const memid_t page_id = calc_page_id_from_address(addr);
+
+    chunks_table[chunk_id].flags = MEM_CHUNK_FLAGS_OCCUPIED;
+
+    // const struct memhnd_t handle = {
+    //     .chunk_id = chunk_id,
+    //     .page_id = page_id,
+    //     .num_pages = num_pages,
+    // };
+
+    return handle;
+}
+
+
+struct memhnd_t
+mem_alloc_extend_chunk(const pageid_t num_pages, const memid_t chunk_id)
+{
+    /*
+     * here we extend an already full mem chunk with a free one
+     * (maybe in contiguous memory, maybe not).
+     * We pass the free chunk's id, and for the page we use the
+     * first one(page id = 0).
+     * Finally we build the page's free list and return the mem handle
+     */
+    const memid_t page_id = 0 + (chunk_id * PAGES_PER_CHUNK);
+    const void* page_ptr = calc_address_from_page_id(page_id, chunk_id);
+
+    /* get the free lists head(should be NULL, cause chunk is full) */
+    flist_heads_table[chunk_id] = (struct free_list*) page_ptr;
+    struct free_list* cur = flist_heads_table[chunk_id];
+    char* color_page = FREE_LIST_GET_PAGE_COLOR_START(cur);
+    color_page[0] = 'F'; color_page[1] = 'R'; color_page[2] = 'E'; color_page[3] = 'E';
+
+
+    for(uint16 i = 0; i < PAGES_PER_CHUNK - 1; i++) {
+        page_ptr = (char*) page_ptr + PAGE_SIZE;
+
+        struct free_list* new = (struct free_list*) page_ptr;
+        new->next = NULL;
+        cur->next = new;
+        cur = new;
+
+        color_page = FREE_LIST_GET_PAGE_COLOR_START(new);
+        color_page[0] = 'F'; color_page[1] = 'R'; color_page[2] = 'E'; color_page[3] = 'E';
+    }
+
+    chunks_table[chunk_id].flags = MEM_CHUNK_FLAGS_OCCUPIED;
 
     const struct memhnd_t handle = {
         .chunk_id = chunk_id,
@@ -147,12 +200,12 @@ mem_release(const struct memhnd_t hnd)
     /* 1. check if free id is < flist head id */
     if(fpageid < headpageid) {
         memid_t pageid = hnd.page_id;
-        prev = calc_address_from_page_id(pageid);
+        prev = calc_address_from_page_id(pageid, hnd.chunk_id);
         flist_table_set_head(hnd.chunk_id, prev);
 
         for(uint32 i = 1; i < hnd.num_pages; i++) {
             pageid++;
-            next = calc_address_from_page_id(pageid);
+            next = calc_address_from_page_id(pageid, hnd.chunk_id);
             prev->next = next;
             prev = next;
         }
@@ -161,12 +214,12 @@ mem_release(const struct memhnd_t hnd)
     } else {
         if(fpageid > headpageid && fpageid < PAGES_PER_CHUNK - 1) {
             memid_t pageid = hnd.page_id - 1;
-            prev = calc_address_from_page_id(pageid);
+            prev = calc_address_from_page_id(pageid, hnd.chunk_id);
             struct free_list* temp = prev->next;
 
             for(uint32 i = 0; i < hnd.num_pages; i++) {
                 pageid++;
-                next = calc_address_from_page_id(pageid);
+                next = calc_address_from_page_id(pageid, hnd.chunk_id);
                 prev->next = next;
                 prev = next;
             }
@@ -176,6 +229,7 @@ mem_release(const struct memhnd_t hnd)
     }
 
     // mem_print_mem_release(released_addr, hnd);
+    chunks_table[hnd.chunk_id].flags = MEM_CHUNK_FLAGS_FREE;
 
     return TRUE;
 }
@@ -184,7 +238,14 @@ mem_release(const struct memhnd_t hnd)
 void*
 mem_get_addr_by_handle(const struct memhnd_t hnd)
 {
-    void* addr = calc_address_from_page_id(hnd.page_id);
+    void* addr = calc_address_from_page_id(hnd.page_id, hnd.chunk_id);
+    return addr;
+}
+
+void*
+mem_get_pageid_by_handle(const struct memhnd_t hnd)
+{
+    void* addr = calc_address_from_page_id(hnd.page_id, hnd.chunk_id);
     return addr;
 }
 
@@ -204,19 +265,6 @@ mem_temp_alloc_sys_call(const uint32 alignment, const uint32 total_size)
  * private
  * ************************************************************************************************/
 
-/* DEBUG */
-struct mem*
-debug_mem_get() { return mem; }
-
-uint16
-debug_mem_get_chunks_count() { return mem->chunks_count; }
-
-struct mem_chunk*
-debug_chunks_table_get() { return chunks_table; }
-
-struct free_list**
-debug_free_list_table_get() { return flist_heads_table; }
-
 void
 mem_init_chunks_table()
 {
@@ -231,7 +279,7 @@ mem_init_chunks_table()
      *************************************************************/
     for(uint32 i = 0; i < NUM_CHUNKS; i++) {
         chunks_table[i].id = i;
-        chunks_table[i].flags.is_init = 0;
+        chunks_table[i].flags |= MEM_CHUNK_FLAGS_FREE;
 
         // properly count total number of chunks
         mem->chunks_count++;
@@ -263,10 +311,7 @@ mem_init_free_list_table()
 
         struct free_list* cur = flist_heads_table[chunk_id];
         char* color_page = FREE_LIST_GET_PAGE_COLOR_START(cur);
-        color_page[0] = 'F';
-        color_page[1] = 'R';
-        color_page[2] = 'E';
-        color_page[3] = 'E';
+        color_page[0] = 'F'; color_page[1] = 'R'; color_page[2] = 'E'; color_page[3] = 'E';
 
 
         for(uint16 i = 0; i < PAGES_PER_CHUNK - 1; i++) {
@@ -278,10 +323,7 @@ mem_init_free_list_table()
             cur = new;
 
             color_page = FREE_LIST_GET_PAGE_COLOR_START(new);
-            color_page[0] = 'F';
-            color_page[1] = 'R';
-            color_page[2] = 'E';
-            color_page[3] = 'E';
+            color_page[0] = 'F'; color_page[1] = 'R'; color_page[2] = 'E'; color_page[3] = 'E';
         }
 
         // cur->next = NULL;
@@ -289,16 +331,25 @@ mem_init_free_list_table()
     }
 }
 
-
-void*
+struct memhnd_t
 flist_get_next_free_page(pageid_t num_pages, const memid_t chunk_id)
 {
     struct free_list* flist_head = flist_table_get_head(chunk_id);
     struct free_list* fnode = flist_head;
     void* free = flist_head;
+    // HERE: see to combine get_next_free with the caller
+    // const memid_t page_id = mem_get
+    struct memhnd_t handle = {.chunk_id = chunk_id, .num_pages = num_pages, .page_id = 0};
 
     if(!flist_head) { // todo: deal with :: no mem left in this chunk, advance chunk and allocate from that
-        my_exit("NO FREE PAGES FOR CHUNK\nFREE_LIST OUT OF MEMORY", __FILE__, __LINE__);
+        // my_exit("NO FREE PAGES FOR CHUNK\nFREE_LIST OUT OF MEMORY", __FILE__, __LINE__);
+
+        chunks_table[chunk_id].flags = MEM_CHUNK_FLAGS_FULL;
+        // const memid_t new_chunk_id = chunk_id+1;
+        const memid_t new_chunk_id = chunk_selector_get_next_free_chunk(chunk_id);
+        handle = mem_alloc_extend_chunk(num_pages,  new_chunk_id);
+        void* address = mem_get_addr_by_handle(handle);
+        flist_head = fnode = free = (struct free_list*)address;
     }
 
     while(num_pages) {
@@ -316,7 +367,8 @@ flist_get_next_free_page(pageid_t num_pages, const memid_t chunk_id)
 
     flist_table_set_head(chunk_id, flist_head);
 
-    return free;
+    return handle;
+    // return free;
 }
 
 void*
@@ -347,6 +399,22 @@ chunk_selector_get_chunk(const enum MEM_CHUNK_SELECTOR chunk_selector)
     if(chunk_selector == MEM_CHUNK_ALLOCATOR_SLAB) return MEM_CHUNK_ALLOCATOR_SLAB;
     return MEM_CHUNK_ANY;
 }
+memid_t
+chunk_selector_get_next_free_chunk(const memid_t chunk_id)
+{
+    // TODO: should check if next chunk is available(contiguous mem), if not, search from 0-th chunk
+    // uint32 i = chunk_id;
+    uint32 i = 0;
+    for(; i < NUM_CHUNKS; i++) {
+
+        if(chunks_table[i].flags & MEM_CHUNK_FLAGS_FREE) {
+            return i;
+        }
+    }
+
+    my_exit("OUT OF MEMORY\nNO CHUNKS AVAILABLE", __FILE__, __LINE__);
+    return INT_NULL;
+}
 
 memid_t
 calc_page_id_from_address(const void* addr)
@@ -363,9 +431,10 @@ calc_page_id_from_address(const void* addr)
 }
 
 void*
-calc_address_from_page_id(const memid_t page_id)
+calc_address_from_page_id(const memid_t page_id, const memid_t chunk_id)
 {
     uint64* mem_start = (uint64*) mem;
+    // void* addr = (char*) mem_start + ((PAGE_SIZE * (page_id + 1)) + (chunk_id * PAGES_PER_CHUNK * PAGE_SIZE));
     void* addr = (char*) mem_start + (PAGE_SIZE * (page_id + 1));
     return addr;
 }
@@ -382,3 +451,18 @@ check_mem_off_boundaries_writes(void* mem_start, const uint32 byte_size)
     }
     return FALSE;
 }
+
+
+
+/* DEBUG */
+struct mem*
+debug_mem_get() { return mem; }
+
+uint16
+debug_mem_get_chunks_count() { return mem->chunks_count; }
+
+struct mem_chunk*
+debug_chunks_table_get() { return chunks_table; }
+
+struct free_list**
+debug_free_list_table_get() { return flist_heads_table; }

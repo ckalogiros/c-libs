@@ -23,8 +23,8 @@ typedef uint16 memid_t;
 
 enum MEM_CHUNK_SELECTOR {
     MEM_CHUNK_ALLOCATOR_SLAB = 0,
-
-    MEM_CHUNK_ANY = NUM_CHUNKS - 1, // leave initial chunks for specific allocators
+    // leave initial chunks for specific allocators
+    MEM_CHUNK_ANY = NUM_CHUNKS - 1,
 };
 
 enum MEMORY_ERROR_CODE {

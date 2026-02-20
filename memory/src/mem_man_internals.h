@@ -52,7 +52,8 @@ void mem_init_free_list_table();
 
 
 /* returns the next free list node, and updates the list with the next free. */
-void* flist_get_next_free_page(const pageid_t num_pages, const memid_t chunk_id);
+// void* flist_get_next_free_page(const pageid_t num_pages, const memid_t chunk_id);
+struct memhnd_t flist_get_next_free_page(const pageid_t num_pages, const memid_t chunk_id);
 
 /* returns the next free list node, no updates. */
 void* flist_peek_next_free_page(memid_t chunk_id);
@@ -65,9 +66,11 @@ void flist_table_set_head(const memid_t chunk_id, struct free_list* head);
 
 memid_t chunk_selector_get_chunk(enum MEM_CHUNK_SELECTOR chunk_selector);
 
+memid_t chunk_selector_get_next_free_chunk(const memid_t chunk_id);
+
 memid_t calc_page_id_from_address(const void* addr);
 
-void* calc_address_from_page_id(const memid_t page_id);
+void* calc_address_from_page_id(const memid_t page_id, const memid_t chunk_id);
 
 bool check_mem_off_boundaries_writes(void* mem_start, const uint32 byte_size);
 

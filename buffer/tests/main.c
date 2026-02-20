@@ -18,25 +18,25 @@ main(void)
     {
         // test_create_buffer(16);
 
-        // test_buffer_fill_remove_insert();
-        // test_buffer_different_capacity_buffers();
+        // test_buffer_fill_remove_insert(); // todo: impl test
+        // test_buffer_different_capacity_buffers(); // todo: impl test
 
-        // test_buffer_remove_elements(256);
-        // test_buffer_insert_elements(256);
-        //
-        test_buffer_realloc();
+        // test_buffer_remove_elements(256);  // todo: impl test
+        // test_buffer_insert_elements(256); // todo: impl test
+
+        // test_buffer_realloc(); // todo: impl test
 
         // test_destroy_buffer();
 
-        // test_generic_type_buffer();
+        // test_generic_type_buffer(); // todo: impl test
 
-        // test_buffer_find_tail();
+        // test_buffer_find_tail(); // todo: impl test and function
     }
 
     {
 
-        // test_buffer_with_children();
-        // perf_test_buffer_with_children();
+        // test_buffer_with_children(); // todo: impl test
+        perf_test_buffer_with_children();
         // perf_test_buffer_with_children_in_dif_slabs();
     }
 

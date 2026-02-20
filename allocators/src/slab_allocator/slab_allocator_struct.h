@@ -49,18 +49,33 @@ enum SLAB_ALLOCATOR_ERROR_CODE {
     SLAB_ALLOC_MEMCACHE_NOT_FOUND = 0,
 };
 
-typedef uint16 slot_size_t;
 typedef uint16 buffer_size_t;
 typedef uint16 slab_size_t;
+typedef uint16 offset16_t;
 
+
+
+
+struct slab {
+    offset16_t next;
+    memid_t page_id;
+    uint16 flags;
+};
 
 struct slab_flist {
     struct slab_flist* next;
 };
 
+struct slst {
+    uint16 next;
+    uint16 next2;
+    uint16 next3;
+};
+
 
 struct mem_cache {
     struct slab_flist* slabs_free_list;
+    struct slab* slabs;
     uint16 slab_size; // each slab's size in bytes
     uint16 slabs_count; // used slabs count
     uint16 slabs_capacity; // total slabs count
