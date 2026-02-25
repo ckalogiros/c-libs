@@ -3,6 +3,8 @@
  *
  * todo: handle mem_alloc exceeds chunks num pages
  *
+ *  FORGOT THAT MEM MANAGER DEALS WITH PAGES NOT CHUNKS
+ *
  * memory managers is devided in chunks
  *  chunks have a table with pointers
  *  and a table of free list heads for each chunk
@@ -38,11 +40,6 @@
 
 #define CHUNK_FLAGS_FREE     BIT_MASK_FROM_UINT(0) // chunk is not in use
 #define CHUNK_FLAGS_OCCUPIED BIT_MASK_FROM_UINT(1) // chunk is in use but has free pages
-#define MEM_CHUNK_FLAGS_FULL     BIT_MASK_FROM_UINT(2) // chunk is full
-
-// #define MEM_CHUNK_FLAGS_FREE     (0x1) // chunk is not in use
-// #define MEM_CHUNK_FLAGS_OCCUPIED (0x2) // chunk is in use but has free pages
-// #define MEM_CHUNK_FLAGS_FULL     (0x4) // chunk is full
 
 
 #define CHECK_MEM_NULL(p, error_code, msg) if(p==NULL){\
@@ -407,7 +404,7 @@ flist_get_next_free_page(pageid_t num_pages, const memid_t chunk_id)
 
         flist_table_set_head(new_chunk_id, address);
 
-        chunks_table[chunk_id].flags = MEM_CHUNK_FLAGS_FULL;
+        // chunks_table[chunk_id].flags = MEM_CHUNK_FLAGS_FULL;
 
     } else {
         assert(free);
@@ -434,7 +431,7 @@ flist_get_next_free_page(pageid_t num_pages, const memid_t chunk_id)
             // flist_table_set_head(new_chunk_id, address);
 
             // TODO: CONTRADICTION(if new chunk is not used then seetting initial chunk to full does not make any sense)
-            chunks_table[chunk_id].flags = MEM_CHUNK_FLAGS_FULL;
+            // chunks_table[chunk_id].flags = MEM_CHUNK_FLAGS_FULL;
         }
         // if(fnode == NULL) {
         //     print("%s#######################################################%s\n", RED, CLEAR);

@@ -109,7 +109,7 @@ struct free_list {
  * flag ids is a helper struct, declaring the bit offsets
  * of varius ids that are part of a bitfield flag.
  * Ex. chunk_id: needs 10 bits,
- *     page_id: needs 5 bits (+1 for safety), etc       */
+ *     page_id: needs 5 bits (+1 for safety), etc.       */
 struct flag_ids {
     uint8 chunk_id_start_bit;
     uint8 chunk_id_end_bit;

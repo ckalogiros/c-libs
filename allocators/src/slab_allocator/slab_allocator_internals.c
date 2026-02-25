@@ -206,7 +206,6 @@ mem_cache_free_slab(struct mem_cache* mcache, void* slab_address)
         memset(slab_address, 0x0, mcache->slab_size);
         mcache->slabs_free_list = released;
         mcache->slabs_free_list->next = NULL;
-
         // print_slabs_free_list(mcache->slabs_free_list);
         return TRUE;
     }
@@ -216,7 +215,6 @@ mem_cache_free_slab(struct mem_cache* mcache, void* slab_address)
         memset(slab_address, 0x0, mcache->slab_size);
         mcache->slabs_free_list = released;
         mcache->slabs_free_list->next = node;
-
         // print_slabs_free_list(mcache->slabs_free_list);
         return TRUE;
     }
@@ -272,6 +270,7 @@ struct mem_cache* mem_cache_get_free_cache_QUICK_IMPL(void)
 
 
 // TODO: implement mem cache release cache(for reuse)
+// TODO: also this is the function that will release the mem_cache's mem chunk from memory manager
 
 
 /* DEBUG */
