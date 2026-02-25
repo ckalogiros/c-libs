@@ -34,8 +34,10 @@ perf_timer_print(const timer_print_params params)
     // avg /= count;
 
     // HEADER
-    if(!(params.flags & PERF_T_IN_CONTINUATION))
-        print("\n%s-- Perf Timer --%s\n",YELLOW, CLEAR);
+    if(!(params.flags & PERF_T_IN_CONTINUATION)) {
+        print("\n%s__________________ Perf Timer __________________%s\n",YELLOW, CLEAR);
+
+    }
 
     if(params.flags & (PERF_T_COUNT | PERF_T_ALL | PERF_T_COMMON))
         print("  %scount%s: %s%u%s", ry, CLEAR, GREEN, params.t->count, CLEAR);
@@ -71,7 +73,10 @@ perf_timer_print(const timer_print_params params)
         print("\n");
 
 
-    if(!(params.flags & PERF_T_IN_CONTINUATION)) print("\n");
+    if(!(params.flags & PERF_T_IN_CONTINUATION)) {
+        print("%s________________________________________________%s\n",YELLOW, CLEAR);
+        print("\n");
+    }
 }
 
 void

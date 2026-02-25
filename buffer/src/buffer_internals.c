@@ -38,12 +38,17 @@ struct buffer_table_free_list {
 
 static struct buffer_table_free_list* buffer_table_free_list_head = NULL;
 
+static uint32 temp_cnt = 0;
 void
 btable_flist_add(void* ptr)
 {
     struct buffer_table_free_list* list = ptr;
     list->next = buffer_table_free_list_head;
     buffer_table_free_list_head = list;
+    print("[%s%u%s] list_head:%x\n",
+        YELLOW,     temp_cnt, CLEAR,
+        REDUCE_ADDR(buffer_table_free_list_head, F5));
+    temp_cnt++;
 }
 
 buffer_t*
@@ -52,6 +57,10 @@ btable_flist_get_free(void)
     struct buffer_table_free_list* list = buffer_table_free_list_head;
     buffer_table_free_list_head = buffer_table_free_list_head->next;
     buffer_table_count++;
+    print("[%s%u%s] list_head:%x\n",
+    YELLOW,     temp_cnt, CLEAR,
+    REDUCE_ADDR(buffer_table_free_list_head, F5));
+    temp_cnt--;
     return (buffer_t*) list;
 }
 
@@ -82,7 +91,7 @@ buffer_init_table(void)
     if(buffer_table) return;
 
 
-    mem_chache_table_init();
+    mem_cache_table_init();
 
     const uint32 btable_typesize = sizeof(buffer_t);
     assert(sizeof(buffer_t) > sizeof(void*));
@@ -136,9 +145,9 @@ buffer_constructor_uint32(const bufidx_t capacity)
     const uint32 free_list_uint64_count = ((capacity - 1) / BITS64) + 1;
 
     // alloc storage for bufer data
-    const void* const data_ptr = mem_cache_alloc_buffer(capacity, sizeof(uint32));
+    const void* const data_ptr = mem_cache_alloc_buffer(capacity, sizeof(uint32), "uint32 buffer constructor");
     // alloc storage for buffer free-list data (a uint64 for each 64 buffer elements)
-    uint64* const buffer_flist_ptr = mem_cache_alloc_buffer(free_list_uint64_count, sizeof(uint64));
+    uint64* const buffer_flist_ptr = mem_cache_alloc_buffer(free_list_uint64_count, sizeof(uint64), "buffer uint64 freebuf");
 
     buffer_t* buffer = btable_flist_get_free();
     buffer->free_list = buffer_flist_ptr;
@@ -178,9 +187,12 @@ buffer_constructor_gentype(const bufidx_t capacity, const uint16 typesize)
     const uint32 free_list_uint64_count = ((capacity - 1) / BITS64) + 1;
 
     // alloc storage for bufer data
-    const void* const data_ptr = mem_cache_alloc_buffer(capacity, typesize);
+    print("%s----------------------\nAllocating buffer data%s\n", ry, CLEAR);
+    const void* const data_ptr = mem_cache_alloc_buffer(capacity, typesize, "generic buffer constructor");
+
     // alloc storage for buffer free-list data (an uint64 for each 64 buffer elements)
-    uint64* const buffer_flist_ptr = mem_cache_alloc_buffer(free_list_uint64_count, typesize);
+    print("%s----------------------\nAllocating buffer uint64 flist%s\n", GREEN, CLEAR);
+    uint64* const buffer_flist_ptr = mem_cache_alloc_buffer(free_list_uint64_count, sizeof(uint64), "buffer uint64 freebuf");
 
     buffer_t* buffer = btable_flist_get_free();
     buffer->free_list = buffer_flist_ptr;
@@ -191,7 +203,6 @@ buffer_constructor_gentype(const bufidx_t capacity, const uint16 typesize)
     buffer->tail = INT_NULL;
     buffer->id = 0;
     buffer->typesize = typesize;
-
 
     // init buffer data
     buffer_memset(buffer, 0);
@@ -208,16 +219,23 @@ buffer_destructor(buffer_t* buffer)
     void* const ptr = buffer;
 
     // Release buffer's data slab
-    mem_cache_release_buffer(buffer->data, buffer->capacity, sizeof(uint32));
+    mem_cache_release_buffer(buffer->data, buffer->capacity, buffer->typesize);
 
     // Release buffer's free_list slab
-    mem_cache_release_buffer(buffer->free_list, buffer->free_list_capacity, sizeof(uint64));
+    // mem_cache_release_buffer(buffer->free_list, buffer->free_list_capacity, sizeof(uint64));
 
     buffer->data = NULL;
     buffer->free_list = NULL;
+    buffer->free_list_capacity = 0;
+
+    buffer->capacity = 0;
+    buffer->typesize = 0;
+    buffer->count = 0;
+    buffer->tail = INT_NULL;
 
     // free buffer from buffer table
     btable_flist_add(ptr);
+    buffer_table_count--; // TODO: move this to btable_flist_add BUT create an init btable function (so that counter is not decremened at init)
 
 }
 
@@ -317,7 +335,7 @@ buffer_reallocate(buffer_t* const buffer)
     const bufidx_t new_capacity = buffer->capacity * 2;
 
     // 1.
-    void* const data_ptr = (uint32*) mem_cache_alloc_buffer(new_capacity, buffer->typesize);
+    void* const data_ptr = (uint32*) mem_cache_alloc_buffer(new_capacity, buffer->typesize, "buffer realloc");
 
     // 2.
     memcpy(data_ptr, buffer->data, buffer->capacity * buffer->typesize);
@@ -328,7 +346,7 @@ buffer_reallocate(buffer_t* const buffer)
     // 4.
     const uint32 flist_old_capacity = ((buffer->capacity - 1) / BITS64) + 1;
     const uint32 flist_capacity = ((new_capacity - 1) / BITS64) + 1;
-    void* const free_list_ptr = (uint64*) mem_cache_alloc_buffer(flist_capacity, sizeof(uint64));
+    void* const free_list_ptr = (uint64*) mem_cache_alloc_buffer(flist_capacity, sizeof(uint64), "buffer uint64 realloc");
     memset(free_list_ptr, MAX_UINT32, flist_capacity * sizeof(uint64));
 
     // 5.

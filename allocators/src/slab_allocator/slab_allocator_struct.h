@@ -47,6 +47,7 @@ enum MEM_CACHE_SIZES {
 
 enum SLAB_ALLOCATOR_ERROR_CODE {
     SLAB_ALLOC_MEMCACHE_NOT_FOUND = 0,
+    SLAB_ALLOC_MEMCACHE_NO_INIT,
 };
 
 typedef uint16 buffer_size_t;
@@ -66,22 +67,17 @@ struct slab_flist {
     struct slab_flist* next;
 };
 
-struct slst {
-    uint16 next;
-    uint16 next2;
-    uint16 next3;
-};
 
 
 struct mem_cache {
     struct slab_flist* slabs_free_list;
     struct slab* slabs;
     uint16 slab_size; // each slab's size in bytes
+    uint16 type_size; // the stored objects type
     uint16 slabs_count; // used slabs count
     uint16 slabs_capacity; // total slabs count
     uint16 slabs_used; // used slabs count
     uint8 slabs_num_pages; // number of pages of all the slabs
-    uint8 type_size; // the stored objects type
     uint8 is_active; // the stored objects type
     struct memhnd_t mem_handle;
 

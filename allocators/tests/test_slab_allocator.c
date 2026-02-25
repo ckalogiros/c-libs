@@ -9,33 +9,257 @@
 #include "slab_allocator_internals.h"
 #include "slab_allocator_log.h"
 #include <string.h>
+
+#include "bits.h"
 #include "logger.h"
+#include "my_macros.h"
+#include "smath.h"
 
 
-void print_buffer(void* buffer, const uint32 buffer_size)
+/***************************************************************************************************
+ * FORWARD DECLARATIONS
+ **************************************************************************************************/
+void print_buffer(void* buffer, const uint32 buffer_size);
+
+void check_buffer(void* buffer, const uint32 buffer_size, const char c, const uint32 index);
+
+char* mem_cache_free_slab_test_debug(struct mem_cache* mcache, void* slab_address);
+
+char* mem_cache_release_buffer_test_debug(void* ptr, const buffer_size_t buffer_size, const uint16 type_size);
+
+
+/***************************************************************************************************
+ * TEST  FUNCTIONS
+ **************************************************************************************************/
+// some basic initialization of slab allocator
+void test_check_alloc_extend_pages(const uint32 num_pages)
+{
+    memman_init();
+    mem_cache_table_init();
+
+    slab_alloc_print_structs_sizes();
+
+    const uint32 size = ((num_pages*PAGE_SIZE)/num_pages)/16;
+    const uint32 buffer_size = (size < 16) ? size : 16;
+    const uint32 type_size = 16;
+
+
+    const uint32 num_allocations = (num_pages*PAGE_SIZE)/(buffer_size*type_size);
+    uint32* buffer[num_allocations] = {};
+
+
+    print_test("Slab Allocator",
+        " Allocate - deallocate slab buffers\n"
+        " Allocations are greater than a page\n"
+        " Check if deallocated slabs are sorted\n"
+        " and none is missing\n"
+        " size:            %s%u bytes%s\n"
+        " type_size:       %s%u bytes%s\n"
+        " buffer_size:     %s%u%s elems\n"
+        " num_allocations: %s%u%s\n",
+        ry, size, CLEAR,
+        ry, type_size, CLEAR,
+        ry, buffer_size, CLEAR,
+        ry, num_allocations, CLEAR
+    );
+
+    uint32 i = 0;
+    for(; i < num_allocations; i++) {
+        buffer[i] = (uint32*) mem_cache_alloc_buffer(buffer_size, type_size);
+        print("%sAllocating Buffer. index:%u%s | ", ry, i, CLEAR);
+        print("address:%s%x%s\n", CYAN, REDUCE_ADDR(buffer[i], F6), CLEAR);
+        memset(buffer[i], 'A'+i, buffer_size*type_size); // memset whole buffer slab
+    }
+
+    for(uint32 i = 0; i < num_allocations; i++) {
+        print("%sRelease Buffer. index:%u%s | ", ry, i, CLEAR);
+        print("address:%s%x%s\n", br3, REDUCE_ADDR(buffer[i], F6), CLEAR);
+        mem_cache_release_buffer(buffer[i], buffer_size, type_size);
+    }
+
+
+    /*
+     * repeat
+     */
+    print("%s---------------------------------------%s\n", GREEN, CLEAR);
+    print("%srepeat allocations, with random indexing%s\n", GREEN, CLEAR);
+    print("%s---------------------------------------%s\n\n", GREEN, CLEAR);
+    // uint32 rand_indexing[8] = {3,7, 1,2, 6,0, 5,4};
+    uint32 rand_indexing[num_allocations] = {};
+    randomize_range(*(&rand_indexing), 0, num_allocations);
+
+    i = 0;
+    for(; i < num_allocations; i++) {
+        print("%sAllocating Buffer. index:%u%s | ", ry, rand_indexing[i], CLEAR);
+        print("address:%s%x%s\n", CYAN, REDUCE_ADDR(buffer[rand_indexing[i]], F6), CLEAR);
+        buffer[rand_indexing[i]] = (uint32*) mem_cache_alloc_buffer(buffer_size, type_size);
+        memset(buffer[rand_indexing[i]], 'A'+i, buffer_size*type_size); // memset whole buffer slab
+    }
+
+    for(uint32 i = 0; i < num_allocations; i++) {
+        print("%sRelease Buffer. index:%u%s | ", ry, i, CLEAR);
+        print("address:%s%x%s\n", br3, REDUCE_ADDR(buffer[i], F6), CLEAR);
+        mem_cache_release_buffer(buffer[i], buffer_size, type_size);
+    }
+
+    print("%sTEST free slabs list:%s\n", yg, CLEAR);
+    uint32 failed = 0;
+    struct slab_flist* free = mem_cache_flist_peek_next_free_slab(buffer_size, type_size);
+    i=0;
+    while(free) {
+        print("  %s[%u]%s addr:%s%x%s\n", YELLOW, i,CLEAR, CYAN, REDUCE_ADDR(free, F6), CLEAR);
+        free = free->next;
+        uint32 ptrdif = (uint64)free - (uint64)free;
+        if(ptrdif != buffer_size*type_size)
+            failed++;
+        i++;
+    }
+    print("%sTEST: if free slabs are in order\n"
+          "      and in slab sized stride%s\n", ry, CLEAR);
+    if(failed) print("%sPASS%s\n", GREEN, CLEAR);
+    else print("%sFAIL%s\n", RED, CLEAR);
+
+
+    mem_cache_table_destroy();
+    memman_terminate();
+}
+
+
+void
+test_mem_cache_alloc_release_slabs(void)
+{
+    memman_init();
+    mem_cache_table_init();
+
+    const uint8 type_size = sizeof(uint64);
+    const buffer_size_t buffer_size = 8;
+    const buffer_size_t slab_size = buffer_size * type_size;
+
+    // print(" %sTEST-%s\n", ry, CLEAR);
+    const uint32 page_size = PAGE_SIZE;
+    const uint32 total_slabs = page_size / slab_size;
+    uint8* buffer[page_size / slab_size];
+
+    print_test("Slab Allocator",
+        " . Allocate slab buffers\n"
+        " . \"Color\" them with a character\n"
+        " . Check slab buffer insert() function\n"
+        "   that inserts elements (coloring)\n"
+        "   in the boundaries of each slab\n"
+        " slab_size:   %s%u bytes%s\n"
+        " type_size:   %s%u bytes%s\n"
+        " buffer_size: %s%u%s elems\n"
+        " total_slabs: %s%u%s\n",
+        ry, slab_size, CLEAR,
+        ry, type_size, CLEAR,
+        ry, buffer_size, CLEAR,
+        ry, total_slabs, CLEAR
+    );
+
+
+    print("%s-- ALLOCATION + WRITE --%s\n", ry, CLEAR);
+    uint32 c = CHAR_A;
+    for(uint32 i = 0; i < total_slabs; i++) {
+        buffer[i] = (uint8*) mem_cache_alloc_buffer(buffer_size, type_size);
+        memset(buffer[i], (char) c, slab_size);
+        check_buffer(buffer[i], slab_size, c, i);
+        c++;
+        if(c > CHAR_END) c = CHAR_A;
+    }
+
+
+    // const void* buffer_start = &(buffer[0][0]);
+    const char* buffer_start = (*buffer);
+    // 0x7ffff7f1c7f8
+    const char* buffer_end = ((*buffer) + (total_slabs * slab_size));
+    print(" alloc start: %s%x%s\n", CYAN, REDUCE_ADDR(buffer_start, F5), CLEAR);
+    print(" alloc end:   %s%x%s\n", CYAN, REDUCE_ADDR(buffer_end, F5), CLEAR);
+    print(" alloc size:  %s%llu%s bytes\n", CYAN, buffer_end - buffer_start, CLEAR);
+    if((uint64) buffer_end - (uint64) buffer_start == page_size)
+        print(" Allocation size :: %sPASS%s\n", GREEN, CLEAR);
+    else print(" Allocation size ::  %sFAIL%s\n", RED, CLEAR);
+
+    print("\n\n");
+
+
+    /*
+     * . release all slabs of the allocated memory cache
+     * . use a buffer to store all free slabs addresses for testing
+     * . the release slab functions are copies of the implementation(for debugging)
+     *   so make sure they are updated on any changes
+     */
+    char* free_buffer[total_slabs] = {};
+    print("%s-- DEALLOCATION + ERASE --%s\n", ry, CLEAR);
+    for(uint32 i = 0; i < total_slabs; i++) {
+        free_buffer[i] = mem_cache_release_buffer_test_debug(buffer[i], buffer_size, type_size);
+        check_buffer(buffer[i], buffer_size * type_size, '\0', i);
+    }
+
+    /*
+     * . print all free slabs addresses
+     * . all slabs ought to be free at this point
+     * . if the difference between 2 consecutive slabs
+     *   is the size of the slab in bytes: TEST PASSES, else TEST: FAILS
+     */
+    uint64 dif = (uint64)free_buffer[0];
+    print(" slab_size:%u\n", slab_size);
+    for(uint32 i = 1; i < total_slabs; i++) {
+        dif = (uint64) free_buffer[i] - dif;
+
+        print("[%s%u%s]"
+              " addr:%s%x%s"
+              "",
+              CYAN, i, CLEAR,
+              CYAN, REDUCE_ADDR(free_buffer[i], F5), CLEAR
+        );
+        if(dif == slab_size) print(" %sPASS%s\n", GREEN, CLEAR);
+        else print(" %sFAIL%s\n", RED, CLEAR);
+
+        dif = (uint64)free_buffer[i];
+    }
+
+
+    mem_cache_table_destroy();
+    memman_terminate();
+}
+
+
+
+/***************************************************************************************************
+ * HELPERS
+ **************************************************************************************************/
+void
+print_buffer(void* buffer, const uint32 buffer_size)
 {
     uint32 i = 0;
-    char* buf = (char*)buffer;
-    for(; i<buffer_size; i++) {
+    char* buf = (char*) buffer;
+    for(; i < buffer_size; i++) {
         print("%c", buf[i]);
     }
     print("\n");
 }
-void check_buffer(void* buffer, const uint32 buffer_size, const char c)
+
+void
+check_buffer(void* buffer, const uint32 buffer_size, const char c, const uint32 index)
 {
     bool failed = FALSE;
 
+    print("[%s%u%s]", CYAN, index, CLEAR);
+
     uint32 i = 0;
-    char* buf = (char*)buffer;
-    for(; i<buffer_size; i++) {
-        print("%c", buf[i]);
-        if((uint8)buf[i]!=(uint8)c) {
+    char* buf = (char*) buffer;
+
+    for(; i < buffer_size; i++) {
+        if(c == '\0') print("0");
+        else print("%c", buf[i]);
+        if((uint8) buf[i] != (uint8) c) {
             failed = TRUE;
-            // print("-%c|", c);
         }
     }
-    if(failed) print(" %sFAIL%s\n", RED, CLEAR);
-    else print(" %sPASS%s\n", GREEN, CLEAR);
+    if(failed) print(" %sFAIL%s", RED, CLEAR);
+    else print(" %sPASS%s", GREEN, CLEAR);
+
+    print(" addr: %s%x%s\n", br2, REDUCE_ADDR(buffer, F5), CLEAR);
 }
 
 
@@ -44,46 +268,56 @@ void check_buffer(void* buffer, const uint32 buffer_size, const char c)
  * MUST BE KEPT UPDATED TO THE ACTUAL SLAB ALLOCATOR'S FUNCTIONS
  */
 
-bool
-mem_cache_free_slab_test_debug(struct mem_cache* mcache, void* slab_address, uint64* free_buffer, const uint32 free_idx)
+char*
+mem_cache_free_slab_test_debug(struct mem_cache* mcache, void* slab_address)
 {
     // TODO: write test
-    struct slab_flist* released =  (struct slab_flist*)slab_address;
-    struct slab_flist* node =  mcache->slabs_free_list;
+    struct slab_flist* released = (struct slab_flist*) slab_address;
+    struct slab_flist* node = mcache->slabs_free_list;
+    const char* free_buffer = slab_address;
 
-    const uint32 color = 0x0;
-    memset(slab_address, color, mcache->slab_size);
+    // insert at the begining of the free list
+    if(node == NULL) {
+        memset(slab_address, 0x0, mcache->slab_size);
+        mcache->slabs_free_list = released;
+        mcache->slabs_free_list->next = NULL;
+        return free_buffer;
+    }
 
     // insert at the begining of the free list
     if(node > released) {
+        memset(slab_address, 0x0, mcache->slab_size);
         mcache->slabs_free_list = released;
         mcache->slabs_free_list->next = node;
-        free_buffer[free_idx] = (uint64)mcache->slabs_free_list;
-        return TRUE;
+        return free_buffer;
     }
 
-    // else search for the last free with smaller address value
-    while(node->next < released) {
-        node = node->next;
-    }
 
     // if smaller address found, insert in between
     if(node->next != NULL) {
+        // search for the last free with smaller address value
+        while(node->next  != NULL && node->next < released) {
+            node = node->next;
+        }
+
+        memset(slab_address, 0x0, mcache->slab_size);
         struct slab_flist* temp = node->next;
         node->next = released;
         node->next->next = temp;
-        free_buffer[free_idx] = (uint64)node->next;
-        return TRUE;
+        return free_buffer;
     }
+
     // else insert at the end of the free list
-    node->next = (struct slab_flist*)slab_address;
-    free_buffer[free_idx] = (uint64)node->next;
-    return TRUE;
+    memset(slab_address, 0x0, mcache->slab_size);
+    node->next = (struct slab_flist*) slab_address;
+    return free_buffer;
+
 }
 
-void
-mem_cache_release_buffer_test_debug(void* ptr, const buffer_size_t buffer_size,
-                            const uint8 type_size, uint64* free_buffer, const uint32 free_idx)
+
+
+char*
+mem_cache_release_buffer_test_debug(void* ptr, const buffer_size_t buffer_size, const uint16 type_size)
 {
     const slab_size_t slab_size = buffer_size * type_size;
 
@@ -92,5 +326,5 @@ mem_cache_release_buffer_test_debug(void* ptr, const buffer_size_t buffer_size,
     if(!mcache) // handle error: cache not found
         slab_allocator_print_error(SLAB_ALLOC_MEMCACHE_NOT_FOUND);
 
-    mem_cache_free_slab_test_debug(mcache, ptr, free_buffer, free_idx);
+    return mem_cache_free_slab_test_debug(mcache, ptr);
 }

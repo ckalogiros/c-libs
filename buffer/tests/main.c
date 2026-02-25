@@ -4,6 +4,7 @@
 
 
 #include "buffer.h"
+#include "fs_write.h"
 #include "logger.h"
 #include "mem_log.h"
 #include "mem_man_interface.h"
@@ -16,6 +17,8 @@ int
 main(void)
 {
     {
+        fs_init();
+
         // test_create_buffer(16);
 
         // test_buffer_fill_remove_insert(); // todo: impl test

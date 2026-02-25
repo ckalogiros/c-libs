@@ -5,14 +5,9 @@
 #define G_INCLUDES_TEST_SLAB_ALLOCATOR_H
 #include "slab_allocator_struct.h"
 
-void print_buffer(void* buffer, const uint32 buffer_size);
+void test_check_alloc_extend_pages(const uint32 num_pages);
 
-void check_buffer(void* buffer, const uint32 buffer_size, const char c);
-
-bool mem_cache_free_slab_test_debug(struct mem_cache* mcache, void* slab_address, uint64* free_buffer, const uint32 free_idx);
-
-void mem_cache_release_buffer_test_debug(void* ptr, const buffer_size_t buffer_size,
-                                    const uint8 type_size, uint64* free_buffer, const uint32 free_idx);
+void test_mem_cache_alloc_release_slabs(void);
 
 enum CHAR_ARRAY {
     CHAR_A=65,

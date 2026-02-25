@@ -1,0 +1,528 @@
+/home/ckalo/data/projects/clion/allocators/cmake-build-debug/tests/tests
+# INITIALIZE MEMORY #
+
+-- memory --
+ size bytes:  526336, 514kb
+ data size:   524288, 512kb
+ num chunks:  16
+ total pages: 512
+ page size:   1024
+ mem start:      f78000
+ chunks start:   f78020
+ data start:     f78400
+ data last page: ff8000
+ last page:      ff8400
+ unauth page:    ff8800
+
+mem_cache: 56
+-- mem_cache struct has a slabs list
+   slab_list: 8
+
+-- Create Mem Cache --
+  name:
+  slab_size:      4096
+  slabs_count:    0
+  slabs_capacity: 1
+  slabs_num_pages:4
+  type_size:      4096
+  is_active:      1
+  slabs_free_list:f78400
+-----------------------
+-- SLABS FREE LIST --
+[0] addr:f78400 next:0
+slabs count: 1
+---------------------
+
+Allocating Buffer
+address:f78400
+
+-- Create Mem Cache --
+  name:
+  slab_size:      4096
+  slabs_count:    0
+  slabs_capacity: 2
+  slabs_num_pages:8
+  type_size:      4096
+  is_active:      1
+  slabs_free_list:f79400
+-----------------------
+-- SLABS FREE LIST --
+[0] addr:f79400 next:0
+slabs count: 1
+---------------------
+
+Allocating Buffer
+address:f79400
+
+-- Create Mem Cache --
+  name:
+  slab_size:      4096
+  slabs_count:    0
+  slabs_capacity: 3
+  slabs_num_pages:12
+  type_size:      4096
+  is_active:      1
+  slabs_free_list:f7a400
+-----------------------
+-- SLABS FREE LIST --
+[0] addr:f7a400 next:0
+slabs count: 1
+---------------------
+
+Allocating Buffer
+address:f7a400
+
+-- Create Mem Cache --
+  name:
+  slab_size:      4096
+  slabs_count:    0
+  slabs_capacity: 4
+  slabs_num_pages:16
+  type_size:      4096
+  is_active:      1
+  slabs_free_list:f7b400
+-----------------------
+-- SLABS FREE LIST --
+[0] addr:f7b400 next:0
+slabs count: 1
+---------------------
+
+Allocating Buffer
+address:f7b400
+
+-- Create Mem Cache --
+  name:
+  slab_size:      4096
+  slabs_count:    0
+  slabs_capacity: 5
+  slabs_num_pages:20
+  type_size:      4096
+  is_active:      1
+  slabs_free_list:f7c400
+-----------------------
+-- SLABS FREE LIST --
+[0] addr:f7c400 next:0
+slabs count: 1
+---------------------
+
+Allocating Buffer
+address:f7c400
+
+-- Create Mem Cache --
+  name:
+  slab_size:      4096
+  slabs_count:    0
+  slabs_capacity: 6
+  slabs_num_pages:24
+  type_size:      4096
+  is_active:      1
+  slabs_free_list:f7d400
+-----------------------
+-- SLABS FREE LIST --
+[0] addr:f7d400 next:0
+slabs count: 1
+---------------------
+
+Allocating Buffer
+address:f7d400
+
+-- Create Mem Cache --
+  name:
+  slab_size:      4096
+  slabs_count:    0
+  slabs_capacity: 7
+  slabs_num_pages:28
+  type_size:      4096
+  is_active:      1
+  slabs_free_list:f7e400
+-----------------------
+-- SLABS FREE LIST --
+[0] addr:f7e400 next:0
+slabs count: 1
+---------------------
+
+Allocating Buffer
+address:f7e400
+
+-- Create Mem Cache --
+  name:
+  slab_size:      4096
+  slabs_count:    0
+  slabs_capacity: 8
+  slabs_num_pages:32
+  type_size:      4096
+  is_active:      1
+  slabs_free_list:f7f400
+-----------------------
+-- SLABS FREE LIST --
+[0] addr:f7f400 next:0
+slabs count: 1
+---------------------
+
+Allocating Buffer
+address:f7f400
+
+-- Create Mem Cache --
+  name:
+  slab_size:      4096
+  slabs_count:    0
+  slabs_capacity: 9
+  slabs_num_pages:36
+  type_size:      4096
+  is_active:      1
+  slabs_free_list:f80400
+-----------------------
+-- SLABS FREE LIST --
+[0] addr:f80400 next:0
+slabs count: 1
+---------------------
+
+Allocating Buffer
+address:f80400
+
+-- Create Mem Cache --
+  name:
+  slab_size:      4096
+  slabs_count:    0
+  slabs_capacity: 10
+  slabs_num_pages:40
+  type_size:      4096
+  is_active:      1
+  slabs_free_list:f81400
+-----------------------
+-- SLABS FREE LIST --
+[0] addr:f81400 next:0
+slabs count: 1
+---------------------
+
+Allocating Buffer
+address:f81400
+
+-- Create Mem Cache --
+  name:
+  slab_size:      4096
+  slabs_count:    0
+  slabs_capacity: 11
+  slabs_num_pages:44
+  type_size:      4096
+  is_active:      1
+  slabs_free_list:f82400
+-----------------------
+-- SLABS FREE LIST --
+[0] addr:f82400 next:0
+slabs count: 1
+---------------------
+
+Allocating Buffer
+address:f82400
+
+-- Create Mem Cache --
+  name:
+  slab_size:      4096
+  slabs_count:    0
+  slabs_capacity: 12
+  slabs_num_pages:48
+  type_size:      4096
+  is_active:      1
+  slabs_free_list:f83400
+-----------------------
+-- SLABS FREE LIST --
+[0] addr:f83400 next:0
+slabs count: 1
+---------------------
+
+Allocating Buffer
+address:f83400
+
+-- Create Mem Cache --
+  name:
+  slab_size:      4096
+  slabs_count:    0
+  slabs_capacity: 13
+  slabs_num_pages:52
+  type_size:      4096
+  is_active:      1
+  slabs_free_list:f84400
+-----------------------
+-- SLABS FREE LIST --
+[0] addr:f84400 next:0
+slabs count: 1
+---------------------
+
+Allocating Buffer
+address:f84400
+
+-- Create Mem Cache --
+  name:
+  slab_size:      4096
+  slabs_count:    0
+  slabs_capacity: 14
+  slabs_num_pages:56
+  type_size:      4096
+  is_active:      1
+  slabs_free_list:f85400
+-----------------------
+-- SLABS FREE LIST --
+[0] addr:f85400 next:0
+slabs count: 1
+---------------------
+
+Allocating Buffer
+address:f85400
+
+-- Create Mem Cache --
+  name:
+  slab_size:      4096
+  slabs_count:    0
+  slabs_capacity: 15
+  slabs_num_pages:60
+  type_size:      4096
+  is_active:      1
+  slabs_free_list:f86400
+-----------------------
+-- SLABS FREE LIST --
+[0] addr:f86400 next:0
+slabs count: 1
+---------------------
+
+Allocating Buffer
+address:f86400
+
+-- Create Mem Cache --
+  name:
+  slab_size:      4096
+  slabs_count:    0
+  slabs_capacity: 16
+  slabs_num_pages:64
+  type_size:      4096
+  is_active:      1
+  slabs_free_list:f87400
+-----------------------
+-- SLABS FREE LIST --
+[0] addr:f87400 next:0
+slabs count: 1
+---------------------
+
+Allocating Buffer
+address:f87400
+-- SLABS FREE LIST --
+[0] addr:f78400 next:0
+slabs count: 1
+---------------------
+
+Release Buffer
+-- SLABS FREE LIST --
+[0] addr:f78400 next:f79400
+[1] addr:f79400 next:0
+slabs count: 2
+---------------------
+
+Release Buffer
+-- SLABS FREE LIST --
+[0] addr:f78400 next:f79400
+[1] addr:f79400 next:f7a400
+[2] addr:f7a400 next:0
+slabs count: 3
+---------------------
+
+Release Buffer
+-- SLABS FREE LIST --
+[0] addr:f78400 next:f79400
+[1] addr:f79400 next:f7a400
+[2] addr:f7a400 next:f7b400
+[3] addr:f7b400 next:0
+slabs count: 4
+---------------------
+
+Release Buffer
+-- SLABS FREE LIST --
+[0] addr:f78400 next:f79400
+[1] addr:f79400 next:f7a400
+[2] addr:f7a400 next:f7b400
+[3] addr:f7b400 next:f7c400
+[4] addr:f7c400 next:0
+slabs count: 5
+---------------------
+
+Release Buffer
+-- SLABS FREE LIST --
+[0] addr:f78400 next:f79400
+[1] addr:f79400 next:f7a400
+[2] addr:f7a400 next:f7b400
+[3] addr:f7b400 next:f7c400
+[4] addr:f7c400 next:f7d400
+[5] addr:f7d400 next:0
+slabs count: 6
+---------------------
+
+Release Buffer
+-- SLABS FREE LIST --
+[0] addr:f78400 next:f79400
+[1] addr:f79400 next:f7a400
+[2] addr:f7a400 next:f7b400
+[3] addr:f7b400 next:f7c400
+[4] addr:f7c400 next:f7d400
+[5] addr:f7d400 next:f7e400
+[6] addr:f7e400 next:0
+slabs count: 7
+---------------------
+
+Release Buffer
+-- SLABS FREE LIST --
+[0] addr:f78400 next:f79400
+[1] addr:f79400 next:f7a400
+[2] addr:f7a400 next:f7b400
+[3] addr:f7b400 next:f7c400
+[4] addr:f7c400 next:f7d400
+[5] addr:f7d400 next:f7e400
+[6] addr:f7e400 next:f7f400
+[7] addr:f7f400 next:0
+slabs count: 8
+---------------------
+
+Release Buffer
+-- SLABS FREE LIST --
+[0] addr:f78400 next:f79400
+[1] addr:f79400 next:f7a400
+[2] addr:f7a400 next:f7b400
+[3] addr:f7b400 next:f7c400
+[4] addr:f7c400 next:f7d400
+[5] addr:f7d400 next:f7e400
+[6] addr:f7e400 next:f7f400
+[7] addr:f7f400 next:f80400
+[8] addr:f80400 next:0
+slabs count: 9
+---------------------
+
+Release Buffer
+-- SLABS FREE LIST --
+[0] addr:f78400 next:f79400
+[1] addr:f79400 next:f7a400
+[2] addr:f7a400 next:f7b400
+[3] addr:f7b400 next:f7c400
+[4] addr:f7c400 next:f7d400
+[5] addr:f7d400 next:f7e400
+[6] addr:f7e400 next:f7f400
+[7] addr:f7f400 next:f80400
+[8] addr:f80400 next:f81400
+[9] addr:f81400 next:0
+slabs count: 10
+---------------------
+
+Release Buffer
+-- SLABS FREE LIST --
+[0] addr:f78400 next:f79400
+[1] addr:f79400 next:f7a400
+[2] addr:f7a400 next:f7b400
+[3] addr:f7b400 next:f7c400
+[4] addr:f7c400 next:f7d400
+[5] addr:f7d400 next:f7e400
+[6] addr:f7e400 next:f7f400
+[7] addr:f7f400 next:f80400
+[8] addr:f80400 next:f81400
+[9] addr:f81400 next:f82400
+[10] addr:f82400 next:0
+slabs count: 11
+---------------------
+
+Release Buffer
+-- SLABS FREE LIST --
+[0] addr:f78400 next:f79400
+[1] addr:f79400 next:f7a400
+[2] addr:f7a400 next:f7b400
+[3] addr:f7b400 next:f7c400
+[4] addr:f7c400 next:f7d400
+[5] addr:f7d400 next:f7e400
+[6] addr:f7e400 next:f7f400
+[7] addr:f7f400 next:f80400
+[8] addr:f80400 next:f81400
+[9] addr:f81400 next:f82400
+[10] addr:f82400 next:f83400
+[11] addr:f83400 next:0
+slabs count: 12
+---------------------
+
+Release Buffer
+-- SLABS FREE LIST --
+[0] addr:f78400 next:f79400
+[1] addr:f79400 next:f7a400
+[2] addr:f7a400 next:f7b400
+[3] addr:f7b400 next:f7c400
+[4] addr:f7c400 next:f7d400
+[5] addr:f7d400 next:f7e400
+[6] addr:f7e400 next:f7f400
+[7] addr:f7f400 next:f80400
+[8] addr:f80400 next:f81400
+[9] addr:f81400 next:f82400
+[10] addr:f82400 next:f83400
+[11] addr:f83400 next:f84400
+[12] addr:f84400 next:0
+slabs count: 13
+---------------------
+
+Release Buffer
+-- SLABS FREE LIST --
+[0] addr:f78400 next:f79400
+[1] addr:f79400 next:f7a400
+[2] addr:f7a400 next:f7b400
+[3] addr:f7b400 next:f7c400
+[4] addr:f7c400 next:f7d400
+[5] addr:f7d400 next:f7e400
+[6] addr:f7e400 next:f7f400
+[7] addr:f7f400 next:f80400
+[8] addr:f80400 next:f81400
+[9] addr:f81400 next:f82400
+[10] addr:f82400 next:f83400
+[11] addr:f83400 next:f84400
+[12] addr:f84400 next:f85400
+[13] addr:f85400 next:0
+slabs count: 14
+---------------------
+
+Release Buffer
+-- SLABS FREE LIST --
+[0] addr:f78400 next:f79400
+[1] addr:f79400 next:f7a400
+[2] addr:f7a400 next:f7b400
+[3] addr:f7b400 next:f7c400
+[4] addr:f7c400 next:f7d400
+[5] addr:f7d400 next:f7e400
+[6] addr:f7e400 next:f7f400
+[7] addr:f7f400 next:f80400
+[8] addr:f80400 next:f81400
+[9] addr:f81400 next:f82400
+[10] addr:f82400 next:f83400
+[11] addr:f83400 next:f84400
+[12] addr:f84400 next:f85400
+[13] addr:f85400 next:f86400
+[14] addr:f86400 next:0
+slabs count: 15
+---------------------
+
+Release Buffer
+-- SLABS FREE LIST --
+[0] addr:f78400 next:f79400
+[1] addr:f79400 next:f7a400
+[2] addr:f7a400 next:f7b400
+[3] addr:f7b400 next:f7c400
+[4] addr:f7c400 next:f7d400
+[5] addr:f7d400 next:f7e400
+[6] addr:f7e400 next:f7f400
+[7] addr:f7f400 next:f80400
+[8] addr:f80400 next:f81400
+[9] addr:f81400 next:f82400
+[10] addr:f82400 next:f83400
+[11] addr:f83400 next:f84400
+[12] addr:f84400 next:f85400
+[13] addr:f85400 next:f86400
+[14] addr:f86400 next:f87400
+[15] addr:f87400 next:0
+slabs count: 16
+---------------------
+
+Release Buffer
+
+
+# TERMINATE MEMORY #
+
+Process finished with exit code 0

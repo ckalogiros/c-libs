@@ -89,7 +89,8 @@ mem_log_print_free_list_of_chunk(const memid_t chunk_id)
             " color:%s%s%s\n",
             // " id:%s%u%s\n",
             CYAN, k, CLEAR,
-            CYAN, (uint64)(flist)&F6, CLEAR,
+            // CYAN, (uint64)(flist)&F4, CLEAR,
+            CYAN, REDUCE_ADDR(flist,F6), CLEAR,
             CYAN, FREE_LIST_GET_PAGE_COLOR_START(flist), CLEAR
             // br2, (uint64)(flist->next)&F6, CLEAR
         );

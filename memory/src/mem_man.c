@@ -3,7 +3,6 @@
  */
 #include "mem_man_interface.h"
 #include "mem_man_internals.h"
-#include "logger.h"
 #include "mem_log/mem_log.h"
 
 

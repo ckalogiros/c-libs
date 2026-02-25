@@ -11,21 +11,13 @@
 
 #define MEM_GET_DATA_START ((char*)(mem->start + mem->self_size))
 #define MEM_GET_CHUNKS_TABLE_START ((char*)(mem->start + sizeof(struct mem)))
-#define MEM_GET_BOUND_CHECK_START ((char*)(mem->start + mem->self_size + mem->data_size))
+#define MEM_GET_BOUND_CHECK_START(void) ((char*)(mem->start + mem->self_size + mem->data_size))
 
 
 #define FREE_LIST_GET_PAGE_COLOR_START(fnode) ((char*)fnode + sizeof(struct free_list))
 
 typedef uint16 chunkid_t;
 typedef uint16 pageid_t;
-
-struct mem* debug_mem_get();
-
-uint16 debug_mem_get_chunks_count();
-
-struct mem_chunk* debug_chunks_table_get();
-
-struct free_list** debug_free_list_table_get();
 
 
 bool mem_init();
@@ -70,9 +62,20 @@ memid_t chunk_selector_get_next_free_chunk(const memid_t chunk_id);
 
 memid_t calc_page_id_from_address(const void* addr);
 
-void* calc_address_from_page_id(const memid_t page_id, const memid_t chunk_id);
+void* calc_address_from_page_id(const memid_t page_id);
 
 bool check_mem_off_boundaries_writes(void* mem_start, const uint32 byte_size);
 
+
+/* DEBUG */
+struct mem* debug_mem_get();
+
+uint16 debug_mem_get_chunks_count();
+
+struct mem_chunk* debug_chunks_table_get();
+
+struct free_list** debug_free_list_table_get();
+
+void debug_mem_corrupted();
 
 #endif //MEM_MAN_H

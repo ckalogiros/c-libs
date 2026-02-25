@@ -78,9 +78,9 @@ struct mem_flags {
 struct mem {
     void* start; // allocated start address
     uint64 size; // total allocated size
-    uint64 data_size; // total allocated size
-    uint16 self_size; // total allocated size
-    uint16 bound_check_size; // total allocated size
+    uint64 data_size; // total data allocated size
+    uint16 self_size; // mem data allocated size
+    uint16 bound_check_size; // bound_check allocated size
     uint16 chunks_count; // number of allocated chunks
 };
 
