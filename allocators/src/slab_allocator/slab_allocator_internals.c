@@ -125,7 +125,7 @@ mem_cache_extend_allocation(struct mem_cache* const  mcache)
     SLABALLOC_CHECK_MCACHE_TABLE(mem_cache_table);
 
     const uint32 slab_size = mcache->slab_size;
-    const uint32 requested_num_pages = (slab_size <= PAGE_SIZE) ? 1 : slab_size / PAGE_SIZE;
+    const uint32 requested_num_pages = (slab_size <= PAGE_SIZE) ? 1 : (slab_size + PAGE_SIZE - 1) / PAGE_SIZE;
     const uint32 total_alloc_size = requested_num_pages * PAGE_SIZE;
     const uint32 slabs_capacity = total_alloc_size / slab_size;
 
@@ -170,8 +170,11 @@ mem_cache_table_destroy(void)
         }
     }
 
-    if(mem_cache_table)
+    if(mem_cache_table) {
+        print("FREEING mem_cache_table: %x ... ", ry, mem_cache_table, CLEAR);
         free(mem_cache_table);
+        print("OK", GREEN, CLEAR);
+    }
 
     // todo: slab allocator logger print table destroy
 }
@@ -180,7 +183,6 @@ mem_cache_table_destroy(void)
 struct slab_flist*
 mem_cache_alloc_slab(struct mem_cache* mcache)
 {
-    // TODO: if there are no more free slabs, allocate new page and setup slabs
     if(mcache->slabs_free_list == NULL) {
         mcache = mem_cache_extend_allocation(mcache);
     }
@@ -280,7 +282,7 @@ mem_cache_flist_peek_next_free_slab(const buffer_size_t buffer_size, const uint1
     const slab_size_t slab_size = buffer_size * type_size;
 
     struct mem_cache* mcache = mem_cache_find_cache(slab_size);
-    const struct slab_flist* flist_head = mcache->slabs_free_list;
+    struct slab_flist* flist_head = mcache->slabs_free_list;
     return flist_head;
 }
 

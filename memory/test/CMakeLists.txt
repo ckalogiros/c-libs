@@ -20,6 +20,7 @@ register_module(
 
 include_project(${parent_dir}/g_includes)
 include_project(${parent_dir}/logger/src)
+include_project(${parent_dir}/file_sys/src)
 include_project(${parent_dir}/allocators/src/slab_allocator)
 include_project(${parent_dir}/allocators/src/slab_allocator/slab_allocator_log)
 include_project(${parent_dir}/buffer/src)

@@ -113,7 +113,9 @@ void
 buffer_destroy_table(void)
 {
     if(buffer_table) {
+        print("FREEING buffer_table: %x ... ", ry, buffer_table, CLEAR);
         free(buffer_table);
+        print("OK", GREEN, CLEAR);
     }
 }
 

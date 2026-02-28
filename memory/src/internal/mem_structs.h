@@ -91,11 +91,6 @@ struct mem_chunk {
 };
 
 
-struct free_list {
-    struct free_list* next;
-};
-
-
 // if mem manager needs to register: 1024 chunks max, that is 32768 pages = 33.554432 megabyte
 // needs 10 bits: [0011 1111 1111] = 0-1023
 #define TYPE_CHUNK_ID_BITSIZE 10

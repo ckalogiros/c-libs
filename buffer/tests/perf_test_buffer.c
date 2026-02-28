@@ -9,7 +9,7 @@
 
 #include "buffer_internals.h"
 #include "buffer_log.h"
-#include "fs_write.h"
+#include "file_sys_interface.h"
 #include "logger.h"
 #include "mem_man_internals.h"
 #include "mem_structs.h"
@@ -838,19 +838,22 @@ perf_test_buffer_with_children(void)
         // perf_timer_reset(t);
     }
 
-    uint64 color = 0x11111111;
+    uint64 color = 0x0000000000000000;
     // capacity = 128
     {
         /*******************************************************************************************
          * create and fill buffer objects
          ******************************************************************************************/
         // const uint32 capacity = 128;
-        const uint32 capacity = 128;
+        const uint32 capacity = 150;
         const uint32 type_size = sizeof(struct node);
         buffer_t* buffer = buffer_create_gentype(capacity, type_size);
         print("add buffer at:%x\n", REDUCE_ADDR(buffer->data, F5));
 
         mem_start = (char*)buffer->data;
+
+        const char* filename = "buffer/fs_debug_mem_blocks.txt";
+        struct fs_t* fs_mem_blocks = fs_create(filename);
 
         // fill buffer
         for(uint32 i = 0; i < buffer->capacity; i++) {
@@ -859,24 +862,26 @@ perf_test_buffer_with_children(void)
             struct node* data = buffer->data;
             memcpy(&data[i].nameid, "BOSS", sizeof(uint32));
             memcpy(&data[i].pad, "PADD", sizeof(uint32));
-            print("[%s%u%s] buffer->data:%x\n", YELLOW, i, CLEAR, REDUCE_ADDR(&(data[i]), F5));
+            // print("[%s%u%s] buffer->data:%x\n", YELLOW, i, CLEAR, REDUCE_ADDR(&(data[i]), F5));
 
-            if(i==14)
-                print("");
+            char* start = flist_peek_next_free_page(0);
+
             data[i].children = buffer_create_gentype(capacity, type_size);
-            // print("add child at:%x\n", REDUCE_ADDR(data[i].children->data, F6));
+
             for(uint32 j = 0; j < data[i].children->capacity; j++) {
                 buffer_set_for_insert(data[i].children, j);
                 struct node* cdata = data[i].children->data;
-                // cdata[j].nameid = j+1;
-                // cdata[j].children = NULL;
-                cdata[j].children = (buffer_t*)(color+j+(i+0xFF));
+                cdata[j].children = (buffer_t*)((uint64_t)i | ((uint64_t)j << 32));
                 memcpy(&cdata[j].nameid, "NAME", sizeof(uint32));
                 memcpy(&cdata[j].pad, "PADD", sizeof(uint32));
 
-                print("[%s%u%s] children->data:%x\n", YELLOW, j, CLEAR, REDUCE_ADDR(&(cdata[j]), F5));
+                // print("[%s%u%s] children->data:%x\n", YELLOW, j, CLEAR, REDUCE_ADDR(&(cdata[j]), F5));
                 mem_end = (char*)cdata + sizeof(struct node);
             }
+
+            start -= PAGE_SIZE;
+            const uint64 size = capacity*sizeof(struct node);
+            fs_append_mem(fs_mem_blocks, start, size, "msg");
         }
 
 
@@ -884,6 +889,8 @@ perf_test_buffer_with_children(void)
         (buffer->capacity * ((struct node*)buffer->data)[0].children->capacity);
 
         print("\n\n%s#### TEST:buffer capacities:%u%s\n", GREEN, capacity, CLEAR);
+
+        fs_fprint_all_allocated_mem("buffer/debug_all_memory.txt");
 
         /*******************************************************************************************
          * performance: access and set buffer objects
@@ -967,22 +974,14 @@ perf_test_buffer_with_children(void)
 
 
         struct mem* mem = debug_mem_get();
-        // size
-        // data_size
-        // self_size
-        // bound_check_size
         mem_start = (char*)mem->start;
         mem_end = (char*)mem->start+mem->self_size+mem->data_size;
-
-        fs_write("DEBUG.txt", "This is debug file");
-        uint64 bytes_counter = 0;
-        uint64 i = 0, k = 0, chunkidx = 1;
-        char* ptr = mem_start;
-        // mem_end = mem_start+PAGE_SIZE*4;
         mem_end = mem_start+PAGE_SIZE*32*4;
 
-        fs_append("\n");
-        fs_append("mem_start:%x\n"
+        struct fs_t* fs = fs_create("/buffer/debug.txt");
+
+        fs_append(fs, "\n");
+        fs_append(fs, "mem_start:%x\n"
                   "mem_end:%x\n"
                   "dif:%x hex, %llu bytes\n",
             REDUCE_ADDR(mem_start, F5),
@@ -991,16 +990,16 @@ perf_test_buffer_with_children(void)
             (uint64)(mem_end-(uint64)mem_start)
         );
 
-        fs_append("----------------------\n"
-                  "buffer capacity:%u\n"
-                  "buffer count:%u\n"
-                  "buffer typesize:%u\n"
-                  "data:%x\n"
-                  "free_list:%x\n"
-                  "data from mem start:%llu\n"
-                  "free_list from mem start:%llu\n"
-                  "data line offset:%u\n"
-                  "free_list line offset:%llu\n",
+        fs_append(fs, "----------------------\n"
+            "buffer capacity:%u\n"
+            "buffer count:%u\n"
+            "buffer typesize:%u\n"
+            "data:%x\n"
+            "free_list:%x\n"
+            "data from mem start:%llu\n"
+            "free_list from mem start:%llu\n"
+            "data line offset:%u\n"
+            "free_list line offset:%llu\n",
             buffer->capacity,
             buffer->count,
             buffer->typesize,
@@ -1012,50 +1011,9 @@ perf_test_buffer_with_children(void)
             ((uint64)buffer->free_list - (uint64)mem->start) / (capacity*sizeof(struct node))
         );
 
-        // const uint32 line = 512 + (512/8);
-        // const uint32 line = 512;
-        const uint32 line = capacity*8;
-        char data[1024] = {};
-
-        // Hex digits lookup table
-        const char hex_digits[] = "0123456789ABCDEF";
-
-        while(ptr < mem_end) {
-
-            // if(ptr[i]) data[k] = '1';
-
-            if(ptr[i]) {
-                // if(ptr[i]) data[k] = '1';
-                if (isprint(ptr[i])) {
-                    data[k] = (char)ptr[i];
-                } else {
-                    const uint8 byte = ptr[i];
-                    data[k] = hex_digits[byte & 0x0F];
-                }
-            }
-            else data[k] = '0';
-
-            k++;
-            bytes_counter++;
-
-            if((bytes_counter+8) % 8 == 0) {
-                data[k++] = ' ';
-            }
-
-            if((bytes_counter+line) % line == 0) {
-                fs_append("\n%s", data);
-                k=0;
-            }
-            if(bytes_counter == PAGE_SIZE*32) {
-                fs_append("\nchunk: %u", chunkidx++);
-                bytes_counter = 0;
-            }
+        fs_append_mem(fs, mem_start, capacity*capacity*sizeof(struct node), "msg");
 
 
-            ptr++;
-        }
-        fs_append("\n");
-        fs_close();
     }
 
 

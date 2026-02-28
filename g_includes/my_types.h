@@ -52,6 +52,16 @@ typedef uint16 bufidx_t; // todo remove
 
 #define get_type_bytes(T) _Generic((T), uint8: 1, uint16: 2, uint32: 4, uint64: 8 )
 
+
+
+/***************************************************************************************************
+ * global structs
+ **************************************************************************************************/
+
+struct flist {
+    struct flist *next;
+};
+
 #endif // MY_TYPES_H
 
 

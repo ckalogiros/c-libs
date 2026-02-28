@@ -130,6 +130,8 @@ int main() {
 
 #include "tests.h"
 
+#include <string.h>
+
 #include "buffer_internals.h"
 #include "logger.h"
 #include "logger_color.h"
@@ -137,6 +139,8 @@ int main() {
 #include "mem_man_interface.h"
 #include "precision_timer.h"
 #include "precision_timer_logger.h"
+#include "file_sys_interface.h"
+#include "sys_utils.h"
 
 
 // todo:compare malloc with custom
@@ -171,7 +175,7 @@ perf_mem_big_chunk_allocation()
  * alloc(1)-release(), alloc(2)-release, ...
  */
 void
-test_alloc_release_insequence(const uint32 num_pages, const bool print_list)
+test_alloc_release_insequence(const int16 num_pages, const bool print_list)
 {
     struct memhnd_t hnd;
     char* allocated_addr = NULL;
@@ -182,8 +186,6 @@ test_alloc_release_insequence(const uint32 num_pages, const bool print_list)
     bool fails = FALSE;
 
     print("%sTest:test_alloc_release-insequence-pages:%u %s\n", GREEN, num_pages, CLEAR);
-
-    // mem_log_print_free_list_of_chunk(0);
 
     hnd = mem_alloc(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
     if(print_list) {
@@ -237,7 +239,7 @@ test_alloc_release_insequence(const uint32 num_pages, const bool print_list)
 }
 
 void
-test_alloc_first_release_after(const uint32 num_pages, const bool print_list)
+test_alloc_first_release_after(const int16 num_pages, const bool print_list)
 {
     struct memhnd_t hnd1;
     struct memhnd_t hnd2;
@@ -254,6 +256,7 @@ test_alloc_first_release_after(const uint32 num_pages, const bool print_list)
     print("%sTest:alloc first - release after. 2 allocations. pages:%u %s\n", GREEN, num_pages, CLEAR);
 
     hnd1 = mem_alloc(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
+
     if(print_list) {
         print("%s first alloc %s\n", ry, CLEAR);
         mem_log_print_free_list_of_chunk(0);
@@ -264,6 +267,13 @@ test_alloc_first_release_after(const uint32 num_pages, const bool print_list)
         print("%s second alloc %s\n", ry, CLEAR);
         mem_log_print_free_list_of_chunk(0);
     }
+
+    const char* start = calc_address_from_page_id(hnd1.page_id);
+    const char str[8] = {'H','E','L','L','O','!','!','!'};
+    const uint64 strint = make_uint64_from_char8(str);
+    memset_64bit(start, strint, PAGE_SIZE);
+    struct fs_t* fs = fs_create("memory/test_alloc_first_release_after.txt");
+    fs_append_mem(fs, start, PAGE_SIZE, "occupied memory");
 
     // for test
     allocated_addr1 = (char*)mem_get_addr_by_handle(hnd1);
@@ -278,8 +288,6 @@ test_alloc_first_release_after(const uint32 num_pages, const bool print_list)
     }
     released_addr2 = (char*)flist_peek_next_free_page(hnd2.chunk_id);
 
-
-
     mem_release(hnd1);
     if(print_list) {
         print("%s release first %s\n", ry, CLEAR);
@@ -287,6 +295,8 @@ test_alloc_first_release_after(const uint32 num_pages, const bool print_list)
     }
     released_addr1 = (char*)flist_peek_next_free_page(hnd1.chunk_id);
 
+    fs = fs_create("memory/test_alloc_first_release_after.txt");
+    fs_write_list(fs, flist_peek_next_free_page(0), "");
 
     // test for first alloc
     {
@@ -356,9 +366,9 @@ test_alloc_first_release_after(const uint32 num_pages, const bool print_list)
                 dif
             );
         }
-
     }
 
+    fs_fprint_chunk_mem("fs_fprint_chunk_mem.txt", 0);
 }
 
 
@@ -368,7 +378,7 @@ test_alloc_first_release_after(const uint32 num_pages, const bool print_list)
  * alloc(1), alloc(2), alloc(3), ... then release(2), release(1), release(3)
  */
 void
-test_alloc_first_release_after_backwards(const uint32 num_pages, const bool print_list)
+test_alloc_first_release_after_backwards(const int16 num_pages, const bool print_list)
 {
     uint16 cnt1 = 0;
     uint16 cnt2 = 1;
@@ -682,16 +692,16 @@ test_alloc_release_fragment_mem()
 void
 test_logger_to_html()
 {
-    logger_to_html_init();
-    memman_init();
-
-    {
-        struct memhnd_t hnd = mem_alloc(3, MEM_CHUNK_ALLOCATOR_SLAB);
-    }
-    {
-        struct memhnd_t hnd = mem_alloc(2, MEM_CHUNK_ALLOCATOR_SLAB);
-    }
-
-    memman_terminate();
-    logger_to_html_destroy();
+    // logger_to_html_init();
+    // memman_init();
+    //
+    // {
+    //     struct memhnd_t hnd = mem_alloc(3, MEM_CHUNK_ALLOCATOR_SLAB);
+    // }
+    // {
+    //     struct memhnd_t hnd = mem_alloc(2, MEM_CHUNK_ALLOCATOR_SLAB);
+    // }
+    //
+    // memman_terminate();
+    // logger_to_html_destroy();
 }

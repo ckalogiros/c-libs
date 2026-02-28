@@ -4,9 +4,7 @@ register_module(
         sources
         ${CMAKE_CURRENT_LIST_DIR}/buffer.c
         ${CMAKE_CURRENT_LIST_DIR}/buffer_internals.c
-        ${CMAKE_CURRENT_LIST_DIR}/fs_write.c
         headers
-        ${CMAKE_CURRENT_LIST_DIR}/fs_write.h
         ${CMAKE_CURRENT_LIST_DIR}/buffer.h
         ${CMAKE_CURRENT_LIST_DIR}/buffer_internals.h
         ${CMAKE_CURRENT_LIST_DIR}/buffer_struct.h
