@@ -78,9 +78,9 @@ struct mem_flags {
 struct mem {
     void* start; // allocated start address
     uint64 size; // total allocated size
-    uint64 data_size; // total allocated size
-    uint16 self_size; // total allocated size
-    uint16 bound_check_size; // total allocated size
+    uint64 data_size; // total data allocated size
+    uint16 self_size; // mem data allocated size
+    uint16 bound_check_size; // bound_check allocated size
     uint16 chunks_count; // number of allocated chunks
 };
 
@@ -88,11 +88,6 @@ struct mem_chunk {
     uint16 id;
     // struct mem_flags flags;
     uint32 flags;
-};
-
-
-struct free_list {
-    struct free_list* next;
 };
 
 
@@ -109,7 +104,7 @@ struct free_list {
  * flag ids is a helper struct, declaring the bit offsets
  * of varius ids that are part of a bitfield flag.
  * Ex. chunk_id: needs 10 bits,
- *     page_id: needs 5 bits (+1 for safety), etc       */
+ *     page_id: needs 5 bits (+1 for safety), etc.       */
 struct flag_ids {
     uint8 chunk_id_start_bit;
     uint8 chunk_id_end_bit;

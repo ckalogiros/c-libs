@@ -18,7 +18,7 @@ void mem_log_print_all_used_mem(void);
 
 void mem_log_print_free_list_of_chunk(const memid_t chunk_id);
 void mem_log_print_free_list_table();
-void mem_log_print_list_node(const char* operation, const struct free_list* const node);
+void mem_log_print_list_node(const char* operation, const struct flist* const node);
 
 void mem_print_mem_alloc(void* released_addr, const struct memhnd_t hnd);
 void mem_print_mem_release(void* released_addr, const struct memhnd_t hnd);

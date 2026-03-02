@@ -77,5 +77,12 @@ slab_allocator_print_error(const enum SLAB_ALLOCATOR_ERROR_CODE code)
             );
             break;
         }
+        case SLAB_ALLOC_MEMCACHE_NO_INIT: {
+            print("%sERROR:\n"
+                  "Slab allocator: mem_cache_table not initialized.\nForget to call \"mem_chache_table_init()\"??%s\n",
+                  RED, CLEAR
+            );
+            break;
+        }
     }
 }

@@ -145,25 +145,6 @@ mem_cache_table_init(void)
     fs_flist = fs_create("allocators/slab_allocator_flist.txt");
 }
 
-void
-mem_cache_table_destroy(void)
-{
-    uint32 i = 0;
-    for(; i < SLAB_SIZES_LEN; i++) {
-        if(mem_cache_table[i].is_active) {
-            memman_release(mem_cache_table[i].mem_handle);
-        }
-    }
-
-    if(mem_cache_table) {
-        print("FREEING mem_cache_table: %x ... ", ry, mem_cache_table, CLEAR);
-        free(mem_cache_table);
-        print("OK", GREEN, CLEAR);
-    }
-
-    // todo: slab allocator logger print table destroy
-}
-
 struct mem_cache*
 mem_cache_create(const buffer_size_t buffer_size, const uint16 type_size, const char* name)
 {
@@ -294,6 +275,25 @@ mem_cache_alloc_slab(struct mem_cache* mcache)
     return free;
 }
 
+void
+mem_cache_table_destroy(void)
+{
+    uint32 i = 0;
+    for(; i < SLAB_SIZES_LEN; i++) {
+        if(mem_cache_table[i].is_active) {
+            memman_release(mem_cache_table[i].mem_handle);
+        }
+    }
+
+    if(mem_cache_table) {
+        print("FREEING mem_cache_table: %x ... ", ry, mem_cache_table, CLEAR);
+        free(mem_cache_table);
+        print("OK", GREEN, CLEAR);
+    }
+
+    // todo: slab allocator logger print table destroy
+}
+
 bool
 mem_cache_free_slab(struct mem_cache* mcache, void* slab_address)
 {
@@ -375,7 +375,7 @@ mem_cache_flist_peek_next_free_slab(const buffer_size_t buffer_size, const uint1
 {
     const slab_size_t slab_size = buffer_size * type_size;
 
-    const struct mem_cache* mcache = mem_cache_find_cache(slab_size);
+    struct mem_cache* mcache = mem_cache_find_cache(slab_size);
     struct slab_flist* flist_head = mcache->slabs_free_list;
     return flist_head;
 }

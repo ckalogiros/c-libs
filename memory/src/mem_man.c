@@ -3,14 +3,13 @@
  */
 #include "mem_man_interface.h"
 #include "mem_man_internals.h"
-#include "logger.h"
 #include "mem_log/mem_log.h"
 
 
 void
 memman_init(void)
 {
-    bool initialized = mem_init();
+    const bool initialized = mem_init();
 
     if(!initialized)
         mem_print_error(MEMMAN_ALREADY_INITIALIZED);
@@ -20,15 +19,15 @@ void
 memman_terminate(void)
 {
     mem_log_print_terminate_mem();
-    bool success = mem_free();
+    const bool success = mem_free();
     if(!success)
         mem_print_error(FREE_MEMORY_FAILED);
 }
 
 struct memhnd_t
-memman_alloc_pages(const uint16 num_pages, enum MEM_CHUNK_SELECTOR chunk_selector)
+memman_alloc_pages(const uint16 num_pages, const enum MEM_CHUNK_SELECTOR chunk_selector)
 {
-    struct memhnd_t hnd = mem_alloc(num_pages, chunk_selector);
+    const struct memhnd_t hnd = mem_alloc(num_pages, chunk_selector);
     return hnd;
 }
 

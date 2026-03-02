@@ -5,10 +5,12 @@
 #include "test_performance.h"
 #include "mem_cache.h"
 #include "mem_man_interface.h"
-#include "mem_log.h"
 #include "buffer_internals.h"
 #include "logger.h"
 #include "precision_timer.h"
+#include "precision_timer_logger.h"
+#include "precision_timer_struct.h"
+#include "slab_allocator_internals.h"
 
 void
 timer_print(struct timer* t, const uint32 repeat, const uint32 num_allocations,
@@ -36,25 +38,41 @@ timer_print(struct timer* t, const uint32 repeat, const uint32 num_allocations,
 void
 test_perf_slab_allocation_release()
 {
-    mem_init();
-
+    memman_init();
+    mem_cache_table_init();
     buffer_init_table();
-
     timer_init_table();
 
-    const uint32 repeat = 5000000;
+    const uint32 repeat = 1000000;
     const uint32 num_allocations = 8;
 
 
-    // print("%sAllocating:%s:%x%s\n", yg, TO_STRING(buffer32_1), REDUCE_ADDR(buffer32_1, F6), CLEAR);
 
     struct timer* t = timer_create_perf_timer();
 
     {
         const uint32 buffer_size = 32;
         const uint32 type_size = sizeof(uint32);
-        perf_timer_start(t);
 
+        print_test("Slab Allocator",
+            " . Allocate slab buffers\n"
+            " . \"Color\" them with a character\n"
+            " . Check slab buffer insert() function\n"
+            "   that inserts elements (coloring)\n"
+            "   in the boundaries of each slab\n"
+            " slab_size:   %s%u bytes%s\n"
+            " type_size:   %s%u bytes%s\n"
+            " buffer_size: %s%u%s elems\n"
+            " repeat: %s%u%s\n"
+            " num_allocations: %s%u%s\n",
+            ry, buffer_size*type_size, CLEAR,
+            ry, type_size, CLEAR,
+            ry, buffer_size, CLEAR,
+            ry, repeat, CLEAR,
+            ry, num_allocations, CLEAR
+        );
+
+        perf_timer_start(t);
         for(uint32 r = 0; r < repeat; r++) {
             uint32* buffer32_1 = (uint32*) mem_cache_alloc_buffer(buffer_size, type_size);
             uint32* buffer32_2 = (uint32*) mem_cache_alloc_buffer(buffer_size, type_size);
@@ -75,15 +93,36 @@ test_perf_slab_allocation_release()
             mem_cache_release_buffer(buffer32_5, buffer_size, type_size);
         }
 
-        perf_timer_stop_with_count(repeat * num_allocations, t);
-        timer_print(t, repeat, num_allocations, buffer_size, type_size, "size: 32 bytes");
+        perf_timer_stop(t);
+        perf_timer_print(timer_print_config((timer_print_params){
+            .t = t, .repeat = repeat, .buf_capacity = buffer_size, .flags = PERF_T_USE_REPEAT|PERF_T_ALL
+        }));
+        perf_timer_reset(t);
     }
 
     {
         const uint32 buffer_size = 64;
         const uint32 type_size = sizeof(uint32);
-        perf_timer_start(t);
 
+        print_test("Slab Allocator",
+            " . Allocate slab buffers\n"
+            " . \"Color\" them with a character\n"
+            " . Check slab buffer insert() function\n"
+            "   that inserts elements (coloring)\n"
+            "   in the boundaries of each slab\n"
+            " slab_size:   %s%u bytes%s\n"
+            " type_size:   %s%u bytes%s\n"
+            " buffer_size: %s%u%s elems\n"
+            " repeat: %s%u%s\n"
+            " num_allocations: %s%u%s\n",
+            ry, buffer_size*type_size, CLEAR,
+            ry, type_size, CLEAR,
+            ry, buffer_size, CLEAR,
+            ry, repeat, CLEAR,
+            ry, num_allocations, CLEAR
+        );
+
+        perf_timer_start(t);
         for(uint32 r = 0; r < repeat; r++) {
             uint32* buffer32_1 = (uint32*) mem_cache_alloc_buffer(buffer_size, type_size);
             uint32* buffer32_2 = (uint32*) mem_cache_alloc_buffer(buffer_size, type_size);
@@ -104,16 +143,32 @@ test_perf_slab_allocation_release()
             mem_cache_release_buffer(buffer32_5, buffer_size, type_size);
         }
 
-        perf_timer_stop_with_count(repeat * num_allocations, t);
-        timer_print(t, repeat, num_allocations, buffer_size, type_size, "size: 64 bytes");
+        perf_timer_stop(t);
+        perf_timer_print(timer_print_config((timer_print_params){
+            .t = t, .repeat = repeat, .buf_capacity = buffer_size, .flags = PERF_T_USE_REPEAT|PERF_T_ALL
+        }));
+        perf_timer_reset(t);
     }
-
 
     {
         const uint32 buffer_size = 128;
         const uint32 type_size = sizeof(uint32);
-        perf_timer_start(t);
 
+        print_test("Slab Allocator - performance",
+            " . Measure allocation-release\n"
+            " slab_size:   %s%u bytes%s\n"
+            " type_size:   %s%u bytes%s\n"
+            " buffer_size: %s%u%s elems\n"
+            " repeat: %s%u%s\n"
+            " num_allocations: %s%u%s\n",
+            ry, buffer_size*type_size, CLEAR,
+            ry, type_size, CLEAR,
+            ry, buffer_size, CLEAR,
+            ry, repeat, CLEAR,
+            ry, num_allocations, CLEAR
+        );
+
+        perf_timer_start(t);
         for(uint32 r = 0; r < repeat; r++) {
             uint32* buffer32_1 = (uint32*) mem_cache_alloc_buffer(buffer_size, type_size);
             uint32* buffer32_2 = (uint32*) mem_cache_alloc_buffer(buffer_size, type_size);
@@ -134,16 +189,36 @@ test_perf_slab_allocation_release()
             mem_cache_release_buffer(buffer32_5, buffer_size, type_size);
         }
 
-        perf_timer_stop_with_count(repeat * num_allocations, t);
-        timer_print(t, repeat, num_allocations, buffer_size, type_size, "size: 128 bytes");
+        perf_timer_stop(t);
+        perf_timer_print(timer_print_config((timer_print_params){
+            .t = t, .repeat = repeat, .buf_capacity = buffer_size, .flags = PERF_T_USE_REPEAT|PERF_T_ALL
+        }));
+        perf_timer_reset(t);
     }
-
 
     {
         const uint32 buffer_size = 256;
         const uint32 type_size = sizeof(uint32);
-        perf_timer_start(t);
 
+        print_test("Slab Allocator",
+            " . Allocate slab buffers\n"
+            " . \"Color\" them with a character\n"
+            " . Check slab buffer insert() function\n"
+            "   that inserts elements (coloring)\n"
+            "   in the boundaries of each slab\n"
+            " slab_size:   %s%u bytes%s\n"
+            " type_size:   %s%u bytes%s\n"
+            " buffer_size: %s%u%s elems\n"
+            " repeat: %s%u%s\n"
+            " num_allocations: %s%u%s\n",
+            ry, buffer_size*type_size, CLEAR,
+            ry, type_size, CLEAR,
+            ry, buffer_size, CLEAR,
+            ry, repeat, CLEAR,
+            ry, num_allocations, CLEAR
+        );
+
+        perf_timer_start(t);
         for(uint32 r = 0; r < repeat; r++) {
             uint32* buffer32_1 = (uint32*) mem_cache_alloc_buffer(buffer_size, type_size);
             uint32* buffer32_2 = (uint32*) mem_cache_alloc_buffer(buffer_size, type_size);
@@ -164,10 +239,14 @@ test_perf_slab_allocation_release()
             mem_cache_release_buffer(buffer32_5, buffer_size, type_size);
         }
 
-        perf_timer_stop_with_count(repeat * num_allocations, t);
-        timer_print(t, repeat, num_allocations, buffer_size, type_size, "size: 512 bytes");
+        perf_timer_stop(t);
+        perf_timer_print(timer_print_config((timer_print_params){
+            .t = t, .repeat = repeat, .buf_capacity = buffer_size, .flags = PERF_T_USE_REPEAT|PERF_T_ALL
+        }));
+        perf_timer_reset(t);
     }
 
 
+    mem_cache_table_destroy();
     memman_terminate();
 }

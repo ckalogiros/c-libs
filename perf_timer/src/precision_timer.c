@@ -11,9 +11,20 @@
 #include <time.h>
 
 
-#define MIN_TIMER_TABLE_CAPACITY 64
+#define MIN_TIMER_TABLE_CAPACITY 16
 
-// static struct timer t = {0,0,0};
+#define TIMER_CHECK_TABLE(t_table)\
+if(!t_table) {\
+    print("%sERROR\nNO timer_table initialization\nForget to call \"timer_init_table()\"??%s", RED, CLEAR);\
+    my_exit("timer_create_perf_timer", __FILE__, __LINE__);\
+}
+
+#define TIMER_CHECK_TABLE_OVERFLOW_INDEX(index)\
+if(index > MIN_TIMER_TABLE_CAPACITY) {\
+    print("%sERROR\ntimer_table: INDEX OUT OF BOUNDS\nIncrease \"MIN_TIMER_TABLE_CAPACITY\" MACRO%s", RED, CLEAR);\
+    my_exit("timer_create_perf_timer", __FILE__, __LINE__);\
+}
+
 
 void
 constructor(struct timer* t)
@@ -41,16 +52,17 @@ timer_init_table(void)
 struct timer*
 timer_create_perf_timer(void)
 {
-    if(!timer_table) {
-        print("%sERROR\nNO timer_table initialization%s", RED, CLEAR);
-        my_exit("timer_create_perf_timer", __FILE__, __LINE__);
-    }
+    TIMER_CHECK_TABLE(timer_table);
 
     // todo: we need to insert(), after we have a free index from buffer
     // OR implement insert at next free element in buffer.c
-    const uint16 index = buffer_get_next_free(timer_table);
+    // const uint16 index = buffer_get_next_free(timer_table);
+    const uint16 index = buffer_set_for_push(timer_table);
 
-    struct timer* data = (struct timer*) &timer_table->data; // cast (for complains)
+    TIMER_CHECK_TABLE_OVERFLOW_INDEX(index);
+
+
+    struct timer* data = (struct timer*) timer_table->data; // cast (for complains)
     struct timer t = {0};
     data[index] = t;
     return &data[index];

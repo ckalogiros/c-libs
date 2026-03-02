@@ -1,7 +1,6 @@
-
-
 # Function to register a module
 function(register_module)
+
     set(options)
     set(oneValueArgs)
     set(multiValueArgs sources headers include_dirs compiler_macros)
@@ -48,6 +47,69 @@ function(include_project PROJECT_PATH)
         message(FATAL_ERROR "Cannot find ${SRC_CMAKE}")
     endif()
 endfunction()
+
+
+#
+## In your proj_utils.cmake, modify include_project:
+#function(include_project PROJECT_PATH)
+#    # Create a unique variable name based on the project path
+#    # Replace slashes with underscores to create a valid CMake variable name
+#    string(REPLACE "/" "_" PROJECT_ID "${PROJECT_PATH}")
+#    string(REPLACE "-" "_" PROJECT_ID "${PROJECT_ID}")
+#    string(REPLACE "." "_" PROJECT_ID "${PROJECT_ID}")
+#
+#    # Check if this project has already been included
+#    get_property(INCLUDED_PROJECTS GLOBAL PROPERTY included_projects_list)
+#
+#    # Alternative: Check a cache variable specific to this project
+#    if(NOT DEFINED CACHE{${PROJECT_ID}_INCLUDED})
+#        message("=== Including sub directory: ${PROJECT_PATH} ===")
+#
+#        # Mark as included in cache (persists across directories)
+#        set(${PROJECT_ID}_INCLUDED TRUE CACHE INTERNAL "Track if ${PROJECT_PATH} is included")
+#
+#        # Also add to global property list for debugging
+#        set_property(GLOBAL APPEND PROPERTY included_projects_list "${PROJECT_PATH}")
+#
+#        # Include the project's CMakeLists.txt
+#        set(SRC_CMAKE "${PROJECT_PATH}/CMakeLists.txt")
+#        if(EXISTS ${SRC_CMAKE})
+#            include(${SRC_CMAKE})
+#        else()
+#            message(FATAL_ERROR "Cannot find ${SRC_CMAKE}")
+#        endif()
+#    else()
+#        message(STATUS "=== Skipping already included: ${PROJECT_PATH} ===")
+#    endif()
+#endfunction()
+#
+## Optional: Function to clear all tracking (useful for clean rebuilds)
+#function(reset_project_tracking)
+#    get_property(INCLUDED_PROJECTS GLOBAL PROPERTY included_projects_list)
+#    foreach(PROJECT ${INCLUDED_PROJECTS})
+#        string(REPLACE "/" "_" PROJECT_ID "${PROJECT}")
+#        string(REPLACE "-" "_" PROJECT_ID "${PROJECT_ID}")
+#        string(REPLACE "." "_" PROJECT_ID "${PROJECT_ID}")
+#        unset(${PROJECT_ID}_INCLUDED CACHE)
+#    endforeach()
+#    set_property(GLOBAL PROPERTY included_projects_list "")
+#    message(STATUS "=== Project tracking reset ===")
+#endfunction()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ###########################################################################
 # debug file directories

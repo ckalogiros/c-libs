@@ -14,6 +14,27 @@ print(const char* format, ...)
     va_end(args);
 }
 
+void
+print_test(const char* name,const char* format, ...)
+{
+    printf(
+        // "%s------------------------------------------------\n"
+        // "--------------------- TEST ---------------------%s\n"
+        "%s________________________________________________\n"
+        "_____________________ TEST _____________________%s\n"
+        "      %s%s%s\n",
+        GREEN, CLEAR,
+        ry, name, CLEAR
+    );
+    va_list args;
+    va_start(args, format);
+    vprintf(format, args);
+    va_end(args);
+
+    // printf("%s------------------------------------------------%s\n",GREEN, CLEAR);
+    printf("%s________________________________________________%s\n\n",GREEN, CLEAR);
+}
+
 
 void
 logger_test_variadic(const uint32 args_count, ...)
@@ -43,6 +64,7 @@ print_test_result(const char* test_name, bool passed, const char* file, int line
     }
     printf("\n");
 }
+
 
 
 

@@ -80,7 +80,7 @@ mem_log_print_free_list_of_chunk(const memid_t chunk_id)
 {
 #ifdef DEBUG_PRINT_MEM
     print("-- %sfree list chunk id:%u%s --\n", ry, chunk_id, CLEAR);
-    const struct free_list* flist = flist_table_get_head(chunk_id);
+    const struct flist* flist = flist_table_get_head(chunk_id);
     uint32 k = 0;
     while(flist) {
         print(
@@ -89,7 +89,8 @@ mem_log_print_free_list_of_chunk(const memid_t chunk_id)
             " color:%s%s%s\n",
             // " id:%s%u%s\n",
             CYAN, k, CLEAR,
-            CYAN, (uint64)(flist)&F6, CLEAR,
+            // CYAN, (uint64)(flist)&F4, CLEAR,
+            CYAN, REDUCE_ADDR(flist,F6), CLEAR,
             CYAN, FREE_LIST_GET_PAGE_COLOR_START(flist), CLEAR
             // br2, (uint64)(flist->next)&F6, CLEAR
         );
@@ -108,8 +109,8 @@ mem_log_print_free_list_table(void)
 #ifdef DEBUG_PRINT_MEM
     print("-- %sfree list heads table%s --\n", ry, CLEAR);
 
-    struct free_list** ftable = debug_free_list_table_get();
-    uint16 chunks_count = debug_mem_get_chunks_count();
+    struct flist** ftable = debug_free_list_table_get();
+    const uint16 chunks_count = debug_mem_get_chunks_count();
 
     for(uint32 i = 0; i < chunks_count; i++) {
         print(
