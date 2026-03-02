@@ -1,21 +1,10 @@
-CREATE  : |  name: mcache_576 |  pages: 001 | capac: 00001 | count: 000 | used: 000 | flist: 000079bf bd0a9000
-ALLOCATE  : |  pages: 001 | capac: 00001 | count: 001 | used: 001 | flist: 00000000 00000000 | free: 000079bf bd0a9000 | dif: 18446727340657389056 bytes
-EXTEND    : |  pages: 002 | capac: 00002 | count: 001 | used: 001 | flist: 000079bf bd0a9240 | addr: 000079bf bd0a9400 | dif: 0056 bytes
-ALLOCATE  : |  pages: 002 | capac: 00002 | count: 002 | used: 002 | flist: 000079bf bd0a9480 | free: 000079bf bd0a9240 | dif: 0072 bytes
-ALLOCATE  : |  pages: 002 | capac: 00002 | count: 003 | used: 003 | flist: 000079bf bd0a96c0 | free: 000079bf bd0a9480 | dif: 0072 bytes
-EXTEND    : |  pages: 003 | capac: 00003 | count: 003 | used: 003 | flist: 000079bf bd0a96c0 | addr: 000079bf bd0a9800 | dif: 0040 bytes
-ALLOCATE  : |  pages: 003 | capac: 00003 | count: 004 | used: 004 | flist: 000079bf bd0a9900 | free: 000079bf bd0a96c0 | dif: 0072 bytes
-ALLOCATE  : |  pages: 003 | capac: 00003 | count: 005 | used: 005 | flist: 000079bf bd0a9b40 | free: 000079bf bd0a9900 | dif: 0072 bytes
-EXTEND    : |  pages: 004 | capac: 00004 | count: 005 | used: 005 | flist: 000079bf bd0a9b40 | addr: 000079bf bd0a9c00 | dif: 0024 bytes
-ALLOCATE  : |  pages: 004 | capac: 00004 | count: 006 | used: 006 | flist: 000079bf bd0a9d80 | free: 000079bf bd0a9b40 | dif: 0072 bytes
-ALLOCATE  : |  pages: 004 | capac: 00004 | count: 007 | used: 007 | flist: 000079bf bd0a9fc0 | free: 000079bf bd0a9d80 | dif: 0072 bytes
-EXTEND    : |  pages: 005 | capac: 00005 | count: 007 | used: 007 | flist: 000079bf bd0a9fc0 | addr: 000079bf bd0aa000 | dif: 0008 bytes
-ALLOCATE  : |  pages: 005 | capac: 00005 | count: 008 | used: 008 | flist: 000079bf bd0aa200 | free: 000079bf bd0a9fc0 | dif: 0072 bytes
-RELEASE   : |  pages: 005 | capac: 00005 | count: 007 | used: 007 | flist: 000079bf bd0a9000 | free: 000079bf bceadd50 | dif: 259670 bytes
-RELEASE   : |  pages: 005 | capac: 00005 | count: 006 | used: 006 | flist: 000079bf bd0a9000 | free: 000079bf bceadd50 | dif: 259670 bytes
-RELEASE   : |  pages: 005 | capac: 00005 | count: 005 | used: 005 | flist: 000079bf bd0a9000 | free: 000079bf bceadd50 | dif: 259670 bytes
-RELEASE   : |  pages: 005 | capac: 00005 | count: 004 | used: 004 | flist: 000079bf bd0a9000 | free: 000079bf bceadd50 | dif: 259670 bytes
-RELEASE   : |  pages: 005 | capac: 00005 | count: 003 | used: 003 | flist: 000079bf bd0a9000 | free: 000079bf bceadd50 | dif: 259670 bytes
-RELEASE   : |  pages: 005 | capac: 00005 | count: 002 | used: 002 | flist: 000079bf bd0a9000 | free: 000079bf bceadd50 | dif: 259670 bytes
-RELEASE   : |  pages: 005 | capac: 00005 | count: 001 | used: 001 | flist: 000079bf bd0a9000 | free: 000079bf bceadd50 | dif: 259670 bytes
-RELEASE   : |  pages: 005 | capac: 00005 | count: 000 | used: 000 | flist: 000079bf bd0a9000 | free: 000079bf bceadd50 | dif: 259670 bytes
+CREATE  : |  name: mcache_576 |  pages: 001 | capac: 00001 | count: 000 | used: 000 | flist: 0000774e 9517d000
+ALLOCATE  : |  pages: 001 | capac: 00001 | count: 001 | used: 001 | flist: 00000000 00000000 | free: 0000774e 9517d000 | dif: 18446727676285486592 bytes
+EXTEND    : |  pages: 002 | capac: 00002 | count: 001 | used: 001 | flist: 0000774e 9517d240 | addr: 0000774e 9517d400 | dif: 0056 bytes
+ALLOCATE  : |  pages: 002 | capac: 00002 | count: 002 | used: 002 | flist: 0000774e 9517d480 | free: 0000774e 9517d240 | dif: 0072 bytes
+RELEASE   : |  pages: 002 | capac: 00002 | count: 001 | used: 001 | flist: 0000774e 9517d000 | free: 0000774e 952add50 | dif: 18446744073709395542 bytes
+RELEASE   : |  pages: 002 | capac: 00002 | count: 000 | used: 000 | flist: 0000774e 9517d000 | free: 0000774e 952add50 | dif: 18446744073709395542 bytes
+ALLOCATE  : |  pages: 002 | capac: 00002 | count: 001 | used: 001 | flist: 0000774e 9517d240 | free: 0000774e 9517d000 | dif: 0072 bytes
+ALLOCATE  : |  pages: 002 | capac: 00002 | count: 002 | used: 002 | flist: 0000774e 9517d480 | free: 0000774e 9517d240 | dif: 0072 bytes
+RELEASE   : |  pages: 002 | capac: 00002 | count: 001 | used: 001 | flist: 0000774e 9517d000 | free: 0000774e 952add50 | dif: 18446744073709395542 bytes
+RELEASE   : |  pages: 002 | capac: 00002 | count: 000 | used: 000 | flist: 0000774e 9517d000 | free: 0000774e 952add50 | dif: 18446744073709395542 bytes

@@ -1,0 +1,25 @@
+
+    // /* if any buffers have different slab sizes, different mcaches,
+    //  * then the size of bytes to be written to the file must increase accordingly*/
+    // bool psize_modulator[buffer_tests_num] = {FALSE};
+    // bool csize_modulator[buffer_tests_num] = {FALSE};
+    // uint32 gaps = 0;
+    // for(uint32 i = 0; i < buffer_tests_num; i++) {
+    //     for(uint32 j = i+1; j < buffer_tests_num; j++) {
+    //         if(parent_capacity[i] == parent_capacity[j] &&
+    //             psize_modulator[i] == FALSE) {
+    //             psize_modulator[i] = TRUE;
+    //             psize_modulator[j] = TRUE;
+    //             gaps++;
+    //         }
+    //         if(children_capacity[i] == children_capacity[j] &&
+    //             csize_modulator[i] == FALSE) {
+    //             csize_modulator[i] = TRUE;
+    //             csize_modulator[j] = TRUE;
+    //             gaps++;
+    //         }
+    //     }
+    // }
+    // gaps = buffer_tests_num - (gaps/2);
+
+    // uint64 total_size = (PAGE_SIZE*gaps) + (2*PAGE_SIZE); // give some extra memory room

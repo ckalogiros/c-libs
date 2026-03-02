@@ -31,9 +31,6 @@ static uint32 ID = 0;
 static uint32 buffer_get_id(){ return ++ID; }
 
 
-// /* FOR DEBUG */
-// static struct fs_t* fs_buffer_debug = NULL;
-// static void* temp_prev_data_ptr = NULL;
 
 void
 TEMP_PRINT_BUFFER_TABLE_COUNT()
@@ -83,25 +80,6 @@ btable_flist_get_free(void)
 }
 
 
-void
-buffer_memcopy(buffer_t* const dst, const buffer_t* const src)
-{
-    memcpy(src->data, src->data, src->capacity * sizeof(uint32));
-}
-
-void
-buffer_memset(const buffer_t* const buffer, const uint64 val)
-{
-    memset(buffer->data, val, buffer->capacity * buffer->typesize);
-}
-
-void
-buffer_flist_memset(const buffer_t* const buffer, const uint64 val)
-{
-    for(uint32 i = 0; i < buffer->free_list_capacity; i++) {
-        buffer->free_list[i] = val;
-    }
-}
 
 void
 buffer_init_table(void)
@@ -140,10 +118,10 @@ buffer_destroy_table(void)
     }
 }
 
-/*
- * constructors-destructors
- */
 
+/***************************************************************************************************
+ * buffer constructors-destructors
+ **************************************************************************************************/
 buffer_t*
 buffer_constructor_uint32(const bufidx_t capacity)
 {
@@ -355,74 +333,10 @@ buffer_find_next_free_elem(buffer_t* const buffer)
     my_exit("buffer_find_next_free_elem: NO BUFFER FREE INDEX FOUND", __FILE__, __LINE__);
 }
 
-bufidx_t
-find_first_free_helper(const uint32 val, const bufidx_t num_elems)
-{
-    for(bufidx_t i = 0; i < num_elems; i++) {
-        const uint8 bit = bit_is_set(val, i, typeof(val));
-        if(bit) { return i; }
-    }
-    return INT_NULL;
-}
 
-
-/*
- * Find the last element in buffer
- * return: int32 index, -1 error
- */
-int32
-buffer_find_tail_recur(const uint64 val, uint32* accum_num_bits)
-{
-    // todo: realloc and/or implement searching to the second uint64 free buffer
-    // todo: reimplement with: __builtin_ctzll();
-
-    uint64 low = bits_mask_low(val);
-    uint32 type_size = type_size_bits(val);
-
-    int32 index = INT_NULL;
-    if(low != 0) {
-        index = find_first_free_helper(low, type_size);
-    } else {
-        // on every recursion, cut type size by half, and accumulate all the previous devisions lower part
-        *accum_num_bits += half_type_bits(low);
-        uint64 high = bits_mask_high(val);
-        index = buffer_find_tail_recur(high, accum_num_bits);
-    }
-
-    return index;
-}
-
-bufidx_t
-TEMP_buffer_find_tail(const buffer_t* const buffer)
-{
-    uint32 accum_num_bits = 0;
-    uint64 free_list = *buffer->free_list;
-    // todo: free_list is a buffer of uint64
-    const bufidx_t index = buffer_find_tail_recur(free_list, &accum_num_bits);
-    print("accum_num_bits = %d\n", accum_num_bits);
-
-    if(index == INT_NULL) {
-        // no free index found
-        // todo: realloc and/or implement searching to the second uint64 free buffer
-        my_exit("index == INT_NULL", __FILE__, __LINE__);
-    }
-
-    return index + accum_num_bits;
-}
-
-// void* buffer_get_data(const buffer_t* const buffer)
-// {
-//     return buffer->data;
-// }
-// uint64* buffer_get_freelist(const buffer_t* const buffer)
-// {
-//     return buffer->free_list;
-// }
-
-
-/*
- * private
- */
+/***************************************************************************************************
+ * PRIVATE
+ **************************************************************************************************/
 void
 buffer_reallocate(buffer_t* const buffer)
 {
@@ -463,4 +377,81 @@ buffer_reallocate(buffer_t* const buffer)
     buffer->free_list_capacity = flist_capacity;
 }
 
-// todo: create generi type realloc()
+void
+buffer_memcopy(buffer_t* const dst, const buffer_t* const src)
+{
+    memcpy(src->data, src->data, src->capacity * sizeof(uint32));
+}
+
+void
+buffer_memset(const buffer_t* const buffer, const uint64 val)
+{
+    memset(buffer->data, val, buffer->capacity * buffer->typesize);
+}
+
+void
+buffer_flist_memset(const buffer_t* const buffer, const uint64 val)
+{
+    for(uint32 i = 0; i < buffer->free_list_capacity; i++) {
+        buffer->free_list[i] = val;
+    }
+}
+
+// todo: create generic type realloc()
+
+
+/***************************************************************************************************
+ * USELESS
+ **************************************************************************************************/
+bufidx_t
+TEMP_buffer_find_tail(const buffer_t* const buffer)
+{
+    uint32 accum_num_bits = 0;
+    uint64 free_list = *buffer->free_list;
+    // todo: free_list is a buffer of uint64
+    const bufidx_t index = buffer_find_tail_recur(free_list, &accum_num_bits);
+    print("accum_num_bits = %d\n", accum_num_bits);
+
+    if(index == INT_NULL) {
+        // no free index found
+        // todo: realloc and/or implement searching to the second uint64 free buffer
+        my_exit("index == INT_NULL", __FILE__, __LINE__);
+    }
+
+    return index + accum_num_bits;
+}
+
+/* Find the last element in buffer
+ * return: int32 index, -1 error  */
+int32
+buffer_find_tail_recur(const uint64 val, uint32* accum_num_bits)
+{
+    // todo: realloc and/or implement searching to the second uint64 free buffer
+    // todo: reimplement with: __builtin_ctzll();
+
+    uint64 low = bits_mask_low(val);
+    uint32 type_size = type_size_bits(val);
+
+    int32 index = INT_NULL;
+    if(low != 0) {
+        index = find_first_free_helper(low, type_size);
+    } else {
+        // on every recursion, cut type size by half, and accumulate all the previous devisions lower part
+        *accum_num_bits += half_type_bits(low);
+        uint64 high = bits_mask_high(val);
+        index = buffer_find_tail_recur(high, accum_num_bits);
+    }
+
+    return index;
+}
+
+
+bufidx_t
+find_first_free_helper(const uint32 val, const bufidx_t num_elems)
+{
+    for(bufidx_t i = 0; i < num_elems; i++) {
+        const uint8 bit = bit_is_set(val, i, typeof(val));
+        if(bit) { return i; }
+    }
+    return INT_NULL;
+}

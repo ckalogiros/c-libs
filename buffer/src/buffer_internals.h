@@ -19,7 +19,15 @@ buffer_t* buffer_constructor_gentype(const bufidx_t capacity, const uint16 types
 
 void buffer_destructor(buffer_t* buffer);
 
+
+/* PRIVATE */
 void buffer_reallocate(buffer_t* const buffer);
+
+void buffer_memcopy(buffer_t* const dst, const buffer_t* const src);
+
+void buffer_memset(const buffer_t* const buffer, const uint64 val);
+
+void buffer_flist_memset(const buffer_t* const buffer, const uint64 val);
 
 
 bufidx_t buffer_find_next_free_elem(buffer_t* const buffer);

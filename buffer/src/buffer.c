@@ -125,6 +125,7 @@ buffer_empty(buffer_t* const buffer, const bufidx_t index)
     buffer->tail = -1;
 }
 
+
 /*
  * getters
  */
@@ -134,7 +135,6 @@ buffer_get_next_free(buffer_t* const buffer)
     const uint16 first_free_index = buffer_find_next_free_elem(buffer);
     return first_free_index;
 }
-
 
 uint16 // sets up buffer's fields, but the data transform happens at caller site
 buffer_set_for_push(buffer_t* const buffer)

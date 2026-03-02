@@ -17,9 +17,7 @@ int
 main(void)
 {
     {
-        // fs_init();
-
-        // test_create_buffer(16);
+        test_create_buffer(16);
 
         // test_buffer_fill_remove_insert(); // todo: impl test
         // test_buffer_different_capacity_buffers(); // todo: impl test
@@ -41,7 +39,8 @@ main(void)
         // test_buffer_with_children(); // todo: impl test
         // perf_test_buffer_with_children();
         // perf_test_buffer_add_remove_with_children();
-        perf_test_buffer_add_remove_with_children_mixed_capacities();
+        // perf_test_buffer_add_with_children_mixed_capacities();
+        // perf_test_buffer_add_remove_with_children_mixed_capacities();
         // perf_test_buffer_with_children_in_dif_slabs();
     }
 
