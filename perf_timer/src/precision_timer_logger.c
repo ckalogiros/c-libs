@@ -68,7 +68,7 @@ perf_timer_print(const timer_print_params params)
     if(params.flags & (PERF_T_AVG_MICRO | PERF_T_ALL | PERF_T_COMMON))
         print("  %savg%s: %s%ld%s micro", ry, CLEAR, YELLOW, avg / NANO_TO_MICRO, CLEAR);
     if(params.flags & (PERF_T_AVG_MILI | PERF_T_ALL))
-        print("  %savg%s: %s%ld%s micro", ry, CLEAR, YELLOW, avg / NANO_TO_MILI, CLEAR);
+        print("  %savg%s: %s%ld%s mili", ry, CLEAR, YELLOW, avg / NANO_TO_MILI, CLEAR);
     if(params.flags & (PERF_T_AVG_NANO | PERF_T_AVG_MICRO | PERF_T_AVG_MILI | (PERF_T_ALL | PERF_T_COMMON)))
         print("\n");
 

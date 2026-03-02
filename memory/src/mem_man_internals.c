@@ -81,7 +81,7 @@ if((uint64*)((uint8*)p1+offset) < (uint64*)p2){\
 }
 
 /* FOR DEBUG */
-struct fs_t* fs_flist = NULL;
+static struct fs_t* fs_flist = NULL;
 static uint32 free_lists_heads_count = 0;
 
 /***************************************************************************************************
@@ -437,6 +437,8 @@ flist_get_next_free_page(pageid_t num_pages, const memid_t chunk_id)
             const struct memhnd_t new_handle =  mem_alloc_extend_chunk(num_pages,  new_chunk_id);
             void* address = mem_get_addr_by_handle(new_handle);
             flist_head->next = (struct flist*)address;
+            // print("alloc page: %p\n", address);
+
         }
         flist_head = flist_head->next;
         num_pages--;
@@ -482,7 +484,7 @@ chunk_selector_get_next_free_chunk(void)
     // TODO: should check if next chunk is available(contiguous mem), if not, search from 0-th chunk
     uint32 i = 0;
     for(; i < NUM_CHUNKS; i++) {
-        print("id:%u flags:%llu\n", chunks_table[i].id, chunks_table[i].flags);
+        // print("id:%u flags:%llu\n", chunks_table[i].id, chunks_table[i].flags);
         if(chunks_table[i].flags & CHUNK_FLAGS_FREE) {
             return i;
         }

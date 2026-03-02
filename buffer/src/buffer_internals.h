@@ -30,4 +30,7 @@ int32 buffer_find_tail_recur(const uint64 val, uint32* accum_num_bits);
 
 bufidx_t TEMP_buffer_find_tail(const buffer_t* const buffer);
 
+// void* buffer_get_data(const buffer_t* const buffer);
+// uint64* buffer_get_freelist(const buffer_t* const buffer);
+
 #endif //BUFFER_BUFFER_INTERNALS_H

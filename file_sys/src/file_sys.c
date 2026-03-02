@@ -35,7 +35,7 @@ enum FILE_FLAGS {
 
 struct fs_t {
     FILE* file;
-    char filename[128];
+    char filename[256];
     uint32 flags;
 };
 
@@ -205,16 +205,18 @@ fs_append_mem(struct fs_t* fs, const char* ptr, const uint64 size, const char* m
     buffer[i] = '\0';
     fprintf(fs->file,  "\n%s\n"
             "message: %s\n"
-            "start:%p\n"
-            "end:  %p\n"
+            "start:%08x %08x\n"
+            "end:  %08x %08x\n"
             "dif:[%llu bytes] | [%llx hex] | "
             "size:%llu\n\n",
-            buffer, msg, start, start+size,
+            buffer, msg,
+            (uint32)((uint64)start >> 32), (uint32)((uint64)start & 0xFFFFFFFF),
+            (uint32)((uint64)start+size >> 32), (uint32)((uint64)start+size & 0xFFFFFFFF),
             (uint64)(start+size)-(uint64)start,
             (uint64)(start+size)-(uint64)start, size);
 
 
-    fprintf(fs->file, "   ADDRESS           | ");
+    fprintf(fs->file, "   ADDRESS        | ");
     for(i = 0; i < line_size; i+=word_size/2) {
         uint32 space = (word_size+1) - 5;
         fprintf(fs->file, "%2u:%2u", i, i+(word_size/2)-1);
@@ -228,9 +230,9 @@ fs_append_mem(struct fs_t* fs, const char* ptr, const uint64 size, const char* m
 
         /* print memory address (per line) */
         if((i % line_size) == 0) {
-            fprintf(fs->file, "0x %08x %08x |",
-                    (uint32)((uint64)mem_address >> 32),
-                    (uint32)((uint64)mem_address & 0xFFFFFFFF));
+            fprintf(fs->file, "%08x %08x |",
+                    ((uint64)mem_address >> 32),
+                    ((uint64)mem_address & 0xFFFFFFFF));
             mem_address+=line_size;
         }
 
@@ -263,9 +265,7 @@ fs_append_mem(struct fs_t* fs, const char* ptr, const uint64 size, const char* m
 
     fs_close(fs, "fs_mem_blocks_debug()");
 
-
 }
-
 
 void
 fs_fprint_all_allocated_mem(const char* filename)

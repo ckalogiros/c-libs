@@ -1,0 +1,5 @@
+CREATE  : |  name: mcache_448 |  pages: 001 | capac: 00002 | count: 000 | used: 000 | flist: 00007307 34f7d800
+00007307 34f7d800
+00007307 34f7d9c0
+ALLOCATE  : |  pages: 001 | capac: 00002 | count: 001 | used: 001 | flist: 00007307 34f7d9c0 | free: 00007307 34f7d800 | dif: 0056 bytes
+RELEASE   : |  pages: 001 | capac: 00002 | count: 000 | used: 000 | flist: 00007307 34f7d800 | free: 00007307 34cadd50 | dif: 368470 bytes

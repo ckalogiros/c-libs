@@ -1,0 +1,3 @@
+CREATE  : |  name: mcache_256 |  pages: 001 | capac: 00004 | count: 000 | used: 000 | flist: 000079bf bd0a8c00
+ALLOCATE  : |  pages: 001 | capac: 00004 | count: 001 | used: 001 | flist: 000079bf bd0a8d00 | free: 000079bf bd0a8c00 | dif: 0032 bytes
+RELEASE   : |  pages: 001 | capac: 00004 | count: 000 | used: 000 | flist: 000079bf bd0a8c00 | free: 000079bf bceadd50 | dif: 259542 bytes

@@ -5,6 +5,7 @@
 #include "bits.h"
 #include "logger.h"
 
+
 void
 bits_print_binary(const uint64 val, const uint32 type_size)
 {
