@@ -11,7 +11,7 @@
 #include <time.h>
 
 
-#define MIN_TIMER_TABLE_CAPACITY 8
+#define MIN_TIMER_TABLE_CAPACITY 16
 
 #define TIMER_CHECK_TABLE(t_table)\
 if(!t_table) {\
@@ -54,15 +54,15 @@ timer_create_perf_timer(void)
 {
     TIMER_CHECK_TABLE(timer_table);
 
-
-
     // todo: we need to insert(), after we have a free index from buffer
     // OR implement insert at next free element in buffer.c
-    const uint16 index = buffer_get_next_free(timer_table);
+    // const uint16 index = buffer_get_next_free(timer_table);
+    const uint16 index = buffer_set_for_push(timer_table);
+
     TIMER_CHECK_TABLE_OVERFLOW_INDEX(index);
 
 
-    struct timer* data = (struct timer*) &timer_table->data; // cast (for complains)
+    struct timer* data = (struct timer*) timer_table->data; // cast (for complains)
     struct timer t = {0};
     data[index] = t;
     return &data[index];

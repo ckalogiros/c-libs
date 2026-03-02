@@ -46,7 +46,7 @@ buffer_create_gentype(const uint32 capacity, const uint32 typesize)
 
 void
 buffer_destroy(buffer_t* buffer)
-{
+{ // TODO: what if bufer has children buffers in its data?? how should children buffers handled??
     buffer_destructor(buffer);
 }
 
@@ -143,13 +143,8 @@ buffer_set_for_push(buffer_t* const buffer)
     if(buffer->tail + 1 >= buffer->capacity) {
         buffer_reallocate(buffer);
         print("%s#### BUFFER REALLOC\n new capacity:%u%s\n", YELLOW, buffer->capacity, CLEAR);
-        // my_exit("ERROR in buffer_set_for_push().\n"
-        //         "buffer_reallocate deals with uint32 buffer type\n"
-        //         "but buffer_set_for_push is a generic type function\n"
-        //         "SO REALLOC DOES  NOT WORK!!!",
-        //         __FILE__, __LINE__);
     }
-    // else {
+
     buffer->tail++;
     buffer->count++;
     const bufidx_t offset = buffer->tail / BITS64;
@@ -157,9 +152,7 @@ buffer_set_for_push(buffer_t* const buffer)
     buffer_free_list_remove(*free_list, buffer->tail);
 
     return buffer->tail;
-    // }
 
-    return INT_NULL;
 }
 
 void // sets up buffer's fields, but the data transform happens at caller site

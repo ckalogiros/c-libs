@@ -14,7 +14,9 @@
 
 #include <string.h>
 
+#include "file_sys_interface.h"
 #include "slab_allocator_internals.h"
+#include "str_utils.h"
 
 // todo: must be dynamicaly reallocated
 #define BUFFER_TABLE_MIN_CAPACITY 512
@@ -25,6 +27,13 @@
  ******************************************************************************/
 static buffer_t* buffer_table = NULL; // ptr to memory block
 static uint32 buffer_table_count = 0;
+static uint32 ID = 0;
+static uint32 buffer_get_id(){ return ++ID; }
+
+
+// /* FOR DEBUG */
+// static struct fs_t* fs_buffer_debug = NULL;
+// static void* temp_prev_data_ptr = NULL;
 
 void
 TEMP_PRINT_BUFFER_TABLE_COUNT()
@@ -32,6 +41,14 @@ TEMP_PRINT_BUFFER_TABLE_COUNT()
     print("TEMP_PRINT_BUFFER_TABLE_COUNT:%u\n", buffer_table_count);
 }
 
+/*******************************************************************************
+ * free_list:  a buffer to store uint64 values as bitmaps
+ *                to store free elements of a buffer. the number of
+ *                uint64s deppends on the buffer's capacity.
+ *             this is dynamicaly reallocated buffer
+ *             Ex. for capacity<=64, 1x uint64 as free list,
+ *                 for capacity>64 && <=128, 2x uint64 as free list, ...
+ ******************************************************************************/
 struct buffer_table_free_list {
     struct buffer_table_free_list* next;
 };
@@ -45,9 +62,9 @@ btable_flist_add(void* ptr)
     struct buffer_table_free_list* list = ptr;
     list->next = buffer_table_free_list_head;
     buffer_table_free_list_head = list;
-    print("[%s%u%s] list_head:%x\n",
-        YELLOW,     temp_cnt, CLEAR,
-        REDUCE_ADDR(buffer_table_free_list_head, F5));
+    // print("[%s%u%s] list_head:%x\n",
+    //     YELLOW,     temp_cnt, CLEAR,
+    //     REDUCE_ADDR(buffer_table_free_list_head, F5));
     temp_cnt++;
 }
 
@@ -57,9 +74,10 @@ btable_flist_get_free(void)
     struct buffer_table_free_list* list = buffer_table_free_list_head;
     buffer_table_free_list_head = buffer_table_free_list_head->next;
     buffer_table_count++;
-    print("[%s%u%s] list_head:%x\n",
-    YELLOW,     temp_cnt, CLEAR,
-    REDUCE_ADDR(buffer_table_free_list_head, F5));
+    // print("[%u] list_head:%p\n", temp_cnt, buffer_table_free_list_head);
+    // print("[%s%u%s] list_head:%x\n",
+    // YELLOW,     temp_cnt, CLEAR,
+    // REDUCE_ADDR(buffer_table_free_list_head, F5));
     temp_cnt--;
     return (buffer_t*) list;
 }
@@ -107,27 +125,25 @@ buffer_init_table(void)
         btable_flist_add(btable_ptr);
         btable_ptr++;
     }
+
+    // fs_buffer_debug = fs_create("buffer/fs_buffer_debug.txt");
+    // fs_append(fs_buffer_debug, "all buffer->data allocations\n");
 }
 
 void
 buffer_destroy_table(void)
 {
     if(buffer_table) {
+        print("FREEING buffer_table: %x ... ", ry, buffer_table, CLEAR);
         free(buffer_table);
+        print("OK", GREEN, CLEAR);
     }
 }
 
 /*
  * constructors-destructors
  */
-/*******************************************************************************
- * free_list:  a buffer to store uint64 values as bitmaps
- *                to store free elements of a buffer. the number of
- *                uint64s deppends on the buffer's capacity.
- *             this is dynamicaly reallocated buffer
- *             Ex. for capacity<=64, 1x uint64 as free list,
- *                 for capacity>64 && <=128, 2x uint64 as free list, ...
- ******************************************************************************/
+
 buffer_t*
 buffer_constructor_uint32(const bufidx_t capacity)
 {
@@ -156,10 +172,8 @@ buffer_constructor_uint32(const bufidx_t capacity)
     buffer->capacity = capacity;
     buffer->count = 0;
     buffer->tail = INT_NULL;
-    buffer->id = 0;
+    buffer->id = buffer_get_id();
     buffer->typesize = sizeof(uint32);
-    // buffer->count = 'AA';
-    // buffer->id = 'CC';
 
 
     // init buffer data
@@ -187,11 +201,26 @@ buffer_constructor_gentype(const bufidx_t capacity, const uint16 typesize)
     const uint32 free_list_uint64_count = ((capacity - 1) / BITS64) + 1;
 
     // alloc storage for bufer data
-    print("%s----------------------\nAllocating buffer data%s\n", ry, CLEAR);
+    // print("%s----------------------\nAllocating buffer data%s\n", ry, CLEAR);
     const void* const data_ptr = mem_cache_alloc_buffer(capacity, typesize, "generic buffer constructor");
 
+    // /* FOR DEBUGGING */
+    // if(temp_prev_data_ptr == NULL) {
+    //     const uint64 dif = 0;
+    //     fs_append(fs_buffer_debug, "alloc: %p | dif: [%03llu]bytes [%03llx]hex\n",
+    //         (void*)data_ptr, dif, dif);
+    //
+    // } else {
+    //     const uint64 dif = (uint64*)data_ptr-(uint64*)temp_prev_data_ptr;
+    //     fs_append(fs_buffer_debug, "alloc: %p | dif: [%03llu]bytes [%03llx]hex\n",
+    //         (void*)data_ptr, dif, dif);
+    //
+    // }
+    // temp_prev_data_ptr = data_ptr; // store previous allocated address
+
+
     // alloc storage for buffer free-list data (an uint64 for each 64 buffer elements)
-    print("%s----------------------\nAllocating buffer uint64 flist%s\n", GREEN, CLEAR);
+    // print("%s----------------------\nAllocating buffer uint64 flist%s\n", GREEN, CLEAR);
     uint64* const buffer_flist_ptr = mem_cache_alloc_buffer(free_list_uint64_count, sizeof(uint64), "buffer uint64 freebuf");
 
     buffer_t* buffer = btable_flist_get_free();
@@ -201,7 +230,7 @@ buffer_constructor_gentype(const bufidx_t capacity, const uint16 typesize)
     buffer->capacity = capacity;
     buffer->count = 0;
     buffer->tail = INT_NULL;
-    buffer->id = 0;
+    buffer->id = buffer_get_id();
     buffer->typesize = typesize;
 
     // init buffer data
@@ -219,10 +248,34 @@ buffer_destructor(buffer_t* buffer)
     void* const ptr = buffer;
 
     // Release buffer's data slab
+    mem_cache_release_buffer(buffer->free_list, buffer->free_list_capacity, sizeof(uint64));
     mem_cache_release_buffer(buffer->data, buffer->capacity, buffer->typesize);
 
     // Release buffer's free_list slab
     // mem_cache_release_buffer(buffer->free_list, buffer->free_list_capacity, sizeof(uint64));
+
+
+    /* DEBUG-FPRINT
+     * write a string to buffer's->data memory
+     * CAN COLOR MEMORY FOR SLAB SIZE > 8 BYTES */
+    if(buffer->typesize > 8) {
+        char_buf16_t dinfo;
+        char_buf16_copy_from_str("EMPTY", &dinfo);
+        char inttostr[INT32_TO_STR_BUFFER_SIZE];
+        str_conv_int32_to_str(inttostr, buffer->id);
+        str_concat_memcpy(dinfo.buf, inttostr, 16);
+        char* writable_data = buffer->data+sizeof(char*); // leave pointer size mem for slabs free list
+        while(buffer->capacity) {
+
+            memcpy(writable_data, dinfo.buf, sizeof(char*));
+            writable_data += buffer->typesize;
+            buffer->capacity--;
+            buffer->count--;
+            buffer->tail--;
+        }
+    }
+
+    /* DEBUG-FPRINT */
 
     buffer->data = NULL;
     buffer->free_list = NULL;
@@ -232,6 +285,46 @@ buffer_destructor(buffer_t* buffer)
     buffer->typesize = 0;
     buffer->count = 0;
     buffer->tail = INT_NULL;
+
+
+    // free buffer from buffer table
+    btable_flist_add(ptr);
+    buffer_table_count--;
+
+}
+
+void
+buffer_(buffer_t* buffer)
+{
+    void* const ptr = buffer;
+
+    // Release buffer's data slab
+    mem_cache_release_buffer(buffer->data, buffer->capacity, buffer->typesize);
+
+    // Release buffer's free_list slab
+    // mem_cache_release_buffer(buffer->free_list, buffer->free_list_capacity, sizeof(uint64));
+
+
+    /* DEBUG-FPRINT
+     * write a string to buffer's->data memory
+     */
+    // const char* dinfo = "DESTROYED ID:";
+    char_buf16_t dinfo;
+    char_buf16_copy_from_str("DESTROYED ID:", &dinfo);
+    char inttostr[INT32_TO_STR_BUFFER_SIZE];
+    str_conv_int32_to_str(inttostr, buffer->id);
+    str_concat_memcpy(dinfo.buf, inttostr, 16);
+    memcpy(buffer->data, dinfo.buf, sizeof(char*)*2);
+
+    buffer->data = NULL;
+    buffer->free_list = NULL;
+    buffer->free_list_capacity = 0;
+
+    buffer->capacity = 0;
+    buffer->typesize = 0;
+    buffer->count = 0;
+    buffer->tail = INT_NULL;
+
 
     // free buffer from buffer table
     btable_flist_add(ptr);
@@ -316,6 +409,15 @@ TEMP_buffer_find_tail(const buffer_t* const buffer)
 
     return index + accum_num_bits;
 }
+
+// void* buffer_get_data(const buffer_t* const buffer)
+// {
+//     return buffer->data;
+// }
+// uint64* buffer_get_freelist(const buffer_t* const buffer)
+// {
+//     return buffer->free_list;
+// }
 
 
 /*

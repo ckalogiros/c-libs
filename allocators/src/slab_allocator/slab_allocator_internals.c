@@ -369,7 +369,7 @@ mem_cache_get_next_free_cache(void)
 // TODO: also this is the function that will release the mem_cache's mem chunk from memory manager
 
 
-/* FUNCTIONS FOR DEBUG */
+/* DEBUG */
 void*
 mem_cache_flist_peek_next_free_slab(const buffer_size_t buffer_size, const uint16 type_size)
 {

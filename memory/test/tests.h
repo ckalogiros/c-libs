@@ -7,10 +7,10 @@
 
 void perf_mem_big_chunk_allocation();
 
-void test_alloc_release_insequence(const uint32 num_pages, const bool print_list);
-void test_alloc_first_release_after(const uint32 num_pages, const bool print_list);
+void test_alloc_release_insequence(const int16 num_pages, const bool print_list);
+void test_alloc_first_release_after(const int16 num_pages, const bool print_list);
 
-void test_alloc_first_release_after_backwards(const uint32 num_pages, const bool print_list);
+void test_alloc_first_release_after_backwards(const int16 num_pages, const bool print_list);
 
 
 void test_alloc_release_mixed_all();

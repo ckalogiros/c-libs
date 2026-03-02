@@ -4,7 +4,7 @@
 
 
 #include "buffer.h"
-#include "fs_write.h"
+#include "file_sys_interface.h"
 #include "logger.h"
 #include "mem_log.h"
 #include "mem_man_interface.h"
@@ -17,7 +17,7 @@ int
 main(void)
 {
     {
-        fs_init();
+        // fs_init();
 
         // test_create_buffer(16);
 
@@ -39,7 +39,9 @@ main(void)
     {
 
         // test_buffer_with_children(); // todo: impl test
-        perf_test_buffer_with_children();
+        // perf_test_buffer_with_children();
+        // perf_test_buffer_add_remove_with_children();
+        perf_test_buffer_add_remove_with_children_mixed_capacities();
         // perf_test_buffer_with_children_in_dif_slabs();
     }
 

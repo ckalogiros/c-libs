@@ -28,7 +28,6 @@ char_buf16_copy_from_str(const char* const src, char_buf16_t* const dst)
     uint16 i = 0;
     while(src[i] != '\0') {
         if(i > 16) break;
-            // my_exit("ERROR: char_buf len", __FILE__, __LINE__);
 
         dst->buf[i] = src[i];
         dst->len++;
