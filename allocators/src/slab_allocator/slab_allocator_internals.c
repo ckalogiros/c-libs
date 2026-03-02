@@ -8,147 +8,141 @@
 #include "logger.h"
 #include <stdlib.h>
 #include <string.h>
-
+#include "file_sys_interface.h"
 #include "slab_allocator_log.h"
 #include "my_macros.h"
 #include "mem_man_internals.h"
+#include "str_utils.h"
 
 #define MIN_SLABS_TABLE_LEN 128
 
+/***************************************************************************************************
+ * FUNCTION MACROS */
 #define SLABS_FREE_LIST_GET_PAGE_COLOR_START(fnode) ((char*)fnode + sizeof(struct slab_flist))
 
-// hardcoded byte sizes of each cache's slab (buffer) capacity (in bytes). todo: automate
-static uint16 cache_size_bytes[] = {8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768};
+#define SLABALLOC_CHECK_MCACHE_TABLE(table) \
+if(table == NULL) { slab_allocator_print_error(SLAB_ALLOC_MEMCACHE_NO_INIT); }
 
+
+/***************************************************************************************************
+ * STATIC SCOPE VARIABLES */
 static struct mem_cache* mem_cache_table = NULL;
-static char* slabs_table_start = NULL;
-static struct slab* slabs_table = NULL;
+
+
+/***************************************************************************************************
+ * FOR DEBUG */
+static struct fs_t* fs_flist = NULL;
+static struct fs_t* fs_mcaches[SLAB_SIZES_LEN] = {NULL};
+
+#define DEBUG_FPRINT_MCACHE 1
+
+#ifdef DEBUG_FPRINT_MCACHE
+#define fs_register_mcache_create(fs, mcache)\
+    fs_append(fs,\
+    "CREATE  : | "          \
+    " name: %s | "          \
+    " pages: %03u | "       \
+    "capac: %05u | "        \
+    "count: %03u | "        \
+    "used: %03u | "         \
+    "flist: %08x %08x\n",   \
+    mcache->name.buf,\
+    mcache->slabs_num_pages,\
+    mcache->slabs_capacity, \
+    mcache->slabs_count,    \
+    mcache->slabs_used,     \
+    (uint64)mcache->slabs_free_list >> 32,(uint64)mcache->slabs_free_list & 0xFFFFFFFF\
+    )
+
+#define fs_register_mcache_alloc_slab(fs, mcache)\
+    fs_append(fs,\
+    "ALLOCATE  : | "        \
+    " pages: %03u | "       \
+    "capac: %05u | "        \
+    "count: %03u | "        \
+    "used: %03u | "         \
+    "flist: %08x %08x | "   \
+    "free: %08x %08x | "    \
+    "dif: %04llu bytes\n",  \
+    mcache->slabs_num_pages,\
+    mcache->slabs_capacity, \
+    mcache->slabs_count,    \
+    mcache->slabs_used,     \
+    (uint64)mcache->slabs_free_list >> 32,(uint64)mcache->slabs_free_list & 0xFFFFFFFF,\
+    (uint64)free >> 32,(uint64)free & 0xFFFFFFFF,\
+    (uint64*)mcache->slabs_free_list - (uint64*)free\
+    )
+
+#define fs_register_mcache_extend_alloc(fs, mcache, address)\
+    fs_append(fs,\
+    "EXTEND    : | "        \
+    " pages: %03u | "       \
+    "capac: %05u | "        \
+    "count: %03u | "        \
+    "used: %03u | "         \
+    "flist: %08x %08x | "   \
+    "addr: %08x %08x | "    \
+    "dif: %04llu bytes\n",  \
+    mcache->slabs_num_pages,\
+    mcache->slabs_capacity, \
+    mcache->slabs_count,    \
+    mcache->slabs_used,     \
+    (uint64)mcache->slabs_free_list >> 32,(uint64)mcache->slabs_free_list & 0xFFFFFFFF,\
+    (uint64)address >> 32,(uint64)address & 0xFFFFFFFF,\
+    (uint64*)address - (uint64*)mcache->slabs_free_list\
+    )
+
+#define fs_register_mcache_release_slab(fs, mcache)\
+    fs_append(fs,\
+    "RELEASE   : | "        \
+    " pages: %03u | "       \
+    "capac: %05u | "        \
+    "count: %03u | "        \
+    "used: %03u | "         \
+    "flist: %08x %08x | "   \
+    "free: %08x %08x | "    \
+    "dif: %04llu bytes\n",  \
+    mcache->slabs_num_pages,\
+    mcache->slabs_capacity, \
+    mcache->slabs_count,    \
+    mcache->slabs_used,     \
+    (uint64)mcache->slabs_free_list >> 32,(uint64)mcache->slabs_free_list & 0xFFFFFFFF,\
+    (uint64)free >> 32,(uint64)free & 0xFFFFFFFF,\
+    (uint64*)mcache->slabs_free_list - (uint64*)free\
+    )
+
+#define fs_register_mcache_append(fs, fmt, ...)\
+    fs_append(fs, fmt, ##__VA_ARGS__)
+
+#else
+
+#endif
+/* FOR DEBUG
+ **************************************************************************************************/
+
 
 void
-mem_chache_table_init(void)
+mem_cache_table_init(void)
 {
+    const uint32 min_num_caches = sizeof(struct mem_cache) * SLAB_SIZES_LEN;
+    const uint32 table_size = ROUND_UP(min_num_caches, PAGE_SIZE);
+    mem_cache_table = aligned_alloc(1024, table_size);
 
-    {
-        const uint32 min_size = sizeof(struct mem_cache) * SLAB_SIZES_LEN;
-        const uint32 table_size = ROUND_UP(min_size, PAGE_SIZE);
-        mem_cache_table = aligned_alloc(1024, table_size);
+    /* pre-create mcaches, starting from 8 byte slabs
+     * continuing with power of 2's */
+    uint32 i = 0, type_sizes = sizeof(char*);
+    for(; i < SLAB_SIZES_LEN; i++) {
+        const struct mem_cache mem_cache = (struct mem_cache){
+            .type_size = type_sizes,
+            .is_active = FALSE,
+        };
+        mem_cache_table[i] = mem_cache;
 
-        uint32 i = 0, type_sizes = sizeof(char*);
-        for(; i < SLAB_SIZES_LEN; i++) {
-            const struct mem_cache mem_cache = (struct mem_cache){
-                .type_size = type_sizes,
-                .is_active = FALSE,
-            };
-            mem_cache_table[i] = mem_cache;
-
-            type_sizes *= 2;
-        }
+        type_sizes *= 2;
     }
 
-    {
-        const uint32 min_size = sizeof(struct slab) * MIN_SLABS_TABLE_LEN;
-        const uint32 table_size = ROUND_UP(min_size, PAGE_SIZE);
-        mem_cache_table = aligned_alloc(1024, table_size);
-
-        uint32 i = 0, type_sizes = sizeof(char*);
-        for(; i < SLAB_SIZES_LEN; i++) {
-            const struct mem_cache mem_cache = (struct mem_cache){
-                .type_size = type_sizes,
-                .is_active = FALSE,
-            };
-            mem_cache_table[i] = mem_cache;
-
-            type_sizes *= 2;
-        }
-    }
-
-
-
-
-    // todo: slab allocator logger print table init
-}
-
-struct mem_cache*
-mem_cache_create(const buffer_size_t buffer_size, const uint8 type_size)
-{
-    const uint32 slab_size = buffer_size * type_size;
-    // todo: alloc size is depended on the mem cache size type. min allocation = 1 PAGE
-
-    const uint32 mem_size = PAGE_SIZE;
-    const uint32 num_pages = 1;
-    const uint32 slabs_capacity = mem_size / slab_size;
-
-    // allocate memory
-    struct mem_cache* mcache = mem_cache_get_free_cache_QUICK_IMPL();
-    const struct memhnd_t hnd = memman_alloc_pages(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
-    char* ptr = (char*) memman_get_alloc_mem_by_handle(hnd);
-    memset(ptr, 0x0, mem_size);
-
-    mcache->mem_handle = hnd;
-    mcache->type_size = type_size;
-    mcache->slab_size = slab_size;
-    mcache->slabs_capacity = slabs_capacity;
-    mcache->slabs_num_pages = num_pages;
-    mcache->is_active = TRUE;
-    mcache->slabs_free_list = (struct slab_flist*) ptr;
-
-    /* initialize slabs free list */
-    struct slab_flist* flist = (struct slab_flist*) ptr;
-    uint32 i = 1;
-    for(; i < slabs_capacity; i++) {
-        // char* color_page = SLABS_FREE_LIST_GET_PAGE_COLOR_START(flist);
-        // color_page[0] = 'S'; color_page[1] = 'L'; color_page[2] = 'A'; color_page[3] = 'B';
-        ptr += slab_size;
-        flist->next = (struct slab_flist*) ptr;
-        flist = flist->next;
-    }
-
-    // flist->next = NULL;
-
-    print_mem_cache_create(mcache);
-    print_slabs_free_list(mcache->slabs_free_list);
-
-    return mcache;
-}
-
-struct mem_cache*
-mem_cache_extend_allocation(struct mem_cache* const  mcache)
-{
-    // todo: alloc size is depended on the mem cache size type. min allocation = 1 PAGE
-    const uint32 mem_size = PAGE_SIZE;
-    const uint32 num_pages = 1;
-    const uint32 slab_size = mcache->slab_size;
-    const uint32 slabs_capacity = mem_size / slab_size;
-
-    // allocate memory
-    const struct memhnd_t hnd = memman_alloc_pages(num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
-    char* ptr = (char*) memman_get_alloc_mem_by_handle(hnd);
-    memset(ptr, 0x0, mem_size);
-
-    mcache->slabs_capacity += slabs_capacity;
-    mcache->slabs_num_pages += num_pages;
-    mcache->is_active = TRUE;
-
-    /* initialize slabs free list
-     * Suposedly the mcache->slabs_free_list is NULL,
-     * since this function is called for extending
-     * mcache's mem allocation
-     */
-    mcache->slabs_free_list = (struct slab_flist*) ptr;
-    struct slab_flist* flist = (struct slab_flist*) ptr;
-    uint32 i = 1;
-    for(; i < slabs_capacity; i++) {
-        ptr += slab_size;
-        flist->next = (struct slab_flist*) ptr;
-        flist = flist->next;
-    }
-
-    // flist->next = NULL;
-
-    print_mem_cache_create(mcache);
-    print_slabs_free_list(mcache->slabs_free_list);
-
-    return mcache;
+    /* DEBUG-FPRINT */
+    fs_flist = fs_create("allocators/slab_allocator_flist.txt");
 }
 
 void
@@ -161,25 +155,141 @@ mem_cache_table_destroy(void)
         }
     }
 
-    if(mem_cache_table)
+    if(mem_cache_table) {
+        print("FREEING mem_cache_table: %x ... ", ry, mem_cache_table, CLEAR);
         free(mem_cache_table);
+        print("OK", GREEN, CLEAR);
+    }
 
     // todo: slab allocator logger print table destroy
 }
 
+struct mem_cache*
+mem_cache_create(const buffer_size_t buffer_size, const uint16 type_size, const char* name)
+{
+    SLABALLOC_CHECK_MCACHE_TABLE(mem_cache_table);
+
+    const uint32 slab_size = buffer_size * type_size;
+    assert(slab_size >= buffer_size);
+
+    /* calculate requested size in pages */
+    const uint32 requested_num_pages = (slab_size <= PAGE_SIZE) ? 1 : slab_size / PAGE_SIZE;
+    const uint32 slabs_capacity = (requested_num_pages * PAGE_SIZE) / slab_size;
+
+    /* allocate memory */
+    struct mem_cache* mcache = mem_cache_get_next_free_cache();
+    const struct memhnd_t hnd = memman_alloc_pages(requested_num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
+    char* ptr = (char*) memman_get_alloc_mem_by_handle(hnd);
+    memset(ptr, 0x0, requested_num_pages * PAGE_SIZE);
+
+    /** create mcache name */
+    char str_slab_size[INT32_TO_STR_BUFFER_SIZE] = {0};
+    str_conv_int32_to_str(str_slab_size, slab_size);
+    char_buf16_copy_from_str("mcache_", &mcache->name);
+    str_concat_memcpy(mcache->name.buf, str_slab_size, 16);
+
+    /* updated mcache */
+    mcache->mem_handle = hnd;
+    mcache->slabs_start = ptr;
+    mcache->type_size = type_size;
+    mcache->slab_size = slab_size;
+    mcache->slabs_capacity = slabs_capacity;
+    mcache->slabs_num_pages = requested_num_pages;
+    mcache->is_active = TRUE;
+    mcache->slabs_free_list = (struct slab_flist*) ptr;
+
+    /* DEBUG-FPRINT */
+    {
+        char filename[64] = "allocators/mcache_";
+        str_concat_memcpy(filename, str_slab_size, 64);
+        str_concat_memcpy(filename, "byte.txt", 64);
+        fs_mcaches[mcache->idx] = fs_create(filename);
+        fs_register_mcache_create(fs_mcaches[mcache->idx], mcache);
+    }
+
+
+    /* build slabs free list */
+    struct slab_flist* flist = mcache->slabs_free_list;
+    uint32 i = 0;
+    for(; i < mcache->slabs_capacity - 1; i++) {
+        ptr += slab_size;
+        flist->next = (struct slab_flist*) ptr;
+        flist = flist->next;
+    }
+
+    print_mem_cache_create(mcache);
+
+    return mcache;
+}
+
+struct mem_cache*
+mem_cache_extend_allocation(struct mem_cache* const mcache, const uint32 left_over_mem)
+{
+    SLABALLOC_CHECK_MCACHE_TABLE(mem_cache_table);
+
+    const uint32 slab_size = mcache->slab_size;
+    const uint32 extra_needed_mem = slab_size - left_over_mem;
+    const uint32 requested_num_pages = ROUND_UP(extra_needed_mem, PAGE_SIZE) / PAGE_SIZE;
+    const uint32 total_alloc_size = requested_num_pages * PAGE_SIZE;
+    const uint32 slabs_capacity = (requested_num_pages * PAGE_SIZE) / slab_size;
+
+    /* allocate memory */
+    const struct memhnd_t hnd = memman_alloc_pages(requested_num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
+    void* address = memman_get_alloc_mem_by_handle(hnd);
+    memset(address, 0x0, requested_num_pages);
+
+    /* update mcache */
+    mcache->slabs_capacity += slabs_capacity;
+    mcache->slabs_num_pages += requested_num_pages;
+    mcache->is_active = TRUE;
+
+    /* continue from the end of the last allocated slab address */
+    char* ptr = mcache->slabs_start + (slab_size * mcache->slabs_count);
+
+    /* build the slabs free list for the newlly allocatd memory */
+    if(mcache->slabs_free_list == NULL) mcache->slabs_free_list = (struct slab_flist*) ptr;
+    struct slab_flist* flist = mcache->slabs_free_list;
+    while((uint64*) (ptr + slab_size) < (uint64*) (address + total_alloc_size)) {
+        ptr += slab_size;
+        flist->next = (struct slab_flist*) ptr;
+        flist = flist->next;
+    }
+
+    /* avoid list getting an address pointer from the memory manager free list*/
+    flist->next = NULL;
+
+    /* DEBUG-FPRINT */
+    fs_register_mcache_extend_alloc(fs_mcaches[mcache->idx], mcache, address);
+
+    return mcache;
+}
 
 struct slab_flist*
 mem_cache_alloc_slab(struct mem_cache* mcache)
 {
-    // TODO: if there are no more free slabs, allocate new page and setup slabs
-    if(mcache->slabs_free_list == NULL) {
-        mcache = mem_cache_extend_allocation(mcache);
+    /*
+     * TODO: I can check with "mcache->slabs_capacity"
+     */
+    const uint64 current_used_size = mcache->slabs_used * mcache->slab_size;
+    const uint64 total_allocated = mcache->slabs_num_pages * PAGE_SIZE;
+    const uint64 left_over_mem = total_allocated - current_used_size;
+    const bool not_enough_mem = left_over_mem < mcache->slab_size ? TRUE : FALSE;
+
+    /* if not enough memory, extend with new slabs from memory manager */
+    if(mcache->slabs_free_list == NULL || not_enough_mem) {
+        mcache = mem_cache_extend_allocation(mcache, left_over_mem);
     }
 
+    /* get next free slab */
     struct slab_flist* free = mcache->slabs_free_list;
-    const struct slab_flist* flist = mcache->slabs_free_list;
-    mcache->slabs_free_list = flist->next;
+    mcache->slabs_free_list = mcache->slabs_free_list->next;
+
+    /* update mcache */
     mcache->slabs_used++;
+    mcache->slabs_count++;
+
+    /* DEBUG-FPRINT */
+    fs_register_mcache_alloc_slab(fs_mcaches[mcache->idx], mcache);
 
     return free;
 }
@@ -191,44 +301,45 @@ mem_cache_free_slab(struct mem_cache* mcache, void* slab_address)
     struct slab_flist* released = (struct slab_flist*) slab_address;
     struct slab_flist* node = mcache->slabs_free_list;
 
-    // insert at the begining of the free list
+    memset(slab_address, 0x0, mcache->slab_size);
+
     if(node == NULL) {
-        memset(slab_address, 0x0, mcache->slab_size);
+        /* insert at head if free list is NULL */
         mcache->slabs_free_list = released;
         mcache->slabs_free_list->next = NULL;
-        return TRUE;
-    }
-
-    // insert at the begining of the free list
-    if(node > released) {
-        memset(slab_address, 0x0, mcache->slab_size);
+    } else if(node > released) {
+        /* insert at head and link to the next free */
         mcache->slabs_free_list = released;
         mcache->slabs_free_list->next = node;
-        return TRUE;
-    }
-
-
-    // if smaller address found, insert in between
-    if(node->next != NULL) {
-        // search for the last free with smaller address value
-        while(node->next  != NULL && node->next < released) {
+    } else if(node->next != NULL) {
+        /* insert in between and link next and previous free */
+        while(node->next != NULL && node->next < released)
             node = node->next;
-        }
-        memset(slab_address, 0x0, mcache->slab_size);
         struct slab_flist* temp = node->next;
         node->next = released;
         node->next->next = temp;
-        return TRUE;
+    } else {
+        /* insert at the end */
+        node->next = (struct slab_flist*) slab_address;
+        node->next->next = NULL;
     }
-    // else insert at the end of the free list
-    memset(slab_address, 0x0, mcache->slab_size);
-    node->next = (struct slab_flist*) slab_address;
+
+    /* update mcache */
+    mcache->slabs_used--;
+    mcache->slabs_count--;
+
+    /* DEBUG-FPRINT */
+    fs_register_mcache_release_slab(fs_mcaches[mcache->idx], mcache);
+
     return TRUE;
 }
 
+/***************************************************************************************************
+ * HELPER FUNCTIONS */
 struct mem_cache*
 mem_cache_find_cache(const slab_size_t slab_size)
 {
+    SLABALLOC_CHECK_MCACHE_TABLE(mem_cache_table);
     uint32 i = 0;
     for(; i < SLAB_SIZES_LEN; i++) {
         if(mem_cache_table[i].slab_size == slab_size) {
@@ -239,11 +350,13 @@ mem_cache_find_cache(const slab_size_t slab_size)
     return NULL;
 }
 
-struct mem_cache* mem_cache_get_free_cache_QUICK_IMPL(void)
+struct mem_cache*
+mem_cache_get_next_free_cache(void)
 {
     uint32 i = 0;
     for(; i < SLAB_SIZES_LEN; i++) {
         if(mem_cache_table[i].is_active == FALSE) {
+            mem_cache_table[i].idx = i;
             return &mem_cache_table[i];
         }
     }
@@ -252,41 +365,18 @@ struct mem_cache* mem_cache_get_free_cache_QUICK_IMPL(void)
 }
 
 
-
 // TODO: implement mem cache release cache(for reuse)
+// TODO: also this is the function that will release the mem_cache's mem chunk from memory manager
 
-// TEMPORARY
-char_buf16_t
-number_to_string(const char* str, const uint32 integer)
+
+/* DEBUG */
+void*
+mem_cache_flist_peek_next_free_slab(const buffer_size_t buffer_size, const uint16 type_size)
 {
-    char_buf16_t buf = {
-        .buf = {'\0'},
-        .len = 0,
-    };
+    const slab_size_t slab_size = buffer_size * type_size;
 
-    char_buf16_copy_from_str(str, &buf);
-
-    if(integer <= 8) {
-        char_buf16_copy_from_str_append("8", &buf);
-    } else if(integer <= 16) {
-        char_buf16_copy_from_str_append("16", &buf);
-    } else if(integer <= 32) {
-        char_buf16_copy_from_str_append("32", &buf);
-    } else if(integer <= 64) {
-        char_buf16_copy_from_str_append("64", &buf);
-    } else if(integer <= 128) {
-        char_buf16_copy_from_str_append("128", &buf);
-    } else if(integer <= 256) {
-        char_buf16_copy_from_str_append("256", &buf);
-    } else if(integer <= 512) {
-        char_buf16_copy_from_str_append("512", &buf);
-    } else if(integer <= 1024) {
-        char_buf16_copy_from_str_append("1024", &buf);
-    } else if(integer <= 2048) {
-        char_buf16_copy_from_str_append("2048", &buf);
-    } else {
-        char_buf16_copy_from_str_append("error", &buf);
-    }
-
-    return buf;
+    const struct mem_cache* mcache = mem_cache_find_cache(slab_size);
+    struct slab_flist* flist_head = mcache->slabs_free_list;
+    return flist_head;
 }
+
