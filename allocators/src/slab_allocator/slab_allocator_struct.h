@@ -21,6 +21,17 @@
  * then the cpu caches does not realy matter
  */
 
+/*
+ *  Without coloring (all objects same cache alignment)
+ *  Slab 1: [CPU0][CPU0][CPU0]...  All in same cache lines
+ *  Slab 2: [CPU0][CPU0][CPU0]...  Cache contention!
+ *
+ *  With coloring (offset each slab)
+ *  Slab 1 (color 0): [CPU0][CPU0][CPU0]...
+ *  Slab 2 (color 16): --[CPU1][CPU1][CPU1]...  Different cache lines
+ *  Slab 3 (color 32): ----[CPU2][CPU2][CPU2]...  Better distribution
+ */
+
 
 #include <stdio.h>
 

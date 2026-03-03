@@ -107,7 +107,7 @@ print_obj2(const obj2_t* obj, const uint32 len)
 }
 
 
-float
+obj_t*
 calc_magnitude1(obj_t* obj, const uint32 len, const float f)
 {
     for(uint32 j = 0; j < len; j++) {
@@ -119,9 +119,10 @@ calc_magnitude1(obj_t* obj, const uint32 len, const float f)
         obj[j].result = obj[j].result + mag * f;
         // perf_timer_stop_accum();
     }
+    return obj;
 }
 
-float
+obj2_t*
 calc_magnitude2(obj2_t* obj, const uint32 len, const float f)
 {
     uint32 k = 0;
@@ -134,6 +135,7 @@ calc_magnitude2(obj2_t* obj, const uint32 len, const float f)
         k += 3;
         // perf_timer_stop_accum();
     }
+    return obj;
 }
 
 void

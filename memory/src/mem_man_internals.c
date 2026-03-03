@@ -49,6 +49,8 @@
  *
  *  NOW,
  *  memory manager handles chunks as either FREE or OCCUPIED
+ *
+ *  TODO: debug-fprint memory and free list
  */
 
 #include "mem_man_internals.h"

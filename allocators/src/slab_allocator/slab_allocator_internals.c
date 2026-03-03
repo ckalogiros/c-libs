@@ -127,6 +127,7 @@ mem_cache_table_init(void)
     const uint32 min_num_caches = sizeof(struct mem_cache) * SLAB_SIZES_LEN;
     const uint32 table_size = ROUND_UP(min_num_caches, PAGE_SIZE);
     mem_cache_table = aligned_alloc(1024, table_size);
+    // mem_cache_table = memman_alloc_pages(table_size, );
 
     /* pre-create mcaches, starting from 8 byte slabs
      * continuing with power of 2's */

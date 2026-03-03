@@ -199,22 +199,22 @@ test_perf_ecs_insert_to_comp_helper(uint32 count, uint32 repeat, struct timer* t
         for(uint32 i = 0; i < count; i++) {
             const uint32 eid = entity_get_id(i);
             add_pos_component(eid, (vec3f){
-                                  .x = i, .y = i + count, .z = 0,
-                              });
+                .x = i, .y = i + count, .z = 0,
+            });
         }
         // add component scale
         for(uint32 i = 0; i < count; i++) {
             const uint32 eid = entity_get_id(i);
             add_scale_component(eid, (vec2f){
-                                    .x = i, .y = i + count,
-                                });
+                .x = i, .y = i + count,
+            });
         }
         // add component col
         for(uint32 i = 0; i < count; i++) {
             const uint32 eid = entity_get_id(i);
             add_col_component(eid, (vec4f){
-                                  .r = i, .g = i + count, .b = 0, .a = 1.0,
-                              });
+                .r = i, .g = i + count, .b = 0, .a = 1.0,
+            });
         }
     }
     perf_timer_stop(t);

@@ -1,7 +1,7 @@
 
 #include "buffer_internals.h"
 #include "logger.h"
-#include "mem_man.h"
+#include "mem_man_interface.h"
 #include "html_structs.h"
 
 
@@ -51,7 +51,7 @@ void html_build(buffer_t* node_buf)
 int
 main(void)
 {
-    memory_manager_init(10);
+    memman_init();
     buffer_init_table();
 
     buffer_t* node_buf = buffer_create_gentype(16, sizeof(struct html_node));
@@ -92,7 +92,7 @@ main(void)
     print_html_buffer_style(node_buf);
     // print("Hello, World!\n");
 
-    memory_manager_terminate();
+    memman_terminate();
     return 0;
 }
 

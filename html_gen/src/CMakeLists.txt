@@ -1,4 +1,12 @@
-set(html_gen_include "${CMAKE_CURRENT_LIST_DIR}/")
-set(html_gen_source
-#        "${CMAKE_CURRENT_LIST_DIR}/buffer.c"
+include(${cmake_utils})
+
+register_module(
+        sources
+        headers
+        ${CMAKE_CURRENT_LIST_DIR}/html_structs.h
+        include_dirs
+        ${CMAKE_CURRENT_LIST_DIR}
+        compiler_macros
+        ENABLE_DEBUG=1
+        VERSION_MAJOR=0
 )
