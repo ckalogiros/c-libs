@@ -3,7 +3,7 @@
 .idea/
 **/.idea/
 **/cmake-build-debug/
-Debug/
+**/Debug/
 
 # unique files
 tutorial
