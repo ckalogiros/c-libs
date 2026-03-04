@@ -26,10 +26,10 @@
 int
 main(void)
 {
-    uint8  s8  = 11;
-    uint16 s16 = 22;
-    uint32 s32 = 33;
-    uint64 s64 = 44;
+    // uint8  s8  = 11;
+    // uint16 s16 = 22;
+    // uint32 s32 = 33;
+    // uint64 s64 = 44;
 
     // char* s1 = "11";
     // char* s2 = "22";
@@ -52,7 +52,7 @@ main(void)
 
 
     {
-        test_create_buffer(16);
+        // test_create_buffer(16);
         // test_destroy_buffer();
         // test_buffer_realloc(); // todo: impl test
         // test_buffer_fill_remove_insert(); // todo: impl test
@@ -67,8 +67,7 @@ main(void)
 
     {
         // test_buffer_with_children();
-        // perf_test_buffer_with_children();
-        // perf_test_buffer_add_remove_with_children();
+        perf_test_buffer_add_remove_with_children();
         // perf_test_buffer_add_with_children_mixed_capacities();
         // perf_test_buffer_add_remove_with_children_mixed_capacities();
         // perf_test_buffer_with_children_in_dif_slabs();

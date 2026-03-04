@@ -1,5 +1,0 @@
-all buffer->data allocations
-alloc: 0x7ffff7f1c400 | dif: [000]bytes [000]hex
-alloc: 0x7ffff7f1cc00 | dif: [256]bytes [100]hex
-alloc: 0x7ffff7f1d000 | dif: [128]bytes [080]hex
-alloc: 0x7ffff7f1d400 | dif: [128]bytes [080]hex

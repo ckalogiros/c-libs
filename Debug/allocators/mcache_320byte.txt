@@ -1,5 +1,0 @@
-CREATE  : |  name: mcache_320 |  pages: 001 | capac: 00003 | count: 000 | used: 000 | flist: 00007fff f7f1c400
-00007fff f7f1c400
-00007fff f7f1c540
-00007fff f7f1c680
-ALLOCATE  : |  pages: 001 | capac: 00003 | count: 001 | used: 001 | flist: 00007fff f7f1c540 | free: 00007fff f7f1c400 | dif: 0040 bytes

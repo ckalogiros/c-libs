@@ -1,2 +1,0 @@
-CREATE  : |  name: mcache_32 |  pages: 001 | capac: 00032 | count: 000 | used: 000 | flist: 00007f4b 37ca1c00
-ALLOCATE  : |  pages: 001 | capac: 00032 | count: 001 | used: 001 | flist: 00007f4b 37ca1c20 | free: 00007f4b 37ca1c00 | dif: 0004 bytes

@@ -28,8 +28,9 @@
 static buffer_t* buffer_table = NULL; // ptr to memory block
 static uint32 buffer_table_count = 0;
 static uint32 ID = 0;
-static uint32 buffer_get_id(){ return ++ID; }
 
+static uint32
+buffer_get_id() { return ++ID; }
 
 
 void
@@ -39,12 +40,13 @@ TEMP_PRINT_BUFFER_TABLE_COUNT()
 }
 
 /*******************************************************************************
- * free_list:  a buffer to store uint64 values as bitmaps
- *                to store free elements of a buffer. the number of
- *                uint64s deppends on the buffer's capacity.
- *             this is dynamicaly reallocated buffer
- *             Ex. for capacity<=64, 1x uint64 as free list,
- *                 for capacity>64 && <=128, 2x uint64 as free list, ...
+ * buffer free_list:
+ *      a buffer to store uint64 values as bitmaps
+ *      to store free elements of a buffer. the number of
+ *      uint64s deppends on the buffer's capacity.
+ *      this is dynamicaly reallocated buffer
+ *      Ex. for capacity<=64, 1x uint64 as free list,
+ *      for capacity>64 && <=128, 2x uint64 as free list, ...
  ******************************************************************************/
 struct buffer_table_free_list {
     struct buffer_table_free_list* next;
@@ -53,6 +55,7 @@ struct buffer_table_free_list {
 static struct buffer_table_free_list* buffer_table_free_list_head = NULL;
 
 static uint32 temp_cnt = 0;
+
 void
 btable_flist_add(void* ptr)
 {
@@ -78,7 +81,6 @@ btable_flist_get_free(void)
     temp_cnt--;
     return (buffer_t*) list;
 }
-
 
 
 void
@@ -242,9 +244,8 @@ buffer_destructor(buffer_t* buffer)
         char inttostr[INT32_TO_STR_BUFFER_SIZE];
         str_conv_int32_to_str(inttostr, buffer->id);
         str_concat_memcpy(dinfo.buf, inttostr, 16);
-        char* writable_data = buffer->data+sizeof(char*); // leave pointer size mem for slabs free list
+        char* writable_data = buffer->data + sizeof(char*); // leave pointer size mem for slabs free list
         while(buffer->capacity) {
-
             memcpy(writable_data, dinfo.buf, sizeof(char*));
             writable_data += buffer->typesize;
             buffer->capacity--;
@@ -268,7 +269,6 @@ buffer_destructor(buffer_t* buffer)
     // free buffer from buffer table
     btable_flist_add(ptr);
     buffer_table_count--;
-
 }
 
 void
@@ -292,7 +292,7 @@ buffer_(buffer_t* buffer)
     char inttostr[INT32_TO_STR_BUFFER_SIZE];
     str_conv_int32_to_str(inttostr, buffer->id);
     str_concat_memcpy(dinfo.buf, inttostr, 16);
-    memcpy(buffer->data, dinfo.buf, sizeof(char*)*2);
+    memcpy(buffer->data, dinfo.buf, sizeof(char*) * 2);
 
     buffer->data = NULL;
     buffer->free_list = NULL;
@@ -307,7 +307,6 @@ buffer_(buffer_t* buffer)
     // free buffer from buffer table
     btable_flist_add(ptr);
     buffer_table_count--; // TODO: move this to btable_flist_add BUT create an init btable function (so that counter is not decremened at init)
-
 }
 
 

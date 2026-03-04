@@ -82,10 +82,6 @@ if((uint64*)((uint8*)p1+offset) < (uint64*)p2){\
     my_exit(msg, __FILE__, __LINE__);\
 }
 
-/* FOR DEBUG */
-static struct fs_t* fs_flist = NULL;
-static uint32 free_lists_heads_count = 0;
-
 /***************************************************************************************************
  * memory manager -> mms
  * is a single allocation at the start of a program, no realloc is implemented,
@@ -95,6 +91,9 @@ static uint32 free_lists_heads_count = 0;
 static struct mem* mem = NULL;
 static struct mem_chunk* chunks_table = NULL; // mem is devided into chunks
 static struct flist** flist_heads_table = NULL; // table stores:flist heads per chunk
+
+/* FOR DEBUG */
+static struct fs_t* fs_flist = NULL;
 
 
 bool
@@ -173,18 +172,6 @@ mem_alloc(const pageid_t num_pages, const enum MEM_CHUNK_SELECTOR chunk_selector
 
     chunks_table[chunk_id].flags |= CHUNK_FLAGS_OCCUPIED;
     chunks_table[chunk_id].flags &= ~CHUNK_FLAGS_FREE;
-
-
-    // fs_write_list(fs_flist, flist_heads_table[chunk_id],
-    //     "\n--------------------\n"
-    //     "  new memory free list\n"
-    //     "  id:   %u\n"
-    //     "  head: %x\n",
-    //     free_lists_heads_count,
-    //     flist_heads_table[chunk_id]
-    // );
-    // free_lists_heads_count++;
-
 
     return handle;
 }

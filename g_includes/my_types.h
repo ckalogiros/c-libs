@@ -1,3 +1,7 @@
+/*
+ * Created by ckalo on 12/31/25.
+ */
+
 #ifndef MY_TYPES_H
 #define MY_TYPES_H
 

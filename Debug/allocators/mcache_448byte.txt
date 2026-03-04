@@ -1,6 +1,0 @@
-CREATE  : |  name: mcache_448 |  pages: 001 | capac: 00002 | count: 000 | used: 000 | flist: 0000735d 55615800
-ALLOCATE  : |  pages: 001 | capac: 00002 | count: 001 | used: 001 | flist: 0000735d 556159c0 | free: 0000735d 55615800 | dif: 0056 bytes
-ALLOCATE  : |  pages: 001 | capac: 00002 | count: 002 | used: 002 | flist: 00000000 00000000 | free: 0000735d 556159c0 | dif: 18446728218121852104 bytes
-EXTEND    : |  pages: 002 | capac: 00004 | count: 002 | used: 002 | flist: 0000735d 55616800 | addr: 0000735d 55616800 | dif: 0000 bytes
-ALLOCATE  : |  pages: 002 | capac: 00004 | count: 003 | used: 003 | flist: 0000735d 556169c0 | free: 0000735d 55616800 | dif: 0056 bytes
-ALLOCATE  : |  pages: 002 | capac: 00004 | count: 004 | used: 004 | flist: 0000735d 55616b80 | free: 0000735d 556169c0 | dif: 0056 bytes

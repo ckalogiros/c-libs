@@ -1,6 +1,6 @@
-//
-// Created by ckalo on 12/31/25.
-//
+/*
+ * Created by ckalo on 12/31/25.
+ */
 
 #ifndef MY_MACROS_H
 #define MY_MACROS_H
