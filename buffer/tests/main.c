@@ -38,11 +38,11 @@ main(void)
 
     {
         // perf_test_buffer_mixed_capacities_add();
-        // perf_test_buffer_mixed_capacities_add_remove();
+        perf_test_buffer_mixed_capacities_add_remove();
 
         // perf_test_buffer_with_children_add_remove();
         // perf_test_buffer_mixed_capacities_with_children_add();
-        perf_test_buffer_mixed_capacities_with_children_add_remove();
+        // perf_test_buffer_mixed_capacities_with_children_add_remove();
 
         // perf_test_buffer_with_children_in_dif_slabs();
     }
