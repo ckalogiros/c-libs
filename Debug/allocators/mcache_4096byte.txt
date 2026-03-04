@@ -1,5 +1,3 @@
-CREATE  : |  name: mcache_4096 |  pages: 004 | capac: 00001 | count: 000 | used: 000 | flist: 00007d05 d9d6cc00
-00007d05 d9d6cc00
-ALLOCATE  : |  pages: 004 | capac: 00001 | count: 001 | used: 001 | flist: 00000000 00000000 | free: 00007d05 d9d6cc00 | dif: 18446726890699171456 bytes
-EXTEND    : |  pages: 008 | capac: 00002 | count: 001 | used: 001 | flist: 00007d05 d9dae400 | addr: 00007d05 d9dae400 | dif: 0000 bytes
-ALLOCATE  : |  pages: 008 | capac: 00002 | count: 002 | used: 002 | flist: 00000000 00000000 | free: 00007d05 d9dae400 | dif: 18446726890699137920 bytes
+CREATE  : |  name: mcache_4096 |  pages: 004 | capac: 00001 | count: 000 | used: 000 | flist: 00007d4f 69288c00
+ALLOCATE  : |  pages: 004 | capac: 00001 | count: 001 | used: 001 | flist: 00000000 00000000 | free: 00007d4f 69288c00 | dif: 18446726851207032448 bytes
+RELEASE   : |  pages: 004 | capac: 00001 | count: 000 | used: 000 | flist: 00007d4f 69288c00 | free: 00007d4f 690add50 | dif: 243158 bytes

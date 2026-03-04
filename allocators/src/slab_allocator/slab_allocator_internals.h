@@ -33,6 +33,8 @@ struct mem_cache* mem_cache_find_cache(const slab_size_t slab_size);
 
 struct mem_cache* mem_cache_get_next_free_cache(void);
 
+bool mem_cache_does_address_belong_to_mcache(void* address);
+
 /* DEBUG */
 void* mem_cache_flist_peek_next_free_slab(const buffer_size_t buffer_size, const uint16 type_size);
 

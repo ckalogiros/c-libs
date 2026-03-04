@@ -1187,10 +1187,10 @@ perf_test_buffer_add_remove_with_children_mixed_capacities(void)
 #define buffer_tests_num 4
 
     const uint32 type_size = sizeof(struct node);
-    // const uint32 parent_capacity[buffer_tests_num]   = {2, 14, 8,  2};
-    // const uint32 children_capacity[buffer_tests_num] = {18, 2, 4, 18};
-    const uint32 parent_capacity[buffer_tests_num]   = {8, 18, 8,  2};
-    const uint32 children_capacity[buffer_tests_num] = {18, 8, 4, 18};
+    const uint32 parent_capacity[buffer_tests_num]   = {2, 14, 8,  2};
+    const uint32 children_capacity[buffer_tests_num] = {18, 2, 4, 18};
+    // const uint32 parent_capacity[buffer_tests_num]   = {8, 18, 8,  2};
+    // const uint32 children_capacity[buffer_tests_num] = {18, 8, 4, 18};
     uint32 testcnt = 0; // index the capacities
     uint32 total_size = PAGE_SIZE*5; // give some extra memory room
 

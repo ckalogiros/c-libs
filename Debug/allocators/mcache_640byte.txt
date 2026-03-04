@@ -1,2 +1,2 @@
-CREATE  : |  name: mcache_640 |  pages: 001 | capac: 00001 | count: 000 | used: 000 | flist: 000079bf bd0a8400
-ALLOCATE  : |  pages: 001 | capac: 00001 | count: 001 | used: 001 | flist: 00000000 00000000 | free: 000079bf bd0a8400 | dif: 18446727340657389440 bytes
+CREATE  : |  name: mcache_640 |  pages: 001 | capac: 00001 | count: 000 | used: 000 | flist: 00007c7f d3158400
+ALLOCATE  : |  pages: 001 | capac: 00001 | count: 001 | used: 001 | flist: 00000000 00000000 | free: 00007c7f d3158400 | dif: 18446726962654039936 bytes
