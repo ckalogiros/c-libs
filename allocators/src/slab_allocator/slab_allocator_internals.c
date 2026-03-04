@@ -127,7 +127,6 @@ mem_cache_table_init(void)
     const uint32 min_num_caches = sizeof(struct mem_cache) * SLAB_SIZES_LEN;
     const uint32 table_size = ROUND_UP(min_num_caches, PAGE_SIZE);
     mem_cache_table = aligned_alloc(1024, table_size);
-    // mem_cache_table = memman_alloc_pages(table_size, );
 
     /* pre-create mcaches, starting from 8 byte slabs
      * continuing with power of 2's */
@@ -146,21 +145,6 @@ mem_cache_table_init(void)
     fs_flist = fs_create("allocators/slab_allocator_flist.txt");
 }
 
-bool
-mem_cache_does_address_belong_to_mcache(void* address)
-{
-    uint32 i = 0;
-    for(; i < SLAB_SIZES_LEN; i++) {
-        void* start = mem_cache_table[i].slabs_start;
-        void* end = mem_cache_table[i].slabs_start +
-            (mem_cache_table[i].slabs_capacity*mem_cache_table[i].slab_size);
-        if(address == start || (address > start && address <= end)) {
-            return TRUE;
-        }
-    }
-    return FALSE;
-}
-
 struct mem_cache*
 mem_cache_create(const buffer_size_t buffer_size, const uint16 type_size, const char* name)
 {
@@ -169,8 +153,9 @@ mem_cache_create(const buffer_size_t buffer_size, const uint16 type_size, const 
     const uint32 slab_size = buffer_size * type_size;
     assert(slab_size >= buffer_size);
 
+    const uint32 requested_num_pages = ROUND_UP(slab_size, PAGE_SIZE) / PAGE_SIZE;
     /* calculate requested size in pages */
-    const uint32 requested_num_pages = (slab_size <= PAGE_SIZE) ? 1 : slab_size / PAGE_SIZE;
+    // uint32 requested_num_pages = (slab_size <= PAGE_SIZE) ? 1 : (slab_size / PAGE_SIZE)+1;
     const uint32 slabs_capacity = (requested_num_pages * PAGE_SIZE) / slab_size;
 
     /* allocate memory */
@@ -194,6 +179,7 @@ mem_cache_create(const buffer_size_t buffer_size, const uint16 type_size, const 
     mcache->slabs_num_pages = requested_num_pages;
     mcache->is_active = TRUE;
     mcache->slabs_free_list = (struct slab_flist*) ptr;
+    mcache->last_slab_end = ptr + (slabs_capacity * slab_size);
 
     /* DEBUG-FPRINT */
     {
@@ -233,7 +219,7 @@ mem_cache_extend_allocation(struct mem_cache* const mcache, const uint32 left_ov
     /* allocate memory */
     const struct memhnd_t hnd = memman_alloc_pages(requested_num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
     void* address = memman_get_alloc_mem_by_handle(hnd);
-    memset(address, 0x0, requested_num_pages*PAGE_SIZE);
+    memset(address, 0x0, requested_num_pages);
 
     /* update mcache */
     mcache->slabs_capacity += slabs_capacity;
@@ -241,10 +227,17 @@ mem_cache_extend_allocation(struct mem_cache* const mcache, const uint32 left_ov
     mcache->is_active = TRUE;
 
     /* continue from the end of the last allocated slab address */
-    char* ptr = mcache->slabs_start + (slab_size * mcache->slabs_count);
+    char* ptr = mcache->last_slab_end;
 
-    bool is_occupied = mem_cache_does_address_belong_to_mcache(ptr);
-    if(is_occupied) ptr = address;
+    /*
+     * last_slab_end + left_over_mem =
+     *
+     */
+
+    /* check if the start of the new allocated address is in contiguity with last_slab_end */
+    char* next_paged_aligned_address = (char*)ROUND_UP((uint64)mcache->last_slab_end, PAGE_SIZE);
+    bool mem_is_contiguous = (next_paged_aligned_address == address) ? TRUE : FALSE;
+    if(!mem_is_contiguous) ptr = address;
 
     /* build the slabs free list for the newlly allocatd memory */
     if(mcache->slabs_free_list == NULL) mcache->slabs_free_list = (struct slab_flist*) ptr;

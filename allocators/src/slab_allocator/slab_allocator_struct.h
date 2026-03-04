@@ -91,6 +91,7 @@ struct slab_flist {
 struct mem_cache {
     struct slab_flist* slabs_free_list;
     void* slabs_start;     // the start of slabs alocated memory
+    void* last_slab_end;     // the start of slabs alocated memory
     uint16 slab_size;      // each slab's size in bytes
     uint16 type_size;      // the stored objects type
     uint16 slabs_capacity; // total slabs count

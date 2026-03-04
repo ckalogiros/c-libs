@@ -5,6 +5,7 @@
 #include "precision_timer_logger.h"
 #include "logger.h"
 #include "precision_timer.h"
+#include "sys_utils.h"
 
 
 void
@@ -28,6 +29,12 @@ perf_timer_print(const timer_print_params params)
 
     if(params.flags & PERF_T_USE_REPEAT) count *= params.repeat;
     if(params.flags & PERF_T_USE_BUF_CAPACITY) count *= params.buf_capacity;
+
+    if(accum == 0) {
+        my_exit("%sERROR: in timers. \n accum is 0\n"
+              " Check that the timer\n"
+              " is calling accum() and stop_accum()%s\n", __FILE__, __LINE__);
+    }
 
     uint32 avg = accum / count;
 
