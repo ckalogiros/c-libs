@@ -1,0 +1,8 @@
+CREATE  : |  name: mcache_224 |  pages: 001 | capac: 00004 | count: 000 | used: 000 | flist: 0000735d 55617400
+ALLOCATE  : |  pages: 001 | capac: 00004 | count: 001 | used: 001 | flist: 0000735d 556174e0 | free: 0000735d 55617400 | dif: 0028 bytes
+ALLOCATE  : |  pages: 001 | capac: 00004 | count: 002 | used: 002 | flist: 0000735d 556175c0 | free: 0000735d 556174e0 | dif: 0028 bytes
+ALLOCATE  : |  pages: 001 | capac: 00004 | count: 003 | used: 003 | flist: 0000735d 556176a0 | free: 0000735d 556175c0 | dif: 0028 bytes
+ALLOCATE  : |  pages: 001 | capac: 00004 | count: 004 | used: 004 | flist: 00000000 00000000 | free: 0000735d 556176a0 | dif: 18446728218121851180 bytes
+EXTEND    : |  pages: 002 | capac: 00008 | count: 004 | used: 004 | flist: 0000735d 55617c00 | addr: 0000735d 55617c00 | dif: 0000 bytes
+ALLOCATE  : |  pages: 002 | capac: 00008 | count: 005 | used: 005 | flist: 0000735d 55617ce0 | free: 0000735d 55617c00 | dif: 0028 bytes
+ALLOCATE  : |  pages: 002 | capac: 00008 | count: 006 | used: 006 | flist: 0000735d 55617dc0 | free: 0000735d 55617ce0 | dif: 0028 bytes
