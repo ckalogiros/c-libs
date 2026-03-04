@@ -353,21 +353,21 @@ mem_init_free_list_table()
     /*************************************************************
      * flist_heads_table storage layout
      *************************************************************/
-#define COLOR_PAGE_FREE "FREE" // color a page  to denote that belongs to free list
 
     void* ptr = mem;
-    // advance pointer to free memory, where we can store mem_used_table
+    /* advance pointer to free memory, where we can store mem_used_table */
     ptr = (char*) ptr + sizeof(struct mem); // advance through struct mem
-    // advance through struct mem_chunk * number of chunks
+    /* advance through struct mem_chunk * number of chunks */
     ptr = (char*) ptr + (sizeof(struct mem_chunk) * mem->chunks_count);
 
     flist_heads_table = ptr; // start of struct flist storage
 
 
     void* page_ptr = MEM_GET_DATA_START;
-    // initialize all free list heads and free lists for each mem_chunk
+    /* initialize all free list heads and free lists for each mem_chunk */
     for(uint32 chunk_id = 0; chunk_id < mem->chunks_count; chunk_id++) {
-        // create storage for head pointer
+
+        /* create storage for head pointer */
         flist_heads_table[chunk_id] = (struct flist*) page_ptr;
 
         struct flist* cur = flist_heads_table[chunk_id];

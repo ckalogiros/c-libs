@@ -7,7 +7,7 @@ buffer: sequencial, consolidate
 
 buffers of data structs type
 
-
+####################################################################################################
 a: mcache, of n1 slab's size
 b: mcache, of n2 slab's size
 c: mcache, of n3 slab's size
@@ -50,3 +50,5 @@ case 1
  slab allocator. If I find a way to check and have a result "occupied" or "not valid",
  then address of n will be used.
   In this case my impl works, right?
+
+####################################################################################################

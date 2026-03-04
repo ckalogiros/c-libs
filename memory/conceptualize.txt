@@ -1,0 +1,51 @@
+
+####################################################################################################
+|__|: mem manager page
+
+full: no free pages
+|__||__||__||__||__||__||__||__||__||__||__||__|
+ ^   ^   ^   ^   ^   ^   ^   ^   ^   ^   ^   ^
+ a1  a2  a3  a4  a5  a6  a7  a8  a9
+
+partially free
+|__||__||__||__||__||__||__||__||__||__||__||__|
+ ^   ^   ^   ^   ^   ^   ^   ^   ^   ^   ^   ^
+ a1  a2      a4          a7  a8
+ 
+ 
+ 
+ case: 3 page request from same allocator
+ if we assume all pages belong to same allocator,
+ then meman will give back free page/pages from head of free list.
+
+page request
+|__||__||__||__||__||__||__||__||__||__||__||__|
+ ^   ^   ^   ^   ^   ^   ^   ^   ^   ^   ^   ^
+ a1  a2  r1  a4  r2  r3   a7  a8
+ r. pages given to same allocator
+
+  
+ 
+ case: 3 page request from b allocator
+ if another allocator request free pages,
+ then apart from finding 3 contiguous pages,
+ memman ca take a "hint" via an address(??)
+ so it can "offset" the free page to another 
+ memory portion, leaving some gap
+
+page request
+|__||__||__||__||__||__||__||__||__||__||__||__|
+ ^   ^   ^   ^   ^   ^   ^   ^   ^   ^   ^   ^
+ a1  a2      a4          a7  a8      r1 r2  r3
+ 
+ 
+ |__||__||__||__||__||__||__||__||__||__||__||__|
+  ^   ^   ^   ^   ^   ^   ^   ^   ^   ^   ^   ^
+  a1  a2      4           a7  a8      b1  b2  b3
+
+
+ what happens if b allocator requests?
+ the free list at this point starts at 3-5-6-9 and continues beyond b3 
+
+ 
+ 
