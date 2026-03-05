@@ -66,6 +66,11 @@
 #include "logger.h"
 
 
+/*
+ * TODO:
+ *  an allocator initializes itself by calling
+ */
+
 #define CHUNK_FLAGS_FREE     BIT_MASK_FROM_UINT(0) // chunk is not in use
 #define CHUNK_FLAGS_OCCUPIED BIT_MASK_FROM_UINT(1) // chunk is in use but has free pages
 
@@ -299,7 +304,6 @@ mem_release(const struct memhnd_t hnd)
 
     return TRUE;
 }
-
 
 void*
 mem_get_addr_by_handle(const struct memhnd_t hnd)

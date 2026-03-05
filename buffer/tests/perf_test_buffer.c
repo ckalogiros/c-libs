@@ -3,16 +3,13 @@
  */
 
 #include "perf_test_buffer.h"
-
 #include <ctype.h>
 #include <string.h>
-
 #include "buffer_internals.h"
 #include "buffer_log.h"
 #include "file_sys_interface.h"
 #include "logger.h"
 #include "mem_man_internals.h"
-#include "mem_structs.h"
 #include "precision_timer.h"
 #include "precision_timer_logger.h"
 #include "slab_allocator_internals.h"

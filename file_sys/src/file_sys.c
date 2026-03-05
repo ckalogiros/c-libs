@@ -187,7 +187,7 @@ fs_append(struct fs_t* fs, const char* format, ...)
 void
 fs_append_mem(struct fs_t* fs, const char* ptr, const uint64 size, const char* msg)
 {
-    print("----------------------------------------------------------------------------------\n\n");
+    // print("----------------------------------------------------------------------------------\n\n");
 
     fs->file = fopen(fs->filename, "a");
     FS_CHECK_NULL_FILE(fs->file, fs->filename);

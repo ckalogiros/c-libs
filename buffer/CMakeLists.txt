@@ -28,6 +28,8 @@ include_project(${parent_dir}/perf_timer/src)
 
 # 3. create executable with all the source files
 add_project_executable(buffer main.c)
+#add_executable(buffer main.c)
+
 
 # Debug: global properties
 print_all_registered()
