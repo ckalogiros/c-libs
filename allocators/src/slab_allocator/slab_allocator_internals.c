@@ -32,7 +32,10 @@ static struct mem_cache* mem_cache_table = NULL;
 /***************************************************************************************************
  * FOR DEBUG */
 static struct fs_t* fs_flist = NULL;
+/* output a debug file per mcache  */
 static struct fs_t* fs_mcaches[SLAB_SIZES_LEN] = {NULL};
+/* output one debug file and register all created mcaches  */
+static struct fs_t* fs_register_created_mcaches = NULL;
 
 #define DEBUG_FPRINT_MCACHE 1
 
@@ -40,13 +43,13 @@ static struct fs_t* fs_mcaches[SLAB_SIZES_LEN] = {NULL};
 #define fs_register_mcache_create(fs, mcache)\
     fs_append(fs,\
     "CREATE  : | "          \
-    " name: %s | "          \
+    " name: %014s | "       \
     " pages: %03u | "       \
     "capac: %05u | "        \
     "count: %03u | "        \
     "used: %03u | "         \
     "flist: %08x %08x\n",   \
-    mcache->name.buf,\
+    mcache->name.buf,       \
     mcache->slabs_num_pages,\
     mcache->slabs_capacity, \
     mcache->slabs_count,    \
@@ -57,6 +60,7 @@ static struct fs_t* fs_mcaches[SLAB_SIZES_LEN] = {NULL};
 #define fs_register_mcache_alloc_slab(fs, mcache)\
     fs_append(fs,\
     "ALLOCATE  : | "        \
+    " name: %014s | "       \
     " pages: %03u | "       \
     "capac: %05u | "        \
     "count: %03u | "        \
@@ -64,6 +68,7 @@ static struct fs_t* fs_mcaches[SLAB_SIZES_LEN] = {NULL};
     "flist: %08x %08x | "   \
     "free: %08x %08x | "    \
     "dif: %04llu bytes\n",  \
+    mcache->name.buf,       \
     mcache->slabs_num_pages,\
     mcache->slabs_capacity, \
     mcache->slabs_count,    \
@@ -76,6 +81,7 @@ static struct fs_t* fs_mcaches[SLAB_SIZES_LEN] = {NULL};
 #define fs_register_mcache_extend_alloc(fs, mcache, address)\
     fs_append(fs,\
     "EXTEND    : | "        \
+    " name: %014s | "       \
     " pages: %03u | "       \
     "capac: %05u | "        \
     "count: %03u | "        \
@@ -83,6 +89,7 @@ static struct fs_t* fs_mcaches[SLAB_SIZES_LEN] = {NULL};
     "flist: %08x %08x | "   \
     "addr: %08x %08x | "    \
     "dif: %04llu bytes\n",  \
+    mcache->name.buf,       \
     mcache->slabs_num_pages,\
     mcache->slabs_capacity, \
     mcache->slabs_count,    \
@@ -95,6 +102,7 @@ static struct fs_t* fs_mcaches[SLAB_SIZES_LEN] = {NULL};
 #define fs_register_mcache_release_slab(fs, mcache)\
     fs_append(fs,\
     "RELEASE   : | "        \
+    " name: %014s | "       \
     " pages: %03u | "       \
     "capac: %05u | "        \
     "count: %03u | "        \
@@ -102,6 +110,7 @@ static struct fs_t* fs_mcaches[SLAB_SIZES_LEN] = {NULL};
     "flist: %08x %08x | "   \
     "free: %08x %08x | "    \
     "dif: %04llu bytes\n",  \
+    mcache->name.buf,       \
     mcache->slabs_num_pages,\
     mcache->slabs_capacity, \
     mcache->slabs_count,    \
@@ -143,6 +152,7 @@ mem_cache_table_init(void)
 
     /* DEBUG-FPRINT */
     fs_flist = fs_create("allocators/slab_allocator_flist.txt");
+    fs_register_created_mcaches = fs_create("allocators/register_created_mcachestxt");
 }
 
 struct mem_cache*
@@ -188,6 +198,7 @@ mem_cache_create(const buffer_size_t buffer_size, const uint16 type_size, const 
         str_concat_memcpy(filename, "byte.txt", 64);
         fs_mcaches[mcache->idx] = fs_create(filename);
         fs_register_mcache_create(fs_mcaches[mcache->idx], mcache);
+        fs_register_mcache_create(fs_register_created_mcaches, mcache);
     }
 
 
@@ -200,7 +211,7 @@ mem_cache_create(const buffer_size_t buffer_size, const uint16 type_size, const 
         flist = flist->next;
     }
 
-    print_mem_cache_create(mcache);
+    // print_mem_cache_create(mcache);
 
     return mcache;
 }
@@ -229,10 +240,6 @@ mem_cache_extend_allocation(struct mem_cache* const mcache, const uint32 left_ov
     /* continue from the end of the last allocated slab address */
     char* ptr = mcache->last_slab_end;
 
-    /*
-     * last_slab_end + left_over_mem =
-     *
-     */
 
     /* check if the start of the new allocated address is in contiguity with last_slab_end */
     char* next_paged_aligned_address = (char*)ROUND_UP((uint64)mcache->last_slab_end, PAGE_SIZE);
@@ -240,7 +247,7 @@ mem_cache_extend_allocation(struct mem_cache* const mcache, const uint32 left_ov
     if(!mem_is_contiguous) ptr = address;
 
     /* build the slabs free list for the newlly allocatd memory */
-    if(mcache->slabs_free_list == NULL) mcache->slabs_free_list = (struct slab_flist*) ptr;
+    mcache->slabs_free_list = (struct slab_flist*) ptr;
     struct slab_flist* flist = mcache->slabs_free_list;
     while((uint64*) (ptr + slab_size) < (uint64*) (address + total_alloc_size)) {
         ptr += slab_size;
@@ -248,7 +255,8 @@ mem_cache_extend_allocation(struct mem_cache* const mcache, const uint32 left_ov
         flist = flist->next;
     }
 
-    /* avoid list getting an address pointer from the memory manager free list*/
+    /* avoid list getting an address pointer from the memory manager's free list */
+    /* MAYBE BUG: If we null the memman freelist then we have a bug */
     flist->next = NULL;
 
     /* DEBUG-FPRINT */
@@ -273,9 +281,13 @@ mem_cache_alloc_slab(struct mem_cache* mcache)
         mcache = mem_cache_extend_allocation(mcache, left_over_mem);
     }
 
+
     /* get next free slab */
     struct slab_flist* free = mcache->slabs_free_list;
     mcache->slabs_free_list = mcache->slabs_free_list->next;
+
+    mcache->last_slab_end = (char*)free + (mcache->slab_size);
+
 
     /* update mcache */
     mcache->slabs_used++;

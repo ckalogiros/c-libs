@@ -1,0 +1,25 @@
+#######################################
+impl: minimum mcache size = 8 bytes
+
+#######################################
+impl: mcache sizes restrictions:
+
+Question: How many cache sizes are we gonna allow to exist ???
+
+    1. on small sizes (up to atleast ~64 bytes), double the sizes [8, 16, 32, 64]
+        !disable any size!
+    2. on sizes <GREATER THAN> PAGE_SIZE(1024)
+        we must permit some level of differentiation
+        Ex. from 1024 we dont want to go to 2048,
+        but rather to something in between
+        OR
+        have mcaches be as many as the program requests
+
+
+ num_elems | type_size
+ 32                | 64
+ 64                | 32
+ 16                | 128
+ 128               | 16
+ 8                 | 256
+ 256               | 8

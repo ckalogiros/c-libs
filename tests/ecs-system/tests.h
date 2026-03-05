@@ -6,6 +6,11 @@
 #include "my_types.h"
 // #include "precision_timer.h"
 
+#define test_ecs_print_3_loops_test()\
+print("%stest:%s %sadd components in seperate loops%s\n", GREEN, CLEAR, ry, CLEAR);\
+print("%stest:%s %sall components in 1 loop%s\n", GREEN, CLEAR, ry, CLEAR);\
+print("%stest:%s %s1 component for all attributes in 1 loop%s\n", GREEN, CLEAR, ry, CLEAR);
+
 
 void
 test_create_entities(const uint32 count);
@@ -21,7 +26,7 @@ test_components_together_add(const uint32 count);
 
 
 struct timer;
-void test_perf_ecs_insert_to_comp_helper(const uint32 count, const uint32 repeat, struct timer* t);
+void test_perf_ecs_insert_to_comp_helper(const uint32 count, const uint32 repeat);
 
 
 

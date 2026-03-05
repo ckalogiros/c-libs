@@ -19,88 +19,10 @@
 #include "str_utils.h"
 
 
-/*
- * operations-helpers
- */
-
-struct perf_results {
-    uint32 fps;
-    uint32 nanosec;
-    uint32 microsec;
-    uint32 buffer_size;
-    uint32 type_size;
-    char* name;
-}
-static perf_results_buf[16];
-
-static uint32 perf_results_buf_cnt = 0;
 
 /*******************************************************************************
  * private
  ******************************************************************************/
-
-void
-perf_results_set(struct timer* t, const uint32 buffer_size, const char* name)
-{
-    perf_results_buf[perf_results_buf_cnt].fps = perf_timer_get_fps(t);
-    perf_results_buf[perf_results_buf_cnt].nanosec = perf_timer_get_avg(t);
-    perf_results_buf[perf_results_buf_cnt].microsec = perf_timer_get_avg(t);
-    perf_results_buf[perf_results_buf_cnt].buffer_size = buffer_size;
-    perf_results_buf[perf_results_buf_cnt].name = name;
-    perf_results_buf_cnt++;
-}
-
-void
-perf_print_timer_resuls(const struct perf_results* results,
-                        const uint32 results_cnt, const uint32 repeat)
-{
-    print("%s--- Perf Timer Results ---%s\n", CYAN, CLEAR);
-    print("repeat:%s%u%s", br2, repeat, CLEAR);
-
-    for(uint32 i = 0; i < results_cnt; i++) {
-        if(i % 2 != 0) {
-            print("test:%s[%u]%s", YELLOW, i, CLEAR);
-            print(
-                " buffer_size:%s%u%s"
-                " type_size:%s%u%s\n",
-                CYAN, results[i].buffer_size, CLEAR,
-                CYAN, results[i].type_size, CLEAR
-            );
-
-            print(" %s%s%s", GREEN, results[i - 1].name, CLEAR);
-            print(" vs %s%s%s\n", GREEN, results[i].name, CLEAR);
-
-            print(" avg: %d nano", results[i - 1].nanosec);
-            print(" avg: %ld micro\n", results[i - 1].nanosec / NANO_TO_MICRO);
-            print(" avg: %d nano", results[i].nanosec);
-            print(" avg: %ld micro\n", results[i].nanosec / NANO_TO_MICRO);
-        }
-    }
-}
-
-void
-timer_print(struct timer* t, const uint32 repeat,
-            const uint32 buffer_size, const uint32 type_size)
-{
-    print("%s--- Timer ---%s\n", CYAN, CLEAR);
-    const uint32_t fps = perf_timer_get_fps(t);
-    print("  fps: %d\n", fps);
-    const uint32_t avg = perf_timer_get_avg(t);
-    print("  avg: %d nanosec", avg);
-    print("  avg: %ld microsec\n", avg / NANO_TO_MICRO);
-    // perf_timer_reset(t);
-
-    print(
-        "  repeat: %s%u%s"
-        "  buffer_size: %s%u%s"
-        "  type_size: %s%u%s\n",
-        CYAN, repeat, CLEAR,
-        CYAN, buffer_size, CLEAR,
-        CYAN, type_size, CLEAR
-    );
-
-    print("%s--- Timer ---%s\n", CYAN, CLEAR);
-}
 
 static void
 fill(buffer_t* const buffer)
@@ -151,8 +73,8 @@ perf_test_buffer_create_generic_vs_uint32(void)
     timer_init_table();
     struct timer* t = timer_create_perf_timer();
 
-    const uint32 repeat = 5000000;
-    // const uint32 repeat = 5000;
+    // const uint32 repeat = 5000000;
+    const uint32 repeat = 5000;
     const uint32 type_size = sizeof(uint32);
 
 
@@ -167,9 +89,12 @@ perf_test_buffer_create_generic_vs_uint32(void)
             buffer_t* buffer = buffer_create_uint32(capacity);
             buffer_destroy(buffer);
         }
-        perf_timer_stop_with_count(repeat, t);
-        perf_results_set(t, capacity, "buffer uint32");
-        // timer_print(t, repeat, capacity, sizeof(uint32));
+        perf_timer_stop(t);
+        perf_timer_print(timer_print_config((timer_print_params){
+            .t = t, .repeat = repeat, .buf_capacity = capacity,
+            .flags = PERF_T_ALL | PERF_T_USE_REPEAT | PERF_T_USE_BUF_CAPACITY
+            // .flags = PERF_T_ALL | PERF_T_USE_REPEAT
+        }));
         perf_timer_reset(t);
     }
     { // test: generic
@@ -180,9 +105,12 @@ perf_test_buffer_create_generic_vs_uint32(void)
             buffer_t* buffer = buffer_create_gentype(capacity, type_size);
             buffer_destroy(buffer);
         }
-        perf_timer_stop_with_count(repeat, t);
-        perf_results_set(t, capacity, "buffer generic");
-        // timer_print(t, repeat, capacity, sizeof(uint32));
+        perf_timer_stop(t);
+        perf_timer_print(timer_print_config((timer_print_params){
+            .t = t, .repeat = repeat, .buf_capacity = capacity,
+            .flags = PERF_T_ALL | PERF_T_USE_REPEAT | PERF_T_USE_BUF_CAPACITY
+            // .flags = PERF_T_ALL | PERF_T_USE_REPEAT
+        }));
         perf_timer_reset(t);
     }
 
@@ -198,9 +126,12 @@ perf_test_buffer_create_generic_vs_uint32(void)
             buffer_t* buffer = buffer_create_uint32(capacity);
             buffer_destroy(buffer);
         }
-        perf_timer_stop_with_count(repeat, t);
-        perf_results_set(t, capacity, "buffer uint32");
-        // timer_print(t, repeat, capacity, sizeof(uint32));
+        perf_timer_stop(t);
+        perf_timer_print(timer_print_config((timer_print_params){
+            .t = t, .repeat = repeat, .buf_capacity = capacity,
+            .flags = PERF_T_ALL | PERF_T_USE_REPEAT | PERF_T_USE_BUF_CAPACITY
+            // .flags = PERF_T_ALL | PERF_T_USE_REPEAT
+        }));
         perf_timer_reset(t);
     }
     { // test: buffer capacity 64
@@ -209,12 +140,15 @@ perf_test_buffer_create_generic_vs_uint32(void)
 
         perf_timer_start(t);
         for(uint32 i = 0; i < repeat; i++) {
-            buffer_t* buffer = buffer_create_uint32(capacity);
+            buffer_t* buffer = buffer_create_gentype(capacity, type_size);
             buffer_destroy(buffer);
         }
-        perf_timer_stop_with_count(repeat, t);
-        perf_results_set(t, capacity, "buffer generic");
-        // timer_print(t, repeat, capacity, type_size);
+        perf_timer_stop(t);
+        perf_timer_print(timer_print_config((timer_print_params){
+            .t = t, .repeat = repeat, .buf_capacity = capacity,
+            .flags = PERF_T_ALL | PERF_T_USE_REPEAT | PERF_T_USE_BUF_CAPACITY
+            // .flags = PERF_T_ALL | PERF_T_USE_REPEAT
+        }));
         perf_timer_reset(t);
     }
 
@@ -230,9 +164,12 @@ perf_test_buffer_create_generic_vs_uint32(void)
             buffer_t* buffer = buffer_create_uint32(capacity);
             buffer_destroy(buffer);
         }
-        perf_timer_stop_with_count(repeat, t);
-        perf_results_set(t, capacity, "buffer uint32");
-        // timer_print(t, repeat, capacity, sizeof(uint32));
+        perf_timer_stop(t);
+        perf_timer_print(timer_print_config((timer_print_params){
+            .t = t, .repeat = repeat, .buf_capacity = capacity,
+            .flags = PERF_T_ALL | PERF_T_USE_REPEAT | PERF_T_USE_BUF_CAPACITY
+            // .flags = PERF_T_ALL | PERF_T_USE_REPEAT
+        }));
         perf_timer_reset(t);
     }
     { // test: buffer capacity 128
@@ -241,12 +178,15 @@ perf_test_buffer_create_generic_vs_uint32(void)
 
         perf_timer_start(t);
         for(uint32 i = 0; i < repeat; i++) {
-            buffer_t* buffer = buffer_create_uint32(capacity);
+            buffer_t* buffer = buffer_create_gentype(capacity, type_size);
             buffer_destroy(buffer);
         }
-        perf_timer_stop_with_count(repeat, t);
-        perf_results_set(t, capacity, "buffer generic");
-        // timer_print(t, repeat, capacity, type_size);
+        perf_timer_stop(t);
+        perf_timer_print(timer_print_config((timer_print_params){
+            .t = t, .repeat = repeat, .buf_capacity = capacity,
+            .flags = PERF_T_ALL | PERF_T_USE_REPEAT | PERF_T_USE_BUF_CAPACITY
+            // .flags = PERF_T_ALL | PERF_T_USE_REPEAT
+        }));
         perf_timer_reset(t);
     }
 
@@ -263,9 +203,12 @@ perf_test_buffer_create_generic_vs_uint32(void)
             buffer_t* buffer = buffer_create_uint32(capacity);
             buffer_destroy(buffer);
         }
-        perf_timer_stop_with_count(repeat, t);
-        perf_results_set(t, capacity, "buffer uint32");
-        // timer_print(t, repeat, capacity, sizeof(uint32));
+        perf_timer_stop(t);
+        perf_timer_print(timer_print_config((timer_print_params){
+            .t = t, .repeat = repeat, .buf_capacity = capacity,
+            .flags = PERF_T_ALL | PERF_T_USE_REPEAT | PERF_T_USE_BUF_CAPACITY
+            // .flags = PERF_T_ALL | PERF_T_USE_REPEAT
+        }));
         perf_timer_reset(t);
     }
     { // test: buffer capacity 256
@@ -274,17 +217,17 @@ perf_test_buffer_create_generic_vs_uint32(void)
 
         perf_timer_start(t);
         for(uint32 i = 0; i < repeat; i++) {
-            buffer_t* buffer = buffer_create_uint32(capacity);
+            buffer_t* buffer = buffer_create_gentype(capacity, type_size);
             buffer_destroy(buffer);
         }
-        perf_timer_stop_with_count(repeat, t);
-        perf_results_set(t, capacity, "buffer generic");
-        // timer_print(t, repeat, capacity, type_size);
+        perf_timer_stop(t);
+        perf_timer_print(timer_print_config((timer_print_params){
+            .t = t, .repeat = repeat, .buf_capacity = capacity,
+            .flags = PERF_T_ALL | PERF_T_USE_REPEAT | PERF_T_USE_BUF_CAPACITY
+            // .flags = PERF_T_ALL | PERF_T_USE_REPEAT
+        }));
         perf_timer_reset(t);
     }
-
-
-    perf_print_timer_resuls(perf_results_buf, perf_results_buf_cnt, repeat);
 
     memman_terminate();
 }
@@ -337,10 +280,11 @@ perf_test_buffer_remove_insert(void)
             remove_from(buffer, j);
         }
     }
-    perf_timer_stop_with_count(repeat * buffer->capacity, t);
+    perf_timer_stop(t);
     perf_timer_print(timer_print_config((timer_print_params){
-        .t = t, .repeat = repeat, .buf_capacity = buffer->capacity,
-        .flags = PERF_T_COMMON | PERF_T_INLINE
+        .t = t, .repeat = repeat, .buf_capacity = capacity,
+        .flags = PERF_T_ALL | PERF_T_USE_REPEAT | PERF_T_USE_BUF_CAPACITY
+        // .flags = PERF_T_ALL | PERF_T_USE_REPEAT
     }));
     perf_timer_reset(t);
 
@@ -362,16 +306,13 @@ perf_test_buffer_remove_insert(void)
             insert_at(v, buffer, j);
         }
     }
-    perf_timer_stop_with_count(repeat * buffer->capacity, t);
+    perf_timer_stop(t);
     perf_timer_print(timer_print_config((timer_print_params){
-        .t = t, .repeat = repeat, .buf_capacity = buffer->capacity,
-        .flags = PERF_T_COMMON | PERF_T_INLINE | PERF_T_IN_CONTINUATION
+        .t = t, .repeat = repeat, .buf_capacity = capacity,
+        .flags = PERF_T_ALL | PERF_T_USE_REPEAT | PERF_T_USE_BUF_CAPACITY
+        // .flags = PERF_T_ALL | PERF_T_USE_REPEAT
     }));
     perf_timer_reset(t);
-
-    // buffer_print_uint32((buffer_print_config((buffer_print_p){
-    //     .buffer = buffer, .print_num_elems = buffer->capacity
-    // })));
 
     memman_terminate();
 }
@@ -428,8 +369,13 @@ perf_test_insert_abstruct_call(void)
                 push_abstructed(buffer, i, 1);
             }
         }
-        perf_timer_stop_with_count(repeat * len, t);
-        timer_print(t, repeat, len, sizeof(buffer->data[0]));
+        perf_timer_stop(t);
+        perf_timer_print(timer_print_config((timer_print_params){
+            .t = t, .repeat = repeat, .buf_capacity = len,
+            .flags = PERF_T_ALL | PERF_T_USE_REPEAT | PERF_T_USE_BUF_CAPACITY
+            // .flags = PERF_T_ALL | PERF_T_USE_REPEAT
+        }));
+        perf_timer_reset(t);
 
 
         buffer->tail = -1;
@@ -445,16 +391,16 @@ perf_test_insert_abstruct_call(void)
                 buffer->count++;
             }
         }
-        perf_timer_stop_with_count(repeat * len, t);
-        timer_print(t, repeat, len, sizeof(buffer->data[0]));
+        perf_timer_stop(t);
+        perf_timer_print(timer_print_config((timer_print_params){
+            .t = t, .repeat = repeat, .buf_capacity = len,
+            .flags = PERF_T_ALL | PERF_T_USE_REPEAT | PERF_T_USE_BUF_CAPACITY
+            // .flags = PERF_T_ALL | PERF_T_USE_REPEAT
+        }));
+        perf_timer_reset(t);
     }
 
     print("%s-- TEST: --\n", ry, CLEAR);
-
-    /*
-     * Results
-
-     */
 
     memman_terminate();
 }
@@ -537,8 +483,13 @@ perf_test_buffer_find_tail(void)
                 buffer_free_elem(buffer, i);
             }
         }
-        perf_timer_stop_with_count(repeat * capacity, t);
-        timer_print(t, repeat, capacity, sizeof(uint32));
+        perf_timer_stop(t);
+        perf_timer_print(timer_print_config((timer_print_params){
+            .t = t, .repeat = repeat, .buf_capacity = capacity,
+            .flags = PERF_T_ALL | PERF_T_USE_REPEAT | PERF_T_USE_BUF_CAPACITY
+            // .flags = PERF_T_ALL | PERF_T_USE_REPEAT
+        }));
+        perf_timer_reset(t);
     }
     // capacity 128
     {
@@ -558,8 +509,13 @@ perf_test_buffer_find_tail(void)
                 buffer_free_elem(buffer, i);
             }
         }
-        perf_timer_stop_with_count(repeat * capacity, t);
-        timer_print(t, repeat, capacity, sizeof(uint32));
+        perf_timer_stop(t);
+        perf_timer_print(timer_print_config((timer_print_params){
+            .t = t, .repeat = repeat, .buf_capacity = capacity,
+            .flags = PERF_T_ALL | PERF_T_USE_REPEAT | PERF_T_USE_BUF_CAPACITY
+            // .flags = PERF_T_ALL | PERF_T_USE_REPEAT
+        }));
+        perf_timer_reset(t);
     }
     // capacity 256
     {
@@ -579,8 +535,13 @@ perf_test_buffer_find_tail(void)
                 buffer_free_elem(buffer, i);
             }
         }
-        perf_timer_stop_with_count(repeat * capacity, t);
-        timer_print(t, repeat, capacity, sizeof(uint32));
+        perf_timer_stop(t);
+        perf_timer_print(timer_print_config((timer_print_params){
+            .t = t, .repeat = repeat, .buf_capacity = capacity,
+            .flags = PERF_T_ALL | PERF_T_USE_REPEAT | PERF_T_USE_BUF_CAPACITY
+            // .flags = PERF_T_ALL | PERF_T_USE_REPEAT
+        }));
+        perf_timer_reset(t);
     }
     // capacity 512
     {
@@ -600,8 +561,13 @@ perf_test_buffer_find_tail(void)
                 buffer_free_elem(buffer, i);
             }
         }
-        perf_timer_stop_with_count(repeat * capacity, t);
-        timer_print(t, repeat, capacity, sizeof(uint32));
+        perf_timer_stop(t);
+        perf_timer_print(timer_print_config((timer_print_params){
+            .t = t, .repeat = repeat, .buf_capacity = capacity,
+            .flags = PERF_T_ALL | PERF_T_USE_REPEAT | PERF_T_USE_BUF_CAPACITY
+            // .flags = PERF_T_ALL | PERF_T_USE_REPEAT
+        }));
+        perf_timer_reset(t);
     }
 
 
@@ -619,6 +585,8 @@ perf_test_buffer_find_tail(void)
 #else
 #define custom_fs_append(fs_debug_mem, start, total_size, message)
 #endif
+
+
 void
 perf_test_buffer_mixed_capacities_add(void)
 {
@@ -649,8 +617,18 @@ perf_test_buffer_mixed_capacities_add(void)
     };
 
     const uint32 type_size = sizeof(struct node);
-    // const uint32 capacities[]   = {16, 16, 64, 16};
-    const uint32 capacities[] = {64, 64, 64, 16};
+    // const uint32 capacities[] = {32, 32, 16, 32}; // tested: OK
+    // const uint32 capacities[] = {30, 30, 16, 30}; // tested: OK
+    // const uint32 capacities[] = {12, 12, 12, 12, 12, 30, 12, 12}; // tested: OK
+    // const uint32 capacities[] = {12, 12, 12, 12, 12, 4, 12, 12, 4, 4, 4, 4, 4, 4, 4, 4 }; // tested: OK
+    // const uint32 capacities[] = {3, 4, 2, 3, 4, 2, 3, 4, 2, 3, 4, 2, 3, 4, 2, 3, 4, 2,}; // tested: OK
+    // const uint32 capacities[] = {
+    //     3, 4, 2,  3, 4, 2,
+    //     3, 4, 2,  3, 4, 2,
+    //     3, 4, 2,  3, 4, 2,
+    //     3, 4, 2,  3, 4, 2,
+    // }; // tested: OK
+    const uint32 capacities[] = {36, 36, 36, 58, 36}; // tested: OK
     const uint32 num_buffers = ARRAY_LENGTH(capacities);
 
 
@@ -665,12 +643,12 @@ perf_test_buffer_mixed_capacities_add(void)
 
     for(uint32 testcnt = 0; testcnt < num_buffers; testcnt++) {
         fs_append(fs_debug_mem,
-                  "\n\n**********************************************"
-                  "**************************************************"
-                  "**************************************************\n"
-                  "test:%u\n buffers capacity:%u",
-                  id++, capacities[testcnt]
+                  "\n\n********************************\n"
+                  "test:%u\n buffers capacity:%u\n"
+                  "********************************\n",
+                  id, capacities[testcnt]
         );
+        id++;
 
         /*******************************************************************************************
          * create and fill buffer objects
@@ -1346,13 +1324,11 @@ perf_test_buffer_with_children_in_dif_slabs(void)
         print("sum:%u\n", sum);
 
 
-        // perf_timer_stop_with_count(repeat * buffer->capacity, t);
         perf_timer_stop(t);
         perf_timer_print(timer_print_config((timer_print_params){
             .t = t, .repeat = repeat, .buf_capacity = 0,
             .flags = PERF_T_ALL | PERF_T_USE_REPEAT
         }));
-        // .flags = PERF_T_COMMON|PERF_T_INLINE|PERF_T_USE_REPEAT }));
 
         print("perf with total buffers accesses:%u\n", num_buffer_elems);
 

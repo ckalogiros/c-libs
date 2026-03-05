@@ -1,0 +1,59 @@
+/home/ckalo/data/projects/clion/tests/cmake-build-debug/ecs-system/ecs
+TEST: test_perf_ecs_insert_to_comp_helper
+
+entinties, color, position, scale buffers capacity = 4096 elements
+
+
+# INITIALIZE MEMORY #
+
+-- memory --
+ size bytes:  526336, 514kb
+ data size:   524288, 512kb
+ num chunks:  16
+ total pages: 512
+ page size:   1024
+ mem start:      424000
+ chunks start:   424020
+ data start:     424400
+ data last page: 4a4000
+ last page:      4a4400
+ unauth page:    4a4800
+
+test: add components in seperate loops
+test: all components in 1 loop
+test: 1 component for all attributes in 1 loop
+Entities count:128
+  count: 1  repeat: 100000  fps: 193386
+  avg: 5171 nano  avg: 5 micro
+  count: 1  repeat: 100000  fps: 251572
+  avg: 3975 nano  avg: 3 micro
+  count: 1  repeat: 100000  fps: 464900
+  avg: 2151 nano  avg: 2 micro
+Entities count:256
+  count: 1  repeat: 100000  fps: 100806
+  avg: 9920 nano  avg: 9 micro
+  count: 1  repeat: 100000  fps: 129148
+  avg: 7743 nano  avg: 7 micro
+  count: 1  repeat: 100000  fps: 234686
+  avg: 4261 nano  avg: 4 micro
+Entities count:512
+  count: 1  repeat: 100000  fps: 50456
+  avg: 19819 nano  avg: 19 micro
+  count: 1  repeat: 100000  fps: 64316
+  avg: 15548 nano  avg: 15 micro
+  count: 1  repeat: 100000  fps: 117550
+  avg: 8507 nano  avg: 8 micro
+Entities count:1024
+  count: 1  repeat: 100000  fps: 24926
+  avg: 40118 nano  avg: 40 micro
+  count: 1  repeat: 100000  fps: 32087
+  avg: 31165 nano  avg: 31 micro
+  count: 1  repeat: 100000  fps: 58630
+  avg: 17056 nano  avg: 17 micro
+Entities count:2048
+  count: 1  repeat: 100000  fps: 27887
+  avg: 35858 nano  avg: 35 micro
+  count: 1  repeat: 100000  fps: 52048
+  avg: 19213 nano  avg: 19 micro
+  count: 1  repeat: 100000  fps: 29519
+  avg: 33876 nano  avg: 33 micro

@@ -26,7 +26,7 @@ if(file == NULL) {\
     my_exit("fs_init()\nFailed to open file", __FILE__, __LINE__);\
 }
 
-#define dprint print
+// #define dprint print
 #define dprint
 
 enum FILE_FLAGS {
@@ -232,7 +232,7 @@ fs_append_mem(struct fs_t* fs, const char* ptr, const uint64 size, const char* m
 
         /* print memory address (per line) */
         if((i % line_size) == 0) {
-            fprintf(fs->file, "%08x %08x |",
+            fprintf(fs->file, "%08llx %08llx |",
                     ((uint64)mem_address >> 32),
                     ((uint64)mem_address & 0xFFFFFFFF));
             mem_address+=line_size;

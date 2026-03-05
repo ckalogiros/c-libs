@@ -76,8 +76,8 @@ enum SLAB_ALLOCATOR_ERROR_CODE {
     SLAB_ALLOC_MEMCACHE_NO_INIT,
 };
 
-typedef uint16 buffer_size_t;
-typedef uint16 slab_size_t;
+typedef uint16 buffer_size_t; // MAX:65535
+typedef uint32 slab_size_t;
 typedef uint16 offset16_t;
 
 
@@ -88,23 +88,23 @@ struct slab_flist {
 
 
 
+
 struct mem_cache {
     struct slab_flist* slabs_free_list;
     void* slabs_start;     // the start of slabs alocated memory
-    void* last_slab_end;     // the start of slabs alocated memory
-    uint16 slab_size;      // each slab's size in bytes
+    void* last_slab_end;   // the start of slabs alocated memory
+    slab_size_t slab_size; // each slab's size in bytes
     uint16 type_size;      // the stored objects type
     uint16 slabs_capacity; // total slabs count
     uint16 slabs_count;    // used/unused slabs count
     uint16 slabs_used;     // used slabs count
     uint16 slabs_num_pages; // number of pages of all the slabs
+    struct memhnd_t mem_handle;
     uint8 idx;             // index in the mcaches table
     uint8 is_active;       // the stored objects type
-    struct memhnd_t mem_handle;
 
     char_buf16_t name; // todo: later use indexed string buffer
 };
-
 
 static void
 slab_alloc_print_structs_sizes(void)

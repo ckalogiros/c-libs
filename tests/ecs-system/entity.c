@@ -8,7 +8,7 @@
 #include "buffer_struct.h"
 #include "logger.h"
 
-#define MIN_CAPACITY 1024
+#define MIN_CAPACITY 4096
 
 
 static uint32 id_cnt = 0;
@@ -48,9 +48,8 @@ print_entities()
 {
     uint32* data = entity_table->data;
     for(uint32 i = 0; i <= entity_table->tail; i++) {
-        if(i%5==0) print("\n[%u]\n", i);
-        print(
-            " %u", data[i]
-        );
+        print(" %02u", data[i]);
+        // if((i+5)%5==0) print("\n[%u]\n", i);
+        if((i+5)%5==0) print("\n", i);
     }
 }

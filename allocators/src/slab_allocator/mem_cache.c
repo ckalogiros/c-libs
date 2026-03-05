@@ -19,9 +19,6 @@ mem_cache_alloc_buffer(const buffer_size_t buffer_size, const uint16 type_size, 
     // get next free slab
     struct slab_flist* free_slab = mem_cache_alloc_slab(mcache);
 
-    // print_mem_cache_struct(mcache);
-    // print_slabs_free_list(mcache->slabs_free_list);
-
     return (void*) free_slab;
 }
 
