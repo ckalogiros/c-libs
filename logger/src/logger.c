@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
-
 #include "sys_utils.h"
 
 void
@@ -58,9 +57,9 @@ print_test_result(const char* test_name, bool passed, const char* file, int line
     const uint32 keep_chars = (path_len > 20) ? 20 : path_len;
     const char* path = &(file[path_len-keep_chars]);
     if(passed) {
-        printf("%s[PASS]%s %s%s%s \"at %s:%d\" msg:%s", GREEN, CLEAR, br3, test_name, CLEAR, path, line, msg);
+        printf("%s[PASS]%s %s%s%s %s \"at %s:%d\"", GREEN, CLEAR, br3, test_name, CLEAR, msg, path, line);
     } else {
-        printf("%s[FAIL]%s %s%s%s \"at %s:%d\" msg:%s", RED, CLEAR, br3, test_name, CLEAR, path, line, msg);
+        printf("%s[FAIL]%s %s%s%s %s \"at %s:%d\"", RED, CLEAR, br3, test_name, CLEAR, msg, path, line);
     }
     printf("\n");
 }

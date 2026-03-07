@@ -6,6 +6,7 @@
 #include "mem_structs.h"
 #include "mem_man_interface.h"
 #include "logger.h"
+#include "sys_utils.h"
 
 
 #define DEBUG_PRINT_MEM
@@ -13,16 +14,6 @@
 #define DEBUG_HTML_DIR "/data/projects/clion/memory/memory_debug.html"
 
 
-
-void logger_to_html_init(void)
-{
-    // printhtml_init(DEBUG_HTML_DIR);
-}
-void logger_to_html_destroy(void)
-{
-    // printhtml_close(DEBUG_HTML_DIR);
-    // printhtml_destroy();
-}
 
 void
 mem_log_print_init_mem(void)
@@ -48,23 +39,15 @@ mem_log_print_mem(const struct mem* const mem)
     print(
         " size bytes:  %s%lu, %lukb%s\n"
         " data size:   %s%lu, %lukb%s\n"
-        " num chunks:  %s%u%s\n"
         " total pages: %s%u%s\n"
-        " page size:   %s%u%s\n"
         " mem start:      %s%x%s\n"
-        " chunks start:   %s%x%s\n"
         " data start:     %s%x%s\n"
-        " data last page: %s%x%s\n"
         " last page:      %s%x%s\n"
         " unauth page:    %s%x%s\n",
         YELLOW, mem->size, mem->size/PAGE_SIZE, CLEAR,
         YELLOW, mem->data_size, mem->data_size/PAGE_SIZE, CLEAR,
-        YELLOW, mem->chunks_count, CLEAR,
-        YELLOW, mem->chunks_count * PAGES_PER_CHUNK, CLEAR,
-        YELLOW, PAGE_SIZE, CLEAR,
+        YELLOW, mem->num_pages, CLEAR,
         CYAN, REDUCE_ADDR((char*)mem->start, F6), CLEAR,
-        CYAN, REDUCE_ADDR((char*)MEM_GET_CHUNKS_TABLE_START, F6), CLEAR,
-        CYAN, REDUCE_ADDR((char*)mem->start + mem->self_size, F6), CLEAR,
         CYAN, REDUCE_ADDR((char*)mem->start + mem->data_size, F6), CLEAR,
         CYAN, REDUCE_ADDR((char*)mem->start + mem->size - mem->bound_check_size, F6), CLEAR,
         CYAN, REDUCE_ADDR((char*)mem->start + mem->size, F6), CLEAR
@@ -75,51 +58,27 @@ mem_log_print_mem(const struct mem* const mem)
 #endif
 }
 
-void
-mem_log_print_free_list_of_chunk(const memid_t chunk_id)
-{
-#ifdef DEBUG_PRINT_MEM
-    print("-- %sfree list chunk id:%u%s --\n", ry, chunk_id, CLEAR);
-    const struct flist* flist = flist_table_get_head(chunk_id);
-    uint32 k = 0;
-    while(flist) {
-        print(
-            "[%s%u%s]"
-            " addr:%s%x%s"
-            " color:%s%s%s\n",
-            // " id:%s%u%s\n",
-            CYAN, k, CLEAR,
-            // CYAN, (uint64)(flist)&F4, CLEAR,
-            CYAN, REDUCE_ADDR(flist,F6), CLEAR,
-            CYAN, FREE_LIST_GET_PAGE_COLOR_START(flist), CLEAR
-            // br2, (uint64)(flist->next)&F6, CLEAR
-        );
-        flist = flist->next;
-        k++;
-        if(k>1000) break; // avoid infinite loop
-    }
-    print("free pages:%s%u%s  bytesize:%s%u%s\n", YELLOW, k, CLEAR, YELLOW, k * PAGE_SIZE, CLEAR);
-    // print("-- %sfree list%s --\n\n", ry, CLEAR);
-#endif
-}
 
 void
-mem_log_print_free_list_table(void)
+mem_log_print_free_list(const memid_t memid)
 {
 #ifdef DEBUG_PRINT_MEM
     print("-- %sfree list heads table%s --\n", ry, CLEAR);
 
-    struct flist** ftable = debug_free_list_table_get();
-    const uint16 chunks_count = debug_mem_get_chunks_count();
+    struct flist* flist = mem_table_get_head(memid);
 
-    for(uint32 i = 0; i < chunks_count; i++) {
+    if(!flist)
+        print("head = %sNULL%s\n", YELLOW, CLEAR);
+
+    uint32 i = 0;
+    while(flist) {
         print(
             "[%s%u%s]"
             " addr:%s%x%s\n",
             CYAN, i, CLEAR,
-            CYAN, (uint64)(ftable[i])&F6, CLEAR
-            // br2, (uint64)(flist->next)&F6, CLEAR
-        );
+            CYAN, (uint64)REDUCE_ADDR(flist,F6), CLEAR);
+        flist = flist->next;
+        i++;
     }
 #endif
 }
@@ -134,7 +93,7 @@ mem_print_mem_alloc(void* allocated_addr, const struct memhnd_t hnd)
       ry, CLEAR,
       YELLOW, hnd.page_id, CLEAR,
       br1, allocated_addr, CLEAR,
-      br2, flist_table_get_head(hnd.chunk_id), CLEAR
+      br2, mem_table_get_head(hnd.mem_id), CLEAR
       );
 }
 
@@ -144,11 +103,11 @@ mem_print_mem_release(void* released_addr, const struct memhnd_t hnd)
     print("%smem_release()%s"
           " page:%s%u%s"
           " addr:%s%x%s"
-          " nextFree:%s%x%s\n",
+          " head:%s%x%s\n",
           ry, CLEAR,
           YELLOW, hnd.page_id, CLEAR,
           br1, released_addr, CLEAR,
-          br2, flist_table_get_head(hnd.chunk_id), CLEAR
+          br2, mem_table_get_head(hnd.mem_id), CLEAR
           );
 }
 
@@ -178,6 +137,7 @@ mem_print_error(const enum MEMORY_ERROR_CODE code)
                   "There is no free memory%s\n",
                   RED, CLEAR
             );
+            my_exit("NO FREE MEMORY", __FILE__, __LINE__);
             break;
         }
         case MEMMAN_ALREADY_INITIALIZED: {
@@ -207,6 +167,15 @@ mem_print_error(const enum MEMORY_ERROR_CODE code)
                   "Freeing memory failed%s\n",
                   RED, CLEAR
             );
+            break;
+        }
+        case FREE_PAGE_ALREADY_FREED: {
+            print("%sERROR:\n"
+                  "Freeing memory pages are already freed%s\n",
+                  RED, CLEAR
+            );
+            my_exit("TRYING TO RELEASE AN ALREADY RELEASED MEM PAGE", __FILE__, __LINE__);
+
             break;
         }
     }

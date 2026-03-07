@@ -170,7 +170,7 @@ mem_cache_create(const buffer_size_t buffer_size, const uint16 type_size, const 
 
     /* allocate memory */
     struct mem_cache* mcache = mem_cache_get_next_free_cache();
-    const struct memhnd_t hnd = memman_alloc_pages(requested_num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
+    const struct memhnd_t hnd = memman_alloc_pages(requested_num_pages, MEM_ID_ALLOCATOR_SLAB);
     char* ptr = (char*) memman_get_alloc_mem_by_handle(hnd);
     memset(ptr, 0x0, requested_num_pages * PAGE_SIZE);
 
@@ -228,7 +228,7 @@ mem_cache_extend_allocation(struct mem_cache* const mcache, const uint32 left_ov
     const uint32 slabs_capacity = (requested_num_pages * PAGE_SIZE) / slab_size;
 
     /* allocate memory */
-    const struct memhnd_t hnd = memman_alloc_pages(requested_num_pages, MEM_CHUNK_ALLOCATOR_SLAB);
+    const struct memhnd_t hnd = memman_alloc_pages(requested_num_pages, MEM_ID_ALLOCATOR_SLAB);
     void* address = memman_get_alloc_mem_by_handle(hnd);
     memset(address, 0x0, requested_num_pages);
 

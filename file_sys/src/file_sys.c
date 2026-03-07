@@ -16,6 +16,7 @@
 #include "logger.h"
 #include "mem_man_internals.h"
 #include "sys_utils.h"
+#include "mem_structs.h"
 
 #define MAX_FILES_TABLE 16
 #define MAX_BUFFER 1024
@@ -276,28 +277,17 @@ fs_fprint_all_allocated_mem(const char* filename)
     fs->file = fopen(fs->filename, "a");
     FS_CHECK_NULL_FILE(fs->file, fs->filename);
 
-    /* define memory boundaries */
-    const char* mem_address = debug_mem_get_start_address();
-    const uint64 size = debug_mem_get_size();
+    /* print all allocated memory from mem table */
+    const struct mem* mem_table = debug_mem_get_table();
+    const uint32 mem_table_count = debug_mem_get_table_count();
+    for(uint32 i = 0; i < mem_table_count; i++) {
 
-    fs_append_mem(fs, mem_address, size, "");
+        const char* mem_address = mem_table[i].start;
+        const uint64 size = mem_table[i].size;
+        fs_append_mem(fs, mem_address, size, "");
 
-}
-
-void
-fs_fprint_chunk_mem(const char* filename, const uint16 chunk_id)
-{
-    assert(chunk_id>=0 && chunk_id<NUM_CHUNKS);
-
-    struct fs_t* fs = fs_create(filename);
-    fs->file = fopen(fs->filename, "a");
-    FS_CHECK_NULL_FILE(fs->file, fs->filename);
-
-    /* define memory boundaries */
-    const char* mem_address = debug_mem_get_start_address();
-    const char* flist_head = flist_peek_next_free_page(chunk_id);
-    const uint64 size = (uint64)flist_head - (uint64)mem_address;
-
-    fs_append_mem(fs, mem_address, size, "fs_fprint_chunk_mem()");
+    }
 
 }
+
+

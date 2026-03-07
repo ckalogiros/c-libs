@@ -28,6 +28,5 @@ void fs_append(struct fs_t* fs, const char* format, ...);
 //
 void fs_append_mem(struct fs_t* fs, const char* ptr, const uint64 size, const char* msg);
 void fs_fprint_all_allocated_mem(const char* filename);
-void fs_fprint_chunk_mem(const char* filename, const uint16 chunk_id);
 
 #endif //FILE_SYS_FILE_SYS_INTERFACE_H

@@ -6,23 +6,14 @@
 
 
 #include "my_types.h"
+#include "mem_structs.h"
 
 #define NUM_CHUNKS 16
 #define PAGE_SIZE 1024
 
-
-/* *************************************
- * bitfield for chunk_id, page_id, etc */
-typedef uint32 memids_t;
-
-/* *********************************
- * max type of an id of a bitfield
- * (chunk_id, page_id, etc) */
-typedef uint16 memid_t;
-
-
-enum MEM_CHUNK_SELECTOR {
-    MEM_CHUNK_ALLOCATOR_SLAB = 0,
+enum MEM_ID_SELECTOR {
+    MEM_ID_SELF_MEM_STORAGE = 0,
+    MEM_ID_ALLOCATOR_SLAB,
     // leave initial chunks for specific allocators
     MEM_CHUNK_ANY = NUM_CHUNKS - 1,
 };
@@ -35,14 +26,15 @@ enum MEMORY_ERROR_CODE {
     ALLOC_NOT_CONTIGUOUS_MEM = BIT_MASK_FROM_UINT(4),
     MEMORY_IS_IN_USE = BIT_MASK_FROM_UINT(5),
     FREE_MEMORY_FAILED = BIT_MASK_FROM_UINT(6),
+    FREE_PAGE_ALREADY_FREED = BIT_MASK_FROM_UINT(7),
 };
 
 
 /* ************************************
  * allocation's return type to caller */
 struct memhnd_t {
-    memid_t chunk_id;
-    memid_t page_id;
+    memid_t mem_id;
+    pageid_t page_id;
     memid_t num_pages;
 };
 
@@ -54,7 +46,7 @@ void memman_init(void);
 
 void memman_terminate(void);
 
-struct memhnd_t memman_alloc_pages(const uint16 num_pages, enum MEM_CHUNK_SELECTOR);
+struct memhnd_t memman_alloc_pages(const uint16 num_pages, enum MEM_ID_SELECTOR);
 
 bool memman_release(const struct memhnd_t hnd);
 
