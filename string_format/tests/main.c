@@ -2,11 +2,10 @@
  * Created by ckalo on 3/9/26.
  */
 
-#define NUM_PAGES 10
-#define CHAR_NUM_ELEMENTS (NUM_PAGES * PAGE_SIZE)
+
 #include "logger.h"
 #include "mem_man_interface.h"
-#include "string_format.h"
+#include "../src/string_format.h"
 #include "string_internals.h"
 
 

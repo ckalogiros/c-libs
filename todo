@@ -1,9 +1,9 @@
 
 #################################################################################
-write a function to format text and variable values.
-use the string container to do that.
-so we can create any text from any program variable,
-for printing or file printing
+implement a generic pool allocator for use of:
+ large text
+ large objects that do nnot need locality(aren't important)
+ any other none important object
 #################################################################################
 
 allocate memory for all tables from the memory manager
@@ -17,7 +17,7 @@ if a slab allocator is used:
     for string lengths < 256 or so
     we will use fixed sized slabs
 
-    for large text we should allocate an an arena
+    for large text we should allocate an arena
     and let the text be immutable, 
     meaning for changing the length would be
     to reallocate the memory

@@ -10,7 +10,7 @@ void string_container_init(void);
 
 void string_container_destroy(void);
 
-string_t* string_constructor(const char* str);
+string_t* string_constructor(const char* str, const strlen_t size);
 
 void string_destructor(string_t* string);
 

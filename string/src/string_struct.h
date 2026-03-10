@@ -21,6 +21,4 @@ typedef struct string_t {
     char data[1];
 } string_t;
 
-static inline strlen_t string_get_self_size() { return sizeof(string_t) - sizeof(char); }
-
 #endif //STRING_STRING_STRUCT_H

@@ -8,7 +8,6 @@ register_module(
         ${CMAKE_CURRENT_LIST_DIR}/stringc.h
         ${CMAKE_CURRENT_LIST_DIR}/string_internals.h
         ${CMAKE_CURRENT_LIST_DIR}/string_struct.h
-#        ${CMAKE_CURRENT_LIST_DIR}/designated_initializers.h
         include_dirs
         ${CMAKE_CURRENT_LIST_DIR}
         compiler_macros

@@ -17,6 +17,8 @@
 #include "file_sys_interface.h"
 #include "logger.h"
 #include "my_macros.h"
+#include "stringc.h"
+#include "string_format.h"
 
 
 /*
@@ -41,7 +43,6 @@ if((uint64*)((uint8*)p1+offset) < (uint64*)p2){\
 }
 
 /* FOR DEBUG */
-const char* fname = "/all_used_mem_chunks.txt";
 #define MEMORY_DEBUG_FPRINT_USED_MEM(fs, mem_id)\
 fs_fprint_all_used_mem(fs, mem_id);\
 /* FOR DEBUG */
@@ -150,6 +151,9 @@ bool
 mem_table_destroy(void)
 {
     for(uint32 i = 0; i < MEM_ID_MAX_ELEMS; i++) {
+
+        string_t* str = string_create_empty(32);
+        const char* fname = string_format(str->data, "/all_used_mem_chunks_%u.txt", i);
 
         if(mem_table[i].start) {
             MEMORY_DEBUG_FPRINT_USED_MEM(fname, i);

@@ -292,8 +292,8 @@ fs_fprint_all_used_mem(const char* filename, const memid_t memid)
 
     struct mem* mem = &mem_table[memid];
     for(uint32 i = 0; i < mem->size; i += PAGE_SIZE) {
-        const char* address = (char*)(&mem->start)[i];
-        // const char* address = &mem->start[i];
+
+        const char* address = (char*)&mem->start[i];
         const char* offset_addr = FREE_LIST_GET_PAGE_COLOR_OFFSET(address);
 
         if(*(uint32_t*)offset_addr == (uint32) COLOR_PAGE_FREE) {

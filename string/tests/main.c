@@ -13,13 +13,13 @@ main(void)
 
 
     // test_string_is_working();
-    test_string_append_and_realloc();
+    // test_string_append_and_realloc();
 
     /* performance tests */
 #ifdef DEBUG_FPRINT_MCACHE
     my_exit("DISABLE file printing for performance tests", __FILE__, __LINE__);
 #endif
-    // perf_test_string_set();
+    perf_test_string_set();
     // perf_test_string_append();
 
     memman_terminate();

@@ -23,6 +23,7 @@ register_module(
 include_project(${parent_dir}/g_includes)
 include_project(${parent_dir}/logger/src)
 include_project(${parent_dir}/file_sys/src)
+include_project(${parent_dir}/string_format/src)
 include_project(${parent_dir}/memory/src)
 include_project(${parent_dir}/memory/src/mem_log)
 include_project(${parent_dir}/memory/src/internal)

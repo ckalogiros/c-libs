@@ -18,7 +18,7 @@ string_init_table(void)
 void
 string_destroy_table(void)
 {
-    string_table_destroy();
+    string_container_destroy();
 }
 
 
@@ -27,12 +27,12 @@ string_destroy_table(void)
  **************************************************************************************************/
 string_t* string_create(const char* str)
 {
-    return string_constructor(str);
+    return string_constructor(str, 0);
 }
 
-string_t* string_create_empty(const strlen_t len)
+string_t* string_create_empty(const strlen_t size)
 {
-    return string_constructor("");
+    return string_constructor("", size);
 }
 
 void string_destroy(string_t* string)

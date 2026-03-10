@@ -16,7 +16,7 @@ void string_destroy_table(void);
 /* CONSTRUCTION-DESTRUCTION */
 string_t* string_create(const char* str);
 
-string_t* string_create_empty(const strlen_t len);
+string_t* string_create_empty(const strlen_t size);
 
 void string_destroy(string_t* string);
 

@@ -34,17 +34,15 @@ static struct fs_t* fs_flist = NULL;
 static struct fs_t* fs_mcaches[STRING_SLAB_SIZES_LEN] = {NULL};
 /* output one debug file and register all created mcaches  */
 static struct fs_t* fs_register_created_mcaches = NULL;
-
-
 /* FOR DEBUG
  **************************************************************************************************/
 
-bool is_string_mcache_table_init()
+bool
+is_string_mcache_table_init()
 {
     if(string_mem_cache_table == NULL) return FALSE;
     return TRUE;
 }
-
 
 void
 string_mem_cache_table_init(void)
@@ -71,12 +69,12 @@ string_mem_cache_table_init(void)
     fs_flist = fs_create("allocators/string/string_flist.txt");
     fs_register_created_mcaches = fs_create("allocators/string/register_created_string_mcaches.txt");
     fs_append(fs_register_created_mcaches, "OPERATIONS: "
-                                           "Create-Allocate-Release operations "
-                                           "of STRING slab allocator mcaches\n"
-                                           "________________________________________________________"
-                                           "________________________________________________________"
-                                           "________________________________________________________\n"
-                                           );
+              "Create-Allocate-Release operations "
+              "of STRING slab allocator mcaches\n"
+              "________________________________________________________"
+              "________________________________________________________"
+              "________________________________________________________\n"
+    );
 }
 
 struct string_mem_cache*
@@ -172,7 +170,7 @@ string_mem_cache_extend_allocation(struct string_mem_cache* const mcache, const 
 
 
     /* check if the start of the new allocated address is in contiguity with last_slab_end */
-    char* next_paged_aligned_address = (char*)ROUND_UP((uint64)mcache->last_slab_end, PAGE_SIZE);
+    char* next_paged_aligned_address = (char*) ROUND_UP((uint64)mcache->last_slab_end, PAGE_SIZE);
     bool mem_is_contiguous = (next_paged_aligned_address == address) ? TRUE : FALSE;
     if(!mem_is_contiguous) ptr = address;
 
@@ -219,7 +217,7 @@ string_mem_cache_alloc_slab(struct string_mem_cache* mcache)
     struct string_slab_flist* free = mcache->slabs_free_list;
     mcache->slabs_free_list = mcache->slabs_free_list->next;
 
-    mcache->last_slab_end = (char*)free + (mcache->slab_size);
+    mcache->last_slab_end = (char*) free + (mcache->slab_size);
 
 
     /* update mcache */
@@ -337,4 +335,3 @@ string_mem_cache_flist_peek_next_free_slab(const string_size_t string_size)
     struct string_slab_flist* flist_head = mcache->slabs_free_list;
     return flist_head;
 }
-
