@@ -29,7 +29,7 @@ buffer_table_init(void)
 void
 buffer_table_destroy(void)
 {
-    buffer_init_table();
+    buffer_destroy_table();
 }
 
 buffer_t*
@@ -77,10 +77,12 @@ buffer_insert_uint32(const uint32 val, buffer_t* const buffer, const bufidx_t in
 {
     // todo: implement realloc
     if(buffer->tail + 1 > buffer->capacity) { my_exit("buffer-implement realloc", __FILE__, __LINE__); } else {
+
         uint32* data = buffer->data;
         data[index] = val;
         buffer->count++; // todo: we assume that we insert in a none occupied element
-        // increment tail only if index is greater
+
+        /* increment tail only if index is greater */
         if(index > buffer->tail) buffer->tail = index;
 
         const uint32 offset = index / BITS64;
@@ -125,6 +127,7 @@ buffer_empty(buffer_t* const buffer, const bufidx_t index)
     buffer->tail = -1;
 }
 
+
 /*
  * getters
  */
@@ -134,7 +137,6 @@ buffer_get_next_free(buffer_t* const buffer)
     const uint16 first_free_index = buffer_find_next_free_elem(buffer);
     return first_free_index;
 }
-
 
 uint16 // sets up buffer's fields, but the data transform happens at caller site
 buffer_set_for_push(buffer_t* const buffer)
@@ -170,4 +172,10 @@ buffer_set_for_insert(buffer_t* const buffer, const bufidx_t index)
     buffer_free_list_remove(buffer->free_list[offset], index);
     // uint64* free_list = buffer->free_list + offset;
     // buffer_free_list_remove(*free_list, index);
+}
+
+/* DEBUG-FPRINT */
+void buffer_fprint(buffer_t* buffer)
+{
+    buffer_print_to_file(buffer);
 }

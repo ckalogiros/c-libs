@@ -18,29 +18,29 @@ void timer_init_table(void);
 
 struct timer* timer_create_perf_timer(void);
 
-void perf_timer_start(struct timer*);
+void perf_timer_start(struct timer* const);
 
-void perf_timer_stop(struct timer*);
+void perf_timer_stop(struct timer* const);
 
-void perf_timer_stop_with_count(const uint32 count, struct timer*);
+void perf_timer_stop_with_count(const uint32 count, struct timer* const);
 
-void perf_timer_reset(struct timer*);
+void perf_timer_reset(struct timer* const);
 
-void perf_timer_start_accum(struct timer*);
+void perf_timer_start_accum(struct timer* const);
 
-void perf_timer_stop_accum(struct timer*);
+void perf_timer_stop_accum(struct timer* const);
 
-void perf_timer_calc_accum(struct timer*);
+void perf_timer_calc_accum(struct timer* const);
 
-uint32 perf_timer_get_delta(struct timer*);
+uint32 perf_timer_get_delta(struct timer* const);
 
-uint64 perf_timer_get_accum(struct timer*);
+uint64 perf_timer_get_accum(struct timer* const);
 
-uint32 perf_timer_get_avg(struct timer*);
+uint32 perf_timer_get_avg(struct timer* const);
 
-uint32 perf_timer_get_count(struct timer*);
+uint32 perf_timer_get_count(struct timer* const);
 
-uint32 perf_timer_get_fps(struct timer*);
+uint32 perf_timer_get_fps(struct timer* const);
 
 uint32 perf_timer_calc_fps_from_nano(const uint32 avg);
 

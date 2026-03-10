@@ -15,6 +15,7 @@
 
 #include "test_performance.h"
 #include "test_slab_allocator.h"
+#include "test_string_allocator.h"
 
 int32
 has_input(void)
@@ -36,7 +37,11 @@ main(void)
 
 
     // test performance measurements
-    test_perf_slab_allocation_release();
+    // test_perf_slab_allocation_release();
+
+
+    // string allocator
+    test_string_mem_cache_alloc_release_slabs();
 
 
 

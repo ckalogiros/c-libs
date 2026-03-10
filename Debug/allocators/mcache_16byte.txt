@@ -1,3 +1,0 @@
-CREATE  : |  name: mcache_16 |  pages: 001 | capac: 00064 | count: 000 | used: 000 | flist: 00007d4f 69289c00
-ALLOCATE  : |  pages: 001 | capac: 00064 | count: 001 | used: 001 | flist: 00007d4f 69289c10 | free: 00007d4f 69289c00 | dif: 0002 bytes
-RELEASE   : |  pages: 001 | capac: 00064 | count: 000 | used: 000 | flist: 00007d4f 69289c00 | free: 00007d4f 690add50 | dif: 243670 bytes

@@ -82,13 +82,13 @@ perf_timer_get(void)
 
 
 void
-perf_timer_start(struct timer* t)
+perf_timer_start(struct timer* const t)
 {
     t->start = perf_timer_get();
 }
 
 void
-perf_timer_stop(struct timer* t)
+perf_timer_stop(struct timer* const t)
 {
     t->stop = perf_timer_get();
     t->delta = t->stop - t->start;
@@ -98,7 +98,7 @@ perf_timer_stop(struct timer* t)
 }
 
 void
-perf_timer_stop_with_count(const uint32 count, struct timer* t)
+perf_timer_stop_with_count(const uint32 count, struct timer* const t)
 {
     t->stop = perf_timer_get();
     t->delta = t->stop - t->start;
@@ -109,13 +109,13 @@ perf_timer_stop_with_count(const uint32 count, struct timer* t)
 
 
 void
-perf_timer_start_accum(struct timer* t)
+perf_timer_start_accum(struct timer* const t)
 {
     t->start = perf_timer_get();
 }
 
 void
-perf_timer_stop_accum(struct timer* t)
+perf_timer_stop_accum(struct timer* const t)
 {
     t->stop = perf_timer_get();
     t->delta = t->stop - t->start;
@@ -124,14 +124,14 @@ perf_timer_stop_accum(struct timer* t)
 }
 
 void
-perf_timer_calc_accum(struct timer* t)
+perf_timer_calc_accum(struct timer* const t)
 {
     t->avg = t->accum / t->count;
 }
 
 
 void
-perf_timer_reset(struct timer* t)
+perf_timer_reset(struct timer* const t)
 {
     t->start = 0;
     t->stop = 0;
@@ -142,19 +142,19 @@ perf_timer_reset(struct timer* t)
 }
 
 uint32
-perf_timer_get_delta(struct timer* t) { return t->delta; }
+perf_timer_get_delta(struct timer* const t) { return t->delta; }
 
 uint32
-perf_timer_get_avg(struct timer* t) { return t->avg; }
+perf_timer_get_avg(struct timer* const t) { return t->avg; }
 
 uint32
-perf_timer_get_count(struct timer* t) { return t->count; }
+perf_timer_get_count(struct timer* const t) { return t->count; }
 
 uint64
-perf_timer_get_accum(struct timer* t) { return t->accum; }
+perf_timer_get_accum(struct timer* const t) { return t->accum; }
 
 uint32
-perf_timer_get_fps(struct timer* t) { return NANO_SEC / t->avg; }
+perf_timer_get_fps(struct timer* const t) { return NANO_SEC / t->avg; }
 
 uint32
 perf_timer_calc_fps_from_nano(const uint32 avg) { return NANO_SEC / avg; }

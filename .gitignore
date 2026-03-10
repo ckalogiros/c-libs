@@ -1,11 +1,15 @@
 <<<<<<< HEAD
 
-.idea
-cmake-build-debug
+.idea/
+**/.idea/
+**/cmake-build-debug/
+Debug/
+**/Debug/
 
 # unique files
 tutorial
 gitpassword
+
 
 
 

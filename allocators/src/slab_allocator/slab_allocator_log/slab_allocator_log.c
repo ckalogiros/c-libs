@@ -20,7 +20,7 @@ print_mem_cache_struct(const struct mem_cache* const mem_cache)
     print("  is_active:%u\n", mem_cache->is_active);
     print("  slabs_free_list:%x\n", REDUCE_ADDR(mem_cache->slabs_free_list, F5));
     print("  mem_handle:%u\n", mem_cache->mem_handle);
-    print("      chunk_id:%u\n", mem_cache->mem_handle.chunk_id);
+    print("      mem_id:%u\n", mem_cache->mem_handle.mem_id);
     print("      page_id:%u\n", mem_cache->mem_handle.page_id);
     print("      num_pages:%u\n", mem_cache->mem_handle.num_pages);
     print("\n");

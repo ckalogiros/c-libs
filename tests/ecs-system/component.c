@@ -9,7 +9,7 @@
 #include "logger.h"
 
 
-#define MIN_CAPACITY 1024
+#define MIN_CAPACITY 4096
 
 static buffer_t* pos_table;
 static buffer_t* scale_table;
@@ -20,24 +20,21 @@ static buffer_t* all_attribs_table;
 
 
 void
-init_pos_table()
+init_pos_table(void)
 {
-    const uint32 capacity = MIN_CAPACITY;
-    pos_table = buffer_create_gentype(capacity, sizeof(vec3f));
+    pos_table = buffer_create_gentype(MIN_CAPACITY, sizeof(vec3f));
 }
 
 void
-init_scale_table()
+init_scale_table(void)
 {
-    const uint32 capacity = MIN_CAPACITY;
-    scale_table = buffer_create_gentype(capacity, sizeof(vec2f));
+    scale_table = buffer_create_gentype(MIN_CAPACITY, sizeof(vec2f));
 }
 
 void
-init_col_table()
+init_col_table(void)
 {
-    const uint32 capacity = MIN_CAPACITY;
-    col_table = buffer_create_gentype(capacity, sizeof(vec4f));
+    col_table = buffer_create_gentype(MIN_CAPACITY, sizeof(vec4f));
 }
 
 
@@ -71,8 +68,7 @@ add_col_component(const uint32 id, const vec4f col)
  */
 void init_all_attribs_table()
 {
-    const uint32 capacity = MIN_CAPACITY;
-    all_attribs_table = buffer_create_gentype(capacity, sizeof(struct all_attribs));
+    all_attribs_table = buffer_create_gentype(MIN_CAPACITY, sizeof(struct all_attribs));
 }
 
 void add_all_attribs_component(const uint32 id, const struct all_attribs all)

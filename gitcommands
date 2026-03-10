@@ -1,4 +1,25 @@
 Basic Git Commands
+
+-------------------------------------------------------------------------
+git merge -X theirs <branch>   # Accept their changes for conflicts
+# or
+git merge -X ours <branch>     # Accept our changes for conflicts
+-------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------
+# Discard changes to the specific file
+git checkout -- allocators/src/slab_allocator/slab_allocator_internals.c
+
+# Or discard all local changes
+git reset --hard HEAD
+
+# Then merge
+git merge -X theirs allocators
+-------------------------------------------------------------------------
+
+
 Creating a New Branch
 ---------------------
 

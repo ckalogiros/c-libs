@@ -5,6 +5,7 @@
 #include "precision_timer_logger.h"
 #include "logger.h"
 #include "precision_timer.h"
+#include "sys_utils.h"
 
 
 void
@@ -28,6 +29,12 @@ perf_timer_print(const timer_print_params params)
 
     if(params.flags & PERF_T_USE_REPEAT) count *= params.repeat;
     if(params.flags & PERF_T_USE_BUF_CAPACITY) count *= params.buf_capacity;
+
+    if(accum == 0) {
+        my_exit("%sERROR: in timers. \n accum is 0\n"
+              " Check that the timer\n"
+              " is calling accum() and stop_accum()%s\n", __FILE__, __LINE__);
+    }
 
     uint32 avg = accum / count;
 
@@ -79,8 +86,24 @@ perf_timer_print(const timer_print_params params)
     }
 }
 
+
 void
-perf_timer_print_simple(struct timer* t, const uint32 repeat, const uint32 buf_capacity)
+perf_timer_print_msg(timer_print_params params, const char* msg)
+{
+    print("\n%s__________________ Perf Timer __________________%s\n",YELLOW, CLEAR);
+
+    print("%s%s%s\n",YELLOW, msg, CLEAR);
+
+    params.flags |= PERF_T_IN_CONTINUATION; /* let this function print separator lines */
+    perf_timer_print(params);
+
+    print("%s________________________________________________%s\n",YELLOW, CLEAR);
+    print("\n");
+
+}
+
+void
+perf_timer_print_simple(struct timer* const t, const uint32 repeat, const uint32 buf_capacity)
 {
     const uint32_t avg = perf_timer_get_avg(t);
     print("\n%s-PerfTimer%s: %savg%s: %s%d%s nano", YELLOW, CLEAR, ry, CLEAR, YELLOW, avg, CLEAR);
@@ -99,7 +122,7 @@ perf_timer_print_simple(struct timer* t, const uint32 repeat, const uint32 buf_c
 }
 
 void
-perf_timer_print_simple_with_repeat(struct timer* t, const uint32 repeat, const uint32 buf_capacity)
+perf_timer_print_simple_with_repeat(struct timer* const t, const uint32 repeat, const uint32 buf_capacity)
 {
     print(
         "\n%s-PerfTimer%s: %srepeat%s: %s%u%s"

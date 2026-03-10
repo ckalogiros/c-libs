@@ -1,3 +1,0 @@
-CREATE  : |  name: mcache_4096 |  pages: 004 | capac: 00001 | count: 000 | used: 000 | flist: 00007d4f 69288c00
-ALLOCATE  : |  pages: 004 | capac: 00001 | count: 001 | used: 001 | flist: 00000000 00000000 | free: 00007d4f 69288c00 | dif: 18446726851207032448 bytes
-RELEASE   : |  pages: 004 | capac: 00001 | count: 000 | used: 000 | flist: 00007d4f 69288c00 | free: 00007d4f 690add50 | dif: 243158 bytes

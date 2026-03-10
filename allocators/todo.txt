@@ -1,0 +1,27 @@
+Bump Allocator
+______________
+lifetime: 1 frame
+create an bump allocator(arena)
+let it allocate from the start in each frame 
+
+
+cyclical bump Allocator
+_______________________
+lifetime: unkown n frames
+
+
+large text
+_______________________
+# lifetime: static
+  create a dynamicaly grown arena
+  memory continuity does not matter
+  + no wasted memory (except on non contiguous memory ends)
+  + dynamicaly extended
+
+# lifetime: unkown n frames
+  some kind of cyclical bump allocator, large enough
+  + no wasted memory
+  - memory must be contiguous
+  - fixed size, no realloc
+implementation
+  uint16 with max val: 0x1FFF = 8191 wrap around.

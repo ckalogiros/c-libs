@@ -1,6 +1,7 @@
 /*
  * Created by ckalo on 1/1/26.
  */
+
 #ifndef MEMORY_LOGGER_H
 #define MEMORY_LOGGER_H
 
@@ -14,18 +15,15 @@ void mem_log_print_terminate_mem(void);
 
 void mem_log_print_mem(const struct mem* const mem);
 
-void mem_log_print_all_used_mem(void);
-
-void mem_log_print_free_list_of_chunk(const memid_t chunk_id);
-void mem_log_print_free_list_table();
-void mem_log_print_list_node(const char* operation, const struct flist* const node);
+void mem_log_print_free_list(const memid_t memid);
 
 void mem_print_mem_alloc(void* released_addr, const struct memhnd_t hnd);
-void mem_print_mem_release(void* released_addr, const struct memhnd_t hnd);
 
+void mem_print_mem_release(void* released_addr, const struct memhnd_t hnd);
 
 // external: logger to html
 void logger_to_html_init(void);
+
 void logger_to_html_destroy(void);
 
 // ERROR handling

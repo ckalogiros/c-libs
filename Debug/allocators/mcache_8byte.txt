@@ -1,8 +1,0 @@
-CREATE  : |  name: mcache_8 |  pages: 001 | capac: 00128 | count: 000 | used: 000 | flist: 00007c7f d3158800
-ALLOCATE  : |  pages: 001 | capac: 00128 | count: 001 | used: 001 | flist: 00007c7f d3158808 | free: 00007c7f d3158800 | dif: 0001 bytes
-ALLOCATE  : |  pages: 001 | capac: 00128 | count: 002 | used: 002 | flist: 00007c7f d3158810 | free: 00007c7f d3158808 | dif: 0001 bytes
-ALLOCATE  : |  pages: 001 | capac: 00128 | count: 003 | used: 003 | flist: 00007c7f d3158818 | free: 00007c7f d3158810 | dif: 0001 bytes
-ALLOCATE  : |  pages: 001 | capac: 00128 | count: 004 | used: 004 | flist: 00007c7f d3158820 | free: 00007c7f d3158818 | dif: 0001 bytes
-RELEASE   : |  pages: 001 | capac: 00128 | count: 003 | used: 003 | flist: 00007c7f d3158810 | free: 00007c7f d2eadd50 | dif: 349528 bytes
-RELEASE   : |  pages: 001 | capac: 00128 | count: 002 | used: 002 | flist: 00007c7f d3158810 | free: 00007c7f d2eadd50 | dif: 349528 bytes
-RELEASE   : |  pages: 001 | capac: 00128 | count: 001 | used: 001 | flist: 00007c7f d3158808 | free: 00007c7f d2eadd50 | dif: 349527 bytes

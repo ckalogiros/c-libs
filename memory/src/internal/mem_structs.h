@@ -71,52 +71,23 @@
 ( ( (force_type_width(type) << ((end) - (start))) - force_type_width(type)) << (start) )
 
 
-struct mem_flags {
-    uint32 is_init;
-};
+/* *********************************
+ * memory table index */
+typedef uint16 memid_t;
+
+/* *********************************
+ * memory pages index */
+typedef int16 pageid_t;
+
 
 struct mem {
     void* start; // allocated start address
+    struct flist* flist;
+    const char* name;
     uint64 size; // total allocated size
     uint64 data_size; // total data allocated size
-    uint16 self_size; // mem data allocated size
     uint16 bound_check_size; // bound_check allocated size
-    uint16 chunks_count; // number of allocated chunks
-};
-
-struct mem_chunk {
-    uint16 id;
-    // struct mem_flags flags;
-    uint32 flags;
-};
-
-
-// if mem manager needs to register: 1024 chunks max, that is 32768 pages = 33.554432 megabyte
-// needs 10 bits: [0011 1111 1111] = 0-1023
-#define TYPE_CHUNK_ID_BITSIZE 10
-
-// to register: 32 pages (per chunk),
-// needs 5 bits: [0001 1111] = 0-31, plus 1 more for safety
-#define TYPE_PAGE_ID_BITSIZE (5+1)
-
-/* ******************************************************
- * UNUSED
- * flag ids is a helper struct, declaring the bit offsets
- * of varius ids that are part of a bitfield flag.
- * Ex. chunk_id: needs 10 bits,
- *     page_id: needs 5 bits (+1 for safety), etc.       */
-struct flag_ids {
-    uint8 chunk_id_start_bit;
-    uint8 chunk_id_end_bit;
-    uint8 page_id_start_bit;
-    uint8 page_id_end_bit;
-};
-
-static struct flag_ids flag_ids = {
-    .chunk_id_start_bit = 0,
-    .chunk_id_end_bit = TYPE_CHUNK_ID_BITSIZE - 1,
-    .page_id_start_bit = TYPE_CHUNK_ID_BITSIZE,
-    .page_id_end_bit = (TYPE_CHUNK_ID_BITSIZE + TYPE_PAGE_ID_BITSIZE) - 1,
+    pageid_t num_pages; // number of allocated pages
 };
 
 

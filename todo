@@ -1,3 +1,69 @@
+
+#################################################################################
+implement a generic pool allocator for use of:
+ large text
+ large objects that do nnot need locality(aren't important)
+ any other none important object
+#################################################################################
+
+allocate memory for all tables from the memory manager
+slab_allocator mcache, string mcache, buffer table, timer table, etc
+
+#################################################################################
+create string allocator, string storage
+create string container
+
+if a slab allocator is used:
+    for string lengths < 256 or so
+    we will use fixed sized slabs
+
+    for large text we should allocate an arena
+    and let the text be immutable, 
+    meaning for changing the length would be
+    to reallocate the memory
+
+#################################################################################
+create key-value pairs data structure.
+    can be based on buffers of data=type struct{key, value}
+#################################################################################
+create tree views - list views
+    based on buffer container
+#################################################################################
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#################################################################################
+
 https://chat.deepseek.com/a/chat/s/6b0b9513-7909-4d43-afe4-a72bf5e824c6
 ----------------
 Option 2: GCC vector extension

@@ -1,55 +1,8 @@
+#######################################
 use bit:
     uint8 for 8 capacity buffers
     uint16 for 16 capacity buffers
     uint32 for 32 capacity buffers
 
+#######################################
 buffer: sequencial, consolidate
-
-buffers of data structs type
-
-####################################################################################################
-a: mcache, of n1 slab's size
-b: mcache, of n2 slab's size
-c: mcache, of n3 slab's size
-d: mcache, of n4 slab's size
-case 1
-|__||__||__||__||__||__||__||__||__||__||__||__|
- ^   ^   ^   ^   ^   ^   ^   ^   ^   ^   ^   ^
- a1  a2  b1  c1  b2  b3  d1  a3  n
-
- mcache a needs to allocate page, and n is the start of the new page.
- Lets assume that I can deduce a3 start addres + page size.
- In this case my impl works, right?
-
- case 2
- |__||__||__||__||__||__||__||__||__||__||__||__|
-  ^   ^   ^   ^   ^   ^   ^   ^   ^   ^   ^   ^
-  a1  a2  b1  c1  b2  b3  d1  a3  b4  n
-  In this case my impl works, right?
-
- In this case mcache a3 will check memo
- ry at start of next,
- wich is b4, concludes that is occupied and store new slabs at start address of n
-
- case 3
- |__||__||__||__||__||__||__||__||__||__||__||__|
-  ^   ^   ^   ^   ^   ^   ^   ^   ^   ^   ^   ^
-  a1  a2  b1  n  b2  b3  d1  a3  b4
-
- If c1 mcache slabs is release AND that page was returned to the
- memory manager, then a requests memory and n is returned.
- mcache a a1 will check b4 start will find that is occupied,
- so n address will be used for a4 slabs storage.
-  In this case my impl works, right?
-
- case 4
- |__||__||__||__||__||__||__||__||__||__||__||__|
-  ^   ^   ^   ^   ^   ^   ^   ^   ^   ^   ^   ^
-  a1  a2  b1  n  b2  b3  d1  a3
-
- Same case as case 3, only after a3 there is no memory that belongs to the
- slab allocator. If I find a way to check and have a result "occupied" or "not valid",
- then address of n will be used.
-  In this case my impl works, right?
-
-####################################################################################################

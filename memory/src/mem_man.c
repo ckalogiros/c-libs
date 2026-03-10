@@ -9,7 +9,7 @@
 void
 memman_init(void)
 {
-    const bool initialized = mem_init();
+    const bool initialized = mem_table_init();
 
     if(!initialized)
         mem_print_error(MEMMAN_ALREADY_INITIALIZED);
@@ -19,15 +19,16 @@ void
 memman_terminate(void)
 {
     mem_log_print_terminate_mem();
-    const bool success = mem_free();
+    const bool success = mem_table_destroy();
     if(!success)
         mem_print_error(FREE_MEMORY_FAILED);
 }
 
 struct memhnd_t
-memman_alloc_pages(const uint16 num_pages, const enum MEM_CHUNK_SELECTOR chunk_selector)
+memman_alloc_pages(const uint16 num_pages, const enum MEM_ID_SELECTOR chunk_selector)
 {
-    const struct memhnd_t hnd = mem_alloc(num_pages, chunk_selector);
+    const memid_t mem_id = (memid_t) chunk_selector;
+    const struct memhnd_t hnd = mem_alloc(num_pages, mem_id);
     return hnd;
 }
 

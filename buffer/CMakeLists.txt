@@ -20,14 +20,16 @@ include_project(${parent_dir}/logger/src)
 include_project(${parent_dir}/memory/src)
 include_project(${parent_dir}/memory/src/mem_log)
 include_project(${parent_dir}/memory/src/internal)
-include_project(${parent_dir}/buffer/src)
-include_project(${parent_dir}/buffer/src/buffer_logger)
+#include_project(${parent_dir}/buffer/src)
+#include_project(${parent_dir}/buffer/src/buffer_logger)
 include_project(${parent_dir}/allocators/src/slab_allocator)
 include_project(${parent_dir}/allocators/src/slab_allocator/slab_allocator_log)
 include_project(${parent_dir}/perf_timer/src)
 
 # 3. create executable with all the source files
 add_project_executable(buffer main.c)
+#add_executable(buffer main.c)
+
 
 # Debug: global properties
 print_all_registered()

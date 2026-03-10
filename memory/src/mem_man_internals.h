@@ -8,22 +8,22 @@
 #include "mem_man_interface.h"
 
 
-#define MEM_GET_DATA_START ((char*)(mem->start + mem->self_size))
-#define MEM_GET_CHUNKS_TABLE_START ((char*)(mem->start + sizeof(struct mem)))
-#define MEM_GET_BOUND_CHECK_START(void) ((char*)(mem->start + mem->self_size + mem->data_size))
+// #define COLOR_PAGE_FREE "FREE" // color a page to denote that belongs to free list
+#define COLOR_PAGE_FREE (*(uint32_t*)"FREE") // color a page to denote that belongs to free list
+#define FREE_LIST_GET_PAGE_COLOR_OFFSET(fnode) ((char*)fnode + sizeof(struct flist))
 
-
-#define FREE_LIST_GET_PAGE_COLOR_START(fnode) ((char*)fnode + sizeof(struct flist))
+struct mem;
 
 typedef uint16 chunkid_t;
-typedef int16 pageid_t;
 
 
-bool mem_init();
+bool mem_table_init(void);
 
-bool mem_free();
+bool mem_table_destroy(void);
 
-struct memhnd_t mem_alloc(pageid_t num_pages, enum MEM_CHUNK_SELECTOR);
+bool mem_create(const uint16 num_pages, enum MEM_ID_SELECTOR);
+
+struct memhnd_t mem_alloc(const uint16 num_pages, const memid_t mem_id);
 
 bool mem_release(const struct memhnd_t hnd);
 
@@ -32,51 +32,50 @@ void* mem_get_addr_by_handle(const struct memhnd_t hnd);
 
 void* mem_temp_alloc_sys_call(const uint32 alignment, const uint32 total_size);
 
+// void mem_init_chunks_table();
 
-#define flist_table_get_next_free(chunk_id)\
-(flist_heads_table[chunk_id] = flist_heads_table[chunk_id]->next)
-
-
-void mem_init_chunks_table();
-
-void mem_init_free_list_table();
+void mem_init_free_list_table(struct mem* mem);
 
 
 /* returns the next free list node, and updates the list with the next free. */
-// void* flist_get_next_free_page(const pageid_t num_pages, const memid_t chunk_id);
-struct memhnd_t flist_get_next_free_page(const pageid_t num_pages, const memid_t chunk_id);
+struct memhnd_t flist_get_next_free_page(const uint16 num_pages, const memid_t mem_id);
 
 /* returns the next free list node, no updates. */
-void* flist_peek_next_free_page(memid_t chunk_id);
+void* flist_peek_next_free_page(memid_t mem_id);
 
 /* returns the free list head of a memory chunk. */
-struct flist* flist_table_get_head(const memid_t chunk_id);
+struct flist* mem_table_get_head(const memid_t mem_id);
 
 /* sets the free list head of a memory chunk. */
-void flist_table_set_head(const memid_t chunk_id, struct flist* head);
-
-memid_t chunk_selector_get_chunk(enum MEM_CHUNK_SELECTOR chunk_selector);
+void mem_table_set_head(const memid_t mem_id, struct flist* head);
 
 memid_t chunk_selector_get_next_free_chunk(void);
 
-memid_t calc_page_id_from_address(const void* addr);
+pageid_t calc_page_id_from_address(const void* addr, const memid_t mem_id);
 
-void* calc_address_from_page_id(const memid_t page_id);
+void* calc_address_from_page_id(const pageid_t page_id, const memid_t mem_id);
 
 bool check_mem_off_boundaries_writes(void* mem_start, const uint32 byte_size);
 
 
 /* DEBUG */
-struct mem* debug_mem_get();
-void* debug_mem_get_start_address();
-uint64 debug_mem_get_size();
 
-uint16 debug_mem_get_chunks_count();
+struct mem* debug_mem_get_table();
 
-struct mem_chunk* debug_chunks_table_get();
+uint32 debug_mem_get_table_count();
 
-struct flist** debug_free_list_table_get();
+void* debug_mem_get_start_address(const memid_t memid);
 
-void debug_mem_corrupted();
+uint64 debug_mem_get_size(const memid_t memid);
+
+uint16 debug_mem_get_chunks_count(const memid_t memid);
+
+struct mem_chunk* debug_chunks_table_get(const memid_t memid);
+
+// struct flist* debug_mem_get_free_list(const memid_t memid);
+
+void debug_mem_corrupted(const memid_t memid);
+
+bool debug_flist_check_continuity(const memid_t memid);
 
 #endif //MEM_MAN_H

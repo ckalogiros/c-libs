@@ -12,20 +12,25 @@ include(${cmake_utils})
 # 2. add /src that adds .c.h files and adds other sub-directories
 include(${CMAKE_SOURCE_DIR}/src/slab_allocator/CMakeLists.txt)
 include(${CMAKE_SOURCE_DIR}/src/slab_allocator/slab_allocator_log/CMakeLists.txt)
+include(${CMAKE_SOURCE_DIR}/src/string_allocator/CMakeLists.txt)
+include(${CMAKE_SOURCE_DIR}/src/string_allocator/string_allocator_log/CMakeLists.txt)
 include(${CMAKE_SOURCE_DIR}/src/generic_allocator/CMakeLists.txt)
 register_module(
         sources
         ${CMAKE_CURRENT_LIST_DIR}/test_performance.c
         ${CMAKE_CURRENT_LIST_DIR}/test_slab_allocator.c
+        ${CMAKE_CURRENT_LIST_DIR}/test_string_allocator.c
         headers
         ${CMAKE_CURRENT_LIST_DIR}/test_performance.h
         ${CMAKE_CURRENT_LIST_DIR}/test_slab_allocator.h
+        ${CMAKE_CURRENT_LIST_DIR}/test_string_allocator.h
         include_dirs
         ${CMAKE_CURRENT_LIST_DIR}
 )
 
 include_project(${parent_dir}/g_includes)
 include_project(${parent_dir}/logger/src)
+include_project(${parent_dir}/file_sys/src)
 include_project(${parent_dir}/memory/src)
 include_project(${parent_dir}/memory/src/mem_log)
 include_project(${parent_dir}/memory/src/internal)

@@ -33,4 +33,7 @@ void buffer_empty(buffer_t* const buffer, const bufidx_t index);
 /* getters */
 uint16 buffer_get_next_free(buffer_t* const buffer);
 
+/* DEBUG-FPRINT */
+void buffer_fprint(buffer_t* buffer);
+
 #endif //BUFFER_BUFFER_H
