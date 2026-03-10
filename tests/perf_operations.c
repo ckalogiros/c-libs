@@ -189,7 +189,7 @@ test_prerf_basic_operations()
         const uint32 size = sizeof(uint32);
         for(uint32 k = 0; k < repeat; k++) {
             for(uint32 i = 0; i < LEN; i++) {
-                memcpy(&value, &buffer_float[i], size);
+                memcpy((void*)&value, &buffer_float[i], size);
             }
         }
         perf_timer_stop(t);

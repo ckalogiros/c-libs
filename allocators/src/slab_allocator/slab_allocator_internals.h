@@ -21,7 +21,7 @@ void mem_cache_table_destroy(void);
 
 
 
-struct mem_cache* mem_cache_create(const buffer_size_t buffer_size, const uint16 type_size, const char* name);
+struct mem_cache* mem_cache_create(const buffer_size_t buffer_size, const uint16 type_size);
 
 struct mem_cache* mem_cache_extend_allocation(struct mem_cache* const  mcache, const uint32 left_over_mem);
 

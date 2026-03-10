@@ -31,6 +31,7 @@ add_subdirectory(ecs-system)
 add_subdirectory(memory_copy)
 add_subdirectory(data_oriented)
 add_subdirectory(function-pointers)
+add_subdirectory(string-format)
 
 include_project(${parent_dir}/g_includes)
 include_project(${parent_dir}/logger/src)

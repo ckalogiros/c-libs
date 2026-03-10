@@ -37,7 +37,7 @@ test_components_seperate_add(const uint32 count)
         uint32 eidx = entity_create();
     }
 
-    const struct timer* t = timer_create_perf_timer();
+    struct timer* const t = timer_create_perf_timer();
 
     perf_timer_start(t);
     // add component pos
@@ -81,7 +81,7 @@ test_components_together_add(const uint32 count)
         uint32 eidx = entity_create();
     }
 
-    const struct timer* t = timer_create_perf_timer();
+    struct timer* const t = timer_create_perf_timer();
 
     perf_timer_start(t);
     // add component pos
@@ -120,7 +120,7 @@ test_components_all_attribs(const uint32 count)
         uint32 eidx = entity_create();
     }
 
-    const struct timer* t = timer_create_perf_timer();
+    struct timer* t = timer_create_perf_timer();
     const uint32 repeat = REPEAT;
 
     perf_timer_start(t);

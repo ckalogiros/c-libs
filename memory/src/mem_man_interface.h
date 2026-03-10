@@ -11,11 +11,14 @@
 #define NUM_CHUNKS 16
 #define PAGE_SIZE 1024
 
+
+
 enum MEM_ID_SELECTOR {
     MEM_ID_SELF_MEM_STORAGE = 0,
     MEM_ID_ALLOCATOR_SLAB,
+    MEM_ID_ALLOCATOR_STRING,
     // leave initial chunks for specific allocators
-    MEM_CHUNK_ANY = NUM_CHUNKS - 1,
+    MEM_ID_MAX_ELEMS,
 };
 
 enum MEMORY_ERROR_CODE {

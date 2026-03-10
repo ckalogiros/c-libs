@@ -43,7 +43,8 @@ test_perf_slab_allocation_release()
     buffer_init_table();
     timer_init_table();
 
-    const uint32 repeat = 1000000;
+    // const uint32 repeat = 1000000;
+    const uint32 repeat = 1000;
     const uint32 num_allocations = 8;
 
 

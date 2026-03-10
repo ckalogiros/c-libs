@@ -34,8 +34,8 @@ fill(buffer_t* const buffer)
 static void
 insert_at(const uint32 val, buffer_t* const buffer, const uint32 index)
 {
-    if(index != INT_NULL)
-        buffer_insert_uint32(val, buffer, index);
+    // assert(index != INT_NULL);
+    buffer_insert_uint32(val, buffer, index);
 }
 
 static void
@@ -64,7 +64,7 @@ perf_test_buffer_create_generic_vs_uint32(void)
     const uint32_t num_pages = 16;
     memman_init();
 
-    buffer_init_table();
+    buffer_table_init();
 
 
     timer_init_table();
@@ -239,16 +239,16 @@ perf_test_buffer_remove_insert(void)
 {
     memman_init();
 
-    // const uint32 repeat = 1000000;
-    const uint32 repeat = 2000;
+    const uint32 repeat = 1000000;
+    // const uint32 repeat = 2000;
 
-    buffer_init_table();
+    buffer_table_init();
 
     timer_init_table();
 
     // allocate new buffer
     const uint32 capacity = 64;
-    buffer_t* buffer = buffer_create_uint32(capacity);
+    buffer_t* buffer = buffer_create_gentype(capacity, sizeof(uint32));
 
 
     // fill buffer
@@ -298,7 +298,8 @@ perf_test_buffer_remove_insert(void)
         buffer->tail = -1;
 
         for(uint32 j = 0; j < buffer->capacity; j++) {
-            const uint32 v = (((i + 1) / 2) * i) / 2;
+            // const uint32 v = (((i + 1) / 2) * i) / 2;
+            const uint32 v = (i + 1);
             // const uint32 v = division_heavy_hash(i, i);
             insert_at(v, buffer, j);
         }
@@ -339,7 +340,7 @@ perf_test_insert_abstruct_call(void)
     memman_init();
 
 
-    buffer_init_table();
+    buffer_table_init();
 
     timer_init_table();
 
@@ -453,7 +454,7 @@ perf_test_buffer_find_tail(void)
     const uint32_t num_pages = 15;
     memman_init();
 
-    buffer_init_table();
+    buffer_table_init();
 
     timer_init_table();
 
@@ -600,93 +601,93 @@ perf_test_buffer_mixed_capacities_add(void)
 
     memman_init();
 
-    buffer_init_table();
+    buffer_table_init();
     timer_init_table();
 
 
-    struct timer* t_create = timer_create_perf_timer();
+     struct timer* t_create = timer_create_perf_timer();
 
-    struct node {
-        buffer_t* children;
-        void* data;
-        void* freelist;
-        void* nameid;
-    };
+     struct node {
+         buffer_t* children;
+         void* data;
+         void* freelist;
+         void* nameid;
+     };
 
-    const uint32 type_size = sizeof(struct node);
-    // const uint32 capacities[] = {32, 32, 16, 32}; // tested: OK
-    // const uint32 capacities[] = {30, 30, 16, 30}; // tested: OK
-    // const uint32 capacities[] = {12, 12, 12, 12, 12, 30, 12, 12}; // tested: OK
-    // const uint32 capacities[] = {12, 12, 12, 12, 12, 4, 12, 12, 4, 4, 4, 4, 4, 4, 4, 4 }; // tested: OK
-    // const uint32 capacities[] = {3, 4, 2, 3, 4, 2, 3, 4, 2, 3, 4, 2, 3, 4, 2, 3, 4, 2,}; // tested: OK
-    // const uint32 capacities[] = {
-    //     3, 4, 2,  3, 4, 2,
-    //     3, 4, 2,  3, 4, 2,
-    //     3, 4, 2,  3, 4, 2,
-    //     3, 4, 2,  3, 4, 2,
-    // }; // tested: OK
-    const uint32 capacities[] = {36, 36, 36, 58, 36}; // tested: OK
-    const uint32 num_buffers = ARRAY_LENGTH(capacities);
-
-
-    /* DEBUG-FPRINT */
-    const char* filename = "buffer/tests/perf_test_buffer_mixed_capacities_add.txt";
-    struct fs_t* fs_debug_mem = fs_create(filename);
-    fs_append(fs_debug_mem, description);
+     const uint32 type_size = sizeof(struct node);
+     // const uint32 capacities[] = {32, 32, 16, 32}; // tested: OK
+     // const uint32 capacities[] = {30, 30, 16, 30}; // tested: OK
+     // const uint32 capacities[] = {12, 12, 12, 12, 12, 30, 12, 12}; // tested: OK
+     // const uint32 capacities[] = {12, 12, 12, 12, 12, 4, 12, 12, 4, 4, 4, 4, 4, 4, 4, 4 }; // tested: OK
+     // const uint32 capacities[] = {3, 4, 2, 3, 4, 2, 3, 4, 2, 3, 4, 2, 3, 4, 2, 3, 4, 2,}; // tested: OK
+     // const uint32 capacities[] = {
+     //     3, 4, 2,  3, 4, 2,
+     //     3, 4, 2,  3, 4, 2,
+     //     3, 4, 2,  3, 4, 2,
+     //     3, 4, 2,  3, 4, 2,
+     // }; // tested: OK
+     const uint32 capacities[] = {36, 36, 36, 58, 36}; // tested: OK
+     const uint32 num_buffers = ARRAY_LENGTH(capacities);
 
 
-    uint32 id = 0;
-    char* pfree = NULL;
-
-    for(uint32 testcnt = 0; testcnt < num_buffers; testcnt++) {
-        fs_append(fs_debug_mem,
-                  "\n\n********************************\n"
-                  "test:%u\n buffers capacity:%u\n"
-                  "********************************\n",
-                  id, capacities[testcnt]
-        );
-        id++;
-
-        /*******************************************************************************************
-         * create and fill buffer objects
-         ******************************************************************************************/
-
-        perf_timer_start_accum(t_create);
-
-        const buffer_t* buffer = buffer_create_gentype(capacities[testcnt], type_size);
-        if((char*) buffer->data > pfree)
-            pfree = (char*) buffer->data;
-
-        // fill buffer
-        for(uint32 i = 0; i < buffer->capacity; i++) {
-            struct node* data = buffer->data;
-
-            char pname[16] = "BUF:";
-            str_concat_int32_to_str(pname, 16, buffer->id);
-            memcpy(&data[i].nameid, pname, sizeof(char*));
-        }
-        perf_timer_stop_accum(t_create);
+     /* DEBUG-FPRINT */
+     const char* filename = "buffer/tests/perf_test_buffer_mixed_capacities_add.txt";
+     struct fs_t* fs_debug_mem = fs_create(filename);
+     fs_append(fs_debug_mem, description);
 
 
-        char* start = (uint64)buffer->data < (uint64)buffer->free_list ? buffer->data : buffer->free_list;
-        const char* end = (char*)((uint64)pfree + (capacities[testcnt] * type_size));
-        const uint64 total_size = ((uint64) end - (uint64) start) + PAGE_SIZE;
-        custom_fs_append(fs_debug_mem, start, total_size, "CREATE BUFFERS");
-    }
+     uint32 id = 0;
+     char* pfree = NULL;
 
-    perf_timer_print(timer_print_config((timer_print_params){
-        .t = t_create, .repeat = num_buffers, .buf_capacity = 0, .flags = PERF_T_ALL | PERF_T_USE_REPEAT
-    }));
-    perf_timer_reset(t_create);
+     for(uint32 testcnt = 0; testcnt < num_buffers; testcnt++) {
+         fs_append(fs_debug_mem,
+                   "\n\n********************************\n"
+                   "test:%u\n buffers capacity:%u\n"
+                   "********************************\n",
+                   id, capacities[testcnt]
+         );
+         id++;
 
-    TEMP_PRINT_BUFFER_TABLE_COUNT();
+         /******************************************************************************************
+          * create and fill buffer objects
+          *****************************************************************************************/
+
+         perf_timer_start_accum(t_create);
+
+         const buffer_t* buffer = buffer_create_gentype(capacities[testcnt], type_size);
+         if((char*) buffer->data > pfree)
+             pfree = (char*) buffer->data;
+
+         // fill buffer
+         for(uint32 i = 0; i < buffer->capacity; i++) {
+             struct node* data = buffer->data;
+
+             char pname[16] = "BUF:";
+             str_concat_int32_to_str(pname, 16, buffer->id);
+             memcpy(&data[i].nameid, pname, sizeof(char*));
+         }
+         perf_timer_stop_accum(t_create);
+
+
+         char* start = (uint64)buffer->data < (uint64)buffer->free_list ? buffer->data : buffer->free_list;
+         const char* end = (char*)((uint64)pfree + (capacities[testcnt] * type_size));
+         const uint64 total_size = ((uint64) end - (uint64) start) + PAGE_SIZE;
+         custom_fs_append(fs_debug_mem, start, total_size, "CREATE BUFFERS");
+     }
+
+     perf_timer_print(timer_print_config((timer_print_params){
+         .t = t_create, .repeat = num_buffers, .buf_capacity = 0, .flags = PERF_T_ALL | PERF_T_USE_REPEAT
+     }));
+     perf_timer_reset(t_create);
+
+     TEMP_PRINT_BUFFER_TABLE_COUNT();
 
     const char* fname = "/exit_status_ok_debug.txt";
     struct fs_t* fs = fs_create(fname);
     fs_fprint_all_allocated_mem(fname);
     fs_append(fs, "EXIT WITH STATUS OK\n");
 
-    debug_mem_corrupted();
+    debug_mem_corrupted(MEM_ID_ALLOCATOR_SLAB);
 
     memman_terminate();
 }
@@ -709,7 +710,7 @@ perf_test_buffer_mixed_capacities_add_remove(void)
 
     memman_init();
 
-    buffer_init_table();
+    buffer_table_init();
     timer_init_table();
 
 
@@ -801,7 +802,7 @@ perf_test_buffer_mixed_capacities_add_remove(void)
     fs_fprint_all_allocated_mem(fname);
     fs_append(fs, "EXIT WITH STATUS OK\n");
 
-    debug_mem_corrupted();
+    debug_mem_corrupted(MEM_ID_ALLOCATOR_SLAB);
 
     memman_terminate();
 }
@@ -814,7 +815,7 @@ void // test buffer with children and check memory for correctness. Add remove m
 perf_test_buffer_with_children_add_remove(void)
 {
     /* If measuring performance, with a high count of repeats,
-    * dissable file print to avoid writing too much data to the file */
+     * dissable file print to avoid writing too much data to the file */
     const uint32 repeat = 1;
     assert(repeat < 50 && DISABLE_FPRINT);
 
@@ -836,7 +837,7 @@ perf_test_buffer_with_children_add_remove(void)
 
     memman_init();
 
-    buffer_init_table();
+    buffer_table_init();
     timer_init_table();
 
 
@@ -851,7 +852,7 @@ perf_test_buffer_with_children_add_remove(void)
     };
 
     const uint32 type_size = sizeof(struct node);
-    const uint32 pcapac = 128;
+    const uint32 pcapac = 32;
     const uint32 ccapac = 64;
 
 
@@ -956,7 +957,7 @@ perf_test_buffer_with_children_add_remove(void)
     fs_fprint_all_allocated_mem(fname);
     fs_append(fs, "EXIT WITH STATUS OK\n");
 
-    debug_mem_corrupted();
+    debug_mem_corrupted(MEM_ID_ALLOCATOR_SLAB);
 
     memman_terminate();
 }
@@ -988,7 +989,7 @@ perf_test_buffer_mixed_capacities_with_children_add(void)
 
     memman_init();
 
-    buffer_init_table();
+    buffer_table_init();
     timer_init_table();
 
 
@@ -1085,7 +1086,7 @@ perf_test_buffer_mixed_capacities_with_children_add(void)
     fs_fprint_all_allocated_mem(fname);
     fs_append(fs, "EXIT WITH STATUS OK\n");
 
-    debug_mem_corrupted();
+    debug_mem_corrupted(MEM_ID_ALLOCATOR_SLAB);
 
     memman_terminate();
 }
@@ -1117,7 +1118,7 @@ perf_test_buffer_mixed_capacities_with_children_add_remove(void)
 
     memman_init();
 
-    buffer_init_table();
+    buffer_table_init();
     timer_init_table();
 
 
@@ -1240,7 +1241,7 @@ perf_test_buffer_mixed_capacities_with_children_add_remove(void)
     fs_fprint_all_allocated_mem(fname);
     fs_append(fs, "EXIT WITH STATUS OK\n");
 
-    debug_mem_corrupted();
+    debug_mem_corrupted(MEM_ID_ALLOCATOR_SLAB);
 
     memman_terminate();
 }
@@ -1254,7 +1255,7 @@ perf_test_buffer_with_children_in_dif_slabs(void)
 
     memman_init();
 
-    buffer_init_table();
+    buffer_table_init();
     timer_init_table();
 
 
@@ -1269,7 +1270,7 @@ perf_test_buffer_with_children_in_dif_slabs(void)
 
     {
         const uint32 capacity = 4;
-        uint32 dif_capacity = capacity;
+        uint32 dif_capacity = 18;
 
         const uint32 type_size = sizeof(struct node);
         buffer_t* buffer = buffer_create_gentype(capacity, type_size);
@@ -1317,11 +1318,9 @@ perf_test_buffer_with_children_in_dif_slabs(void)
                 }
             }
         }
+        perf_timer_stop(t);
 
         print("sum:%u\n", sum);
-
-
-        perf_timer_stop(t);
         perf_timer_print(timer_print_config((timer_print_params){
             .t = t, .repeat = repeat, .buf_capacity = 0,
             .flags = PERF_T_ALL | PERF_T_USE_REPEAT
@@ -1329,10 +1328,6 @@ perf_test_buffer_with_children_in_dif_slabs(void)
 
         print("perf with total buffers accesses:%u\n", num_buffer_elems);
 
-        perf_timer_print(timer_print_config((timer_print_params){
-            .t = t, .repeat = repeat, .buf_capacity = num_buffer_elems,
-            .flags = PERF_T_ALL | PERF_T_USE_REPEAT | PERF_T_USE_BUF_CAPACITY
-        }));
         perf_timer_reset(t);
     }
 

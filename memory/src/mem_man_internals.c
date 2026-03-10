@@ -12,6 +12,9 @@
 #include "sys_utils.h"
 #include <stdlib.h>
 #include <string.h>
+#include <string.h>
+
+#include "file_sys_interface.h"
 #include "logger.h"
 #include "my_macros.h"
 
@@ -23,8 +26,6 @@
 
 #define CHUNK_FLAGS_FREE     BIT_MASK_FROM_UINT(0) // chunk is not in use
 #define CHUNK_FLAGS_OCCUPIED BIT_MASK_FROM_UINT(1) // chunk is in use but has free pages
-
-#define COLOR_PAGE_FREE "FREE" // color a page  to denote that belongs to free list
 
 
 #define CHECK_MEM_NULL(p, error_code, msg) if(p==NULL){\
@@ -40,8 +41,11 @@ if((uint64*)((uint8*)p1+offset) < (uint64*)p2){\
 }
 
 /* FOR DEBUG */
-// static struct fs_t* fs_flist = NULL;
-// static uint32 free_lists_heads_count = 0;
+const char* fname = "/all_used_mem_chunks.txt";
+#define MEMORY_DEBUG_FPRINT_USED_MEM(fs, mem_id)\
+fs_fprint_all_used_mem(fs, mem_id);\
+/* FOR DEBUG */
+
 
 /***************************************************************************************************
  * memory manager -> mms
@@ -93,11 +97,11 @@ mem_table_init(void)
 }
 
 bool
-mem_create(void)
+mem_create(const uint16 num_pages, enum MEM_ID_SELECTOR mem_id)
 {
     const uint32 page_size = PAGE_SIZE;
-    // const uint32 num_pages = 512;
-    const uint32 num_pages = 12;
+    // const uint32 num_pages = 264;
+    // const uint32 num_pages = 32;
     const uint32 alignment = PAGE_SIZE * 16;
     const uint32 memory_bound_check = PAGE_SIZE;
 
@@ -115,14 +119,13 @@ mem_create(void)
         .name = "-pass name param-"
     };
 
-    const uint32 idx = mem_table_count;
+    const memid_t idx = (memid_t)mem_id;
     mem_table[idx] = memory;
     mem_table_count++;
 
     struct mem* mem = mem_get_byid(idx);
 
     mem_init_free_list_table(mem);
-
 
     /* set off boundary area, for corruption detection */
     char* off_bound_mem_start = (char*) mem->start + mem->data_size;
@@ -138,6 +141,7 @@ mem_create(void)
     }
 
     mem_log_print_mem(mem);
+    // mem_log_print_free_list(idx);
 
     return TRUE;
 }
@@ -145,6 +149,13 @@ mem_create(void)
 bool
 mem_table_destroy(void)
 {
+    for(uint32 i = 0; i < MEM_ID_MAX_ELEMS; i++) {
+
+        if(mem_table[i].start) {
+            MEMORY_DEBUG_FPRINT_USED_MEM(fname, i);
+        }
+    }
+
     if(!mem_table) return FALSE;
     print("FREEING MEMORY MANAGER: %x ... ", ry, mem_table[0].start, CLEAR);
     for(uint32 i = 0; i < mem_table_count; i++) {
@@ -166,22 +177,25 @@ mem_init_free_list_table(struct mem* mem)
     /* initialize all memory as free pages */
     const char* data_mem_end = (char*) mem->start + (mem->data_size - mem->bound_check_size);
     while(page_ptr < data_mem_end) {
+
         color_page = FREE_LIST_GET_PAGE_COLOR_OFFSET(flist);
-        color_page[0] = 'F';
-        color_page[1] = 'R';
-        color_page[2] = 'E';
-        color_page[3] = 'E';
+        color_page[0] = 'F'; color_page[1] = 'R'; color_page[2] = 'E'; color_page[3] = 'E';
 
         page_ptr = page_ptr + PAGE_SIZE;
         flist->next = (struct flist*) page_ptr;
         flist = flist->next;
     }
+
+    // Add the last color to the NULL list element
+    color_page = FREE_LIST_GET_PAGE_COLOR_OFFSET(flist);
+    color_page[0] = 'F'; color_page[1] = 'R'; color_page[2] = 'E'; color_page[3] = 'E';
 }
 
 struct memhnd_t
 mem_alloc(const uint16 num_pages, const memid_t mem_id)
 {
     struct mem* mem = mem_get_byid(mem_id);
+
     CHECK_MEM_NULL(mem, NO_MEMORY_MANAGER_INIT, "mem_alloc");
     const struct memhnd_t handle = flist_get_next_free_page(num_pages, mem_id);
 

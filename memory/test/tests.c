@@ -13,7 +13,6 @@
 #include "sys_utils.h"
 
 
-
 /***************************************************************************************************
  * Helper functions
  * 1. test if memory is released, by checking mem.flist list
@@ -23,40 +22,36 @@ void
 test_mem_free_list_is_freed(const struct memhnd_t hnd, char* allocated_addr)
 {
     struct flist* flist = mem_table_get_head(hnd.mem_id);
-    char* alloc_addr = (char*)mem_get_addr_by_handle(hnd);
+    char* alloc_addr = (char*) mem_get_addr_by_handle(hnd);
     bool are_pages_freed = FALSE;
 
     char* next_free_addr = NULL;
 
     if(alloc_addr == allocated_addr) {
-        while((char*)flist <= allocated_addr) {
-
+        while((char*) flist <= allocated_addr) {
             assert(flist);
 
-            if((char*)flist == allocated_addr) {
-
+            if((char*) flist == allocated_addr) {
                 are_pages_freed = TRUE;
-                uint32 num_pages = hnd.num_pages-1;
+                uint32 num_pages = hnd.num_pages - 1;
                 while(num_pages) {
-
-                    if((char*)flist+PAGE_SIZE != (char*)flist->next)
+                    if((char*) flist + PAGE_SIZE != (char*) flist->next)
                         are_pages_freed = FALSE;
 
                     flist = flist->next;
                     num_pages--;
                 }
 
-                next_free_addr = (char*)flist;
+                next_free_addr = (char*) flist;
                 break;
             }
 
             flist = flist->next;
-
         }
     }
 
     bool failed = FALSE;
-    uint32 dif = (uint32 )(next_free_addr - allocated_addr);
+    uint32 dif = (uint32) (next_free_addr - allocated_addr);
     dif /= PAGE_SIZE;
 
     const char* test_name = "mem is released";
@@ -87,8 +82,7 @@ void
 test_mem_free_list_check_continuity(const struct memhnd_t hnd)
 {
     bool failed = FALSE;
-    bool is_contiguous = debug_flist_check_continuity(hnd.mem_id);
-;
+    bool is_contiguous = debug_flist_check_continuity(hnd.mem_id);;
     const char* test_name = "mem release continuity";
     const char* description = "{match}: released memory pages be in continuity";
 
@@ -120,7 +114,7 @@ test_of_tests(const pageid_t num_pages, const bool print_list)
 
     hnd = mem_alloc(num_pages, MEM_ID_ALLOCATOR_SLAB);
 
-    allocated_addr = (char*)mem_get_addr_by_handle(hnd);
+    allocated_addr = (char*) mem_get_addr_by_handle(hnd);
 
     mem_release(hnd);
 
@@ -137,8 +131,8 @@ test_mem_alloc(const pageid_t num_pages)
 {
     print("%sTest:simple allocations:%u %s\n", GREEN, num_pages, CLEAR);
     struct memhnd_t hnd = mem_alloc(num_pages, MEM_ID_ALLOCATOR_SLAB);
-
 }
+
 /* test the allocation algorithm when allocation does not fit in some free pages  */
 void
 test_mem_alloc1(void)
@@ -178,16 +172,14 @@ test_mem_alloc1(void)
         print("%sExpected out put %s\n"
               "free list: 4000 4400 6000 6400 6800 6c00\n"
               "allocated: 4800 4c00 5000 5400 5800 5c00\n",
-                GREEN, CLEAR);
+              GREEN, CLEAR);
 
         mem_release(hnd2);
         mem_release(hnd5);
         print("%s ALL MEMORY RELEASED %s\n", YELLOW, CLEAR);
         mem_log_print_free_list(hnd1.mem_id);
     }
-
 }
-
 
 
 /***************************************************************************************************
@@ -205,7 +197,7 @@ test_alloc_release_insequence(const pageid_t num_pages, const bool print_list)
     hnd = mem_alloc(num_pages, MEM_ID_ALLOCATOR_SLAB);
 
     // for test
-    allocated_addr = (char*)mem_get_addr_by_handle(hnd);
+    allocated_addr = (char*) mem_get_addr_by_handle(hnd);
 
     mem_release(hnd);
     test_mem_free_list_is_freed(hnd, allocated_addr);
@@ -227,15 +219,15 @@ test_alloc_first_release_after(const pageid_t num_pages, const bool print_list)
     hnd2 = mem_alloc(num_pages, MEM_ID_ALLOCATOR_SLAB);
 
     const char* start = calc_address_from_page_id(hnd1.page_id, hnd1.mem_id);
-    const char str[8] = {'H','E','L','L','O','!','!','!'};
+    const char str[8] = {'H', 'E', 'L', 'L', 'O', '!', '!', '!'};
     const uint64 strint = make_uint64_from_char8(str);
     memset_64bit(start, strint, PAGE_SIZE);
     struct fs_t* fs = fs_create("memory/test_alloc_first_release_after.txt");
     fs_append_mem(fs, start, PAGE_SIZE, "occupied memory");
 
     // for test
-    allocated_addr1 = (char*)mem_get_addr_by_handle(hnd1);
-    allocated_addr2 = (char*)mem_get_addr_by_handle(hnd2);
+    allocated_addr1 = (char*) mem_get_addr_by_handle(hnd1);
+    allocated_addr2 = (char*) mem_get_addr_by_handle(hnd2);
 
     mem_release(hnd2);
 
@@ -251,9 +243,7 @@ test_alloc_first_release_after(const pageid_t num_pages, const bool print_list)
 
     test_mem_free_list_is_freed(hnd2, allocated_addr2);
     test_mem_free_list_check_continuity(hnd2);
-
 }
-
 
 
 /***************************************************************************************************
@@ -274,9 +264,9 @@ test_alloc_first_release_after_backwards(const pageid_t num_pages, const bool pr
     hnd[cnt1] = mem_alloc(num_pages, MEM_ID_ALLOCATOR_SLAB);
 
     // for test
-    allocated_addr[cnt1] = (char*)mem_get_addr_by_handle(hnd[cnt1]);
-    allocated_addr[cnt2] = (char*)mem_get_addr_by_handle(hnd[cnt2]);
-    allocated_addr[cnt3] = (char*)mem_get_addr_by_handle(hnd[cnt3]);
+    allocated_addr[cnt1] = (char*) mem_get_addr_by_handle(hnd[cnt1]);
+    allocated_addr[cnt2] = (char*) mem_get_addr_by_handle(hnd[cnt2]);
+    allocated_addr[cnt3] = (char*) mem_get_addr_by_handle(hnd[cnt3]);
 
 
     mem_release(hnd[cnt3]);
@@ -292,7 +282,6 @@ test_alloc_first_release_after_backwards(const pageid_t num_pages, const bool pr
 
     test_mem_free_list_is_freed(hnd[cnt3], allocated_addr[cnt3]);
     test_mem_free_list_check_continuity(hnd[cnt3]);
-
 }
 
 
@@ -303,7 +292,6 @@ test_alloc_first_release_after_backwards(const pageid_t num_pages, const bool pr
 void
 test_alloc_release_mixed_all()
 {
-
     print("%s -- TEST --\n"
           "  alloc:   (1),(2),(3),(4)\n"
           "  release: (1),(2),(3),(4) %s\n", GREEN, CLEAR);
@@ -318,10 +306,10 @@ test_alloc_release_mixed_all()
         mem_release(hnd3);
         mem_release(hnd4);
 
-        char* alloc_addr1 = (char*)mem_get_addr_by_handle(hnd1);
-        char* alloc_addr2 = (char*)mem_get_addr_by_handle(hnd2);
-        char* alloc_addr3 = (char*)mem_get_addr_by_handle(hnd3);
-        char* alloc_addr4 = (char*)mem_get_addr_by_handle(hnd4);
+        char* alloc_addr1 = (char*) mem_get_addr_by_handle(hnd1);
+        char* alloc_addr2 = (char*) mem_get_addr_by_handle(hnd2);
+        char* alloc_addr3 = (char*) mem_get_addr_by_handle(hnd3);
+        char* alloc_addr4 = (char*) mem_get_addr_by_handle(hnd4);
 
 
         test_mem_free_list_is_freed(hnd1, alloc_addr1);
@@ -344,30 +332,28 @@ test_alloc_release_mixed_all()
 
         print("%s release mem: %u %s\n", ry, hnd4.mem_id, CLEAR);
         mem_release(hnd4);
-        char* alloc_addr4 = (char*)mem_get_addr_by_handle(hnd4);
+        char* alloc_addr4 = (char*) mem_get_addr_by_handle(hnd4);
         test_mem_free_list_is_freed(hnd4, alloc_addr4);
 
         mem_release(hnd1);
-        char* alloc_addr1 = (char*)mem_get_addr_by_handle(hnd1);
+        char* alloc_addr1 = (char*) mem_get_addr_by_handle(hnd1);
         test_mem_free_list_is_freed(hnd1, alloc_addr1);
 
         mem_release(hnd2);
-        char* alloc_addr2 = (char*)mem_get_addr_by_handle(hnd2);
+        char* alloc_addr2 = (char*) mem_get_addr_by_handle(hnd2);
         test_mem_free_list_is_freed(hnd2, alloc_addr2);
 
         mem_release(hnd3);
-        char* alloc_addr3 = (char*)mem_get_addr_by_handle(hnd3);
+        char* alloc_addr3 = (char*) mem_get_addr_by_handle(hnd3);
         test_mem_free_list_is_freed(hnd3, alloc_addr3);
 
         test_mem_free_list_check_continuity(hnd1);
-
-
     }
 
 
     print("%s -- TEST --\n"
-    "  alloc:   (1),(2),(3),(4)\n"
-    "  release: (3),(1),(4),(2) %s\n", GREEN, CLEAR);
+          "  alloc:   (1),(2),(3),(4)\n"
+          "  release: (3),(1),(4),(2) %s\n", GREEN, CLEAR);
     {
         struct memhnd_t hnd1 = mem_alloc(1, MEM_ID_ALLOCATOR_SLAB);
         struct memhnd_t hnd2 = mem_alloc(3, MEM_ID_ALLOCATOR_SLAB);
@@ -376,25 +362,23 @@ test_alloc_release_mixed_all()
 
         print("%s release mem: %u %s\n", ry, hnd4.mem_id, CLEAR);
         mem_release(hnd3);
-        char* alloc_addr3 = (char*)mem_get_addr_by_handle(hnd3);
+        char* alloc_addr3 = (char*) mem_get_addr_by_handle(hnd3);
         test_mem_free_list_is_freed(hnd3, alloc_addr3);
 
         mem_release(hnd1);
-        char* alloc_addr1 = (char*)mem_get_addr_by_handle(hnd1);
+        char* alloc_addr1 = (char*) mem_get_addr_by_handle(hnd1);
         test_mem_free_list_is_freed(hnd1, alloc_addr1);
 
         mem_release(hnd4);
-        char* alloc_addr4 = (char*)mem_get_addr_by_handle(hnd4);
+        char* alloc_addr4 = (char*) mem_get_addr_by_handle(hnd4);
         test_mem_free_list_is_freed(hnd4, alloc_addr4);
 
         mem_release(hnd2);
-        char* alloc_addr2 = (char*)mem_get_addr_by_handle(hnd2);
+        char* alloc_addr2 = (char*) mem_get_addr_by_handle(hnd2);
         test_mem_free_list_is_freed(hnd2, alloc_addr2);
 
 
         test_mem_free_list_check_continuity(hnd1);
-
-
     }
 
     print("%s -- FINISH -- %s\n", YELLOW, CLEAR);
@@ -473,19 +457,19 @@ test_alloc_release_fragment_mem()
 
         print("%s#### ALLOCATED NEW MEM HERE%s\n", YELLOW, CLEAR);
 
-        char* allocated_addr1 = (char*)mem_get_addr_by_handle(hnd1);
+        char* allocated_addr1 = (char*) mem_get_addr_by_handle(hnd1);
         mem_release(hnd1);
         test_mem_free_list_is_freed(hnd1, allocated_addr1);
 
-        char* allocated_addr4 = (char*)mem_get_addr_by_handle(hnd4);
+        char* allocated_addr4 = (char*) mem_get_addr_by_handle(hnd4);
         mem_release(hnd4);
         test_mem_free_list_is_freed(hnd4, allocated_addr4);
 
-        char* allocated_addr3 = (char*)mem_get_addr_by_handle(hnd3);
+        char* allocated_addr3 = (char*) mem_get_addr_by_handle(hnd3);
         mem_release(hnd3);
         test_mem_free_list_is_freed(hnd3, allocated_addr3);
 
-        char* allocated_addr2 = (char*)mem_get_addr_by_handle(hnd2);
+        char* allocated_addr2 = (char*) mem_get_addr_by_handle(hnd2);
         mem_release(hnd2);
         test_mem_free_list_is_freed(hnd2, allocated_addr2);
 
@@ -493,17 +477,17 @@ test_alloc_release_fragment_mem()
          * repeat
          */
         hnd3 = mem_alloc(3, MEM_ID_ALLOCATOR_SLAB);
-        allocated_addr3 = (char*)mem_get_addr_by_handle(hnd3);
+        allocated_addr3 = (char*) mem_get_addr_by_handle(hnd3);
         mem_release(hnd3);
         test_mem_free_list_is_freed(hnd3, allocated_addr3);
 
         hnd3 = mem_alloc(3, MEM_ID_ALLOCATOR_SLAB);
-        allocated_addr3 = (char*)mem_get_addr_by_handle(hnd3);
+        allocated_addr3 = (char*) mem_get_addr_by_handle(hnd3);
         mem_release(hnd3);
         test_mem_free_list_is_freed(hnd3, allocated_addr3);
 
         hnd3 = mem_alloc(3, MEM_ID_ALLOCATOR_SLAB);
-        allocated_addr3 = (char*)mem_get_addr_by_handle(hnd3);
+        allocated_addr3 = (char*) mem_get_addr_by_handle(hnd3);
         mem_release(hnd3);
         test_mem_free_list_is_freed(hnd3, allocated_addr3);
 
@@ -514,8 +498,4 @@ test_alloc_release_fragment_mem()
         print("%s#### RELEASE ALL HERE%s\n", YELLOW, CLEAR);
     }
     print("%s -- FINISH -- %s\n", YELLOW, CLEAR);
-
-
-
 }
-

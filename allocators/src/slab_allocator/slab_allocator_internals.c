@@ -8,6 +8,7 @@
 #include "logger.h"
 #include <stdlib.h>
 #include <string.h>
+#include <string.h>
 #include "file_sys_interface.h"
 #include "slab_allocator_log.h"
 #include "my_macros.h"
@@ -45,7 +46,7 @@ static struct fs_t* fs_register_created_mcaches = NULL;
     "CREATE  : | "          \
     " name: %014s | "       \
     " pages: %03u | "       \
-    "capac: %05u | "        \
+    "capac: %05u slabs | "        \
     "count: %03u | "        \
     "used: %03u | "         \
     "flist: %08x %08x\n",   \
@@ -62,7 +63,7 @@ static struct fs_t* fs_register_created_mcaches = NULL;
     "ALLOCATE  : | "        \
     " name: %014s | "       \
     " pages: %03u | "       \
-    "capac: %05u | "        \
+    "capac: %05u slabs | "        \
     "count: %03u | "        \
     "used: %03u | "         \
     "flist: %08x %08x | "   \
@@ -83,7 +84,7 @@ static struct fs_t* fs_register_created_mcaches = NULL;
     "EXTEND    : | "        \
     " name: %014s | "       \
     " pages: %03u | "       \
-    "capac: %05u | "        \
+    "capac: %05u slabs | "        \
     "count: %03u | "        \
     "used: %03u | "         \
     "flist: %08x %08x | "   \
@@ -104,7 +105,7 @@ static struct fs_t* fs_register_created_mcaches = NULL;
     "RELEASE   : | "        \
     " name: %014s | "       \
     " pages: %03u | "       \
-    "capac: %05u | "        \
+    "capac: %05u slabs | "        \
     "count: %03u | "        \
     "used: %03u | "         \
     "flist: %08x %08x | "   \
@@ -150,13 +151,15 @@ mem_cache_table_init(void)
         type_sizes *= 2;
     }
 
+    mem_create(256, MEM_ID_ALLOCATOR_SLAB);
+
     /* DEBUG-FPRINT */
-    fs_flist = fs_create("allocators/slab_allocator_flist.txt");
-    fs_register_created_mcaches = fs_create("allocators/register_created_mcachestxt");
+    fs_flist = fs_create("allocators/buffer/buffer_flist.txt");
+    fs_register_created_mcaches = fs_create("allocators/buffer/register_created_mcaches.txt");
 }
 
 struct mem_cache*
-mem_cache_create(const buffer_size_t buffer_size, const uint16 type_size, const char* name)
+mem_cache_create(const buffer_size_t buffer_size, const uint16 type_size)
 {
     SLABALLOC_CHECK_MCACHE_TABLE(mem_cache_table);
 
@@ -165,13 +168,12 @@ mem_cache_create(const buffer_size_t buffer_size, const uint16 type_size, const 
 
     const uint32 requested_num_pages = ROUND_UP(slab_size, PAGE_SIZE) / PAGE_SIZE;
     /* calculate requested size in pages */
-    // uint32 requested_num_pages = (slab_size <= PAGE_SIZE) ? 1 : (slab_size / PAGE_SIZE)+1;
     const uint32 slabs_capacity = (requested_num_pages * PAGE_SIZE) / slab_size;
 
     /* allocate memory */
     struct mem_cache* mcache = mem_cache_get_next_free_cache();
     const struct memhnd_t hnd = memman_alloc_pages(requested_num_pages, MEM_ID_ALLOCATOR_SLAB);
-    char* ptr = (char*) memman_get_alloc_mem_by_handle(hnd);
+    void* ptr = memman_get_alloc_mem_by_handle(hnd);
     memset(ptr, 0x0, requested_num_pages * PAGE_SIZE);
 
     /** create mcache name */
@@ -193,7 +195,7 @@ mem_cache_create(const buffer_size_t buffer_size, const uint16 type_size, const 
 
     /* DEBUG-FPRINT */
     {
-        char filename[64] = "allocators/mcache_";
+        char filename[64] = "allocators/buffer/mcache_";
         str_concat_memcpy(filename, str_slab_size, 64);
         str_concat_memcpy(filename, "byte.txt", 64);
         fs_mcaches[mcache->idx] = fs_create(filename);
@@ -231,6 +233,9 @@ mem_cache_extend_allocation(struct mem_cache* const mcache, const uint32 left_ov
     const struct memhnd_t hnd = memman_alloc_pages(requested_num_pages, MEM_ID_ALLOCATOR_SLAB);
     void* address = memman_get_alloc_mem_by_handle(hnd);
     memset(address, 0x0, requested_num_pages);
+    /* update only num_pages field, mem_is and page_id
+     * should be constant for the life duration of the mcache */
+    mcache->mem_handle.num_pages = hnd.num_pages;
 
     /* update mcache */
     mcache->slabs_capacity += slabs_capacity;
@@ -278,6 +283,7 @@ mem_cache_alloc_slab(struct mem_cache* mcache)
 
     /* if not enough memory, extend with new slabs from memory manager */
     if(mcache->slabs_free_list == NULL || not_enough_mem) {
+        // print("%s ### mcahce extend alloc() ### %s\n", YELLOW, CLEAR);
         mcache = mem_cache_extend_allocation(mcache, left_over_mem);
     }
 

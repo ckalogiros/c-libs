@@ -8,6 +8,8 @@
 #include "mem_man_interface.h"
 
 
+// #define COLOR_PAGE_FREE "FREE" // color a page to denote that belongs to free list
+#define COLOR_PAGE_FREE (*(uint32_t*)"FREE") // color a page to denote that belongs to free list
 #define FREE_LIST_GET_PAGE_COLOR_OFFSET(fnode) ((char*)fnode + sizeof(struct flist))
 
 struct mem;
@@ -19,7 +21,7 @@ bool mem_table_init(void);
 
 bool mem_table_destroy(void);
 
-bool mem_create();
+bool mem_create(const uint16 num_pages, enum MEM_ID_SELECTOR);
 
 struct memhnd_t mem_alloc(const uint16 num_pages, const memid_t mem_id);
 

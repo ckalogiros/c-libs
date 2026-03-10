@@ -29,7 +29,7 @@ main(void)
     }
 
     {
-        perf_test_buffer_mixed_capacities_add();
+        // perf_test_buffer_mixed_capacities_add();
         // perf_test_buffer_mixed_capacities_add_remove();
 
         // perf_test_buffer_with_children_add_remove();
@@ -40,7 +40,7 @@ main(void)
     }
 
     {
-        // perf_test_buffer_remove_insert();
+        perf_test_buffer_remove_insert();
         // perf_test_insert_abstruct_call();
         // perf_test_buffer_create_generic_vs_uint32();
         // perf_test_buffer_find_tail();

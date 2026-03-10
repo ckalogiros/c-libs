@@ -87,6 +87,6 @@ str_concat_memcpy(char* dest, const char* src, const uint16 dest_size)
 
     assert(dest_size >= dest_len+src_len);
 
-    memcpy(dest + dest_len, src, src_len + 1);
+    memcpy((void*)dest + dest_len, src, src_len + 1);
     return dest;
 }

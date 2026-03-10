@@ -55,7 +55,7 @@ add_executable(renderer main.c
 #        ${renderer_source}
 #        ${window_source}
 #        ${graphics_source}
-#        ${external_source}}
+#        ${external_source}
 )
 target_include_directories(renderer PRIVATE
 #        ${renderer_include}

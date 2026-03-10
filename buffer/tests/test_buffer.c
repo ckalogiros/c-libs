@@ -9,6 +9,7 @@
 #include "file_sys_interface.h"
 #include "logger.h"
 #include "mem_man_interface.h"
+#include "mem_man_internals.h"
 #include "slab_allocator_internals.h"
 
 #define DEBUG_FPRINT_ALL_ALLOC_MEM()\
@@ -52,7 +53,7 @@ test_create_buffer(const uint32 capacity)
 {
     memman_init();
 
-    buffer_init_table();
+    buffer_table_init();
 
     // allocate new buffer
     buffer_t* buffer = buffer_create_uint32(capacity);
@@ -73,7 +74,7 @@ test_buffer_fill_remove_insert()
     
     memman_init();
 
-    buffer_init_table();
+    buffer_table_init();
 
     // allocate new buffer
     const uint32 capacity = 64;
@@ -127,7 +128,7 @@ test_buffer_different_capacity_buffers()
 
     memman_init();
 
-    buffer_init_table();
+    buffer_table_init();
 
     // allocate buffer: capacity=16
     {
@@ -229,7 +230,7 @@ test_buffer_remove_elements(const uint32 capacity)
 
     memman_init();
 
-    buffer_init_table();
+    buffer_table_init();
 
     // allocate buffer
     buffer_t* buffer = buffer_create_uint32(capacity);
@@ -265,10 +266,10 @@ test_buffer_insert_elements(const uint32 capacity)
 
     memman_init();
 
-    buffer_init_table();
+    buffer_table_init();
 
     // allocate buffer
-    buffer_t* buffer = buffer_create_uint32(capacity);
+    buffer_t* buffer = buffer_create_gentype(capacity, sizeof(uint32));
 
 
     // remove elemnts and print free list
@@ -289,7 +290,10 @@ test_buffer_insert_elements(const uint32 capacity)
         .buffer = buffer, .print_num_elems = buffer->capacity
     }));
 
-        DEBUG_FPRINT_ALL_ALLOC_MEM();
+
+    buffer_fprint(buffer);
+
+    DEBUG_FPRINT_ALL_ALLOC_MEM();
     memman_terminate();
 }
 
@@ -301,12 +305,12 @@ test_buffer_realloc()
 
     memman_init();
 
-    buffer_init_table();
+    buffer_table_init();
 
     // allocate buffer
     const uint32 capacity = 16;
     print("CREATE %scapacity:%u%s\n", GREEN, capacity, CLEAR);
-    buffer_t* buffer = buffer_create_uint32(capacity);
+    buffer_t* buffer = buffer_create_gentype(capacity, sizeof(uint32));
     fill(buffer); // fill buffer
     buffer_print_uint32(buffer_print_config((buffer_print_params){
         .buffer = buffer, .print_num_elems = buffer->capacity
@@ -386,7 +390,7 @@ test_destroy_buffer()
 
     memman_init();
 
-    buffer_init_table();
+    buffer_table_init();
 
     print("%sTEST CREATE-DESTROY,\nSAME BUFFER TWICE%s\n", GREEN, CLEAR);
     {
@@ -608,7 +612,7 @@ test_generic_type_buffer()
 
     memman_init();
 
-    buffer_init_table();
+    buffer_table_init();
 
     buffer_t* buffer = buffer_create_gentype(32, sizeof(uint8));
 
@@ -649,7 +653,7 @@ test_buffer_free_elem()
 
     memman_init();
 
-    buffer_init_table();
+    buffer_table_init();
 
     const uint32 repeat = 1;
     const uint32 capacity = 128;
@@ -706,7 +710,7 @@ test_buffer_with_children()
 
     memman_init();
 
-    buffer_init_table();
+    buffer_table_init();
 
     struct node {
         uint32 nameid;

@@ -3,14 +3,10 @@
  */
 
 // #include "buffer_internals.h"
-#include "mem_structs.h"
 #include "mem_log.h"
-#include "mem_man_interface.h"
 #include "my_types.h"
-#include "precision_timer.h"
-#include "precision_timer_logger.h"
 #include "tests.h"
-#include "mem_test.h"
+#include "mem_test_bitfields.h"
 
 uint32 test_id = 0;
 

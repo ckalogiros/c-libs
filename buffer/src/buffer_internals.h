@@ -19,6 +19,7 @@ buffer_t* buffer_constructor_gentype(const bufidx_t capacity, const uint16 types
 
 void buffer_destructor(buffer_t* buffer);
 
+void buffer_release(buffer_t* buffer);
 
 /* PRIVATE */
 void buffer_reallocate(buffer_t* const buffer);
@@ -38,6 +39,10 @@ int32 buffer_find_tail_recur(const uint64 val, uint32* accum_num_bits);
 
 bufidx_t TEMP_buffer_find_tail(const buffer_t* const buffer);
 
+
+
+/* DEBUG-FPRINT */
+void buffer_print_to_file(buffer_t* buffer);
 // void* buffer_get_data(const buffer_t* const buffer);
 // uint64* buffer_get_freelist(const buffer_t* const buffer);
 
