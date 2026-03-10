@@ -1,0 +1,2 @@
+CREATE  : |  name:     mcache_256 |  pages: 001 | capac: 00004 slabs | count: 000 | used: 000 | flist: 0000759d 5b214800
+ALLOCATE  : |  name:     mcache_256 |  pages: 001 | capac: 00004 slabs | count: 001 | used: 001 | flist: 0000759d 5b214900 | free: 0000759d 5b214800 | dif: 0032 bytes

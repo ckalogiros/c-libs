@@ -1,0 +1,374 @@
+
+________________________________________________________________________________________________________________
+message: 
+start:00007bc3 138d0000
+end:  00007bc3 138d0400
+dif:[1024 bytes] | [400 hex] | size:1024
+
+   ADDRESS        |  0: 3     4: 7     8:11    12:15    16:19    20:23    24:27    28:31    
+00007bc3 138d0000 |00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 [    0] | ........ ........ ........ ........ 
+00007bc3 138d0020 |00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 [   32] | ........ ........ ........ ........ 
+00007bc3 138d0040 |00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 [   64] | ........ ........ ........ ........ 
+00007bc3 138d0060 |00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 [   96] | ........ ........ ........ ........ 
+00007bc3 138d0080 |00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 [  128] | ........ ........ ........ ........ 
+00007bc3 138d00a0 |00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 [  160] | ........ ........ ........ ........ 
+00007bc3 138d00c0 |00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 [  192] | ........ ........ ........ ........ 
+00007bc3 138d00e0 |00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 [  224] | ........ ........ ........ ........ 
+00007bc3 138d0100 |00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 [  256] | ........ ........ ........ ........ 
+00007bc3 138d0120 |00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 [  288] | ........ ........ ........ ........ 
+00007bc3 138d0140 |00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 [  320] | ........ ........ ........ ........ 
+00007bc3 138d0160 |00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 [  352] | ........ ........ ........ ........ 
+00007bc3 138d0180 |00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 [  384] | ........ ........ ........ ........ 
+00007bc3 138d01a0 |00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 [  416] | ........ ........ ........ ........ 
+00007bc3 138d01c0 |00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 [  448] | ........ ........ ........ ........ 
+00007bc3 138d01e0 |00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 [  480] | ........ ........ ........ ........ 
+00007bc3 138d0200 |00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 [  512] | ........ ........ ........ ........ 
+00007bc3 138d0220 |00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 [  544] | ........ ........ ........ ........ 
+00007bc3 138d0240 |00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 [  576] | ........ ........ ........ ........ 
+00007bc3 138d0260 |00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 [  608] | ........ ........ ........ ........ 
+00007bc3 138d0280 |00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 [  640] | ........ ........ ........ ........ 
+00007bc3 138d02a0 |00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 [  672] | ........ ........ ........ ........ 
+00007bc3 138d02c0 |00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 [  704] | ........ ........ ........ ........ 
+00007bc3 138d02e0 |00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 [  736] | ........ ........ ........ ........ 
+00007bc3 138d0300 |00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 [  768] | ........ ........ ........ ........ 
+00007bc3 138d0320 |00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 [  800] | ........ ........ ........ ........ 
+00007bc3 138d0340 |00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 [  832] | ........ ........ ........ ........ 
+00007bc3 138d0360 |00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 [  864] | ........ ........ ........ ........ 
+00007bc3 138d0380 |00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 [  896] | ........ ........ ........ ........ 
+00007bc3 138d03a0 |00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 [  928] | ........ ........ ........ ........ 
+00007bc3 138d03c0 |00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 [  960] | ........ ........ ........ ........ 
+00007bc3 138d03e0 |00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 [  992] | ........ ........ ........ ........ 
+
+________________________________________________________________________________________________________________
+message: 
+start:00007bc3 138d0400
+end:  00007bc3 138d0800
+dif:[1024 bytes] | [400 hex] | size:1024
+
+   ADDRESS        |  0: 3     4: 7     8:11    12:15    16:19    20:23    24:27    28:31    
+00007bc3 138d0400 |ffffffff fffffffe 00007bc3 138d0410 00007bc3 138d0418 00007bc3 138d0420 [    0] | ........ .....{.. .....{..  ....{.. 
+00007bc3 138d0420 |00007bc3 138d0428 00007bc3 138d0430 00007bc3 138d0438 00007bc3 138d0440 [   32] | (....{.. 0....{.. 8....{.. @....{.. 
+00007bc3 138d0440 |00007bc3 138d0448 00007bc3 138d0450 00007bc3 138d0458 00007bc3 138d0460 [   64] | H....{.. P....{.. X....{.. `....{.. 
+00007bc3 138d0460 |00007bc3 138d0468 00007bc3 138d0470 00007bc3 138d0478 00007bc3 138d0480 [   96] | h....{.. p....{.. x....{.. .....{.. 
+00007bc3 138d0480 |00007bc3 138d0488 00007bc3 138d0490 00007bc3 138d0498 00007bc3 138d04a0 [  128] | .....{.. .....{.. .....{.. .....{.. 
+00007bc3 138d04a0 |00007bc3 138d04a8 00007bc3 138d04b0 00007bc3 138d04b8 00007bc3 138d04c0 [  160] | .....{.. .....{.. .....{.. .....{.. 
+00007bc3 138d04c0 |00007bc3 138d04c8 00007bc3 138d04d0 00007bc3 138d04d8 00007bc3 138d04e0 [  192] | .....{.. .....{.. .....{.. .....{.. 
+00007bc3 138d04e0 |00007bc3 138d04e8 00007bc3 138d04f0 00007bc3 138d04f8 00007bc3 138d0500 [  224] | .....{.. .....{.. .....{.. .....{.. 
+00007bc3 138d0500 |00007bc3 138d0508 00007bc3 138d0510 00007bc3 138d0518 00007bc3 138d0520 [  256] | .....{.. .....{.. .....{..  ....{.. 
+00007bc3 138d0520 |00007bc3 138d0528 00007bc3 138d0530 00007bc3 138d0538 00007bc3 138d0540 [  288] | (....{.. 0....{.. 8....{.. @....{.. 
+00007bc3 138d0540 |00007bc3 138d0548 00007bc3 138d0550 00007bc3 138d0558 00007bc3 138d0560 [  320] | H....{.. P....{.. X....{.. `....{.. 
+00007bc3 138d0560 |00007bc3 138d0568 00007bc3 138d0570 00007bc3 138d0578 00007bc3 138d0580 [  352] | h....{.. p....{.. x....{.. .....{.. 
+00007bc3 138d0580 |00007bc3 138d0588 00007bc3 138d0590 00007bc3 138d0598 00007bc3 138d05a0 [  384] | .....{.. .....{.. .....{.. .....{.. 
+00007bc3 138d05a0 |00007bc3 138d05a8 00007bc3 138d05b0 00007bc3 138d05b8 00007bc3 138d05c0 [  416] | .....{.. .....{.. .....{.. .....{.. 
+00007bc3 138d05c0 |00007bc3 138d05c8 00007bc3 138d05d0 00007bc3 138d05d8 00007bc3 138d05e0 [  448] | .....{.. .....{.. .....{.. .....{.. 
+00007bc3 138d05e0 |00007bc3 138d05e8 00007bc3 138d05f0 00007bc3 138d05f8 00007bc3 138d0600 [  480] | .....{.. .....{.. .....{.. .....{.. 
+00007bc3 138d0600 |00007bc3 138d0608 00007bc3 138d0610 00007bc3 138d0618 00007bc3 138d0620 [  512] | .....{.. .....{.. .....{..  ....{.. 
+00007bc3 138d0620 |00007bc3 138d0628 00007bc3 138d0630 00007bc3 138d0638 00007bc3 138d0640 [  544] | (....{.. 0....{.. 8....{.. @....{.. 
+00007bc3 138d0640 |00007bc3 138d0648 00007bc3 138d0650 00007bc3 138d0658 00007bc3 138d0660 [  576] | H....{.. P....{.. X....{.. `....{.. 
+00007bc3 138d0660 |00007bc3 138d0668 00007bc3 138d0670 00007bc3 138d0678 00007bc3 138d0680 [  608] | h....{.. p....{.. x....{.. .....{.. 
+00007bc3 138d0680 |00007bc3 138d0688 00007bc3 138d0690 00007bc3 138d0698 00007bc3 138d06a0 [  640] | .....{.. .....{.. .....{.. .....{.. 
+00007bc3 138d06a0 |00007bc3 138d06a8 00007bc3 138d06b0 00007bc3 138d06b8 00007bc3 138d06c0 [  672] | .....{.. .....{.. .....{.. .....{.. 
+00007bc3 138d06c0 |00007bc3 138d06c8 00007bc3 138d06d0 00007bc3 138d06d8 00007bc3 138d06e0 [  704] | .....{.. .....{.. .....{.. .....{.. 
+00007bc3 138d06e0 |00007bc3 138d06e8 00007bc3 138d06f0 00007bc3 138d06f8 00007bc3 138d0700 [  736] | .....{.. .....{.. .....{.. .....{.. 
+00007bc3 138d0700 |00007bc3 138d0708 00007bc3 138d0710 00007bc3 138d0718 00007bc3 138d0720 [  768] | .....{.. .....{.. .....{..  ....{.. 
+00007bc3 138d0720 |00007bc3 138d0728 00007bc3 138d0730 00007bc3 138d0738 00007bc3 138d0740 [  800] | (....{.. 0....{.. 8....{.. @....{.. 
+00007bc3 138d0740 |00007bc3 138d0748 00007bc3 138d0750 00007bc3 138d0758 00007bc3 138d0760 [  832] | H....{.. P....{.. X....{.. `....{.. 
+00007bc3 138d0760 |00007bc3 138d0768 00007bc3 138d0770 00007bc3 138d0778 00007bc3 138d0780 [  864] | h....{.. p....{.. x....{.. .....{.. 
+00007bc3 138d0780 |00007bc3 138d0788 00007bc3 138d0790 00007bc3 138d0798 00007bc3 138d07a0 [  896] | .....{.. .....{.. .....{.. .....{.. 
+00007bc3 138d07a0 |00007bc3 138d07a8 00007bc3 138d07b0 00007bc3 138d07b8 00007bc3 138d07c0 [  928] | .....{.. .....{.. .....{.. .....{.. 
+00007bc3 138d07c0 |00007bc3 138d07c8 00007bc3 138d07d0 00007bc3 138d07d8 00007bc3 138d07e0 [  960] | .....{.. .....{.. .....{.. .....{.. 
+00007bc3 138d07e0 |00007bc3 138d07e8 00007bc3 138d07f0 00007bc3 138d07f8 00000000 00000000 [  992] | .....{.. .....{.. .....{.. ........ 
+[ 2048] FREE PAGE | addr:00007bc3 138d0800
+[ 3072] FREE PAGE | addr:00007bc3 138d0c00
+[ 4096] FREE PAGE | addr:00007bc3 138d1000
+[ 5120] FREE PAGE | addr:00007bc3 138d1400
+[ 6144] FREE PAGE | addr:00007bc3 138d1800
+[ 7168] FREE PAGE | addr:00007bc3 138d1c00
+[ 8192] FREE PAGE | addr:00007bc3 138d2000
+[ 9216] FREE PAGE | addr:00007bc3 138d2400
+[10240] FREE PAGE | addr:00007bc3 138d2800
+[11264] FREE PAGE | addr:00007bc3 138d2c00
+[12288] FREE PAGE | addr:00007bc3 138d3000
+[13312] FREE PAGE | addr:00007bc3 138d3400
+[14336] FREE PAGE | addr:00007bc3 138d3800
+[15360] FREE PAGE | addr:00007bc3 138d3c00
+[16384] FREE PAGE | addr:00007bc3 138d4000
+[17408] FREE PAGE | addr:00007bc3 138d4400
+[18432] FREE PAGE | addr:00007bc3 138d4800
+[19456] FREE PAGE | addr:00007bc3 138d4c00
+[20480] FREE PAGE | addr:00007bc3 138d5000
+[21504] FREE PAGE | addr:00007bc3 138d5400
+[22528] FREE PAGE | addr:00007bc3 138d5800
+[23552] FREE PAGE | addr:00007bc3 138d5c00
+[24576] FREE PAGE | addr:00007bc3 138d6000
+[25600] FREE PAGE | addr:00007bc3 138d6400
+[26624] FREE PAGE | addr:00007bc3 138d6800
+[27648] FREE PAGE | addr:00007bc3 138d6c00
+[28672] FREE PAGE | addr:00007bc3 138d7000
+[29696] FREE PAGE | addr:00007bc3 138d7400
+[30720] FREE PAGE | addr:00007bc3 138d7800
+[31744] FREE PAGE | addr:00007bc3 138d7c00
+[32768] FREE PAGE | addr:00007bc3 138d8000
+[33792] FREE PAGE | addr:00007bc3 138d8400
+[34816] FREE PAGE | addr:00007bc3 138d8800
+[35840] FREE PAGE | addr:00007bc3 138d8c00
+[36864] FREE PAGE | addr:00007bc3 138d9000
+[37888] FREE PAGE | addr:00007bc3 138d9400
+[38912] FREE PAGE | addr:00007bc3 138d9800
+[39936] FREE PAGE | addr:00007bc3 138d9c00
+[40960] FREE PAGE | addr:00007bc3 138da000
+[41984] FREE PAGE | addr:00007bc3 138da400
+[43008] FREE PAGE | addr:00007bc3 138da800
+[44032] FREE PAGE | addr:00007bc3 138dac00
+[45056] FREE PAGE | addr:00007bc3 138db000
+[46080] FREE PAGE | addr:00007bc3 138db400
+[47104] FREE PAGE | addr:00007bc3 138db800
+[48128] FREE PAGE | addr:00007bc3 138dbc00
+[49152] FREE PAGE | addr:00007bc3 138dc000
+[50176] FREE PAGE | addr:00007bc3 138dc400
+[51200] FREE PAGE | addr:00007bc3 138dc800
+[52224] FREE PAGE | addr:00007bc3 138dcc00
+[53248] FREE PAGE | addr:00007bc3 138dd000
+[54272] FREE PAGE | addr:00007bc3 138dd400
+[55296] FREE PAGE | addr:00007bc3 138dd800
+[56320] FREE PAGE | addr:00007bc3 138ddc00
+[57344] FREE PAGE | addr:00007bc3 138de000
+[58368] FREE PAGE | addr:00007bc3 138de400
+[59392] FREE PAGE | addr:00007bc3 138de800
+[60416] FREE PAGE | addr:00007bc3 138dec00
+[61440] FREE PAGE | addr:00007bc3 138df000
+[62464] FREE PAGE | addr:00007bc3 138df400
+[63488] FREE PAGE | addr:00007bc3 138df800
+[64512] FREE PAGE | addr:00007bc3 138dfc00
+[65536] FREE PAGE | addr:00007bc3 138e0000
+[66560] FREE PAGE | addr:00007bc3 138e0400
+[67584] FREE PAGE | addr:00007bc3 138e0800
+[68608] FREE PAGE | addr:00007bc3 138e0c00
+[69632] FREE PAGE | addr:00007bc3 138e1000
+[70656] FREE PAGE | addr:00007bc3 138e1400
+[71680] FREE PAGE | addr:00007bc3 138e1800
+[72704] FREE PAGE | addr:00007bc3 138e1c00
+[73728] FREE PAGE | addr:00007bc3 138e2000
+[74752] FREE PAGE | addr:00007bc3 138e2400
+[75776] FREE PAGE | addr:00007bc3 138e2800
+[76800] FREE PAGE | addr:00007bc3 138e2c00
+[77824] FREE PAGE | addr:00007bc3 138e3000
+[78848] FREE PAGE | addr:00007bc3 138e3400
+[79872] FREE PAGE | addr:00007bc3 138e3800
+[80896] FREE PAGE | addr:00007bc3 138e3c00
+[81920] FREE PAGE | addr:00007bc3 138e4000
+[82944] FREE PAGE | addr:00007bc3 138e4400
+[83968] FREE PAGE | addr:00007bc3 138e4800
+[84992] FREE PAGE | addr:00007bc3 138e4c00
+[86016] FREE PAGE | addr:00007bc3 138e5000
+[87040] FREE PAGE | addr:00007bc3 138e5400
+[88064] FREE PAGE | addr:00007bc3 138e5800
+[89088] FREE PAGE | addr:00007bc3 138e5c00
+[90112] FREE PAGE | addr:00007bc3 138e6000
+[91136] FREE PAGE | addr:00007bc3 138e6400
+[92160] FREE PAGE | addr:00007bc3 138e6800
+[93184] FREE PAGE | addr:00007bc3 138e6c00
+[94208] FREE PAGE | addr:00007bc3 138e7000
+[95232] FREE PAGE | addr:00007bc3 138e7400
+[96256] FREE PAGE | addr:00007bc3 138e7800
+[97280] FREE PAGE | addr:00007bc3 138e7c00
+[98304] FREE PAGE | addr:00007bc3 138e8000
+[99328] FREE PAGE | addr:00007bc3 138e8400
+[100352] FREE PAGE | addr:00007bc3 138e8800
+[101376] FREE PAGE | addr:00007bc3 138e8c00
+[102400] FREE PAGE | addr:00007bc3 138e9000
+[103424] FREE PAGE | addr:00007bc3 138e9400
+[104448] FREE PAGE | addr:00007bc3 138e9800
+[105472] FREE PAGE | addr:00007bc3 138e9c00
+[106496] FREE PAGE | addr:00007bc3 138ea000
+[107520] FREE PAGE | addr:00007bc3 138ea400
+[108544] FREE PAGE | addr:00007bc3 138ea800
+[109568] FREE PAGE | addr:00007bc3 138eac00
+[110592] FREE PAGE | addr:00007bc3 138eb000
+[111616] FREE PAGE | addr:00007bc3 138eb400
+[112640] FREE PAGE | addr:00007bc3 138eb800
+[113664] FREE PAGE | addr:00007bc3 138ebc00
+[114688] FREE PAGE | addr:00007bc3 138ec000
+[115712] FREE PAGE | addr:00007bc3 138ec400
+[116736] FREE PAGE | addr:00007bc3 138ec800
+[117760] FREE PAGE | addr:00007bc3 138ecc00
+[118784] FREE PAGE | addr:00007bc3 138ed000
+[119808] FREE PAGE | addr:00007bc3 138ed400
+[120832] FREE PAGE | addr:00007bc3 138ed800
+[121856] FREE PAGE | addr:00007bc3 138edc00
+[122880] FREE PAGE | addr:00007bc3 138ee000
+[123904] FREE PAGE | addr:00007bc3 138ee400
+[124928] FREE PAGE | addr:00007bc3 138ee800
+[125952] FREE PAGE | addr:00007bc3 138eec00
+[126976] FREE PAGE | addr:00007bc3 138ef000
+[128000] FREE PAGE | addr:00007bc3 138ef400
+[129024] FREE PAGE | addr:00007bc3 138ef800
+[130048] FREE PAGE | addr:00007bc3 138efc00
+[131072] FREE PAGE | addr:00007bc3 138f0000
+[132096] FREE PAGE | addr:00007bc3 138f0400
+[133120] FREE PAGE | addr:00007bc3 138f0800
+[134144] FREE PAGE | addr:00007bc3 138f0c00
+[135168] FREE PAGE | addr:00007bc3 138f1000
+[136192] FREE PAGE | addr:00007bc3 138f1400
+[137216] FREE PAGE | addr:00007bc3 138f1800
+[138240] FREE PAGE | addr:00007bc3 138f1c00
+[139264] FREE PAGE | addr:00007bc3 138f2000
+[140288] FREE PAGE | addr:00007bc3 138f2400
+[141312] FREE PAGE | addr:00007bc3 138f2800
+[142336] FREE PAGE | addr:00007bc3 138f2c00
+[143360] FREE PAGE | addr:00007bc3 138f3000
+[144384] FREE PAGE | addr:00007bc3 138f3400
+[145408] FREE PAGE | addr:00007bc3 138f3800
+[146432] FREE PAGE | addr:00007bc3 138f3c00
+[147456] FREE PAGE | addr:00007bc3 138f4000
+[148480] FREE PAGE | addr:00007bc3 138f4400
+[149504] FREE PAGE | addr:00007bc3 138f4800
+[150528] FREE PAGE | addr:00007bc3 138f4c00
+[151552] FREE PAGE | addr:00007bc3 138f5000
+[152576] FREE PAGE | addr:00007bc3 138f5400
+[153600] FREE PAGE | addr:00007bc3 138f5800
+[154624] FREE PAGE | addr:00007bc3 138f5c00
+[155648] FREE PAGE | addr:00007bc3 138f6000
+[156672] FREE PAGE | addr:00007bc3 138f6400
+[157696] FREE PAGE | addr:00007bc3 138f6800
+[158720] FREE PAGE | addr:00007bc3 138f6c00
+[159744] FREE PAGE | addr:00007bc3 138f7000
+[160768] FREE PAGE | addr:00007bc3 138f7400
+[161792] FREE PAGE | addr:00007bc3 138f7800
+[162816] FREE PAGE | addr:00007bc3 138f7c00
+[163840] FREE PAGE | addr:00007bc3 138f8000
+[164864] FREE PAGE | addr:00007bc3 138f8400
+[165888] FREE PAGE | addr:00007bc3 138f8800
+[166912] FREE PAGE | addr:00007bc3 138f8c00
+[167936] FREE PAGE | addr:00007bc3 138f9000
+[168960] FREE PAGE | addr:00007bc3 138f9400
+[169984] FREE PAGE | addr:00007bc3 138f9800
+[171008] FREE PAGE | addr:00007bc3 138f9c00
+[172032] FREE PAGE | addr:00007bc3 138fa000
+[173056] FREE PAGE | addr:00007bc3 138fa400
+[174080] FREE PAGE | addr:00007bc3 138fa800
+[175104] FREE PAGE | addr:00007bc3 138fac00
+[176128] FREE PAGE | addr:00007bc3 138fb000
+[177152] FREE PAGE | addr:00007bc3 138fb400
+[178176] FREE PAGE | addr:00007bc3 138fb800
+[179200] FREE PAGE | addr:00007bc3 138fbc00
+[180224] FREE PAGE | addr:00007bc3 138fc000
+[181248] FREE PAGE | addr:00007bc3 138fc400
+[182272] FREE PAGE | addr:00007bc3 138fc800
+[183296] FREE PAGE | addr:00007bc3 138fcc00
+[184320] FREE PAGE | addr:00007bc3 138fd000
+[185344] FREE PAGE | addr:00007bc3 138fd400
+[186368] FREE PAGE | addr:00007bc3 138fd800
+[187392] FREE PAGE | addr:00007bc3 138fdc00
+[188416] FREE PAGE | addr:00007bc3 138fe000
+[189440] FREE PAGE | addr:00007bc3 138fe400
+[190464] FREE PAGE | addr:00007bc3 138fe800
+[191488] FREE PAGE | addr:00007bc3 138fec00
+[192512] FREE PAGE | addr:00007bc3 138ff000
+[193536] FREE PAGE | addr:00007bc3 138ff400
+[194560] FREE PAGE | addr:00007bc3 138ff800
+[195584] FREE PAGE | addr:00007bc3 138ffc00
+[196608] FREE PAGE | addr:00007bc3 13900000
+[197632] FREE PAGE | addr:00007bc3 13900400
+[198656] FREE PAGE | addr:00007bc3 13900800
+[199680] FREE PAGE | addr:00007bc3 13900c00
+[200704] FREE PAGE | addr:00007bc3 13901000
+[201728] FREE PAGE | addr:00007bc3 13901400
+[202752] FREE PAGE | addr:00007bc3 13901800
+[203776] FREE PAGE | addr:00007bc3 13901c00
+[204800] FREE PAGE | addr:00007bc3 13902000
+[205824] FREE PAGE | addr:00007bc3 13902400
+[206848] FREE PAGE | addr:00007bc3 13902800
+[207872] FREE PAGE | addr:00007bc3 13902c00
+[208896] FREE PAGE | addr:00007bc3 13903000
+[209920] FREE PAGE | addr:00007bc3 13903400
+[210944] FREE PAGE | addr:00007bc3 13903800
+[211968] FREE PAGE | addr:00007bc3 13903c00
+[212992] FREE PAGE | addr:00007bc3 13904000
+[214016] FREE PAGE | addr:00007bc3 13904400
+[215040] FREE PAGE | addr:00007bc3 13904800
+[216064] FREE PAGE | addr:00007bc3 13904c00
+[217088] FREE PAGE | addr:00007bc3 13905000
+[218112] FREE PAGE | addr:00007bc3 13905400
+[219136] FREE PAGE | addr:00007bc3 13905800
+[220160] FREE PAGE | addr:00007bc3 13905c00
+[221184] FREE PAGE | addr:00007bc3 13906000
+[222208] FREE PAGE | addr:00007bc3 13906400
+[223232] FREE PAGE | addr:00007bc3 13906800
+[224256] FREE PAGE | addr:00007bc3 13906c00
+[225280] FREE PAGE | addr:00007bc3 13907000
+[226304] FREE PAGE | addr:00007bc3 13907400
+[227328] FREE PAGE | addr:00007bc3 13907800
+[228352] FREE PAGE | addr:00007bc3 13907c00
+[229376] FREE PAGE | addr:00007bc3 13908000
+[230400] FREE PAGE | addr:00007bc3 13908400
+[231424] FREE PAGE | addr:00007bc3 13908800
+[232448] FREE PAGE | addr:00007bc3 13908c00
+[233472] FREE PAGE | addr:00007bc3 13909000
+[234496] FREE PAGE | addr:00007bc3 13909400
+[235520] FREE PAGE | addr:00007bc3 13909800
+[236544] FREE PAGE | addr:00007bc3 13909c00
+[237568] FREE PAGE | addr:00007bc3 1390a000
+[238592] FREE PAGE | addr:00007bc3 1390a400
+[239616] FREE PAGE | addr:00007bc3 1390a800
+[240640] FREE PAGE | addr:00007bc3 1390ac00
+[241664] FREE PAGE | addr:00007bc3 1390b000
+[242688] FREE PAGE | addr:00007bc3 1390b400
+[243712] FREE PAGE | addr:00007bc3 1390b800
+[244736] FREE PAGE | addr:00007bc3 1390bc00
+[245760] FREE PAGE | addr:00007bc3 1390c000
+[246784] FREE PAGE | addr:00007bc3 1390c400
+[247808] FREE PAGE | addr:00007bc3 1390c800
+[248832] FREE PAGE | addr:00007bc3 1390cc00
+[249856] FREE PAGE | addr:00007bc3 1390d000
+[250880] FREE PAGE | addr:00007bc3 1390d400
+[251904] FREE PAGE | addr:00007bc3 1390d800
+[252928] FREE PAGE | addr:00007bc3 1390dc00
+[253952] FREE PAGE | addr:00007bc3 1390e000
+[254976] FREE PAGE | addr:00007bc3 1390e400
+[256000] FREE PAGE | addr:00007bc3 1390e800
+[257024] FREE PAGE | addr:00007bc3 1390ec00
+[258048] FREE PAGE | addr:00007bc3 1390f000
+[259072] FREE PAGE | addr:00007bc3 1390f400
+[260096] FREE PAGE | addr:00007bc3 1390f800
+[261120] FREE PAGE | addr:00007bc3 1390fc00
+
+________________________________________________________________________________________________________________
+message: 
+start:00007bc3 13910000
+end:  00007bc3 13910400
+dif:[1024 bytes] | [400 hex] | size:1024
+
+   ADDRESS        |  0: 3     4: 7     8:11    12:15    16:19    20:23    24:27    28:31    
+00007bc3 13910000 |abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac [    0] | ........ ........ ........ ........ 
+00007bc3 13910020 |abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac [   32] | ........ ........ ........ ........ 
+00007bc3 13910040 |abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac [   64] | ........ ........ ........ ........ 
+00007bc3 13910060 |abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac [   96] | ........ ........ ........ ........ 
+00007bc3 13910080 |abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac [  128] | ........ ........ ........ ........ 
+00007bc3 139100a0 |abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac [  160] | ........ ........ ........ ........ 
+00007bc3 139100c0 |abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac [  192] | ........ ........ ........ ........ 
+00007bc3 139100e0 |abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac [  224] | ........ ........ ........ ........ 
+00007bc3 13910100 |abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac [  256] | ........ ........ ........ ........ 
+00007bc3 13910120 |abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac [  288] | ........ ........ ........ ........ 
+00007bc3 13910140 |abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac [  320] | ........ ........ ........ ........ 
+00007bc3 13910160 |abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac [  352] | ........ ........ ........ ........ 
+00007bc3 13910180 |abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac [  384] | ........ ........ ........ ........ 
+00007bc3 139101a0 |abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac [  416] | ........ ........ ........ ........ 
+00007bc3 139101c0 |abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac [  448] | ........ ........ ........ ........ 
+00007bc3 139101e0 |abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac [  480] | ........ ........ ........ ........ 
+00007bc3 13910200 |abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac [  512] | ........ ........ ........ ........ 
+00007bc3 13910220 |abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac [  544] | ........ ........ ........ ........ 
+00007bc3 13910240 |abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac [  576] | ........ ........ ........ ........ 
+00007bc3 13910260 |abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac [  608] | ........ ........ ........ ........ 
+00007bc3 13910280 |abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac [  640] | ........ ........ ........ ........ 
+00007bc3 139102a0 |abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac [  672] | ........ ........ ........ ........ 
+00007bc3 139102c0 |abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac [  704] | ........ ........ ........ ........ 
+00007bc3 139102e0 |abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac [  736] | ........ ........ ........ ........ 
+00007bc3 13910300 |abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac [  768] | ........ ........ ........ ........ 
+00007bc3 13910320 |abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac [  800] | ........ ........ ........ ........ 
+00007bc3 13910340 |abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac [  832] | ........ ........ ........ ........ 
+00007bc3 13910360 |abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac [  864] | ........ ........ ........ ........ 
+00007bc3 13910380 |abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac [  896] | ........ ........ ........ ........ 
+00007bc3 139103a0 |abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac [  928] | ........ ........ ........ ........ 
+00007bc3 139103c0 |abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac [  960] | ........ ........ ........ ........ 
+00007bc3 139103e0 |abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac abccbcab effdfdac [  992] | ........ ........ ........ ........ 
