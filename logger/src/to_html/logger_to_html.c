@@ -20,11 +20,6 @@
 static void* mem = NULL;
 
 
-
-static void mem_alloc(const uint32 size){}
-static void mem_append(const uint32 size){}
-
-
 static char* groups[HTML_GROUP_CAPACITY];
 static uint32 pointers[HTML_GROUP_CAPACITY];
 

@@ -17,7 +17,7 @@ enum STRING_ERROR_CODE {
 typedef struct string_t {
     strlen_t len;
     strlen_t size;
-    uint8 self_size;
+    uint8 self_size; // the size of this minus the data part
     char data[1];
 } string_t;
 

@@ -18,10 +18,6 @@
 #include "string_mem_cache.h"
 
 
-// todo: must be dynamicaly reallocated
-#define BUFFER_TABLE_MIN_CAPACITY 512
-
-
 /*******************************************************************************
  *
  ******************************************************************************/
@@ -53,7 +49,6 @@ string->self_size,  \
 string->data \
 )
 
-
 /* append formated data to the string's file */
 #define fs_string_append(fs, fmt, ...)\
 fs_append(fs, fmt, ##__VA_ARGS__)
@@ -70,7 +65,7 @@ static inline strlen_t string_get_self_size() { return sizeof(string_t) - sizeof
 void
 string_container_init(void)
 {
-    if(is_string_mcache_table_init()) return;
+    if(is_string_slab_allocator_init()) return;
 
     string_mem_cache_table_init();
 
@@ -100,20 +95,16 @@ string_constructor(const char* str, const strlen_t size)
     strlen_t max_size = STRING_MIN_LEN;
     while(max_size < capacity) max_size *= 2;
 
-
-    // alloc storage for bufer data
+    /* alloc storage for bufer data */
     void* data_ptr = NULL;
-    if(max_size <= 256)
-        data_ptr = string_slab_alloc_allocate(max_size);
-    else
-        data_ptr = mem_cache_alloc_buffer(max_size, sizeof(char));
+    data_ptr = string_slab_alloc_allocate(max_size);
 
     string_t* string = data_ptr;
     string->len = 0;
     string->size = max_size;
     string->self_size = self_size;
 
-    // init string data
+    /* set string data */
     string_memset(string, 0x0);
     string_set_cstr(string, str);
 
@@ -131,10 +122,7 @@ void
 string_destructor(string_t* string)
 {
     // Release string's data slab
-    if(string->size < 256)
     string_slab_alloc_release(string->data, string->size);
-    else
-    mem_cache_release_buffer(string->data, string->size, sizeof(char));
 
     /* DEBUG-FPRINT
      * write a string to string's->data memory
@@ -152,24 +140,20 @@ string_destructor(string_t* string)
             string->len--;
         }
     }
-
     /* DEBUG-FPRINT */
 
     string->data[0] = '\0';
     string->len = 0;
 
-    // free string from string table
     string_alloced_count--;
 }
 
 void
 string_release(string_t* string)
 {
-    // Release string's data slab
-    if(string->size < 256)
-        string_slab_alloc_release(string->data, string->size);
-    else
-        mem_cache_release_buffer(string->data, string->size, sizeof(char));
+    /* Release string's data (slab) */
+    string_slab_alloc_release(string->data, string->size);
+
 
     /* DEBUG-FPRINT
      * write a string to string's->data memory
@@ -190,13 +174,14 @@ string_release(string_t* string)
 
 
 string_t*
-string_reallocate(string_t* string, const strlen_t len)
+string_reallocate(string_t* string, const strlen_t len, bool copy)
 {
 #ifdef DEBUG_FPRINT_MCACHE
     fs_register_string(fs_register_realloced_strings, string, "REALLOC");
 #endif
 
-    const strlen_t new_len = string->len + len + string->self_size+1;
+    const uint16 new_len = string->len + len + string->self_size+1;
+    assert(new_len > sizeof(strlen_t));
     print("new len:%u\n", new_len);
 
     strlen_t max_size = STRING_MIN_LEN;
@@ -207,26 +192,20 @@ string_reallocate(string_t* string, const strlen_t len)
 
 
     void* data_ptr = NULL;
-    if(max_size <= 256)
-        data_ptr = string_slab_alloc_allocate(max_size);
-    else
-        data_ptr = mem_cache_alloc_buffer(max_size, sizeof(char));
+    data_ptr = string_slab_alloc_allocate(max_size);
 
 
     strlen_t old_len = string->len;
     strlen_t old_self_size = string->self_size;
     memset((void*)data_ptr, 0, max_size);
-    memcpy((void*)data_ptr, string, string->len+string->self_size);
+    if(copy) memcpy((void*)data_ptr, string, string->len+string->self_size);
 
-    if(string->size < 256)
-        string_slab_alloc_release(string->data, string->size);
-    else
-        mem_cache_release_buffer(string->data, string->size, sizeof(char));
+    string_slab_alloc_release(string, string->size);
 
     string = data_ptr;
     string->len = old_len;
-    string->size = max_size;
     string->self_size = old_self_size;
+    string->size = max_size;
 
     return string;
 }

@@ -8,7 +8,6 @@
 #include "mem_man_interface.h"
 
 
-// #define COLOR_PAGE_FREE "FREE" // color a page to denote that belongs to free list
 #define COLOR_PAGE_FREE (*(uint32_t*)"FREE") // color a page to denote that belongs to free list
 #define FREE_LIST_GET_PAGE_COLOR_OFFSET(fnode) ((char*)fnode + sizeof(struct flist))
 
@@ -21,7 +20,7 @@ bool mem_table_init(void);
 
 bool mem_table_destroy(void);
 
-bool mem_create(const uint16 num_pages, enum MEM_ID_SELECTOR);
+memid_t mem_create(const uint16 num_pages);
 
 struct memhnd_t mem_alloc(const uint16 num_pages, const memid_t mem_id);
 
@@ -31,8 +30,6 @@ bool mem_release(const struct memhnd_t hnd);
 void* mem_get_addr_by_handle(const struct memhnd_t hnd);
 
 void* mem_temp_alloc_sys_call(const uint32 alignment, const uint32 total_size);
-
-// void mem_init_chunks_table();
 
 void mem_init_free_list_table(struct mem* mem);
 
@@ -71,8 +68,6 @@ uint64 debug_mem_get_size(const memid_t memid);
 uint16 debug_mem_get_chunks_count(const memid_t memid);
 
 struct mem_chunk* debug_chunks_table_get(const memid_t memid);
-
-// struct flist* debug_mem_get_free_list(const memid_t memid);
 
 void debug_mem_corrupted(const memid_t memid);
 

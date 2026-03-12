@@ -8,7 +8,6 @@
 #include "logger.h"
 #include <stdlib.h>
 #include <string.h>
-#include <string.h>
 #include "file_sys_interface.h"
 #include "slab_allocator_log.h"
 #include "my_macros.h"
@@ -151,7 +150,7 @@ mem_cache_table_init(void)
         type_sizes *= 2;
     }
 
-    mem_create(256, MEM_ID_ALLOCATOR_SLAB);
+    mem_create(256);
 
     /* DEBUG-FPRINT */
     fs_flist = fs_create("allocators/buffer/buffer_flist.txt");
@@ -178,7 +177,7 @@ mem_cache_create(const buffer_size_t buffer_size, const uint16 type_size)
 
     /** create mcache name */
     char str_slab_size[INT32_TO_STR_BUFFER_SIZE] = {0};
-    str_conv_int32_to_str(str_slab_size, slab_size);
+    str_conv_int32_to_str(str_slab_size, (int32)slab_size);
     char_buf16_copy_from_str("mcache_", &mcache->name);
     str_concat_memcpy(mcache->name.buf, str_slab_size, 16);
 
@@ -247,8 +246,8 @@ mem_cache_extend_allocation(struct mem_cache* const mcache, const uint32 left_ov
 
 
     /* check if the start of the new allocated address is in contiguity with last_slab_end */
-    char* next_paged_aligned_address = (char*)ROUND_UP((uint64)mcache->last_slab_end, PAGE_SIZE);
-    bool mem_is_contiguous = (next_paged_aligned_address == address) ? TRUE : FALSE;
+    const char* next_paged_aligned_address = (char*) ROUND_UP((uint64)mcache->last_slab_end, PAGE_SIZE);
+    const bool mem_is_contiguous = (next_paged_aligned_address == address) ? TRUE : FALSE;
     if(!mem_is_contiguous) ptr = address;
 
     /* build the slabs free list for the newlly allocatd memory */
@@ -292,7 +291,7 @@ mem_cache_alloc_slab(struct mem_cache* mcache)
     struct slab_flist* free = mcache->slabs_free_list;
     mcache->slabs_free_list = mcache->slabs_free_list->next;
 
-    mcache->last_slab_end = (char*)free + (mcache->slab_size);
+    mcache->last_slab_end = (char*) free + (mcache->slab_size);
 
 
     /* update mcache */
@@ -321,13 +320,11 @@ mem_cache_table_destroy(void)
         print("OK", GREEN, CLEAR);
     }
 
-    // todo: slab allocator logger print table destroy
 }
 
 bool
 mem_cache_free_slab(struct mem_cache* mcache, void* slab_address)
 {
-    // TODO: write test
     struct slab_flist* released = (struct slab_flist*) slab_address;
     struct slab_flist* node = mcache->slabs_free_list;
 
@@ -394,19 +391,13 @@ mem_cache_get_next_free_cache(void)
     return NULL;
 }
 
-
-// TODO: implement mem cache release cache(for reuse)
-// TODO: also this is the function that will release the mem_cache's mem chunk from memory manager
-
-
 /* DEBUG */
 void*
 mem_cache_flist_peek_next_free_slab(const buffer_size_t buffer_size, const uint16 type_size)
 {
     const slab_size_t slab_size = buffer_size * type_size;
 
-    struct mem_cache* mcache = mem_cache_find_cache(slab_size);
+    const struct mem_cache* mcache = mem_cache_find_cache(slab_size);
     struct slab_flist* flist_head = mcache->slabs_free_list;
     return flist_head;
 }
-

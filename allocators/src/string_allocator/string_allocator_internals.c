@@ -11,7 +11,6 @@
 #include "my_macros.h"
 #include "mem_man_internals.h"
 #include "str_utils.h"
-#include "debug_defines.h"
 
 
 /***************************************************************************************************
@@ -24,7 +23,9 @@ if(table == NULL) { string_allocator_print_error(STRING_ALLOC_MEMCACHE_NO_INIT);
 
 /***************************************************************************************************
  * STATIC SCOPE VARIABLES */
-static struct string_mem_cache* string_mem_cache_table = NULL;
+static struct string_slab_allocator_instance* string_slab_allocator_table = NULL;
+static uint16 instance_count = 0;
+static struct string_mem_cache* string_mcache_table = NULL;
 
 
 /***************************************************************************************************
@@ -37,33 +38,59 @@ static struct fs_t* fs_register_created_mcaches = NULL;
 /* FOR DEBUG
  **************************************************************************************************/
 
+
 bool
-is_string_mcache_table_init()
+is_string_slab_allocator_init()
 {
-    if(string_mem_cache_table == NULL) return FALSE;
+    if(string_slab_allocator_table == NULL) return FALSE;
+    if(string_mcache_table == NULL) return FALSE;
     return TRUE;
 }
 
+const char* names[STRING_SLAB_ALLOCATOR_INSTANCE_SIZES] = {
+    "size small", "size medium", "size large",
+};
 void
 string_mem_cache_table_init(void)
 {
+    string_slab_allocator_table =
+            aligned_alloc(1024, sizeof(struct string_slab_allocator_instance) * STRING_SLAB_ALLOCATOR_INSTANCE_SIZES);
+
+    const uint16 num_pages[STRING_SLAB_ALLOCATOR_INSTANCE_SIZES] = {32, 32, 32};
+    for(uint32 i = 0; i < STRING_SLAB_ALLOCATOR_INSTANCE_SIZES; i++) {
+        const memid_t mem_id = mem_create(num_pages[i]);
+        const struct string_slab_allocator_instance instance = {
+            // .name = names[i],
+            // .name = {0},
+            .start = NULL,
+            .num_pages = num_pages[i],
+            .size = num_pages[i] * PAGE_SIZE,
+            .mem_id = mem_id,
+        };
+
+        // char_buf16_copy_from_str(names[i], instance.name);
+
+        string_slab_allocator_table[i] = instance;
+        instance_count++;
+    }
+
     const uint32 min_num_caches = sizeof(struct string_mem_cache) * STRING_SLAB_SIZES_LEN;
     const uint32 table_size = ROUND_UP(min_num_caches, PAGE_SIZE);
-    string_mem_cache_table = aligned_alloc(1024, table_size);
+    string_mcache_table = aligned_alloc(1024, table_size);
 
     /* pre-create mcaches, starting from 8 byte slabs
      * continuing with power of 2's */
     uint32 i = 0, type_sizes = sizeof(char*);
     for(; i < STRING_SLAB_SIZES_LEN; i++) {
+
         const struct string_mem_cache mem_cache = (struct string_mem_cache){
             .is_active = FALSE,
         };
-        string_mem_cache_table[i] = mem_cache;
+        string_mcache_table[i] = mem_cache;
 
         type_sizes *= 2;
     }
 
-    mem_create(256, MEM_ID_ALLOCATOR_STRING);
 
     /* DEBUG-FPRINT */
     fs_flist = fs_create("allocators/string/string_flist.txt");
@@ -77,10 +104,49 @@ string_mem_cache_table_init(void)
     );
 }
 
+memid_t
+string_slab_allocator_create_new_instance(const pageid_t num_pages)
+{
+    struct string_slab_allocator_instance instance = {
+        .name = NULL,
+        .start = NULL,
+        .num_pages = num_pages,
+        .size = num_pages * PAGE_SIZE,
+        .mem_id = 0,
+    };
+    char_buf16_copy_from_str("rename me", instance.name);
+
+    string_slab_allocator_table[instance_count++] = instance;
+
+    instance.mem_id = mem_create(instance.num_pages);
+
+    return instance.mem_id;
+}
+
+void
+string_mem_cache_table_destroy(void)
+{
+    uint32 i = 0;
+    for(; i < STRING_SLAB_SIZES_LEN; i++) {
+        if(string_mcache_table[i].is_active) {
+            memman_release(string_mcache_table[i].mem_handle);
+        }
+    }
+
+    if(string_mcache_table) {
+        print("FREEING string_mem_cache_table: %x ... ", ry, string_mcache_table, CLEAR);
+        free(string_mcache_table);
+        print("OK", GREEN, CLEAR);
+    }
+
+}
+
 struct string_mem_cache*
 string_mem_cache_create(const string_size_t string_size)
 {
-    STRING_ALLOC_CHECK_MCACHE_TABLE(string_mem_cache_table);
+    STRING_ALLOC_CHECK_MCACHE_TABLE(string_mcache_table);
+
+    const memid_t memid = string_slab_alloc_instance_find_size(string_size);
 
     const uint32 slab_size = string_size;
     assert(slab_size >= string_size);
@@ -91,15 +157,14 @@ string_mem_cache_create(const string_size_t string_size)
 
     /* allocate memory */
     struct string_mem_cache* mcache = string_mem_cache_get_next_free_cache();
-    const struct memhnd_t hnd = memman_alloc_pages(requested_num_pages, MEM_ID_ALLOCATOR_STRING);
+
+    const struct memhnd_t hnd = memman_alloc_pages(requested_num_pages, memid);
     void* ptr = memman_get_alloc_mem_by_handle(hnd);
     memset(ptr, 0x0, requested_num_pages * PAGE_SIZE);
 
     /** create mcache name */
-    char str_slab_size[INT32_TO_STR_BUFFER_SIZE] = {0};
-    // str_conv_int32_to_str(str_slab_size, slab_size);
-    // char_buf16_copy_from_str("string_mcache_", &mcache->name);
-    // str_concat_memcpy(mcache->name.buf, str_slab_size, 16);
+    const char str_slab_size[INT32_TO_STR_BUFFER_SIZE] = {0};
+    // TODO: add name to mcache
 
     /* updated mcache */
     mcache->mem_handle = hnd;
@@ -109,9 +174,6 @@ string_mem_cache_create(const string_size_t string_size)
     mcache->slabs_num_pages = requested_num_pages;
     mcache->is_active = TRUE;
     mcache->slabs_free_list = (struct string_slab_flist*) ptr;
-    // print("--------------------------------------------------------\n");
-    // print("mcache->slabs_free_list:%p\n", mcache->slabs_free_list);
-    // print("--------------------------------------------------------\n");
     mcache->last_slab_end = ptr + (slabs_capacity * slab_size);
 
     /* DEBUG-FPRINT */
@@ -136,15 +198,13 @@ string_mem_cache_create(const string_size_t string_size)
         flist = flist->next;
     }
 
-    // print_mem_cache_create(mcache);
-
     return mcache;
 }
 
 struct string_mem_cache*
 string_mem_cache_extend_allocation(struct string_mem_cache* const mcache, const uint32 left_over_mem)
 {
-    STRING_ALLOC_CHECK_MCACHE_TABLE(string_mem_cache_table);
+    STRING_ALLOC_CHECK_MCACHE_TABLE(string_mcache_table);
 
     const uint32 slab_size = mcache->slab_size;
     const uint32 extra_needed_mem = slab_size - left_over_mem;
@@ -153,7 +213,7 @@ string_mem_cache_extend_allocation(struct string_mem_cache* const mcache, const 
     const uint32 slabs_capacity = (requested_num_pages * PAGE_SIZE) / slab_size;
 
     /* allocate memory */
-    const struct memhnd_t hnd = memman_alloc_pages(requested_num_pages, MEM_ID_ALLOCATOR_SLAB);
+    const struct memhnd_t hnd = memman_alloc_pages(requested_num_pages, mcache->mem_handle.mem_id);
     void* address = memman_get_alloc_mem_by_handle(hnd);
     memset(address, 0x0, requested_num_pages);
     /* update only num_pages field, mem_is and page_id
@@ -170,8 +230,8 @@ string_mem_cache_extend_allocation(struct string_mem_cache* const mcache, const 
 
 
     /* check if the start of the new allocated address is in contiguity with last_slab_end */
-    char* next_paged_aligned_address = (char*) ROUND_UP((uint64)mcache->last_slab_end, PAGE_SIZE);
-    bool mem_is_contiguous = (next_paged_aligned_address == address) ? TRUE : FALSE;
+    const char* next_paged_aligned_address = (char*) ROUND_UP((uint64)mcache->last_slab_end, PAGE_SIZE);
+    const bool mem_is_contiguous = (next_paged_aligned_address == address) ? TRUE : FALSE;
     if(!mem_is_contiguous) ptr = address;
 
     /* build the slabs free list for the newlly allocatd memory */
@@ -208,7 +268,6 @@ string_mem_cache_alloc_slab(struct string_mem_cache* mcache)
 
     /* if not enough memory, extend with new slabs from memory manager */
     if(mcache->slabs_free_list == NULL || not_enough_mem) {
-        // print("%s ### mcahce extend alloc() ### %s\n", YELLOW, CLEAR);
         mcache = string_mem_cache_extend_allocation(mcache, left_over_mem);
     }
 
@@ -217,7 +276,7 @@ string_mem_cache_alloc_slab(struct string_mem_cache* mcache)
     struct string_slab_flist* free = mcache->slabs_free_list;
     mcache->slabs_free_list = mcache->slabs_free_list->next;
 
-    mcache->last_slab_end = (char*) free + (mcache->slab_size);
+    mcache->last_slab_end = (char*) free + mcache->slab_size;
 
 
     /* update mcache */
@@ -230,25 +289,6 @@ string_mem_cache_alloc_slab(struct string_mem_cache* mcache)
 #endif
 
     return free;
-}
-
-void
-string_mem_cache_table_destroy(void)
-{
-    uint32 i = 0;
-    for(; i < STRING_SLAB_SIZES_LEN; i++) {
-        if(string_mem_cache_table[i].is_active) {
-            memman_release(string_mem_cache_table[i].mem_handle);
-        }
-    }
-
-    if(string_mem_cache_table) {
-        print("FREEING string_mem_cache_table: %x ... ", ry, string_mem_cache_table, CLEAR);
-        free(string_mem_cache_table);
-        print("OK", GREEN, CLEAR);
-    }
-
-    // todo: slab allocator logger print table destroy
 }
 
 bool
@@ -296,14 +336,32 @@ string_mem_cache_free_slab(struct string_mem_cache* mcache, void* slab_address)
 
 /***************************************************************************************************
  * HELPER FUNCTIONS */
+memid_t
+string_slab_alloc_instance_find_size(const slab_size_t slab_size)
+{
+    memid_t memid = -1; // uint guarantees UINT_MAX
+    for(uint32 i = 0; i < STRING_SLAB_ALLOCATOR_INSTANCE_SIZES; i++) {
+
+        if(slab_size < STRING_SLAB_ALLOCATOR_INSTANCE_SIZE_SMALL) {
+            memid = string_slab_allocator_table[i].mem_id;
+        } else if(slab_size < STRING_SLAB_ALLOCATOR_INSTANCE_SIZE_MEDIUM) {
+            memid = string_slab_allocator_table[i].mem_id;
+        } else if(slab_size < STRING_SLAB_ALLOCATOR_INSTANCE_SIZE_LARGE){
+            memid = string_slab_allocator_table[i].mem_id;
+        }
+        else assert(1);
+    }
+
+    return memid;
+}
+
 struct string_mem_cache*
 string_mem_cache_find_cache(const slab_size_t slab_size)
 {
-    STRING_ALLOC_CHECK_MCACHE_TABLE(string_mem_cache_table);
-    uint32 i = 0;
-    for(; i < STRING_SLAB_SIZES_LEN; i++) {
-        if(string_mem_cache_table[i].slab_size == slab_size) {
-            return &string_mem_cache_table[i];
+    STRING_ALLOC_CHECK_MCACHE_TABLE(string_mcache_table);
+    for(uint32 i = 0; i < STRING_SLAB_SIZES_LEN; i++) {
+        if(string_mcache_table[i].slab_size == slab_size) {
+            return &string_mcache_table[i];
         }
     }
 
@@ -313,11 +371,10 @@ string_mem_cache_find_cache(const slab_size_t slab_size)
 struct string_mem_cache*
 string_mem_cache_get_next_free_cache(void)
 {
-    uint32 i = 0;
-    for(; i < STRING_SLAB_SIZES_LEN; i++) {
-        if(string_mem_cache_table[i].is_active == FALSE) {
-            string_mem_cache_table[i].idx = i;
-            return &string_mem_cache_table[i];
+    for(uint32 i = 0; i < STRING_SLAB_SIZES_LEN; i++) {
+        if(string_mcache_table[i].is_active == FALSE) {
+            string_mcache_table[i].idx = i;
+            return &string_mcache_table[i];
         }
     }
 
@@ -331,7 +388,7 @@ string_mem_cache_flist_peek_next_free_slab(const string_size_t string_size)
 {
     const slab_size_t slab_size = string_size;
 
-    struct string_mem_cache* mcache = string_mem_cache_find_cache(slab_size);
+    const struct string_mem_cache* mcache = string_mem_cache_find_cache(slab_size);
     struct string_slab_flist* flist_head = mcache->slabs_free_list;
     return flist_head;
 }

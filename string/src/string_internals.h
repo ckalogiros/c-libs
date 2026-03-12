@@ -16,7 +16,7 @@ void string_destructor(string_t* string);
 
 void string_release(string_t* string);
 
-string_t* string_reallocate(string_t* string, const strlen_t len);
+string_t* string_reallocate(string_t* string, const strlen_t len, bool copy);
 
 
 void string_memcopy(string_t* const dst, const string_t* const src);

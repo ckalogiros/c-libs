@@ -1,7 +1,5 @@
 /*
  * Created by ckalo on 1/4/26.
- *
- * todo: handle mem_alloc exceeds chunks num pages
  * todo: create implementation explanation
  */
 
@@ -12,8 +10,6 @@
 #include "sys_utils.h"
 #include <stdlib.h>
 #include <string.h>
-#include <string.h>
-
 #include "file_sys_interface.h"
 #include "logger.h"
 #include "my_macros.h"
@@ -98,11 +94,30 @@ mem_table_init(void)
 }
 
 bool
-mem_create(const uint16 num_pages, enum MEM_ID_SELECTOR mem_id)
+mem_table_destroy(void)
+{
+    for(uint32 i = 0; i < MEM_ID_MAX_ELEMS; i++) {
+        string_t* str = string_create_empty(32);
+        const char* fname = string_format(str->data, "/all_used_mem_chunks_%u.txt", i);
+
+        if(mem_table[i].start) {
+            MEMORY_DEBUG_FPRINT_USED_MEM(fname, i);
+        }
+    }
+
+    if(!mem_table) return FALSE;
+    print("FREEING MEMORY MANAGER: %x ... ", ry, mem_table[0].start, CLEAR);
+    for(uint32 i = 0; i < mem_table_count; i++) {
+        free(mem_table[i].start);
+    }
+    print("OK", GREEN, CLEAR);
+    return TRUE;
+}
+
+memid_t
+mem_create(const uint16 num_pages)
 {
     const uint32 page_size = PAGE_SIZE;
-    // const uint32 num_pages = 264;
-    // const uint32 num_pages = 32;
     const uint32 alignment = PAGE_SIZE * 16;
     const uint32 memory_bound_check = PAGE_SIZE;
 
@@ -120,7 +135,7 @@ mem_create(const uint16 num_pages, enum MEM_ID_SELECTOR mem_id)
         .name = "-pass name param-"
     };
 
-    const memid_t idx = (memid_t)mem_id;
+    const memid_t idx = mem_table_count;
     mem_table[idx] = memory;
     mem_table_count++;
 
@@ -144,29 +159,18 @@ mem_create(const uint16 num_pages, enum MEM_ID_SELECTOR mem_id)
     mem_log_print_mem(mem);
     // mem_log_print_free_list(idx);
 
-    return TRUE;
+    return idx;
 }
 
-bool
-mem_table_destroy(void)
+struct memhnd_t
+mem_alloc(const uint16 num_pages, const memid_t mem_id)
 {
-    for(uint32 i = 0; i < MEM_ID_MAX_ELEMS; i++) {
+    const struct mem* mem = mem_get_byid(mem_id);
 
-        string_t* str = string_create_empty(32);
-        const char* fname = string_format(str->data, "/all_used_mem_chunks_%u.txt", i);
+    CHECK_MEM_NULL(mem, NO_MEMORY_MANAGER_INIT, "mem_alloc");
+    const struct memhnd_t handle = flist_get_next_free_page(num_pages, mem_id);
 
-        if(mem_table[i].start) {
-            MEMORY_DEBUG_FPRINT_USED_MEM(fname, i);
-        }
-    }
-
-    if(!mem_table) return FALSE;
-    print("FREEING MEMORY MANAGER: %x ... ", ry, mem_table[0].start, CLEAR);
-    for(uint32 i = 0; i < mem_table_count; i++) {
-        free(mem_table[i].start);
-    }
-    print("OK", GREEN, CLEAR);
-    return TRUE;
+    return handle;
 }
 
 void
@@ -181,9 +185,11 @@ mem_init_free_list_table(struct mem* mem)
     /* initialize all memory as free pages */
     const char* data_mem_end = (char*) mem->start + (mem->data_size - mem->bound_check_size);
     while(page_ptr < data_mem_end) {
-
         color_page = FREE_LIST_GET_PAGE_COLOR_OFFSET(flist);
-        color_page[0] = 'F'; color_page[1] = 'R'; color_page[2] = 'E'; color_page[3] = 'E';
+        color_page[0] = 'F';
+        color_page[1] = 'R';
+        color_page[2] = 'E';
+        color_page[3] = 'E';
 
         page_ptr = page_ptr + PAGE_SIZE;
         flist->next = (struct flist*) page_ptr;
@@ -192,22 +198,14 @@ mem_init_free_list_table(struct mem* mem)
 
     // Add the last color to the NULL list element
     color_page = FREE_LIST_GET_PAGE_COLOR_OFFSET(flist);
-    color_page[0] = 'F'; color_page[1] = 'R'; color_page[2] = 'E'; color_page[3] = 'E';
+    color_page[0] = 'F';
+    color_page[1] = 'R';
+    color_page[2] = 'E';
+    color_page[3] = 'E';
 }
 
 struct memhnd_t
-mem_alloc(const uint16 num_pages, const memid_t mem_id)
-{
-    struct mem* mem = mem_get_byid(mem_id);
-
-    CHECK_MEM_NULL(mem, NO_MEMORY_MANAGER_INIT, "mem_alloc");
-    const struct memhnd_t handle = flist_get_next_free_page(num_pages, mem_id);
-
-    return handle;
-}
-
-struct memhnd_t
-mem_realloc_extend(const uint16 num_pages, const memid_t mem_id)
+mem_realloc_extend(const pageid_t num_pages, const memid_t mem_id)
 {
     my_exit("mem_realloc_extend() is deprecated\nImplement mem_realloc() instead", __FILE__, __LINE__);
 
@@ -264,7 +262,7 @@ bool
 debug_mem_freeing_already_freed_pages(const struct memhnd_t hnd)
 {
     struct flist* flist = mem_table_get_head(hnd.mem_id);
-    struct flist* released = calc_address_from_page_id(hnd.page_id, hnd.mem_id);
+    const struct flist* released = calc_address_from_page_id(hnd.page_id, hnd.mem_id);
     while(flist) {
         if(flist == released)
             return TRUE;
@@ -304,7 +302,7 @@ mem_release(const struct memhnd_t hnd)
 
     /* 1. check if free id is < flist head id */
     if(hnd.page_id < headpageid) {
-        memid_t pageid = hnd.page_id;
+        pageid_t pageid = hnd.page_id;
         prev = calc_address_from_page_id(/**/pageid, hnd.mem_id);
         /* set free list head */
         mem_table_set_head(hnd.mem_id, prev);
@@ -320,7 +318,7 @@ mem_release(const struct memhnd_t hnd)
     } else {
         if(hnd.page_id > headpageid) {
             struct flist* released = calc_address_from_page_id(hnd.page_id, hnd.mem_id);
-            struct flist* flist = head;
+            const struct flist* flist = head;
             cur = head;
 
             /* find previous node from the released node, in the free list */
@@ -388,13 +386,14 @@ mem_temp_alloc_sys_call(const uint32 alignment, const uint32 total_size)
 struct memhnd_t
 flist_get_next_free_page(const uint16 num_pages, const memid_t mem_id)
 {
-    struct mem* mem = mem_get_byid(mem_id);
-    if(!mem->flist) mem_print_error(NO_FREE_MEMORY);
+    const struct mem* mem = mem_get_byid(mem_id);
+    if(!mem->flist)
+        mem_print_error(NO_FREE_MEMORY);
 
 
     struct flist* head = mem->flist;
     struct flist* flist = head;
-    struct flist* found = flist;
+    const struct flist* found = flist;
     struct flist* prev = flist;
     struct flist* temp = head;
     pageid_t numpages = num_pages;
@@ -421,8 +420,8 @@ flist_get_next_free_page(const uint16 num_pages, const memid_t mem_id)
     while(numpages > 0) {
         if(flist == NULL) break;
 
-        pageid_t nextpageid = calc_page_id_from_address(flist, mem_id);
-        pageid_t nextpageoffset = num_pages - (numpages);
+        const pageid_t nextpageid = calc_page_id_from_address(flist, mem_id);
+        const pageid_t nextpageoffset = num_pages - (numpages);
 
         if(pageid + nextpageoffset != nextpageid) {
             numpages = num_pages;
@@ -438,16 +437,6 @@ flist_get_next_free_page(const uint16 num_pages, const memid_t mem_id)
     /* at this point, flist should point to the first
      * free node after the allocated memory */
     struct flist* next_from_allocated = flist;
-
-    // print(
-    //     "head: %x\n"
-    //     "prev: %x\n"
-    //     "flist: %x\n"
-    //     "found: %x\n"
-    //     "temp: %x\n"
-    //     "next: %x\n",
-    //     head, prev, flist, found, temp, next_from_allocated
-    // );
 
     assert(numpages == 0); // all requested num pages should be allocated
     assert(found);
@@ -465,7 +454,7 @@ flist_get_next_free_page(const uint16 num_pages, const memid_t mem_id)
 
     // mem_log_print_free_list(mem_id);
 
-    struct memhnd_t handle = {
+    const struct memhnd_t handle = {
         .mem_id = mem_id,
         .page_id = pageid,
         .num_pages = num_pages,
@@ -484,7 +473,7 @@ flist_peek_next_free_page(const memid_t mem_id)
 struct flist*
 mem_table_get_head(const memid_t mem_id)
 {
-    struct mem* mem = mem_get_byid(mem_id);
+    const struct mem* mem = mem_get_byid(mem_id);
     return mem->flist;
 }
 
@@ -498,7 +487,7 @@ mem_table_set_head(const memid_t mem_id, struct flist* head)
 pageid_t
 calc_page_id_from_address(const void* addr, const memid_t mem_id)
 {
-    struct mem* mem = mem_get_byid(mem_id);
+    const struct mem* mem = mem_get_byid(mem_id);
     const char* cur_addr = addr;
 
     const uint64 ptr_dif = cur_addr - (char*) mem->start;
@@ -512,7 +501,7 @@ calc_page_id_from_address(const void* addr, const memid_t mem_id)
 void*
 calc_address_from_page_id(const pageid_t page_id, const memid_t mem_id)
 {
-    struct mem* mem = mem_get_byid(mem_id);
+    const struct mem* mem = mem_get_byid(mem_id);
     void* addr = (char*) mem->start + (PAGE_SIZE * page_id);
     return addr;
 }

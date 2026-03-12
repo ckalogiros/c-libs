@@ -8,7 +8,6 @@
 #include "debug_defines.h"
 
 
-
 #ifdef DEBUG_FPRINT_MCACHE
 #   define fs_register_mcache_create(fs, mcache)\
         fs_append(fs,\
@@ -107,24 +106,29 @@
 /*********************************************************************************************/
 // nen implementation
 
-bool is_string_mcache_table_init();
+bool is_string_slab_allocator_init();
 
 void string_mem_cache_table_init(void);
+
+memid_t string_slab_allocator_create_new_instance(const pageid_t num_pages);
 
 void string_mem_cache_init(enum STRING_MEM_CACHE_SIZES_IDXS slab_size);
 
 void string_mem_cache_table_destroy(void);
-/*********************************************************************************************/
 
+/*********************************************************************************************/
 
 
 struct string_mem_cache* string_mem_cache_create(const string_size_t string_size);
 
-struct string_mem_cache* string_mem_cache_extend_allocation(struct string_mem_cache* const  mcache, const uint32 left_over_mem);
+struct string_mem_cache* string_mem_cache_extend_allocation(struct string_mem_cache* const mcache, const uint32 left_over_mem);
 
 struct string_slab_flist* string_mem_cache_alloc_slab(struct string_mem_cache* mcache);
 
 bool string_mem_cache_free_slab(struct string_mem_cache* mcache, void* slab_address);
+
+/* HELPER FUNCTIONS */
+memid_t string_slab_alloc_instance_find_size(const slab_size_t slab_size);
 
 struct string_mem_cache* string_mem_cache_find_cache(const slab_size_t slab_size);
 
@@ -132,7 +136,6 @@ struct string_mem_cache* string_mem_cache_get_next_free_cache(void);
 
 /* DEBUG */
 void* string_mem_cache_flist_peek_next_free_slab(const string_size_t string_size);
-
 
 
 #endif //ALLOCATORS_STRING_ALLOCATOR_INTERNALS_H
