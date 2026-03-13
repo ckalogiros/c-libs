@@ -3,20 +3,20 @@
  */
 
 #include "test_buffer.h"
-#include "buffer_internals.h"
 #include "buffer.h"
 #include "buffer_log.h"
+#include "file_sys_debug.h"
 #include "file_sys_interface.h"
 #include "logger.h"
 #include "mem_man_interface.h"
-#include "mem_man_internals.h"
 #include "slab_allocator_internals.h"
+#include "string_format.h"
 
 #define DEBUG_FPRINT_ALL_ALLOC_MEM()\
 const char* fname = "/exit_status_ok_debug.txt";\
 struct fs_t* fs = fs_create(fname);\
 fs_fprint_all_allocated_mem(fname);\
-fs_append(fs, "EXIT WITH STATUS OK\n");
+fs_append(fs, "EXIT WITH STATUS OK\n")
 
 
 /*
@@ -30,6 +30,7 @@ fill(buffer_t* const buffer)
         // buffer_push_uint32(i+1, buffer);
         buffer_set_for_push(buffer);
         data[i] = i + 1;
+        file_sys_push(buffer->data, sizeof(data[i]), TYPE_UINT32, buffer->data);
     }
 }
 
@@ -65,320 +66,6 @@ test_create_buffer(const uint32 capacity)
     }));
 
     DEBUG_FPRINT_ALL_ALLOC_MEM();
-    memman_terminate();
-}
-
-void
-test_buffer_fill_remove_insert()
-{
-    
-    memman_init();
-
-    buffer_table_init();
-
-    // allocate new buffer
-    const uint32 capacity = 64;
-    buffer_t* buffer = buffer_create_uint32(capacity);
-
-    buffer_print_uint32(buffer_print_config((buffer_print_params){
-        .buffer = buffer, .print_num_elems = buffer->capacity
-    }));
-
-
-    // fill buffer
-    fill(buffer);
-
-
-    buffer_print_uint32(buffer_print_config((buffer_print_params){
-        .buffer = buffer, .print_num_elems = buffer->capacity
-    }));
-
-    const int32 index = 9;
-
-    // remove an element, using free buffer to store all free buffer elems
-    remove_from(buffer, index);
-    remove_from(buffer, 63);
-    remove_from(buffer, 10);
-    remove_from(buffer, 11);
-    remove_from(buffer, 12);
-
-    buffer_print_uint32(buffer_print_config((buffer_print_params){
-        .buffer = buffer, .print_num_elems = buffer->capacity
-    }));
-
-    // insert a value in the buffer at specific index, using the free buffer 'find' a free element
-    insert_at(333333, buffer, index);
-    insert_at(333333, buffer, 10);
-    insert_at(333333, buffer, 11);
-    insert_at(333333, buffer, 12);
-
-    buffer_print_uint32(buffer_print_config((buffer_print_params){
-        .buffer = buffer, .print_num_elems = buffer->capacity
-    }));
-
-    DEBUG_FPRINT_ALL_ALLOC_MEM();
-    memman_terminate();
-}
-
-void
-test_buffer_different_capacity_buffers()
-{
-    print("%s-- -- -- TEST: -- -- --%s\n", GREEN, CLEAR);
-    print("%s create different capacity buffers%s\n\n", CYAN, CLEAR);
-
-    memman_init();
-
-    buffer_table_init();
-
-    // allocate buffer: capacity=16
-    {
-        uint32 capacity = 16;
-        print("CREATE %scapacity:%u%s\n", GREEN, capacity, CLEAR);
-        buffer_t* buffer = buffer_create_uint32(capacity);
-        fill(buffer); // fill buffer
-        buffer_print_uint32(buffer_print_config((buffer_print_params){
-            .buffer = buffer, .print_num_elems = buffer->capacity
-        }));
-    }
-
-    // allocate buffer: capacity=32
-    {
-        uint32 capacity = 32;
-        print("CREATE %scapacity:%u%s\n", GREEN, capacity, CLEAR);
-        buffer_t* buffer = buffer_create_uint32(capacity);
-        fill(buffer); // fill buffer
-        buffer_print_uint32(buffer_print_config((buffer_print_params){
-            .buffer = buffer, .print_num_elems = buffer->capacity
-        }));
-    }
-
-    {
-        uint32 capacity = 16;
-        print("CREATE %scapacity:%u%s\n", GREEN, capacity, CLEAR);
-        buffer_t* buffer = buffer_create_uint32(capacity);
-        fill(buffer); // fill buffer
-        buffer_print_uint32(buffer_print_config((buffer_print_params){
-            .buffer = buffer, .print_num_elems = buffer->capacity
-        }));
-    }
-
-    {
-        uint32 capacity = 16;
-        print("CREATE %scapacity:%u%s\n", GREEN, capacity, CLEAR);
-        buffer_t* buffer = buffer_create_uint32(capacity);
-        fill(buffer); // fill buffer
-        buffer_print_uint32(buffer_print_config((buffer_print_params){
-            .buffer = buffer, .print_num_elems = buffer->capacity
-        }));
-    }
-
-    {
-        uint32 capacity = 16;
-        print("CREATE %scapacity:%u%s\n", GREEN, capacity, CLEAR);
-        buffer_t* buffer = buffer_create_uint32(capacity);
-        fill(buffer); // fill buffer
-        buffer_print_uint32(buffer_print_config((buffer_print_params){
-            .buffer = buffer, .print_num_elems = buffer->capacity
-        }));
-    }
-
-
-    // allocate buffer: capacity=64
-    {
-        uint32 capacity = 64;
-        print("CREATE %scapacity:%u%s\n", GREEN, capacity, CLEAR);
-        buffer_t* buffer = buffer_create_uint32(capacity);
-        fill(buffer); // fill buffer
-        buffer_print_uint32(buffer_print_config((buffer_print_params){
-            .buffer = buffer, .print_num_elems = buffer->capacity
-        }));
-    }
-
-    // allocate buffer: capacity=256
-    {
-        uint32 capacity = 256;
-        print("CREATE %scapacity:%u%s\n", GREEN, capacity, CLEAR);
-        buffer_t* buffer_c256 = buffer_create_uint32(capacity);
-        fill(buffer_c256); // fill buffer
-        buffer_print_uint32(buffer_print_config((buffer_print_params){
-            .buffer = buffer_c256, .print_num_elems = buffer_c256->capacity
-        }));
-    }
-
-    // allocate buffer: capacity=512
-    {
-        uint32 capacity = 512;
-        print("CREATE %scapacity:%u%s\n", GREEN, capacity, CLEAR);
-        buffer_t* buffer = buffer_create_uint32(capacity);
-        fill(buffer); // fill buffer
-        buffer_print_uint32(buffer_print_config((buffer_print_params){
-            .buffer = buffer, .print_num_elems = buffer->capacity
-        }));
-    }
-
-    buffer_table_destroy();
-
-        DEBUG_FPRINT_ALL_ALLOC_MEM();
-    memman_terminate();
-}
-
-void
-test_buffer_remove_elements(const uint32 capacity)
-{
-    print("%s-- -- -- TEST: -- -- --%s\n", GREEN, CLEAR);
-    print("%s buffer remove elements %s\n\n", CYAN, CLEAR);
-
-    memman_init();
-
-    buffer_table_init();
-
-    // allocate buffer
-    buffer_t* buffer = buffer_create_uint32(capacity);
-    fill(buffer); // fill buffer
-
-
-    // remove elements and print free list
-    uint32 k = 4;
-    print("%sREMOVE%s on every %uth bit\n", GREEN, CLEAR, k);
-    for(uint32 i = 0; i < 256; i++) {
-        if(i % 64 == 0 && i != 0) {
-            k *= 2;
-            print("%sREMOVE%s on every %uth bit\n", GREEN, CLEAR, k);
-        }
-        if(i % k) {
-            buffer_free_elem(buffer, i);
-        }
-    }
-
-    buffer_print_uint32(buffer_print_config((buffer_print_params){
-        .buffer = buffer, .print_num_elems = buffer->capacity
-    }));
-
-        DEBUG_FPRINT_ALL_ALLOC_MEM();
-    memman_terminate();
-}
-
-void
-test_buffer_insert_elements(const uint32 capacity)
-{
-    print("%s-- -- -- TEST: -- -- --%s\n", GREEN, CLEAR);
-    print("%s buffer remove elements %s\n\n", CYAN, CLEAR);
-
-    memman_init();
-
-    buffer_table_init();
-
-    // allocate buffer
-    buffer_t* buffer = buffer_create_gentype(capacity, sizeof(uint32));
-
-
-    // remove elemnts and print free list
-    uint32 k = 4;
-    print("%sINSERT%s on every %uth bit\n", GREEN, CLEAR, k);
-    for(uint32 i = 0; i < 256; i++) {
-        if(i % 64 == 0 && i != 0) {
-            k *= 2;
-            print("%sINSERT%s on every %uth bit\n", GREEN, CLEAR, k);
-        }
-        if(i % k) {
-            buffer_insert_uint32(i, buffer, i);
-        }
-    }
-
-
-    buffer_print_uint32(buffer_print_config((buffer_print_params){
-        .buffer = buffer, .print_num_elems = buffer->capacity
-    }));
-
-
-    buffer_fprint(buffer);
-
-    DEBUG_FPRINT_ALL_ALLOC_MEM();
-    memman_terminate();
-}
-
-void
-test_buffer_realloc()
-{
-    print("%s-- -- -- TEST: -- -- --%s\n", GREEN, CLEAR);
-    print("%s buffer realloc%s\n\n", CYAN, CLEAR);
-
-    memman_init();
-
-    buffer_table_init();
-
-    // allocate buffer
-    const uint32 capacity = 16;
-    print("CREATE %scapacity:%u%s\n", GREEN, capacity, CLEAR);
-    buffer_t* buffer = buffer_create_gentype(capacity, sizeof(uint32));
-    fill(buffer); // fill buffer
-    buffer_print_uint32(buffer_print_config((buffer_print_params){
-        .buffer = buffer, .print_num_elems = buffer->capacity
-    }));
-
-
-    // force buffer realloc - to capacity:32
-    buffer_push_uint32(100, buffer);
-    print("REALLOC buffer %scapacity:%u%s\n", GREEN, buffer->capacity, CLEAR);
-    for(uint32 i = 0; i < buffer->capacity / 2; i++) {
-        buffer_push_uint32(100 + i, buffer);
-    }
-    
-    buffer_print_uint32(buffer_print_config((buffer_print_params){
-        .buffer = buffer, .print_num_elems = buffer->capacity
-    }));
-
-
-    // force buffer realloc - to capacity:64
-    buffer_push_uint32(200, buffer);
-    print("REALLOC buffer %scapacity:%u%s\n", GREEN, buffer->capacity, CLEAR);
-    for(uint32 i = 0; i < buffer->capacity / 2; i++) {
-        buffer_push_uint32(200 + i, buffer);
-    }
-    
-    buffer_print_uint32(buffer_print_config((buffer_print_params){
-        .buffer = buffer, .print_num_elems = buffer->capacity
-    }));
-
-
-    // force buffer realloc - to capacity:128
-    buffer_push_uint32(300, buffer);
-    print("REALLOC buffer %scapacity:%u%s\n", GREEN, buffer->capacity, CLEAR);
-    for(uint32 i = 0; i < buffer->capacity / 2; i++) {
-        buffer_push_uint32(300 + i, buffer);
-    }
-    
-    buffer_print_uint32(buffer_print_config((buffer_print_params){
-        .buffer = buffer, .print_num_elems = buffer->capacity
-    }));
-
-
-    // force buffer realloc - to capacity:256
-    buffer_push_uint32(400, buffer);
-    print("REALLOC buffer %scapacity:%u%s\n", GREEN, buffer->capacity, CLEAR);
-    for(uint32 i = 0; i < buffer->capacity / 2; i++) {
-        buffer_push_uint32(400 + i, buffer);
-    }
-    
-    buffer_print_uint32(buffer_print_config((buffer_print_params){
-        .buffer = buffer, .print_num_elems = buffer->capacity
-    }));
-
-
-    // force buffer realloc - to capacity:512
-    buffer_push_uint32(400, buffer);
-    print("REALLOC buffer %scapacity:%u%s\n", GREEN, buffer->capacity, CLEAR);
-    for(uint32 i = 0; i < buffer->capacity / 2; i++) {
-        buffer_push_uint32(400 + i, buffer);
-    }
-
-    buffer_print_uint32(buffer_print_config((buffer_print_params){
-        .buffer = buffer, .print_num_elems = buffer->capacity
-    }));
-
-    
-
-        DEBUG_FPRINT_ALL_ALLOC_MEM();
     memman_terminate();
 }
 
@@ -600,7 +287,319 @@ test_destroy_buffer()
     }
 
 
-        DEBUG_FPRINT_ALL_ALLOC_MEM();
+    DEBUG_FPRINT_ALL_ALLOC_MEM();
+    memman_terminate();
+}
+
+void
+test_buffer_realloc()
+{
+    print("%s-- -- -- TEST: -- -- --%s\n", GREEN, CLEAR);
+    print("%s buffer realloc%s\n\n", CYAN, CLEAR);
+
+    memman_init();
+
+    buffer_table_init();
+
+    // allocate buffer
+    const uint32 capacity = 16;
+    print("CREATE %scapacity:%u%s\n", GREEN, capacity, CLEAR);
+    buffer_t* buffer = buffer_create_gentype(capacity, sizeof(uint32));
+    fill(buffer); // fill buffer
+    buffer_print_uint32(buffer_print_config((buffer_print_params){
+        .buffer = buffer, .print_num_elems = buffer->capacity
+    }));
+
+
+    // force buffer realloc - to capacity:32
+    buffer_push_uint32(100, buffer);
+    print("REALLOC buffer %scapacity:%u%s\n", GREEN, buffer->capacity, CLEAR);
+    for(uint32 i = 0; i < buffer->capacity / 2; i++) {
+        buffer_push_uint32(100 + i, buffer);
+    }
+
+    buffer_print_uint32(buffer_print_config((buffer_print_params){
+        .buffer = buffer, .print_num_elems = buffer->capacity
+    }));
+
+
+    // force buffer realloc - to capacity:64
+    buffer_push_uint32(200, buffer);
+    print("REALLOC buffer %scapacity:%u%s\n", GREEN, buffer->capacity, CLEAR);
+    for(uint32 i = 0; i < buffer->capacity / 2; i++) {
+        buffer_push_uint32(200 + i, buffer);
+    }
+
+    buffer_print_uint32(buffer_print_config((buffer_print_params){
+        .buffer = buffer, .print_num_elems = buffer->capacity
+    }));
+
+
+    // force buffer realloc - to capacity:128
+    buffer_push_uint32(300, buffer);
+    print("REALLOC buffer %scapacity:%u%s\n", GREEN, buffer->capacity, CLEAR);
+    for(uint32 i = 0; i < buffer->capacity / 2; i++) {
+        buffer_push_uint32(300 + i, buffer);
+    }
+
+    buffer_print_uint32(buffer_print_config((buffer_print_params){
+        .buffer = buffer, .print_num_elems = buffer->capacity
+    }));
+
+
+    // force buffer realloc - to capacity:256
+    buffer_push_uint32(400, buffer);
+    print("REALLOC buffer %scapacity:%u%s\n", GREEN, buffer->capacity, CLEAR);
+    for(uint32 i = 0; i < buffer->capacity / 2; i++) {
+        buffer_push_uint32(400 + i, buffer);
+    }
+
+    buffer_print_uint32(buffer_print_config((buffer_print_params){
+        .buffer = buffer, .print_num_elems = buffer->capacity
+    }));
+
+
+    // force buffer realloc - to capacity:512
+    buffer_push_uint32(400, buffer);
+    print("REALLOC buffer %scapacity:%u%s\n", GREEN, buffer->capacity, CLEAR);
+    for(uint32 i = 0; i < buffer->capacity / 2; i++) {
+        buffer_push_uint32(400 + i, buffer);
+    }
+
+    buffer_print_uint32(buffer_print_config((buffer_print_params){
+        .buffer = buffer, .print_num_elems = buffer->capacity
+    }));
+
+
+    DEBUG_FPRINT_ALL_ALLOC_MEM();
+    memman_terminate();
+}
+
+void
+test_buffer_fill_remove_insert()
+{
+    memman_init();
+
+    buffer_table_init();
+
+    // allocate new buffer
+    const uint32 capacity = 64;
+    buffer_t* buffer = buffer_create_uint32(capacity);
+
+    buffer_print_uint32(buffer_print_config((buffer_print_params){
+        .buffer = buffer, .print_num_elems = buffer->capacity
+    }));
+
+
+    // fill buffer
+    fill(buffer);
+
+
+    buffer_print_uint32(buffer_print_config((buffer_print_params){
+        .buffer = buffer, .print_num_elems = buffer->capacity
+    }));
+
+    const int32 index = 9;
+
+    // remove an element, using free buffer to store all free buffer elems
+    remove_from(buffer, index);
+    remove_from(buffer, 63);
+    remove_from(buffer, 10);
+    remove_from(buffer, 11);
+    remove_from(buffer, 12);
+
+    buffer_print_uint32(buffer_print_config((buffer_print_params){
+        .buffer = buffer, .print_num_elems = buffer->capacity
+    }));
+
+    // insert a value in the buffer at specific index, using the free buffer 'find' a free element
+    insert_at(333333, buffer, index);
+    insert_at(333333, buffer, 10);
+    insert_at(333333, buffer, 11);
+    insert_at(333333, buffer, 12);
+
+    buffer_print_uint32(buffer_print_config((buffer_print_params){
+        .buffer = buffer, .print_num_elems = buffer->capacity
+    }));
+
+    DEBUG_FPRINT_ALL_ALLOC_MEM();
+    memman_terminate();
+}
+
+void
+test_buffer_different_capacity_buffers()
+{
+    print("%s-- -- -- TEST: -- -- --%s\n", GREEN, CLEAR);
+    print("%s create different capacity buffers%s\n\n", CYAN, CLEAR);
+
+    memman_init();
+
+    buffer_table_init();
+
+    // allocate buffer: capacity=16
+    {
+        const uint32 capacity = 16;
+        print("CREATE %scapacity:%u%s\n", GREEN, capacity, CLEAR);
+        buffer_t* buffer = buffer_create_uint32(capacity);
+        fill(buffer); // fill buffer
+        buffer_print_uint32(buffer_print_config((buffer_print_params){
+            .buffer = buffer, .print_num_elems = buffer->capacity
+        }));
+    }
+
+    // allocate buffer: capacity=32
+    {
+        const uint32 capacity = 32;
+        print("CREATE %scapacity:%u%s\n", GREEN, capacity, CLEAR);
+        buffer_t* buffer = buffer_create_uint32(capacity);
+        fill(buffer); // fill buffer
+        buffer_print_uint32(buffer_print_config((buffer_print_params){
+            .buffer = buffer, .print_num_elems = buffer->capacity
+        }));
+    }
+
+    {
+        const uint32 capacity = 16;
+        print("CREATE %scapacity:%u%s\n", GREEN, capacity, CLEAR);
+        buffer_t* buffer = buffer_create_uint32(capacity);
+        fill(buffer); // fill buffer
+        buffer_print_uint32(buffer_print_config((buffer_print_params){
+            .buffer = buffer, .print_num_elems = buffer->capacity
+        }));
+    }
+
+    {
+        const uint32 capacity = 16;
+        print("CREATE %scapacity:%u%s\n", GREEN, capacity, CLEAR);
+        buffer_t* buffer = buffer_create_uint32(capacity);
+        fill(buffer); // fill buffer
+        buffer_print_uint32(buffer_print_config((buffer_print_params){
+            .buffer = buffer, .print_num_elems = buffer->capacity
+        }));
+    }
+
+    {
+        const uint32 capacity = 16;
+        print("CREATE %scapacity:%u%s\n", GREEN, capacity, CLEAR);
+        buffer_t* buffer = buffer_create_uint32(capacity);
+        fill(buffer); // fill buffer
+        buffer_print_uint32(buffer_print_config((buffer_print_params){
+            .buffer = buffer, .print_num_elems = buffer->capacity
+        }));
+    }
+
+
+    // allocate buffer: capacity=64
+    {
+        const uint32 capacity = 64;
+        print("CREATE %scapacity:%u%s\n", GREEN, capacity, CLEAR);
+        buffer_t* buffer = buffer_create_uint32(capacity);
+        fill(buffer); // fill buffer
+        buffer_print_uint32(buffer_print_config((buffer_print_params){
+            .buffer = buffer, .print_num_elems = buffer->capacity
+        }));
+    }
+
+    // allocate buffer: capacity=256
+    {
+        const uint32 capacity = 256;
+        print("CREATE %scapacity:%u%s\n", GREEN, capacity, CLEAR);
+        buffer_t* buffer_c256 = buffer_create_uint32(capacity);
+        fill(buffer_c256); // fill buffer
+        buffer_print_uint32(buffer_print_config((buffer_print_params){
+            .buffer = buffer_c256, .print_num_elems = buffer_c256->capacity
+        }));
+    }
+
+    // allocate buffer: capacity=512
+    {
+        const uint32 capacity = 512;
+        print("CREATE %scapacity:%u%s\n", GREEN, capacity, CLEAR);
+        buffer_t* buffer = buffer_create_uint32(capacity);
+        fill(buffer); // fill buffer
+        buffer_print_uint32(buffer_print_config((buffer_print_params){
+            .buffer = buffer, .print_num_elems = buffer->capacity
+        }));
+    }
+
+    buffer_table_destroy();
+
+    DEBUG_FPRINT_ALL_ALLOC_MEM();
+    memman_terminate();
+}
+
+void
+test_buffer_remove_elements(const uint32 capacity)
+{
+    print("%s-- -- -- TEST: -- -- --%s\n", GREEN, CLEAR);
+    print("%s buffer remove elements %s\n\n", CYAN, CLEAR);
+
+    memman_init();
+
+    buffer_table_init();
+
+    // allocate buffer
+    buffer_t* buffer = buffer_create_uint32(capacity);
+    fill(buffer); // fill buffer
+
+
+    // remove elements and print free list
+    uint32 k = 4;
+    print("%sREMOVE%s on every %uth bit\n", GREEN, CLEAR, k);
+    for(uint32 i = 0; i < 256; i++) {
+        if(i % 64 == 0 && i != 0) {
+            k *= 2;
+            print("%sREMOVE%s on every %uth bit\n", GREEN, CLEAR, k);
+        }
+        if(i % k) {
+            buffer_free_elem(buffer, i);
+        }
+    }
+
+    buffer_print_uint32(buffer_print_config((buffer_print_params){
+        .buffer = buffer, .print_num_elems = buffer->capacity
+    }));
+
+    DEBUG_FPRINT_ALL_ALLOC_MEM();
+    memman_terminate();
+}
+
+void
+test_buffer_insert_elements(const uint32 capacity)
+{
+    print("%s-- -- -- TEST: -- -- --%s\n", GREEN, CLEAR);
+    print("%s buffer remove elements %s\n\n", CYAN, CLEAR);
+
+    memman_init();
+
+    buffer_table_init();
+
+    // allocate buffer
+    buffer_t* buffer = buffer_create_gentype(capacity, sizeof(uint32));
+
+
+    // remove elemnts and print free list
+    uint32 k = 4;
+    print("%sINSERT%s on every %uth bit\n", GREEN, CLEAR, k);
+    for(uint32 i = 0; i < 256; i++) {
+        if(i % 64 == 0 && i != 0) {
+            k *= 2;
+            print("%sINSERT%s on every %uth bit\n", GREEN, CLEAR, k);
+        }
+        if(i % k) {
+            buffer_insert_uint32(i, buffer, i);
+        }
+    }
+
+
+    buffer_print_uint32(buffer_print_config((buffer_print_params){
+        .buffer = buffer, .print_num_elems = buffer->capacity
+    }));
+
+
+    buffer_fprint(buffer);
+
+    DEBUG_FPRINT_ALL_ALLOC_MEM();
     memman_terminate();
 }
 
@@ -655,20 +654,17 @@ test_buffer_free_elem()
 
     buffer_table_init();
 
-    const uint32 repeat = 1;
     const uint32 capacity = 128;
     const uint32 type_size = sizeof(uint32);
     buffer_t* buffer = buffer_create_gentype(capacity, type_size);
 
     // fill buffer
     for(uint32 i = 0; i < buffer->capacity; i++) {
-
-        if(i%3 == 0) {
+        if(i % 3 == 0) {
             buffer_set_for_insert(buffer, i);
             uint32* data = buffer->data;
             data[i] = i + 1;
         }
-
     }
 
     buffer_print_uint32(buffer_print_config((buffer_print_params){
@@ -683,25 +679,22 @@ test_buffer_free_elem()
         .buffer = buffer, .print_num_elems = buffer->capacity
     }));
 
-        DEBUG_FPRINT_ALL_ALLOC_MEM();
+    DEBUG_FPRINT_ALL_ALLOC_MEM();
     memman_terminate();
 }
 
 void // todo
 test_buffer_find_tail()
-{
+{}
 
-}
 void // todo
 test_buffer_get_next_free()
-{
-
-}
+{}
 
 
 /***************************************************************************************************
  * buffers inside of buffers !
- */
+ **************************************************************************************************/
 void
 test_buffer_with_children()
 {
@@ -717,17 +710,15 @@ test_buffer_with_children()
         buffer_t* children;
     };
 
-    const uint32 repeat = 1;
     const uint32 capacity = 4;
     const uint32 type_size = sizeof(struct node);
     buffer_t* buffer = buffer_create_gentype(capacity, type_size);
     print("add buffer at:%x\n", REDUCE_ADDR(buffer->data, F6));
     // fill buffer
     for(uint32 i = 0; i < buffer->capacity; i++) {
-
         buffer_set_for_insert(buffer, i);
         struct node* data = buffer->data;
-        data[i].nameid = i+1;
+        data[i].nameid = i + 1;
 
         data[i].children = buffer_create_gentype(capacity, type_size);
         print("add child at:%x\n", REDUCE_ADDR(data[i].children->data, F6));
@@ -735,19 +726,17 @@ test_buffer_with_children()
         for(uint32 j = 0; j < capacity; j++) {
             buffer_set_for_insert(data[i].children, j);
             struct node* cdata = data[i].children->data;
-            cdata[j].nameid = j+1;
-            cdata[j].children = NULL;;
-
+            cdata[j].nameid = j + 1;
+            cdata[j].children = NULL;
         }
     }
 
     for(uint32 i = 0; i < buffer->capacity; i++) {
-
-        struct node* data = (struct node*)buffer->data;
+        const struct node* data = (struct node*) buffer->data;
         print("elem:[%u]: id:%u\n", i, data[i].nameid);
 
         for(uint32 j = 0; j < data[i].children->capacity; j++) {
-            struct node* cdata = data[i].children->data;
+            const struct node* cdata = data[i].children->data;
             print("  child:[%u]: id:%u\n", j, cdata[j].nameid);
         }
     }
@@ -757,7 +746,114 @@ test_buffer_with_children()
     //     .buffer = buffer, .print_num_elems = buffer->capacity
     // }));
 
-        DEBUG_FPRINT_ALL_ALLOC_MEM();
+    DEBUG_FPRINT_ALL_ALLOC_MEM();
     memman_terminate();
 }
 
+
+/***************************************************************************************************
+ * test file print buffer values
+ **************************************************************************************************/
+void
+test_buffer_fprint_values()
+{
+    memman_init();
+
+    buffer_table_init();
+
+    struct fs_t* fsdebug = fs_create("debug_with_info");
+
+// #define TEST_UINT32
+#ifdef TEST_UINT32
+    { // uint32 values
+        const uint32 capacity = 64;
+        buffer_t* buffer = buffer_create_uint32(capacity);
+
+        // fill(buffer);
+        uint32* data = buffer->data;
+        for(uint32 i = 0; i < buffer->capacity; i++) {
+            buffer_set_for_push(buffer);
+            data[i] = i + 1;
+            file_sys_push(
+                (char*) buffer->data + sizeof(uint32) * i,
+                sizeof(uint32),
+                TYPE_UINT32,
+                (char*) buffer->data + sizeof(uint32) * i);
+        }
+
+        buffer_print_uint32(buffer_print_config((buffer_print_params){
+            .buffer = buffer, .print_num_elems = buffer->capacity
+        }));
+
+        char buf[128] = {0};
+        string_format(buf, "FLOATING POINT values\nbuffer capacity:%u\n", buffer->capacity);
+        fs_append_mem_with_msg(fsdebug, buffer->data, buffer->capacity * buffer->typesize, buf);
+    }
+#endif
+#undef TEST_UINT32
+
+// #define TEST_FLOAT
+#ifdef TEST_FLOAT
+    { // float values
+        const uint32 capacity = 64;
+        buffer_t* buffer = buffer_create_gentype(capacity, sizeof(float));
+
+        // fill(buffer)
+        float val = .01;
+        float* data = buffer->data;
+        for(uint32 i = 0; i < buffer->capacity; i++) {
+            buffer_set_for_push(buffer);
+            data[i] = val;
+            val += .01;
+            file_sys_push(
+                (char*) buffer->data + sizeof(float) * i,
+                sizeof(float),
+                TYPE_FLOAT,
+                (char*) buffer->data + sizeof(float) * i);
+        }
+
+        buffer_print_uint32(buffer_print_config((buffer_print_params){
+            .buffer = buffer, .print_num_elems = buffer->capacity
+        }));
+
+        char buf[128] = {0};
+        string_format(buf, "FLOATING POINT values\nbuffer capacity:%u\n", buffer->capacity);
+        fs_append_mem_with_msg(fsdebug, buffer->data, buffer->capacity * buffer->typesize, buf);
+    }
+#endif
+#undef TEST_FLOAT
+
+#define TEST_CHAR_ARRAY
+#ifdef TEST_CHAR_ARRAY
+    { // float values
+        const uint32 capacity = 128;
+        buffer_t* buffer = buffer_create_gentype(capacity, sizeof(char));
+
+        // fill(buffer)
+        char c = ' ';
+        char* data = buffer->data;
+        for(uint32 i = 0; i < buffer->capacity; i++) {
+            buffer_set_for_push(buffer);
+            data[i] = c;
+            c += 1;
+            file_sys_push(
+                (char*) buffer->data + (sizeof(char) * i),
+                sizeof(char),
+                TYPE_CHAR,
+                (char*) buffer->data + (sizeof(char) * i));
+        }
+
+        buffer_print_uint32(buffer_print_config((buffer_print_params){
+            .buffer = buffer, .print_num_elems = buffer->capacity
+        }));
+
+        char buf[128] = {0};
+        string_format(buf, "FLOATING POINT values\nbuffer capacity:%u\n", buffer->capacity);
+        fs_append_mem_with_msg(fsdebug, buffer->data, buffer->capacity * buffer->typesize, buf);
+    }
+#endif
+#undef TEST_CHAR_ARRAY
+
+    DEBUG_FPRINT_ALL_ALLOC_MEM();
+    memman_terminate();
+}

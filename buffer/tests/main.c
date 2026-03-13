@@ -4,6 +4,7 @@
 
 
 #include "buffer.h"
+#include "file_sys_debug.h"
 #include "file_sys_interface.h"
 #include "logger.h"
 #include "mem_log.h"
@@ -16,8 +17,9 @@
 int
 main(void)
 {
+
     {
-        // test_create_buffer(16);
+        // test_create_buffer(256);
         // test_buffer_fill_remove_insert();        // todo: impl test
         // test_buffer_different_capacity_buffers(); // todo: impl test
         // test_buffer_remove_elements(256);        // todo: impl test
@@ -28,7 +30,7 @@ main(void)
         // test_buffer_find_tail();                 // todo: impl test and function
     }
 
-    {
+    { // buffer with buffers as children
         // perf_test_buffer_mixed_capacities_add();
         // perf_test_buffer_mixed_capacities_add_remove();
 
@@ -40,11 +42,19 @@ main(void)
     }
 
     {
-        perf_test_buffer_remove_insert();
+        // perf_test_buffer_remove_insert();
         // perf_test_insert_abstruct_call();
         // perf_test_buffer_create_generic_vs_uint32();
         // perf_test_buffer_find_tail();
     }
+
+    { /* test debugging buffer values to a file */
+        // file_sys_test();
+        // file_sys_test2();
+        test_buffer_fprint_values();
+    }
+
+
 
     return 0;
 }
