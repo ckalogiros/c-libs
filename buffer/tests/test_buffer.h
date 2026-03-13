@@ -26,4 +26,8 @@ void test_buffer_free_elem();
 
 void test_buffer_with_children();
 
+/* test file print buffer values */
+void test_buffer_fprint_values();
+
+
 #endif //BUFFER_TEST_BUFFER_H

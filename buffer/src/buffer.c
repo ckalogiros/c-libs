@@ -39,7 +39,7 @@ buffer_create_uint32(const uint32 capacity)
 }
 
 buffer_t*
-buffer_create_gentype(const uint32 capacity, const uint32 typesize)
+buffer_create_gentype(const uint32 capacity, const typesize_t typesize)
 {
     return buffer_constructor_gentype(capacity, typesize);
 }

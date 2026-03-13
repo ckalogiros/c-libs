@@ -17,6 +17,8 @@
 int
 main(void)
 {
+    // file_sys_test();
+    // file_sys_test2();
 
     {
         // test_create_buffer(256);
@@ -30,7 +32,7 @@ main(void)
         // test_buffer_find_tail();                 // todo: impl test and function
     }
 
-    { // buffer with buffers as children
+    {
         // perf_test_buffer_mixed_capacities_add();
         // perf_test_buffer_mixed_capacities_add_remove();
 
@@ -49,8 +51,6 @@ main(void)
     }
 
     { /* test debugging buffer values to a file */
-        // file_sys_test();
-        // file_sys_test2();
         test_buffer_fprint_values();
     }
 

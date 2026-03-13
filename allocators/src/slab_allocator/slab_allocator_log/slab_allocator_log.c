@@ -8,7 +8,7 @@
 
 
 void
-print_mem_cache_struct(const struct mem_cache* const mem_cache)
+print_mem_cache_struct(const struct slab_allocator_mcache* const mem_cache)
 {
     print("%s-- mem_cache struct --%s\n", ry, CLEAR);
     print("  name:%s\n", mem_cache->name.buf);
@@ -16,7 +16,6 @@ print_mem_cache_struct(const struct mem_cache* const mem_cache)
     print("  slabs_count:%u\n", mem_cache->slabs_count);
     print("  slabs_capacity:%u\n", mem_cache->slabs_capacity);
     print("  slabs_num_pages:%u\n", mem_cache->slabs_num_pages);
-    print("  type_size:%u\n", mem_cache->type_size);
     print("  is_active:%u\n", mem_cache->is_active);
     print("  slabs_free_list:%x\n", REDUCE_ADDR(mem_cache->slabs_free_list, F5));
     print("  mem_handle:%u\n", mem_cache->mem_handle);
@@ -27,7 +26,7 @@ print_mem_cache_struct(const struct mem_cache* const mem_cache)
 }
 
 void
-print_mem_cache_create(const struct mem_cache* const mem_cache)
+print_mem_cache_create(const struct slab_allocator_mcache* const mem_cache)
 {
     // debug-print
     print("\n%s-- Create Mem Cache --%s\n", YELLOW, CLEAR);
@@ -36,18 +35,17 @@ print_mem_cache_create(const struct mem_cache* const mem_cache)
     print("  slabs_count:    %s%u%s\n", YELLOW, mem_cache->slabs_count, CLEAR);
     print("  slabs_capacity: %s%u%s\n", YELLOW, mem_cache->slabs_capacity, CLEAR);
     print("  slabs_num_pages:%s%u%s\n", YELLOW, mem_cache->slabs_num_pages, CLEAR);
-    print("  type_size:      %s%u%s\n", YELLOW, mem_cache->type_size, CLEAR);
     print("  is_active:      %s%u%s\n", YELLOW, mem_cache->is_active, CLEAR);
     print("  slabs_free_list:%s%x%s\n", YELLOW, REDUCE_ADDR(mem_cache->slabs_free_list, F6), CLEAR);
     print("%s-----------------------%s\n", YELLOW, CLEAR);
 }
 
 void
-print_slabs_free_list(struct slab_flist* slabs_free_list)
+print_slabs_free_list(struct flist* slabs_free_list)
 {
     print("%s-- SLABS FREE LIST --%s\n", YELLOW, CLEAR);
 
-    struct slab_flist* list = slabs_free_list;
+    struct flist* list = slabs_free_list;
     uint32 slabs_count = 0;
     while(list) {
         print("[%s%u%s]"
@@ -70,14 +68,14 @@ void
 slab_allocator_print_error(const enum SLAB_ALLOCATOR_ERROR_CODE code)
 {
     switch(code) {
-        case SLAB_ALLOC_MEMCACHE_NOT_FOUND: {
+        case SLAB_ALLOCATOR_MEMCACHE_NOT_FOUND: {
             print("%sERROR:\n"
                   "Slab allocator: mem_cache not found%s\n",
                   RED, CLEAR
             );
             break;
         }
-        case SLAB_ALLOC_MEMCACHE_NO_INIT: {
+        case SLAB_ALLOCATOR_MEMCACHE_NO_INIT: {
             print("%sERROR:\n"
                   "Slab allocator: mem_cache_table not initialized.\nForget to call \"mem_chache_table_init()\"??%s\n",
                   RED, CLEAR

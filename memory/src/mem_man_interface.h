@@ -4,13 +4,10 @@
 #ifndef MEMORY_MEM_MAN_INTERFACE_H
 #define MEMORY_MEM_MAN_INTERFACE_H
 
-
 #include "my_types.h"
 #include "mem_structs.h"
 
-#define NUM_CHUNKS 16
 #define PAGE_SIZE 1024
-
 
 
 enum MEM_ID_SELECTOR {
@@ -18,7 +15,7 @@ enum MEM_ID_SELECTOR {
     MEM_ID_ALLOCATOR_SLAB,
     MEM_ID_ALLOCATOR_STRING,
     // leave initial chunks for specific allocators
-    MEM_ID_MAX_ELEMS,
+    MEM_ID_MAX_ELEMS, // TODO: there are no fixed pools, get the allocators pool count from slab allocator
 };
 
 enum MEMORY_ERROR_CODE {
@@ -40,7 +37,6 @@ struct memhnd_t {
     pageid_t page_id;
     memid_t num_pages;
 };
-
 
 
 #define PAGE_SIZE 1024

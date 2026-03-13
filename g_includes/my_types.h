@@ -22,6 +22,8 @@ typedef int64_t int64;
 
 typedef uint8 bool;
 
+typedef uint8 typesize_t;
+
 
 #define F4 0xffff
 #define F5 0xfffff

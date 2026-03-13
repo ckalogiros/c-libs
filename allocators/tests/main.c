@@ -4,9 +4,7 @@
 
 
 #include "logger.h"
-#include "mem_cache.h"
-// #include "mem_log.h"
-// #include "mem_man_interface.h"
+#include "slab_allocator_mcache.h"
 #include "my_types.h"
 #include <stdio.h>
 #include <poll.h>
@@ -31,18 +29,13 @@ has_input(void)
 int
 main(void)
 {
-    // test_check_alloc_extend_pages(1);
+    test_check_alloc_extend_pages(1);
     // test_mem_cache_alloc_release_slabs();
 
 
 
     // test performance measurements
     // test_perf_slab_allocation_release();
-
-
-    // string allocator
-    test_string_mem_cache_alloc_release_slabs();
-
 
 
     return 0;

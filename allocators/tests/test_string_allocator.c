@@ -8,9 +8,11 @@
 
 #include "logger.h"
 #include "mem_man_interface.h"
-#include "string_allocator_internals.h"
-#include "string_allocator_log.h"
-#include "string_mem_cache.h"
+#include "slab_allocator_internals.h"
+#include "slab_allocator_mcache.h"
+#include "slab_allocator_internals.h"
+#include "slab_allocator_log.h"
+#include "string_internals.h"
 
 enum CHAR_ARRAY {
     CHAR_A=65,
@@ -27,22 +29,26 @@ void test_string_allocator(void)
 
 void string_check_buffer(void* buffer, const uint32 string_size, const char c, const uint32 index);
 
-char* string_mem_cache_free_slab_test_debug(struct string_mem_cache* mcache, void* slab_address);
-char* string_mem_cache_free_slab_test_debug(struct string_mem_cache* mcache, void* slab_address);
-char* string_mem_cache_release_buffer_test_debug(void* ptr, const string_size_t string_size);
+char* slab_allocator_mcache_free_slab_test_debug(struct slab_allocator_mcache* mcache, void* slab_address);
+char* slab_allocator_mcache_free_slab_test_debug(struct slab_allocator_mcache* mcache, void* slab_address);
+char* slab_allocator_mcache_release_buffer_test_debug(void* ptr, const slab_size_t string_size);
 
 
 
 
 
 void
-test_string_mem_cache_alloc_release_slabs(void)
+test_slab_allocator_mcache_alloc_release_slabs(void)
 {
     memman_init();
-    string_mem_cache_table_init();
 
-    const string_size_t string_size = 8;
-    const string_size_t slab_size = string_size;
+    // slab_allocator_init();
+    // slab_allocator_create_new_instance();
+    string_container_init();
+
+
+    const slab_size_t string_size = 8;
+    const slab_size_t slab_size = string_size;
 
     // print(" %sTEST-%s\n", ry, CLEAR);
     const uint32 page_size = PAGE_SIZE;
@@ -67,7 +73,8 @@ test_string_mem_cache_alloc_release_slabs(void)
     print("%s-- ALLOCATION + WRITE --%s\n", ry, CLEAR);
     uint32 c = CHAR_A;
     for(uint32 i = 0; i < total_slabs; i++) {
-        buffer[i] = (uint8*) string_mem_cache_alloc_buffer(string_size);
+        // buffer[i] = (uint8*) slab_allocator_mcache_alloc_buffer(string_size);
+        buffer[i] = (uint8*) slab_allocator_alloc(string_size, sizeof(char));
         memset(buffer[i], (char) c, slab_size);
         string_check_buffer(buffer[i], slab_size, c, i);
         c++;
@@ -98,7 +105,7 @@ test_string_mem_cache_alloc_release_slabs(void)
     char* free_buffer[total_slabs] = {};
     print("%s-- DEALLOCATION + ERASE --%s\n", ry, CLEAR);
     for(uint32 i = 0; i < total_slabs; i++) {
-        free_buffer[i] = string_mem_cache_release_buffer_test_debug(buffer[i], string_size);
+        free_buffer[i] = slab_allocator_release_test_debug(buffer[i], string_size);
         string_check_buffer(buffer[i], string_size, '\0', i);
     }
 
@@ -126,7 +133,7 @@ test_string_mem_cache_alloc_release_slabs(void)
     }
 
 
-    string_mem_cache_table_destroy();
+    mcache_table_destroy();
     memman_terminate();
 }
 
@@ -177,11 +184,11 @@ string_check_buffer(void* buffer, const uint32 string_size, const char c, const 
  */
 
 char*
-string_mem_cache_free_slab_test_debug(struct string_mem_cache* mcache, void* slab_address)
+slab_allocator_mcache_free_slab_test_debug(struct slab_allocator_mcache* mcache, void* slab_address)
 {
     // TODO: write test
-    struct string_slab_flist* released = (struct string_slab_flist*) slab_address;
-    struct string_slab_flist* node = mcache->slabs_free_list;
+    struct flist* released = (struct flist*) slab_address;
+    struct flist* node = mcache->slabs_free_list;
     const char* free_buffer = slab_address;
 
     // insert at the begining of the free list
@@ -209,7 +216,7 @@ string_mem_cache_free_slab_test_debug(struct string_mem_cache* mcache, void* sla
         }
 
         memset(slab_address, 0x0, mcache->slab_size);
-        struct string_slab_flist* temp = node->next;
+        struct flist* temp = node->next;
         node->next = released;
         node->next->next = temp;
         return free_buffer;
@@ -217,22 +224,20 @@ string_mem_cache_free_slab_test_debug(struct string_mem_cache* mcache, void* sla
 
     // else insert at the end of the free list
     memset(slab_address, 0x0, mcache->slab_size);
-    node->next = (struct string_slab_flist*) slab_address;
+    node->next = (struct flist*) slab_address;
     return free_buffer;
 
 }
 
-
-
 char*
-string_mem_cache_release_buffer_test_debug(void* ptr, const string_size_t string_size)
+slab_allocator_mcache_release_buffer_test_debug(void* ptr, const slab_size_t string_size)
 {
     const slab_size_t slab_size = string_size;
 
-    struct string_mem_cache* mcache = string_mem_cache_find_cache(slab_size);
+    struct slab_allocator_mcache* mcache = mcache_find_size(slab_size);
 
     if(!mcache) // handle error: cache not found
-        string_allocator_print_error(STRING_ALLOC_MEMCACHE_NOT_FOUND);
+        slab_allocator_print_error(SLAB_ALLOCATOR_MEMCACHE_NOT_FOUND);
 
-    return string_mem_cache_free_slab_test_debug(mcache, ptr);
+    return slab_allocator_mcache_free_slab_test_debug(mcache, ptr);
 }

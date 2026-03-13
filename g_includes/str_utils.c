@@ -12,8 +12,8 @@
 /***************************************************************************************************
  * CONVERSION
  **************************************************************************************************/
-/* up to 32bit integer to string conversion */
-char*
+
+char* /* up to 32bit integer to string conversion */
 str_conv_int32_to_str(char buffer[INT32_TO_STR_BUFFER_SIZE], const int32 number)
 {
     char* ptr = buffer;
@@ -72,6 +72,36 @@ str_concat_int32_to_str(char* dest, const uint16 dest_size, const int32 number)
     *ptr = '\0';
 
     return dest;
+}
+
+
+char* /* up to 64bit integer to string conversion */
+str_conv_int64_to_str(char buffer[INT64_TO_STR_BUFFER_SIZE], const int64 number)
+{
+    char* ptr = buffer;
+    unsigned int num;
+
+    if(number < 0) {
+        *ptr++ = '-';
+        num = -number;
+    } else
+        num = number;
+
+    // Generate digits from the end
+    char temp[INT64_TO_STR_BUFFER_SIZE]; // Enough for 32-bit int
+    int i = 0;
+    do {
+        temp[i++] = '0' + (num % 10);
+        num /= 10;
+    } while(num > 0);
+
+    // Copy in reverse order
+    while(i > 0)
+        *ptr++ = temp[--i];
+
+    *ptr = '\0';
+
+    return buffer;
 }
 
 

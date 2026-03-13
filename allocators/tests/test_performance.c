@@ -3,7 +3,7 @@
  */
 
 #include "test_performance.h"
-#include "mem_cache.h"
+#include "slab_allocator_mcache.h"
 #include "mem_man_interface.h"
 #include "buffer_internals.h"
 #include "logger.h"
@@ -11,6 +11,7 @@
 #include "precision_timer_logger.h"
 #include "precision_timer_struct.h"
 #include "slab_allocator_internals.h"
+#include "string_internals.h"
 
 void
 timer_print(struct timer* t, const uint32 repeat, const uint32 num_allocations,
@@ -39,7 +40,10 @@ void
 test_perf_slab_allocation_release()
 {
     memman_init();
-    mem_cache_table_init();
+    string_container_init();
+    // slab_allocator_init();
+    // slab_allocator_create_new_instance();
+
     buffer_init_table();
     timer_init_table();
 
@@ -75,23 +79,23 @@ test_perf_slab_allocation_release()
 
         perf_timer_start(t);
         for(uint32 r = 0; r < repeat; r++) {
-            uint32* buffer32_1 = (uint32*) mem_cache_alloc_buffer(buffer_size, type_size);
-            uint32* buffer32_2 = (uint32*) mem_cache_alloc_buffer(buffer_size, type_size);
-            uint32* buffer32_3 = (uint32*) mem_cache_alloc_buffer(buffer_size, type_size);
-            uint32* buffer32_4 = (uint32*) mem_cache_alloc_buffer(buffer_size, type_size);
-            uint32* buffer32_5 = (uint32*) mem_cache_alloc_buffer(buffer_size, type_size);
-            uint32* buffer32_6 = (uint32*) mem_cache_alloc_buffer(buffer_size, type_size);
-            uint32* buffer32_7 = (uint32*) mem_cache_alloc_buffer(buffer_size, type_size);
-            uint32* buffer32_8 = (uint32*) mem_cache_alloc_buffer(buffer_size, type_size);
+            uint32* buffer32_1 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
+            uint32* buffer32_2 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
+            uint32* buffer32_3 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
+            uint32* buffer32_4 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
+            uint32* buffer32_5 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
+            uint32* buffer32_6 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
+            uint32* buffer32_7 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
+            uint32* buffer32_8 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
 
-            mem_cache_release_buffer(buffer32_8, buffer_size, type_size);
-            mem_cache_release_buffer(buffer32_1, buffer_size, type_size);
-            mem_cache_release_buffer(buffer32_7, buffer_size, type_size);
-            mem_cache_release_buffer(buffer32_2, buffer_size, type_size);
-            mem_cache_release_buffer(buffer32_3, buffer_size, type_size);
-            mem_cache_release_buffer(buffer32_6, buffer_size, type_size);
-            mem_cache_release_buffer(buffer32_4, buffer_size, type_size);
-            mem_cache_release_buffer(buffer32_5, buffer_size, type_size);
+            slab_allocator_release(buffer32_8, buffer_size, type_size);
+            slab_allocator_release(buffer32_1, buffer_size, type_size);
+            slab_allocator_release(buffer32_7, buffer_size, type_size);
+            slab_allocator_release(buffer32_2, buffer_size, type_size);
+            slab_allocator_release(buffer32_3, buffer_size, type_size);
+            slab_allocator_release(buffer32_6, buffer_size, type_size);
+            slab_allocator_release(buffer32_4, buffer_size, type_size);
+            slab_allocator_release(buffer32_5, buffer_size, type_size);
         }
 
         perf_timer_stop(t);
@@ -125,23 +129,23 @@ test_perf_slab_allocation_release()
 
         perf_timer_start(t);
         for(uint32 r = 0; r < repeat; r++) {
-            uint32* buffer32_1 = (uint32*) mem_cache_alloc_buffer(buffer_size, type_size);
-            uint32* buffer32_2 = (uint32*) mem_cache_alloc_buffer(buffer_size, type_size);
-            uint32* buffer32_3 = (uint32*) mem_cache_alloc_buffer(buffer_size, type_size);
-            uint32* buffer32_4 = (uint32*) mem_cache_alloc_buffer(buffer_size, type_size);
-            uint32* buffer32_5 = (uint32*) mem_cache_alloc_buffer(buffer_size, type_size);
-            uint32* buffer32_6 = (uint32*) mem_cache_alloc_buffer(buffer_size, type_size);
-            uint32* buffer32_7 = (uint32*) mem_cache_alloc_buffer(buffer_size, type_size);
-            uint32* buffer32_8 = (uint32*) mem_cache_alloc_buffer(buffer_size, type_size);
+            uint32* buffer32_1 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
+            uint32* buffer32_2 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
+            uint32* buffer32_3 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
+            uint32* buffer32_4 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
+            uint32* buffer32_5 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
+            uint32* buffer32_6 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
+            uint32* buffer32_7 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
+            uint32* buffer32_8 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
 
-            mem_cache_release_buffer(buffer32_8, buffer_size, type_size);
-            mem_cache_release_buffer(buffer32_1, buffer_size, type_size);
-            mem_cache_release_buffer(buffer32_7, buffer_size, type_size);
-            mem_cache_release_buffer(buffer32_2, buffer_size, type_size);
-            mem_cache_release_buffer(buffer32_3, buffer_size, type_size);
-            mem_cache_release_buffer(buffer32_6, buffer_size, type_size);
-            mem_cache_release_buffer(buffer32_4, buffer_size, type_size);
-            mem_cache_release_buffer(buffer32_5, buffer_size, type_size);
+            slab_allocator_release(buffer32_8, buffer_size, type_size);
+            slab_allocator_release(buffer32_1, buffer_size, type_size);
+            slab_allocator_release(buffer32_7, buffer_size, type_size);
+            slab_allocator_release(buffer32_2, buffer_size, type_size);
+            slab_allocator_release(buffer32_3, buffer_size, type_size);
+            slab_allocator_release(buffer32_6, buffer_size, type_size);
+            slab_allocator_release(buffer32_4, buffer_size, type_size);
+            slab_allocator_release(buffer32_5, buffer_size, type_size);
         }
 
         perf_timer_stop(t);
@@ -171,23 +175,23 @@ test_perf_slab_allocation_release()
 
         perf_timer_start(t);
         for(uint32 r = 0; r < repeat; r++) {
-            uint32* buffer32_1 = (uint32*) mem_cache_alloc_buffer(buffer_size, type_size);
-            uint32* buffer32_2 = (uint32*) mem_cache_alloc_buffer(buffer_size, type_size);
-            uint32* buffer32_3 = (uint32*) mem_cache_alloc_buffer(buffer_size, type_size);
-            uint32* buffer32_4 = (uint32*) mem_cache_alloc_buffer(buffer_size, type_size);
-            uint32* buffer32_5 = (uint32*) mem_cache_alloc_buffer(buffer_size, type_size);
-            uint32* buffer32_6 = (uint32*) mem_cache_alloc_buffer(buffer_size, type_size);
-            uint32* buffer32_7 = (uint32*) mem_cache_alloc_buffer(buffer_size, type_size);
-            uint32* buffer32_8 = (uint32*) mem_cache_alloc_buffer(buffer_size, type_size);
+            uint32* buffer32_1 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
+            uint32* buffer32_2 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
+            uint32* buffer32_3 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
+            uint32* buffer32_4 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
+            uint32* buffer32_5 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
+            uint32* buffer32_6 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
+            uint32* buffer32_7 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
+            uint32* buffer32_8 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
 
-            mem_cache_release_buffer(buffer32_8, buffer_size, type_size);
-            mem_cache_release_buffer(buffer32_1, buffer_size, type_size);
-            mem_cache_release_buffer(buffer32_7, buffer_size, type_size);
-            mem_cache_release_buffer(buffer32_2, buffer_size, type_size);
-            mem_cache_release_buffer(buffer32_3, buffer_size, type_size);
-            mem_cache_release_buffer(buffer32_6, buffer_size, type_size);
-            mem_cache_release_buffer(buffer32_4, buffer_size, type_size);
-            mem_cache_release_buffer(buffer32_5, buffer_size, type_size);
+            slab_allocator_release(buffer32_8, buffer_size, type_size);
+            slab_allocator_release(buffer32_1, buffer_size, type_size);
+            slab_allocator_release(buffer32_7, buffer_size, type_size);
+            slab_allocator_release(buffer32_2, buffer_size, type_size);
+            slab_allocator_release(buffer32_3, buffer_size, type_size);
+            slab_allocator_release(buffer32_6, buffer_size, type_size);
+            slab_allocator_release(buffer32_4, buffer_size, type_size);
+            slab_allocator_release(buffer32_5, buffer_size, type_size);
         }
 
         perf_timer_stop(t);
@@ -221,23 +225,23 @@ test_perf_slab_allocation_release()
 
         perf_timer_start(t);
         for(uint32 r = 0; r < repeat; r++) {
-            uint32* buffer32_1 = (uint32*) mem_cache_alloc_buffer(buffer_size, type_size);
-            uint32* buffer32_2 = (uint32*) mem_cache_alloc_buffer(buffer_size, type_size);
-            uint32* buffer32_3 = (uint32*) mem_cache_alloc_buffer(buffer_size, type_size);
-            uint32* buffer32_4 = (uint32*) mem_cache_alloc_buffer(buffer_size, type_size);
-            uint32* buffer32_5 = (uint32*) mem_cache_alloc_buffer(buffer_size, type_size);
-            uint32* buffer32_6 = (uint32*) mem_cache_alloc_buffer(buffer_size, type_size);
-            uint32* buffer32_7 = (uint32*) mem_cache_alloc_buffer(buffer_size, type_size);
-            uint32* buffer32_8 = (uint32*) mem_cache_alloc_buffer(buffer_size, type_size);
+            uint32* buffer32_1 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
+            uint32* buffer32_2 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
+            uint32* buffer32_3 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
+            uint32* buffer32_4 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
+            uint32* buffer32_5 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
+            uint32* buffer32_6 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
+            uint32* buffer32_7 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
+            uint32* buffer32_8 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
 
-            mem_cache_release_buffer(buffer32_8, buffer_size, type_size);
-            mem_cache_release_buffer(buffer32_1, buffer_size, type_size);
-            mem_cache_release_buffer(buffer32_7, buffer_size, type_size);
-            mem_cache_release_buffer(buffer32_2, buffer_size, type_size);
-            mem_cache_release_buffer(buffer32_3, buffer_size, type_size);
-            mem_cache_release_buffer(buffer32_6, buffer_size, type_size);
-            mem_cache_release_buffer(buffer32_4, buffer_size, type_size);
-            mem_cache_release_buffer(buffer32_5, buffer_size, type_size);
+            slab_allocator_release(buffer32_8, buffer_size, type_size);
+            slab_allocator_release(buffer32_1, buffer_size, type_size);
+            slab_allocator_release(buffer32_7, buffer_size, type_size);
+            slab_allocator_release(buffer32_2, buffer_size, type_size);
+            slab_allocator_release(buffer32_3, buffer_size, type_size);
+            slab_allocator_release(buffer32_6, buffer_size, type_size);
+            slab_allocator_release(buffer32_4, buffer_size, type_size);
+            slab_allocator_release(buffer32_5, buffer_size, type_size);
         }
 
         perf_timer_stop(t);
@@ -248,6 +252,6 @@ test_perf_slab_allocation_release()
     }
 
 
-    mem_cache_table_destroy();
+    // mem_cache_table_destroy();
     memman_terminate();
 }

@@ -2,10 +2,10 @@ include(${cmake_utils})
 
 register_module(
         sources
-        ${CMAKE_CURRENT_LIST_DIR}/mem_cache.c
+        ${CMAKE_CURRENT_LIST_DIR}/slab_allocator_mcache.c
         ${CMAKE_CURRENT_LIST_DIR}/slab_allocator_internals.c
         headers
-        ${CMAKE_CURRENT_LIST_DIR}/mem_cache.h
+        ${CMAKE_CURRENT_LIST_DIR}/slab_allocator_mcache.h
         ${CMAKE_CURRENT_LIST_DIR}/slab_allocator_internals.h
         ${CMAKE_CURRENT_LIST_DIR}/slab_allocator_struct.h
         include_dirs

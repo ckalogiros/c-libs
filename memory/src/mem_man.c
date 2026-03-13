@@ -1,8 +1,10 @@
 /*
  * Created by ckalo on 12/29/25.
  */
+#include "file_sys_interface.h"
 #include "mem_man_interface.h"
 #include "mem_man_internals.h"
+#include "stringc.h"
 #include "mem_log/mem_log.h"
 
 
@@ -10,6 +12,13 @@ void
 memman_init(void)
 {
     const bool initialized = mem_table_init();
+
+    /* initialize file system files table */
+    fs_init_table();
+
+#ifdef MEM_DEBUG_FPRINT_ALL_USE_MEM
+    string_init_table();
+#endif
 
     if(!initialized)
         mem_print_error(MEMMAN_ALREADY_INITIALIZED);

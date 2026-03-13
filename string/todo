@@ -1,22 +1,11 @@
-string container up to 128 chars
-strlen_t: 1 byte, 0-255 values
-
 bytes |   8 16 32 64 128
 elems |   5 13 29 61 125 if self_size is constant val, then +1 to all elems
 slabs | 128 64 32 16   8
 
-total mcaches:5
-with the extension to 256-1 sized slab
-!IMPORTANT!
-  256 is not available for uint8 strlen_t type
-  so 255 is absolutely crucial
-
-if we want we can go for 8 mcaches or more
-by creating more granular slab sizes
 
 
-For text with more than 255 characters:
-make use of another allocator
+
+
 
 # lifetime: static
   create a dynamicaly grown arena

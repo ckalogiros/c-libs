@@ -13,18 +13,23 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
+#include <stdlib.h>
 #include "logger.h"
+#include "mem_log.h"
 #include "mem_man_internals.h"
 #include "sys_utils.h"
 #include "mem_structs.h"
+#include "file_sys_debug.h"
+#include "stringc.h"
+#include "string_struct.h"
 
-#define MAX_FILES_TABLE 16
+#define MAX_FILES_TABLE 32
 #define MAX_BUFFER 1024
 
 #define FS_CHECK_NULL_FILE(file, filename)\
 if(file == NULL) {\
     printf("Error: Could not open file '%s' for writing\n", filename);\
-    my_exit("fs_init()\nFailed to open file", __FILE__, __LINE__);\
+    my_exit("Failed to open file", __FILE__, __LINE__);\
 }
 
 // #define dprint print
@@ -42,25 +47,19 @@ struct fs_t {
 
 
 FILE* debug_file = NULL;
-static struct fs_t files_table[MAX_FILES_TABLE] = {
-    {.file = NULL, .filename = {0}, .flags = 0x0},
-    {.file = NULL, .filename = {0}, .flags = 0x0},
-    {.file = NULL, .filename = {0}, .flags = 0x0},
-    {.file = NULL, .filename = {0}, .flags = 0x0},
-    {.file = NULL, .filename = {0}, .flags = 0x0},
-    {.file = NULL, .filename = {0}, .flags = 0x0},
-    {.file = NULL, .filename = {0}, .flags = 0x0},
-    {.file = NULL, .filename = {0}, .flags = 0x0},
-    {.file = NULL, .filename = {0}, .flags = 0x0},
-    {.file = NULL, .filename = {0}, .flags = 0x0},
-    {.file = NULL, .filename = {0}, .flags = 0x0},
-    {.file = NULL, .filename = {0}, .flags = 0x0},
-    {.file = NULL, .filename = {0}, .flags = 0x0},
-    {.file = NULL, .filename = {0}, .flags = 0x0},
-    {.file = NULL, .filename = {0}, .flags = 0x0},
-    {.file = NULL, .filename = {0}, .flags = 0x0},
-};
+static struct fs_t files_table[MAX_FILES_TABLE];
 static uint32 files_table_counter = 0;
+
+
+
+void fs_init_table()
+{
+    for(uint32 i = 0; i < MAX_FILES_TABLE; i++) {
+        files_table[i] = (struct fs_t){.file = NULL, .filename = {0}, .flags = 0x0};
+    }
+
+    // file_sys_debug_init();
+}
 
 
 struct fs_t*
@@ -290,6 +289,7 @@ fs_fprint_all_used_mem(const char* filename, const memid_t memid)
     /* print used pages of memory, from mem table by id */
     struct mem* mem_table = debug_mem_get_table();
 
+
     struct mem* mem = &mem_table[memid];
     for(uint32 i = 0; i < mem->size; i += PAGE_SIZE) {
 
@@ -301,7 +301,101 @@ fs_fprint_all_used_mem(const char* filename, const memid_t memid)
                 (uint64) address >> 32, (uint64) address & 0xFFFFFFFF
             );
         } else {
+            mem_log_print_mem(mem);
             fs_append_mem(fs, address, PAGE_SIZE, "");
         }
     }
+}
+
+
+
+void
+fs_append_mem_with_msg(struct fs_t* fs, const char* ptr, const uint64 size, const char* msg)
+{
+    fs->file = fopen(fs->filename, "a");
+    FS_CHECK_NULL_FILE(fs->file, fs->filename);
+
+    /* define memory boundaries */
+    const char* mem_address = ptr;
+    const char* start = ptr;
+    const uint8* data = (uint8*) start;
+    const uint32 word_size = 8, line_size = 32;
+
+    /* print header, info, and draw a line ____ separator */
+    char buffer[256];
+    uint32 i = 0;
+    uint32 sep_len = (line_size + (line_size / word_size)) * 2 + line_size + word_size;
+    for(; i < sep_len; i++)
+        buffer[i] = '_';
+    buffer[i] = '\0';
+    fprintf(fs->file, "\n%s\n"
+            "message: %s\n"
+            "start:%08x %08x\n"
+            "end:  %08x %08x\n"
+            "dif:[%llu bytes] | [%llx hex] | "
+            "size:%llu\n\n",
+            buffer, msg,
+            (uint32) ((uint64) start >> 32), (uint32) ((uint64) start & 0xFFFFFFFF),
+            (uint32) ((uint64) start + size >> 32), (uint32) ((uint64) start + size & 0xFFFFFFFF),
+            (uint64) (start + size) - (uint64) start, (uint64) (start + size) - (uint64) start,
+            size);
+
+
+    fprintf(fs->file, "   ADDRESS        | ");
+    for(i = 0; i < line_size; i += word_size / 2) {
+        uint32 space = (word_size + 1) - 5;
+        fprintf(fs->file, "%2u:%2u", i, i + (word_size / 2) - 1);
+        while(space--) fprintf(fs->file, " ");
+    }
+    fprintf(fs->file, "\n");
+
+    const int32 sidx[] = {7, 5, 3, 1, -1, -3, -5, -7};
+    uint32 cnt = 0;
+    for(i = 0; i < size; i++) {
+        /* print memory address (per line) */
+        if((i % line_size) == 0) {
+            fprintf(fs->file, "%08llx %08llx |",
+                    ((uint64) mem_address >> 32),
+                    ((uint64) mem_address & 0xFFFFFFFF));
+            mem_address += line_size;
+        }
+
+        /* print memory hex values (per line, reverse printing) */
+        fprintf(fs->file, "%02x", data[i + sidx[cnt++]]);
+        if(cnt == 8) cnt = 0;
+        if((i + 1) % (word_size / 2) == 0)
+            fprintf(fs->file, " ");
+
+        /* print number of bytes (per line) */
+        if(((i + 1) % line_size) == 0)
+            fprintf(fs->file, "[%5u] ", (i + 1) - line_size);
+
+
+        if((i + 1) % line_size == 0) {
+            fprintf(fs->file, "| ");
+
+        // Print the ASCII for this line
+        const size_t line_start = i - (i % line_size);
+        for(size_t j = line_start; j <= i; j++) {
+
+            char* ptr = (char*)&data[j];
+            const uint32 exists = file_sys_exists(ptr);
+            if(exists) {
+                char buf[128] = {0};
+                file_sys_retrieve_info(buf);
+                fprintf(fs->file, "%s", buf);
+            }
+        }
+
+        // for(size_t j = line_start; j <= i; j++) {
+        //     if(isprint(data[j])) fprintf(fs->file, "%c", data[j]);
+        //     else fprintf(fs->file, ".");
+        //     if((j + 1) % word_size == 0) fprintf(fs->file, " ");
+        // }
+
+        fprintf(fs->file, "\n");
+        }
+    }
+
+    fs_close(fs, "fs_mem_blocks_debug()");
 }

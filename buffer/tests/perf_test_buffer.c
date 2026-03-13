@@ -7,12 +7,14 @@
 #include <string.h>
 #include "buffer_internals.h"
 #include "buffer_log.h"
+#include "file_sys_debug.h"
 #include "file_sys_interface.h"
 #include "logger.h"
 #include "mem_man_internals.h"
 #include "precision_timer.h"
 #include "precision_timer_logger.h"
 #include "slab_allocator_internals.h"
+#include "stringc.h"
 #include "str_utils.h"
 
 
@@ -241,6 +243,8 @@ perf_test_buffer_remove_insert(void)
 
     const uint32 repeat = 1000000;
     // const uint32 repeat = 2000;
+
+    string_init_table();
 
     buffer_table_init();
 
@@ -665,6 +669,7 @@ perf_test_buffer_mixed_capacities_add(void)
              char pname[16] = "BUF:";
              str_concat_int32_to_str(pname, 16, buffer->id);
              memcpy(&data[i].nameid, pname, sizeof(char*));
+             // file_sys_push(pname, sizeof(char*), TYPE_POINTER);
          }
          perf_timer_stop_accum(t_create);
 

@@ -10,6 +10,9 @@
 #include "sys_utils.h"
 #include <time.h>
 
+#include "mem_structs.h"
+#include "slab_allocator_internals.h"
+
 
 #define MIN_TIMER_TABLE_CAPACITY 16
 
@@ -24,6 +27,8 @@ if(index > MIN_TIMER_TABLE_CAPACITY) {\
     print("%sERROR\ntimer_table: INDEX OUT OF BOUNDS\nIncrease \"MIN_TIMER_TABLE_CAPACITY\" MACRO%s", RED, CLEAR);\
     my_exit("timer_create_perf_timer", __FILE__, __LINE__);\
 }
+
+static memid_t slab_allocator_instance_id = 0;
 
 
 void
@@ -44,6 +49,8 @@ timer_init_table(void)
 {
     if(timer_table) return;
 
+    slab_allocator_init();
+    slab_allocator_instance_id = slab_allocator_create_new_instance();
     // allocate memory, construct buffer
     timer_table = buffer_create_gentype(MIN_TIMER_TABLE_CAPACITY, sizeof(struct timer));
 }
