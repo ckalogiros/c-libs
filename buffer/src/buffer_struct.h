@@ -23,7 +23,7 @@ typedef struct buffer_t {
     bufidx_t count; // used elements count
     int16 tail; // last element's index
     bufidx_t id; // self reference index
-    int16 typesize; // last element's index
+    typesize_t typesize; // last element's index
 } buffer_t;
 
 /*

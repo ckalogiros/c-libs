@@ -12,16 +12,18 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "mem_cache.h"
+#include "slab_allocator_internals.h"
+#include "slab_allocator_mcache.h"
 #include "stringc.h"
-#include "string_allocator_internals.h"
-#include "string_mem_cache.h"
+#include "slab_allocator_internals.h"
+// #include "string_mem_cache.h"
 
 
 /*******************************************************************************
  *
  ******************************************************************************/
 static uint32 string_alloced_count = 0;
+static memid_t slab_allocator_instance_id = -1; // MAX_UINT for ERROR
 
 
 /***************************************************************************************************
@@ -65,9 +67,9 @@ static inline strlen_t string_get_self_size() { return sizeof(string_t) - sizeof
 void
 string_container_init(void)
 {
-    if(is_string_slab_allocator_init()) return;
-
-    string_mem_cache_table_init();
+    // string_mem_cache_table_init();
+    slab_allocator_init();
+    slab_allocator_instance_id = slab_allocator_create_new_instance();
 
     /* DEBUG-FPRINT */
     fs_register_created_strings = fs_create("allocators/string/register_created_strings.txt");
@@ -78,7 +80,8 @@ void
 string_container_destroy(void)
 {
     print("FREEING strings: calling string_mem_cache_table_destroy() from string container.");
-    string_mem_cache_table_destroy();
+    // string_mem_cache_table_destroy();
+    mcache_table_destroy();
 }
 
 /***************************************************************************************************
@@ -90,14 +93,15 @@ string_constructor(const char* str, const strlen_t size)
     const strlen_t len = strlen(str);
     const strlen_t self_size = string_get_self_size();
 
-    string_size_t capacity = (size > STRING_MIN_LEN) ? size : len + self_size + 1;
+    slab_size_t capacity = (size > STRING_MIN_LEN) ? size : len + self_size + 1;
 
     strlen_t max_size = STRING_MIN_LEN;
     while(max_size < capacity) max_size *= 2;
 
     /* alloc storage for bufer data */
     void* data_ptr = NULL;
-    data_ptr = string_slab_alloc_allocate(max_size);
+    // data_ptr = string_slab_alloc_allocate(max_size);
+    data_ptr = slab_allocator_alloc(max_size, sizeof(char));
 
     string_t* string = data_ptr;
     string->len = 0;
@@ -122,7 +126,8 @@ void
 string_destructor(string_t* string)
 {
     // Release string's data slab
-    string_slab_alloc_release(string->data, string->size);
+    // string_slab_alloc_release(string->data, string->size);
+    slab_allocator_release(string->data, string->size, sizeof(char));
 
     /* DEBUG-FPRINT
      * write a string to string's->data memory
@@ -152,7 +157,8 @@ void
 string_release(string_t* string)
 {
     /* Release string's data (slab) */
-    string_slab_alloc_release(string->data, string->size);
+    // string_slab_alloc_release(string->data, string->size);
+    slab_allocator_release(string->data, string->size, sizeof(char));
 
 
     /* DEBUG-FPRINT
@@ -192,7 +198,7 @@ string_reallocate(string_t* string, const strlen_t len, bool copy)
 
 
     void* data_ptr = NULL;
-    data_ptr = string_slab_alloc_allocate(max_size);
+    data_ptr = slab_allocator_alloc(max_size, sizeof(char));
 
 
     strlen_t old_len = string->len;
@@ -200,7 +206,8 @@ string_reallocate(string_t* string, const strlen_t len, bool copy)
     memset((void*)data_ptr, 0, max_size);
     if(copy) memcpy((void*)data_ptr, string, string->len+string->self_size);
 
-    string_slab_alloc_release(string, string->size);
+    // string_slab_alloc_release(string, string->size);
+    slab_allocator_release(string->data, string->size, sizeof(char));
 
     string = data_ptr;
     string->len = old_len;

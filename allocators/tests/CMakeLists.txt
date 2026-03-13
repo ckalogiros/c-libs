@@ -12,8 +12,6 @@ include(${cmake_utils})
 # 2. add /src that adds .c.h files and adds other sub-directories
 include(${CMAKE_SOURCE_DIR}/src/slab_allocator/CMakeLists.txt)
 include(${CMAKE_SOURCE_DIR}/src/slab_allocator/slab_allocator_log/CMakeLists.txt)
-include(${CMAKE_SOURCE_DIR}/src/string_allocator/CMakeLists.txt)
-include(${CMAKE_SOURCE_DIR}/src/string_allocator/string_allocator_log/CMakeLists.txt)
 include(${CMAKE_SOURCE_DIR}/src/generic_allocator/CMakeLists.txt)
 register_module(
         sources
@@ -36,6 +34,21 @@ include_project(${parent_dir}/memory/src/mem_log)
 include_project(${parent_dir}/memory/src/internal)
 include_project(${parent_dir}/buffer/src)
 include_project(${parent_dir}/buffer/src/buffer_logger)
+include_project(${parent_dir}/perf_timer/src)
+
+include_project(${parent_dir}/g_includes)
+include_project(${parent_dir}/logger/src)
+include_project(${parent_dir}/file_sys/src)
+include_project(${parent_dir}/string_format/src)
+include_project(${parent_dir}/memory/src)
+include_project(${parent_dir}/memory/src/mem_log)
+include_project(${parent_dir}/memory/src/internal)
+include_project(${parent_dir}/buffer/src)
+include_project(${parent_dir}/buffer/src/buffer_logger)
+include_project(${parent_dir}/allocators/src/slab_allocator)
+include_project(${parent_dir}/string/src)
+include_project(${parent_dir}/string/src/string_log)
+include_project(${parent_dir}/allocators/src/slab_allocator/slab_allocator_log)
 include_project(${parent_dir}/perf_timer/src)
 
 

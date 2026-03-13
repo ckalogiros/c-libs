@@ -37,7 +37,9 @@ void slab_allocator_instance_create(){}
 
 
 /********************************************************/
-struct slab_allocator_instance {
+/* devide mcaches into zones: small, mid, large
+ * each one have its seperate pool of memory */
+struct slab_allocator_pool {
     nameid_t* name;
     void* start;
     uint64 size;

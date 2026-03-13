@@ -1,2 +1,0 @@
-CREATE  : |  name: mcache_768 |  pages: 001 | capac: 00001 | count: 000 | used: 000 | flist: 000074ad e5f44400
-ALLOCATE  : |  pages: 001 | capac: 00001 | count: 001 | used: 001 | flist: 00000000 00000000 | free: 000074ad e5f44400 | dif: 18446728037430032256 bytes

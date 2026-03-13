@@ -1,2 +1,0 @@
-CREATE  : |  name:       mcache_8 |  pages: 001 | capac: 00128 slabs | count: 000 | used: 000 | flist: 00005a22 bc5b0400
-ALLOCATE  : |  name:       mcache_8 |  pages: 001 | capac: 00128 slabs | count: 001 | used: 001 | flist: 00005a22 bc5b0408 | free: 00005a22 bc5b0400 | dif: 0001 bytes

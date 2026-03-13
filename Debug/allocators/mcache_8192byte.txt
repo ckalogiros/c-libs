@@ -1,2 +1,0 @@
-CREATE  : |  name: mcache_8192 |  pages: 008 | capac: 00001 | count: 000 | used: 000 | flist: 0000702d df385000
-ALLOCATE  : |  pages: 008 | capac: 00001 | count: 001 | used: 001 | flist: 00000000 00000000 | free: 0000702d df385000 | dif: 18446728655919445504 bytes

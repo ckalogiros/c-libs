@@ -15,6 +15,7 @@
 #include "my_macros.h"
 #include "stringc.h"
 #include "string_format.h"
+#include "string_struct.h"
 
 
 /*
@@ -96,7 +97,9 @@ mem_table_init(void)
 bool
 mem_table_destroy(void)
 {
+#ifdef MEM_DEBUG_FPRINT_ALL_USE_MEM
     for(uint32 i = 0; i < MEM_ID_MAX_ELEMS; i++) {
+
         string_t* str = string_create_empty(32);
         const char* fname = string_format(str->data, "/all_used_mem_chunks_%u.txt", i);
 
@@ -104,6 +107,11 @@ mem_table_destroy(void)
             MEMORY_DEBUG_FPRINT_USED_MEM(fname, i);
         }
     }
+#endif
+
+    string_t* str2 = string_create_empty(32);
+    const char* filename = string_format(str2->data, "/all_allocated_mem.txt");
+    fs_fprint_all_allocated_mem(filename);
 
     if(!mem_table) return FALSE;
     print("FREEING MEMORY MANAGER: %x ... ", ry, mem_table[0].start, CLEAR);

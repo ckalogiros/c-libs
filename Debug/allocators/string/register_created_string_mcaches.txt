@@ -1,3 +1,2 @@
 OPERATIONS: Create-Allocate-Release operations of STRING slab allocator mcaches
 ________________________________________________________________________________________________________________________________________________________________________
-  CREATE: | name:                | pages:   1 | capac:    32 slabs | count:   0 | used:    0 | flist: 000060c3 28764000

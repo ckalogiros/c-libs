@@ -6,17 +6,19 @@
 #include "buffer_internals.h"
 #include "buffer.h"
 #include "buffer_log.h"
+#include "file_sys_debug.h"
 #include "file_sys_interface.h"
 #include "logger.h"
 #include "mem_man_interface.h"
 #include "mem_man_internals.h"
 #include "slab_allocator_internals.h"
+#include "string_format.h"
 
 #define DEBUG_FPRINT_ALL_ALLOC_MEM()\
 const char* fname = "/exit_status_ok_debug.txt";\
 struct fs_t* fs = fs_create(fname);\
 fs_fprint_all_allocated_mem(fname);\
-fs_append(fs, "EXIT WITH STATUS OK\n");
+fs_append(fs, "EXIT WITH STATUS OK\n")
 
 
 /*
@@ -30,6 +32,7 @@ fill(buffer_t* const buffer)
         // buffer_push_uint32(i+1, buffer);
         buffer_set_for_push(buffer);
         data[i] = i + 1;
+        file_sys_push(buffer->data, sizeof(data[i]), TYPE_UINT32, buffer->data);
     }
 }
 
@@ -71,7 +74,6 @@ test_create_buffer(const uint32 capacity)
 void
 test_buffer_fill_remove_insert()
 {
-    
     memman_init();
 
     buffer_table_init();
@@ -218,7 +220,7 @@ test_buffer_different_capacity_buffers()
 
     buffer_table_destroy();
 
-        DEBUG_FPRINT_ALL_ALLOC_MEM();
+    DEBUG_FPRINT_ALL_ALLOC_MEM();
     memman_terminate();
 }
 
@@ -254,7 +256,7 @@ test_buffer_remove_elements(const uint32 capacity)
         .buffer = buffer, .print_num_elems = buffer->capacity
     }));
 
-        DEBUG_FPRINT_ALL_ALLOC_MEM();
+    DEBUG_FPRINT_ALL_ALLOC_MEM();
     memman_terminate();
 }
 
@@ -323,7 +325,7 @@ test_buffer_realloc()
     for(uint32 i = 0; i < buffer->capacity / 2; i++) {
         buffer_push_uint32(100 + i, buffer);
     }
-    
+
     buffer_print_uint32(buffer_print_config((buffer_print_params){
         .buffer = buffer, .print_num_elems = buffer->capacity
     }));
@@ -335,7 +337,7 @@ test_buffer_realloc()
     for(uint32 i = 0; i < buffer->capacity / 2; i++) {
         buffer_push_uint32(200 + i, buffer);
     }
-    
+
     buffer_print_uint32(buffer_print_config((buffer_print_params){
         .buffer = buffer, .print_num_elems = buffer->capacity
     }));
@@ -347,7 +349,7 @@ test_buffer_realloc()
     for(uint32 i = 0; i < buffer->capacity / 2; i++) {
         buffer_push_uint32(300 + i, buffer);
     }
-    
+
     buffer_print_uint32(buffer_print_config((buffer_print_params){
         .buffer = buffer, .print_num_elems = buffer->capacity
     }));
@@ -359,7 +361,7 @@ test_buffer_realloc()
     for(uint32 i = 0; i < buffer->capacity / 2; i++) {
         buffer_push_uint32(400 + i, buffer);
     }
-    
+
     buffer_print_uint32(buffer_print_config((buffer_print_params){
         .buffer = buffer, .print_num_elems = buffer->capacity
     }));
@@ -376,9 +378,8 @@ test_buffer_realloc()
         .buffer = buffer, .print_num_elems = buffer->capacity
     }));
 
-    
 
-        DEBUG_FPRINT_ALL_ALLOC_MEM();
+    DEBUG_FPRINT_ALL_ALLOC_MEM();
     memman_terminate();
 }
 
@@ -600,7 +601,7 @@ test_destroy_buffer()
     }
 
 
-        DEBUG_FPRINT_ALL_ALLOC_MEM();
+    DEBUG_FPRINT_ALL_ALLOC_MEM();
     memman_terminate();
 }
 
@@ -662,13 +663,11 @@ test_buffer_free_elem()
 
     // fill buffer
     for(uint32 i = 0; i < buffer->capacity; i++) {
-
-        if(i%3 == 0) {
+        if(i % 3 == 0) {
             buffer_set_for_insert(buffer, i);
             uint32* data = buffer->data;
             data[i] = i + 1;
         }
-
     }
 
     buffer_print_uint32(buffer_print_config((buffer_print_params){
@@ -683,25 +682,22 @@ test_buffer_free_elem()
         .buffer = buffer, .print_num_elems = buffer->capacity
     }));
 
-        DEBUG_FPRINT_ALL_ALLOC_MEM();
+    DEBUG_FPRINT_ALL_ALLOC_MEM();
     memman_terminate();
 }
 
 void // todo
 test_buffer_find_tail()
-{
+{}
 
-}
 void // todo
 test_buffer_get_next_free()
-{
-
-}
+{}
 
 
 /***************************************************************************************************
  * buffers inside of buffers !
- */
+ **************************************************************************************************/
 void
 test_buffer_with_children()
 {
@@ -724,10 +720,9 @@ test_buffer_with_children()
     print("add buffer at:%x\n", REDUCE_ADDR(buffer->data, F6));
     // fill buffer
     for(uint32 i = 0; i < buffer->capacity; i++) {
-
         buffer_set_for_insert(buffer, i);
         struct node* data = buffer->data;
-        data[i].nameid = i+1;
+        data[i].nameid = i + 1;
 
         data[i].children = buffer_create_gentype(capacity, type_size);
         print("add child at:%x\n", REDUCE_ADDR(data[i].children->data, F6));
@@ -735,15 +730,13 @@ test_buffer_with_children()
         for(uint32 j = 0; j < capacity; j++) {
             buffer_set_for_insert(data[i].children, j);
             struct node* cdata = data[i].children->data;
-            cdata[j].nameid = j+1;
+            cdata[j].nameid = j + 1;
             cdata[j].children = NULL;;
-
         }
     }
 
     for(uint32 i = 0; i < buffer->capacity; i++) {
-
-        struct node* data = (struct node*)buffer->data;
+        struct node* data = (struct node*) buffer->data;
         print("elem:[%u]: id:%u\n", i, data[i].nameid);
 
         for(uint32 j = 0; j < data[i].children->capacity; j++) {
@@ -757,7 +750,114 @@ test_buffer_with_children()
     //     .buffer = buffer, .print_num_elems = buffer->capacity
     // }));
 
-        DEBUG_FPRINT_ALL_ALLOC_MEM();
+    DEBUG_FPRINT_ALL_ALLOC_MEM();
     memman_terminate();
 }
 
+
+/***************************************************************************************************
+ * test file print buffer values
+ **************************************************************************************************/
+void
+test_buffer_fprint_values()
+{
+    memman_init();
+
+    buffer_table_init();
+
+    struct fs_t* fsdebug = fs_create("debug_with_info");
+
+    // #define TEST_UINT32
+#ifdef TEST_UINT32
+    { // uint32 values
+        const uint32 capacity = 64;
+        buffer_t* buffer = buffer_create_uint32(capacity);
+
+        // fill(buffer);
+        uint32* data = buffer->data;
+        for(uint32 i = 0; i < buffer->capacity; i++) {
+            buffer_set_for_push(buffer);
+            data[i] = i + 1;
+            file_sys_push(
+                (char*) buffer->data + sizeof(uint32) * i,
+                sizeof(uint32),
+                TYPE_UINT32,
+                (char*) buffer->data + sizeof(uint32) * i);
+        }
+
+        buffer_print_uint32(buffer_print_config((buffer_print_params){
+            .buffer = buffer, .print_num_elems = buffer->capacity
+        }));
+
+        char buf[128] = {0};
+        string_format(buf, "FLOATING POINT values\nbuffer capacity:%u\n", buffer->capacity);
+        fs_append_mem_with_msg(fsdebug, buffer->data, buffer->capacity * buffer->typesize, buf);
+    }
+#endif
+#undef TEST_UINT32
+
+    // #define TEST_FLOAT
+#ifdef TEST_FLOAT
+    { // float values
+        const uint32 capacity = 64;
+        buffer_t* buffer = buffer_create_gentype(capacity, sizeof(float));
+
+        // fill(buffer)
+        float val = .01;
+        float* data = buffer->data;
+        for(uint32 i = 0; i < buffer->capacity; i++) {
+            buffer_set_for_push(buffer);
+            data[i] = val;
+            val += .01;
+            file_sys_push(
+                (char*) buffer->data + sizeof(float) * i,
+                sizeof(float),
+                TYPE_FLOAT,
+                (char*) buffer->data + sizeof(float) * i);
+        }
+
+        buffer_print_uint32(buffer_print_config((buffer_print_params){
+            .buffer = buffer, .print_num_elems = buffer->capacity
+        }));
+
+        char buf[128] = {0};
+        string_format(buf, "FLOATING POINT values\nbuffer capacity:%u\n", buffer->capacity);
+        fs_append_mem_with_msg(fsdebug, buffer->data, buffer->capacity * buffer->typesize, buf);
+    }
+#endif
+#undef TEST_FLOAT
+
+#define TEST_CHAR_ARRAY
+#ifdef TEST_CHAR_ARRAY
+    { // float values
+        const uint32 capacity = 128;
+        buffer_t* buffer = buffer_create_gentype(capacity, sizeof(char));
+
+        // fill(buffer)
+        char c = ' ';
+        char* data = buffer->data;
+        for(uint32 i = 0; i < buffer->capacity; i++) {
+            buffer_set_for_push(buffer);
+            data[i] = c;
+            c += 1;
+            file_sys_push(
+                (char*) buffer->data + (sizeof(char) * i),
+                sizeof(char),
+                TYPE_CHAR,
+                (char*) buffer->data + (sizeof(char) * i));
+        }
+
+        buffer_print_uint32(buffer_print_config((buffer_print_params){
+            .buffer = buffer, .print_num_elems = buffer->capacity
+        }));
+
+        char buf[128] = {0};
+        string_format(buf, "FLOATING POINT values\nbuffer capacity:%u\n", buffer->capacity);
+        fs_append_mem_with_msg(fsdebug, buffer->data, buffer->capacity * buffer->typesize, buf);
+    }
+#endif
+#undef TEST_CHAR_ARRAY
+
+    DEBUG_FPRINT_ALL_ALLOC_MEM();
+    memman_terminate();
+}

@@ -45,6 +45,10 @@ implement serializatio, reading variables to 2 buffers
 34  text0  1,34, 0xffdd
 int string float pointer
 #################################################################################
+find all aligned_alloc() and:
+1. free memory
+2. implement allocation though memory manager
+#################################################################################
 
 
 

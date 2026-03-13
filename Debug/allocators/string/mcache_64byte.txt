@@ -1,2 +1,0 @@
-  CREATE: | name: string_mcache_64 | pages:   1 | capac:    16 slabs | count:   0 | used:    0 | flist: 00007861 6e4b4000
-ALLOCATE: | name: string_mcache_64 | pages:   1 | capac:    16 slabs | count:   1 | used:    1 | flist: 00007861 6e4b4040 | free: 00007861 6e4b4000 | dif: 0008 bytes

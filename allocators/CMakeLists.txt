@@ -12,7 +12,6 @@ include(${cmake_utils})
 
 # 2. add /src that adds .c.h files and adds other sub-directories
 add_subdirectory(src/slab_allocator)
-add_subdirectory(src/string_allocator)
 add_subdirectory(tests)
 
 

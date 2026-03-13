@@ -11,6 +11,8 @@
 #define COLOR_PAGE_FREE (*(uint32_t*)"FREE") // color a page to denote that belongs to free list
 #define FREE_LIST_GET_PAGE_COLOR_OFFSET(fnode) ((char*)fnode + sizeof(struct flist))
 
+#define MEM_DEBUG_FPRINT_ALL_USE_MEM
+
 struct mem;
 
 typedef uint16 chunkid_t;

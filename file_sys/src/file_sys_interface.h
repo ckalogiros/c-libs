@@ -11,6 +11,7 @@
 struct fs_t;
 struct flist;
 
+void fs_init_table();
 
 struct fs_t* fs_create(const char* filename);
 
@@ -32,5 +33,7 @@ void fs_append_mem(struct fs_t* fs, const char* ptr, const uint64 size, const ch
 void fs_fprint_all_allocated_mem(const char* filename);
 
 void fs_fprint_all_used_mem(const char* filename, const memid_t memid);
+
+void fs_append_mem_with_msg(struct fs_t* fs, const char* ptr, const uint64 size, const char* msg);
 
 #endif //FILE_SYS_FILE_SYS_INTERFACE_H

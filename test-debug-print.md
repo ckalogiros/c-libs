@@ -1,1 +1,0 @@
-* This is [38;2;240;240;10myellow[0m color.
