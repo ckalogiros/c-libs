@@ -33,8 +33,15 @@ memman_terminate(void)
         mem_print_error(FREE_MEMORY_FAILED);
 }
 
+memid_t
+memman_alloc_create(const uint16 num_pages, const uint32 alignment)
+{
+    const memid_t mem_id = mem_create(num_pages, alignment);
+    return mem_id;
+}
+
 struct memhnd_t
-memman_alloc_pages(const uint16 num_pages, const enum MEM_ID_SELECTOR chunk_selector)
+memman_alloc_get(const uint16 num_pages, const enum MEM_ID_SELECTOR chunk_selector)
 {
     const memid_t mem_id = (memid_t) chunk_selector;
     const struct memhnd_t hnd = mem_alloc(num_pages, mem_id);
@@ -42,10 +49,17 @@ memman_alloc_pages(const uint16 num_pages, const enum MEM_ID_SELECTOR chunk_sele
 }
 
 bool
-memman_release(const struct memhnd_t hnd)
+memman_alloc_release(const struct memhnd_t hnd)
 {
     return mem_release(hnd);
 }
+
+void*
+memman_get_mem_start_by_memid(const memid_t memid)
+{
+    return mem_get_mem_start_by_memid(memid);
+}
+
 
 void*
 memman_get_alloc_mem_by_handle(const struct memhnd_t handle)

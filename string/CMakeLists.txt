@@ -25,8 +25,8 @@ include_project(${parent_dir}/buffer/src)
 include_project(${parent_dir}/buffer/src/buffer_log)
 include_project(${parent_dir}/allocators/src/slab_allocator)
 include_project(${parent_dir}/allocators/src/slab_allocator/slab_allocator_log)
-#include_project(${parent_dir}/allocators/src/string_allocator)
-#include_project(${parent_dir}/allocators/src/string_allocator/string_allocator_log)
+include_project(${parent_dir}/allocators/src/stack_allocator)
+#include_project(${parent_dir}/allocators/src/stack_allocator/stack_allocator_log)
 include_project(${parent_dir}/perf_timer/src)
 
 # 3. create executable with all the source files

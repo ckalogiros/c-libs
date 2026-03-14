@@ -9,7 +9,6 @@
 #include "my_types.h"
 
 struct fs_t;
-struct flist;
 
 void fs_init_table();
 
@@ -21,13 +20,10 @@ void fs_write(const char* filename, const char* data);
 
 void fs_close(struct fs_t*, const char* caller_function);
 
-// Function to read and display file contents
 void fs_read(const char* filename);
 
-// Function to append data to an existing file
 void fs_append(struct fs_t* fs, const char* format, ...);
 
-//
 void fs_append_mem(struct fs_t* fs, const char* ptr, const uint64 size, const char* msg);
 
 void fs_fprint_all_allocated_mem(const char* filename);

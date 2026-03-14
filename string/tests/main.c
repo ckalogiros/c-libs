@@ -8,7 +8,7 @@ int
 main(void)
 {
     memman_init();
-    string_container_init();
+    // string_container_init();
 
     // test_string_create_and_extend_slabs();
     // test_string_set_and_realloc();

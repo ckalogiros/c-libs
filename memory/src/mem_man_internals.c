@@ -50,7 +50,6 @@ fs_fprint_all_used_mem(fs, mem_id);\
  * is a single allocation at the start of a program, no realloc is implemented,
  * so is plug&play to find the appropriate total mem_chunk size a program needs.
  **************************************************************************************************/
-#define MEM_TABLE_CAPACITY 16
 static struct mem* mem_table = NULL;
 static uint32 mem_table_count = 0;
 
@@ -69,8 +68,8 @@ mem_table_init(void)
 
     mem_log_print_init_mem();
 
-    const uint32 size = MEM_TABLE_CAPACITY * sizeof(struct mem);
-    const uint32 alignment = PAGE_SIZE;
+    const uint32 size = MEMORY_INTERNAL_MEM_TABLE_CAPACITY * sizeof(struct mem);
+    const uint32 alignment = MEMORY_INTERNAL_STORAGE_NUM_PAGES;
     const uint32 total_size = ROUND_UP(size, PAGE_SIZE);
 
 
@@ -121,13 +120,28 @@ mem_table_destroy(void)
     print("OK", GREEN, CLEAR);
     return TRUE;
 }
+//
+// /* dedicated memory to store static tables
+//  * Ex. slab allocator needs memory for its instances table
+//  * Ex. stack allocator needs memory for its instances table
+//  * etc.  */
+// struct memhnd_t
+// mem_alloc_internals(const uint16 num_pages)
+// {
+//     const memid_t mem_id = MEMORY_INTERNAL_STORAGE_INDEX;
+//     const struct mem* mem = mem_get_byid(mem_id);
+//
+//     CHECK_MEM_NULL(mem, NO_MEMORY_MANAGER_INIT, "mem_alloc");
+//     const struct memhnd_t handle = flist_get_next_free_page(num_pages, mem_id);
+//
+//     return handle;
+// }
 
 memid_t
-mem_create(const uint16 num_pages)
+mem_create(const uint16 num_pages, const uint32 alignment)
 {
     const uint32 page_size = PAGE_SIZE;
-    const uint32 alignment = PAGE_SIZE * 16;
-    const uint32 memory_bound_check = PAGE_SIZE;
+    const uint32 memory_bound_check = 64;
 
     const uint32 total_size = (num_pages * page_size) + memory_bound_check;
 
@@ -154,17 +168,17 @@ mem_create(const uint16 num_pages)
     /* set off boundary area, for corruption detection */
     char* off_bound_mem_start = (char*) mem->start + mem->data_size;
     uint64* ptr = (uint64*) off_bound_mem_start;
-    const uint32 len = PAGE_SIZE / sizeof(uint64);
+    const uint32 len = memory_bound_check / sizeof(uint64);
     for(uint32 i = 0; i < len; i++)
         ptr[i] = MEM_OFF_BOUNDARIES_CHECK;
 
     // test it
-    const bool memory_corrupted = check_mem_off_boundaries_writes(off_bound_mem_start, PAGE_SIZE);
+    const bool memory_corrupted = check_mem_off_boundaries_writes(off_bound_mem_start, memory_bound_check);
     if(memory_corrupted) {
         my_exit("ERROR: MEMORY CORRUPTION DETECTED", __FILE__, __LINE__);
     }
 
-    mem_log_print_mem(mem);
+    // mem_log_print_mem(mem);
     // mem_log_print_free_list(idx);
 
     return idx;
@@ -363,6 +377,13 @@ mem_release(const struct memhnd_t hnd)
 }
 
 void*
+mem_get_mem_start_by_memid(const memid_t memid)
+{
+    void* addr = mem_table[memid].start;
+    return addr;
+}
+
+void*
 mem_get_addr_by_handle(const struct memhnd_t hnd)
 {
     void* addr = calc_address_from_page_id(hnd.page_id, hnd.mem_id);
@@ -388,9 +409,10 @@ mem_temp_alloc_sys_call(const uint32 alignment, const uint32 total_size)
 }
 
 
-/* *************************************************************************************************
+
+/***************************************************************************************************
  * private
- * ************************************************************************************************/
+ **************************************************************************************************/
 struct memhnd_t
 flist_get_next_free_page(const uint16 num_pages, const memid_t mem_id)
 {
@@ -528,8 +550,9 @@ check_mem_off_boundaries_writes(void* mem_start, const uint32 byte_size)
 }
 
 
-/* DEBUG */
-
+/***************************************************************************************************
+ * DEBUG
+ **************************************************************************************************/
 struct mem*
 debug_mem_get_table() { return mem_table; }
 
@@ -541,10 +564,6 @@ debug_mem_get_start_address(const memid_t memid) { return mem_table[memid].start
 
 uint64
 debug_mem_get_size(const memid_t memid) { return mem_table[memid].size; }
-
-//
-// struct flist*
-// debug_mem_get_free_list(const memid_t memid) { return mem_table[memid].flist; }
 
 void
 debug_mem_corrupted(const memid_t memid)

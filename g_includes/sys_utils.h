@@ -150,7 +150,7 @@ static inline uint64 make_uint64_from_char8(const char start_char[8]) {
 #define DIGITS8 0x989680
 
 void memset_64bit(const char* src, const uint64 val, const uint64 size);
-uint32 ReverseBits32(uint32 value);
-uint64 ReverseBits64(uint64 value);
+uint32 reverse_bits32(uint32 value);
+uint64 reverse_bits64(uint64 value);
 
 #endif //SYS_UTILS_H

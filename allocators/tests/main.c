@@ -10,10 +10,9 @@
 #include <poll.h>
 #include <stdlib.h>
 #include <unistd.h>
-
 #include "test_performance.h"
 #include "test_slab_allocator.h"
-#include "test_string_allocator.h"
+#include "test_stack_allocator.h"
 
 int32
 has_input(void)
@@ -29,13 +28,23 @@ has_input(void)
 int
 main(void)
 {
-    test_check_alloc_extend_pages(1);
+
+    /***************************************************************************************************
+     * SLAB ALLOCATOR TESTS
+     **************************************************************************************************/
+
+    // test_check_alloc_extend_pages(1);
     // test_mem_cache_alloc_release_slabs();
 
-
-
-    // test performance measurements
+    /* test performance measurements */
     // test_perf_slab_allocation_release();
+
+
+
+    /***************************************************************************************************
+    * STACK ALLOCATOR TESTS
+     **************************************************************************************************/
+    test_stack_allocator();
 
 
     return 0;

@@ -45,9 +45,13 @@ void memman_init(void);
 
 void memman_terminate(void);
 
-struct memhnd_t memman_alloc_pages(const uint16 num_pages, enum MEM_ID_SELECTOR);
+memid_t memman_alloc_create(const uint16 num_pages, const uint32 alignment);
 
-bool memman_release(const struct memhnd_t hnd);
+struct memhnd_t memman_alloc_get(const uint16 num_pages, enum MEM_ID_SELECTOR);
+
+void* memman_get_mem_start_by_memid(const memid_t memid);
+
+bool memman_alloc_release(const struct memhnd_t hnd);
 
 void* memman_get_alloc_mem_by_handle(const struct memhnd_t handle);
 

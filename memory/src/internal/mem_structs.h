@@ -79,6 +79,15 @@ typedef uint16 memid_t;
  * memory pages index */
 typedef int16 pageid_t;
 
+enum MEMORY_INTERNAL {
+    MEMORY_INTERNAL_STORAGE_INDEX = 0,
+
+    MEMORY_INTERNAL_STORAGE_NUM_PAGES = 4,
+
+    MEMORY_INTERNAL_MEM_TABLE_CAPACITY=16,
+    MEMORY_INTERNAL_SLAB_ALLOCATOR_TABLE_CAPACITY=16,
+    MEMORY_INTERNAL_STACK_ALLOCATOR_TABLE_CAPACITY=16,
+};
 
 struct mem {
     void* start; // allocated start address

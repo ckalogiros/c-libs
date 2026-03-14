@@ -17,9 +17,6 @@
 int
 main(void)
 {
-    // file_sys_test();
-    // file_sys_test2();
-
     {
         // test_create_buffer(256);
         // test_buffer_fill_remove_insert();        // todo: impl test
@@ -51,6 +48,8 @@ main(void)
     }
 
     { /* test debugging buffer values to a file */
+        // file_sys_test();
+        // file_sys_test2();
         test_buffer_fprint_values();
     }
 

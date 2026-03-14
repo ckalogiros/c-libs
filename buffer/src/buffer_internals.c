@@ -71,7 +71,7 @@ fs_append(fs, fmt, ##__VA_ARGS__)
 static buffer_t* buffer_table = NULL; // ptr to memory block
 static uint32 buffer_table_count = 0;
 static uint32 ID = 0;
-static memid_t slab_allocator_instance_id = 0;
+static memid_t allocator_instance_id = 0;
 
 static uint32 buffer_get_id(){ return ++ID; }
 
@@ -124,7 +124,7 @@ buffer_init_table(void)
     if(buffer_table) return;
 
     slab_allocator_init();
-    slab_allocator_instance_id = slab_allocator_create_new_instance();
+    allocator_instance_id = slab_allocator_create_new_instance();
 
     const uint32 btable_typesize = sizeof(buffer_t);
     assert(sizeof(buffer_t) > sizeof(void*));

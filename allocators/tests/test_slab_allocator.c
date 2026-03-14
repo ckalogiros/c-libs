@@ -315,8 +315,6 @@ mem_cache_free_slab_test_debug(struct slab_allocator_mcache* mcache, void* slab_
 
 }
 
-
-
 char*
 mem_cache_release_buffer_test_debug(void* ptr, const slab_elems_t buffer_size, const uint16 type_size)
 {

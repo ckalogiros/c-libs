@@ -22,13 +22,16 @@ bool mem_table_init(void);
 
 bool mem_table_destroy(void);
 
-memid_t mem_create(const uint16 num_pages);
+memid_t mem_create(const uint16 num_pages, const uint32 alignment);
 
 struct memhnd_t mem_alloc(const uint16 num_pages, const memid_t mem_id);
 
 bool mem_release(const struct memhnd_t hnd);
 
-/* returns the memory address based on the chunk and page ids */
+/* returns the memory chunk address(mem_table mem id) start */
+void* mem_get_mem_start_by_memid(const memid_t memid);
+
+/* returns the memory chunk address(mem_table mem id) at page id index offset */
 void* mem_get_addr_by_handle(const struct memhnd_t hnd);
 
 void* mem_temp_alloc_sys_call(const uint32 alignment, const uint32 total_size);

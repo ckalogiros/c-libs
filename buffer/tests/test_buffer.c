@@ -767,7 +767,7 @@ test_buffer_fprint_values()
 
     struct fs_t* fsdebug = fs_create("debug_with_info");
 
-    // #define TEST_UINT32
+#define TEST_UINT32
 #ifdef TEST_UINT32
     { // uint32 values
         const uint32 capacity = 64;
@@ -796,7 +796,7 @@ test_buffer_fprint_values()
 #endif
 #undef TEST_UINT32
 
-    // #define TEST_FLOAT
+#define TEST_FLOAT
 #ifdef TEST_FLOAT
     { // float values
         const uint32 capacity = 64;

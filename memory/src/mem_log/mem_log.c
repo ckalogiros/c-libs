@@ -58,7 +58,6 @@ mem_log_print_mem(const struct mem* const mem)
 #endif
 }
 
-
 void
 mem_log_print_free_list(const memid_t memid)
 {
@@ -110,7 +109,6 @@ mem_print_mem_release(void* released_addr, const struct memhnd_t hnd)
           br2, mem_table_get_head(hnd.mem_id), CLEAR
           );
 }
-
 
 // ERROR handling
 void

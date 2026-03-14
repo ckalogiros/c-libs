@@ -3,27 +3,24 @@
  */
 
 #include "string_internals.h"
-
 #include <assert.h>
-
 #include "string_struct.h"
 #include "file_sys_interface.h"
 #include "logger.h"
 #include <stdlib.h>
 #include <string.h>
-
 #include "slab_allocator_internals.h"
 #include "slab_allocator_mcache.h"
 #include "stringc.h"
 #include "slab_allocator_internals.h"
-// #include "string_mem_cache.h"
+#include "stack_allocator.h"
 
 
 /*******************************************************************************
  *
  ******************************************************************************/
 static uint32 string_alloced_count = 0;
-static memid_t slab_allocator_instance_id = -1; // MAX_UINT for ERROR
+static memid_t allocator_instance_id = -1; // MAX_UINT for ERROR
 
 
 /***************************************************************************************************
@@ -67,9 +64,12 @@ static inline strlen_t string_get_self_size() { return sizeof(string_t) - sizeof
 void
 string_container_init(void)
 {
+    // HERE!!!
     // string_mem_cache_table_init();
     slab_allocator_init();
-    slab_allocator_instance_id = slab_allocator_create_new_instance();
+    allocator_instance_id = slab_allocator_create_new_instance();
+    // allocator_instance_id = stack_allocator_create_new_instance(4);
+
 
     /* DEBUG-FPRINT */
     fs_register_created_strings = fs_create("allocators/string/register_created_strings.txt");
@@ -100,8 +100,9 @@ string_constructor(const char* str, const strlen_t size)
 
     /* alloc storage for bufer data */
     void* data_ptr = NULL;
-    // data_ptr = string_slab_alloc_allocate(max_size);
+
     data_ptr = slab_allocator_alloc(max_size, sizeof(char));
+    // data_ptr = stack_allocator_alloc(allocator_instance_id, max_size);
 
     string_t* string = data_ptr;
     string->len = 0;
@@ -197,17 +198,20 @@ string_reallocate(string_t* string, const strlen_t len, bool copy)
     }
 
 
+    assert("IMPLEMENT realloc() for stack allocator" > 0);
     void* data_ptr = NULL;
     data_ptr = slab_allocator_alloc(max_size, sizeof(char));
+    // stack_allocator_release(allocator_instance_id);
+    // data_ptr = stack_allocator_alloc(allocator_instance_id, max_size);
 
 
     strlen_t old_len = string->len;
     strlen_t old_self_size = string->self_size;
-    memset((void*)data_ptr, 0, max_size);
-    if(copy) memcpy((void*)data_ptr, string, string->len+string->self_size);
+    // memset((void*)data_ptr, 0, max_size);
+    if(copy) memcpy((void*)data_ptr, string, string->len + string->self_size);
 
-    // string_slab_alloc_release(string, string->size);
     slab_allocator_release(string->data, string->size, sizeof(char));
+    // stack_allocator_release(allocator_instance_id);
 
     string = data_ptr;
     string->len = old_len;

@@ -1,26 +1,17 @@
-
+TODO: create {"use of", "refference"} .md files for allocators
 #################################################################################
 implement a generic pool allocator for use of:
  large text
- large objects that do nnot need locality(aren't important)
+ large objects that do not need locality(aren't important)
  any other none important object
 #################################################################################
 
 allocate memory for all tables from the memory manager
 slab_allocator mcache, string mcache, buffer table, timer table, etc
-
+find all aligned_alloc() and:
+1. free memory
+2. implement allocation though memory manager
 #################################################################################
-create string allocator, string storage
-create string container
-
-if a slab allocator is used:
-    for string lengths < 256 or so
-    we will use fixed sized slabs 
-
-    for large text we should allocate an arena
-    and let the text be immutable, 
-    meaning for changing the length would be
-    to reallocate the memory
 
 #################################################################################
 create key-value pairs data structure.
@@ -30,24 +21,16 @@ create tree views - list views
     based on buffer container
 #################################################################################
 
-1. Duplicate the string buffer to the slab buffer
-2. also correct the naming of slab allocator to buffer_slab
-3. see if we can use 1 allocator(with instances represent a higher layer for same caches, different containers, for locality)
-    and different memory allocations the middle layer 
-
 #################################################################################
 implement file read-write, for reading variables
 #################################################################################
-    
-
+implement bitfields(seperate project)    
 #################################################################################
 implement serializatio, reading variables to 2 buffers
 34  text0  1,34, 0xffdd
 int string float pointer
 #################################################################################
-find all aligned_alloc() and:
-1. free memory
-2. implement allocation though memory manager
+    should allocators implement realloc() that callc release() also???
 #################################################################################
 
 

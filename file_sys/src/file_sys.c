@@ -51,8 +51,8 @@ static struct fs_t files_table[MAX_FILES_TABLE];
 static uint32 files_table_counter = 0;
 
 
-
-void fs_init_table()
+void
+fs_init_table()
 {
     for(uint32 i = 0; i < MAX_FILES_TABLE; i++) {
         files_table[i] = (struct fs_t){.file = NULL, .filename = {0}, .flags = 0x0};
@@ -60,7 +60,6 @@ void fs_init_table()
 
     // file_sys_debug_init();
 }
-
 
 struct fs_t*
 fs_create(const char* filename)
@@ -118,7 +117,6 @@ fs_write_list(struct fs_t* fs, struct flist* head, const char* format, ...)
     }
 }
 
-// Function to write data to a file
 void
 fs_write(const char* filename, const char* data)
 {
@@ -139,7 +137,6 @@ fs_close(struct fs_t* fs, const char* caller_function)
     dprint("%sfile closed successfully%s\nresult:%u\n", GREEN, res, CLEAR);
 }
 
-// Function to read and display file contents
 void
 fs_read(const char* filename)
 {
@@ -292,22 +289,19 @@ fs_fprint_all_used_mem(const char* filename, const memid_t memid)
 
     struct mem* mem = &mem_table[memid];
     for(uint32 i = 0; i < mem->size; i += PAGE_SIZE) {
-
-        const char* address = (char*)&mem->start[i];
+        const char* address = (char*) &mem->start[i];
         const char* offset_addr = FREE_LIST_GET_PAGE_COLOR_OFFSET(address);
 
-        if(*(uint32_t*)offset_addr == (uint32) COLOR_PAGE_FREE) {
+        if(*(uint32_t*) offset_addr == (uint32) COLOR_PAGE_FREE) {
             fs_append(fs, "[%5u] FREE PAGE | addr:%08x %08x\n", i,
-                (uint64) address >> 32, (uint64) address & 0xFFFFFFFF
+                      (uint64) address >> 32, (uint64) address & 0xFFFFFFFF
             );
         } else {
-            mem_log_print_mem(mem);
+            // mem_log_print_mem(mem);
             fs_append_mem(fs, address, PAGE_SIZE, "");
         }
     }
 }
-
-
 
 void
 fs_append_mem_with_msg(struct fs_t* fs, const char* ptr, const uint64 size, const char* msg)
@@ -374,26 +368,25 @@ fs_append_mem_with_msg(struct fs_t* fs, const char* ptr, const uint64 size, cons
         if((i + 1) % line_size == 0) {
             fprintf(fs->file, "| ");
 
-        // Print the ASCII for this line
-        const size_t line_start = i - (i % line_size);
-        for(size_t j = line_start; j <= i; j++) {
-
-            char* ptr = (char*)&data[j];
-            const uint32 exists = file_sys_exists(ptr);
-            if(exists) {
-                char buf[128] = {0};
-                file_sys_retrieve_info(buf);
-                fprintf(fs->file, "%s", buf);
+            // Print the ASCII for this line
+            const size_t line_start = i - (i % line_size);
+            for(size_t j = line_start; j <= i; j++) {
+                char* ptr = (char*) &data[j];
+                const uint32 exists = file_sys_exists(ptr);
+                if(exists) {
+                    char buf[128] = {0};
+                    file_sys_retrieve_info(buf);
+                    fprintf(fs->file, "%s", buf);
+                }
             }
-        }
 
-        // for(size_t j = line_start; j <= i; j++) {
-        //     if(isprint(data[j])) fprintf(fs->file, "%c", data[j]);
-        //     else fprintf(fs->file, ".");
-        //     if((j + 1) % word_size == 0) fprintf(fs->file, " ");
-        // }
+            // for(size_t j = line_start; j <= i; j++) {
+            //     if(isprint(data[j])) fprintf(fs->file, "%c", data[j]);
+            //     else fprintf(fs->file, ".");
+            //     if((j + 1) % word_size == 0) fprintf(fs->file, " ");
+            // }
 
-        fprintf(fs->file, "\n");
+            fprintf(fs->file, "\n");
         }
     }
 
