@@ -36,8 +36,7 @@ char* mem_cache_release_buffer_test_debug(void* ptr, const slab_elems_t buffer_s
 void test_check_alloc_extend_pages(const uint32 num_pages)
 {
     memman_init();
-    slab_allocator_init();
-    memid_t slab_allocator_instance_id = slab_allocator_create_new_instance();
+    memid_t slab_allocator_instance_id = slab_allocator_create_new_instance(4, "test_check_alloc_extend_pages()");
     string_container_init();
 
     const uint32 size = ((num_pages*PAGE_SIZE)/num_pages)/16;
@@ -129,8 +128,7 @@ void
 test_mem_cache_alloc_release_slabs(void)
 {
     memman_init();
-    // slab_allocator_init();
-    // memid_t slab_allocator_instance_id = slab_allocator_create_new_instance();
+    memid_t slab_allocator_instance_id = slab_allocator_create_new_instance(4, "test_mem_cache_alloc_release_slabs");
     string_container_init();
 
     const uint8 type_size = sizeof(uint64);

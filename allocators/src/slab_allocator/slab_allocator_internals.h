@@ -6,108 +6,10 @@
 
 #include "slab_allocator_struct.h"
 
-#define DEBUG_FPRINT_MCACHE
-// #define DEBUG_FPRINT_MCACHES_IN_FILES
-#ifdef DEBUG_FPRINT_MCACHE
-#   define fs_register_mcache_create(fs, mcache)\
-        fs_append(fs,\
-        "%8s: | "          \
-        "name: %014s | "       \
-        "pages: %3u | "       \
-        "capac: %5u slabs | "        \
-        "count: %3u | "        \
-        "used:  %3u | "         \
-        "flist: %08x %08x\n",   \
-        "CREATE",       \
-        mcache->name.buf,       \
-        mcache->slabs_num_pages,\
-        mcache->slabs_capacity, \
-        mcache->slabs_count,    \
-        mcache->slabs_used,     \
-        (uint64)mcache->slabs_free_list >> 32,(uint64)mcache->slabs_free_list & 0xFFFFFFFF\
-        )
-
-#   define fs_register_mcache_alloc_slab(fs, mcache)\
-        fs_append(fs,\
-        "%8s: | "        \
-        "name: %014s | "       \
-        "pages: %3u | "       \
-        "capac: %5u slabs | "        \
-        "count: %3u | "        \
-        "used:  %3u | "         \
-        "flist: %08x %08x | "   \
-        "free: %08x %08x | "    \
-        "dif: %04llu bytes\n",  \
-        "ALLOCATE",       \
-        mcache->name.buf,       \
-        mcache->slabs_num_pages,\
-        mcache->slabs_capacity, \
-        mcache->slabs_count,    \
-        mcache->slabs_used,     \
-        (uint64)mcache->slabs_free_list >> 32,(uint64)mcache->slabs_free_list & 0xFFFFFFFF,\
-        (uint64)free >> 32,(uint64)free & 0xFFFFFFFF,\
-        (uint64*)mcache->slabs_free_list - (uint64*)free\
-        )
-
-#   define fs_register_mcache_extend_alloc(fs, mcache, address)\
-        fs_append(fs,\
-        "%8s: | "        \
-        "name: %014s | "       \
-        "pages: %3u | "       \
-        "capac: %5u slabs | "        \
-        "count: %3u | "        \
-        "used:  %3u | "         \
-        "flist: %08x %08x | "   \
-        "addr: %08x %08x | "    \
-        "dif: %04llu bytes\n",  \
-        "EXTEND",       \
-        mcache->name.buf,       \
-        mcache->slabs_num_pages,\
-        mcache->slabs_capacity, \
-        mcache->slabs_count,    \
-        mcache->slabs_used,     \
-        (uint64)mcache->slabs_free_list >> 32,(uint64)mcache->slabs_free_list & 0xFFFFFFFF,\
-        (uint64)address >> 32,(uint64)address & 0xFFFFFFFF,\
-        (uint64*)address - (uint64*)mcache->slabs_free_list\
-        )
-
-#   define fs_register_mcache_release_slab(fs, mcache)\
-        fs_append(fs,\
-        "%8s: | "        \
-        "name: %014s | "       \
-        "pages: %3u | "       \
-        "capac: %5u slabs | "        \
-        "count: %3u | "        \
-        "used:  %3u | "         \
-        "flist: %08x %08x | "   \
-        "free: %08x %08x | "    \
-        "dif: %04llu bytes\n",  \
-        "RELEASE",       \
-        mcache->name.buf,       \
-        mcache->slabs_num_pages,\
-        mcache->slabs_capacity, \
-        mcache->slabs_count,    \
-        mcache->slabs_used,     \
-        (uint64)mcache->slabs_free_list >> 32,(uint64)mcache->slabs_free_list & 0xFFFFFFFF,\
-        (uint64)free >> 32,(uint64)free & 0xFFFFFFFF,\
-        (uint64*)mcache->slabs_free_list - (uint64*)free\
-        )
-
-#   define fs_register_mcache_append(fs, fmt, ...)\
-        fs_append(fs, fmt, ##__VA_ARGS__)
-
-#else
-#   define fs_register_mcache_create(fs, mcache)
-#   define fs_register_mcache_alloc_slab(fs, mcache)
-#   define fs_register_mcache_extend_alloc(fs, mcache, address)
-#   define fs_register_mcache_release_slab(fs, mcache)
-#endif
-
-
 
 void slab_allocator_init(void);
 
-memid_t slab_allocator_create_new_instance();
+memid_t slab_allocator_create_new_instance(const pageid_t num_pages, const char* name);
 
 void slab_allocator_create_new_pool(const pageid_t num_pages);
 

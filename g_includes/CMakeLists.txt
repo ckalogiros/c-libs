@@ -18,6 +18,7 @@ register_module(
             ${CMAKE_CURRENT_LIST_DIR}/my_types.h
             ${CMAKE_CURRENT_LIST_DIR}/my_macros.h
             ${CMAKE_CURRENT_LIST_DIR}/smath.h
+            ${CMAKE_CURRENT_LIST_DIR}/alignment.h
         include_dirs
             ${CMAKE_CURRENT_LIST_DIR}
         compiler_macros

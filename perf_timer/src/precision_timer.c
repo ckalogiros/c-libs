@@ -47,11 +47,12 @@ static buffer_t* timer_table = NULL;
 void
 timer_init_table(void)
 {
-    if(timer_table) return;
+    if(timer_table) {
+        print("%sERROR: timer_table already initialized\n%s", RED, CLEAR);
+        return;
+    }
 
-    slab_allocator_init();
-    allocator_instance_id = slab_allocator_create_new_instance();
-    // allocate memory, construct buffer
+    allocator_instance_id = slab_allocator_create_new_instance(1, "precision timer");
     timer_table = buffer_create_gentype(MIN_TIMER_TABLE_CAPACITY, sizeof(struct timer));
 }
 
@@ -59,7 +60,7 @@ timer_init_table(void)
 struct timer*
 timer_create_perf_timer(void)
 {
-    TIMER_CHECK_TABLE(timer_table);
+    if(!timer_table) timer_init_table();
 
     // todo: we need to insert(), after we have a free index from buffer
     // OR implement insert at next free element in buffer.c
@@ -153,6 +154,12 @@ perf_timer_get_delta(struct timer* const t) { return t->delta; }
 
 uint32
 perf_timer_get_avg(struct timer* const t) { return t->avg; }
+
+uint32
+perf_timer_calc_avg(struct timer* const t) { return t->accum / t->count; }
+
+uint32
+perf_timer_calc_avg_from_count(struct timer* const t, const uint32 count) { return t->accum / count; }
 
 uint32
 perf_timer_get_count(struct timer* const t) { return t->count; }

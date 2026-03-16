@@ -14,57 +14,41 @@
 #include "mem_man_internals.h"
 #include "slab_allocator_log.h"
 #include "slab_allocator_struct.h"
-#include "str_utils.h"
 
-
-#define SLAB_ALLOCATOR_INITIAL_INSTANCE_COUNT 8
-#define SLAB_ALLOCATOR_NUM_PAGES_PER_POOLS 32  // TODO: WHO DECIDES THE NUMBER OF CACHE MEM POOLS
 
 /***************************************************************************************************
  * FUNCTION MACROS */
 #define SLABS_FREE_LIST_GET_PAGE_COLOR_START(fnode) ((char*)fnode + sizeof(struct flist))
 
-// #define CHECK_NULLPTR(table)
-
 #define CHECK_NULLPTR(table) \
 if(table == NULL) { slab_allocator_print_error(SLAB_ALLOCATOR_MEMCACHE_NO_INIT); }
+
+/* enable file print debugging */
+// #define SLAB_ALLOCATOR_FPRINT_DEBUG_ENABLED
+#ifdef SLAB_ALLOCATOR_FPRINT_DEBUG_ENABLED
+#   include "slab_alloc_fprint_debug.h"
+#endif
 
 
 /***************************************************************************************************
  * STATIC SCOPE VARIABLES */
 static salltable_t instance_count = 0;
-static struct slab_allocator_instance* instance_table = NULL;
+static struct slab_allocator_instance* slab_allocator_table = NULL;
 static struct slab_allocator_pool* pool_table = NULL;
 static struct slab_allocator_mcache* mcache_table = NULL;
-
-
-/***************************************************************************************************
- * FOR DEBUG */
-static struct fs_t* fs_flist = NULL;
-/* output a debug file per mcache  */
-static struct fs_t* fs_mcaches[SLAB_ALLOCATOR_MCACHE_SIZES_COUNT] = {NULL};
-/* output one debug file and register all created mcaches  */
-static struct fs_t* fs_register_created_mcaches = NULL;
-/* FOR DEBUG
- **************************************************************************************************/
+HERE: slould implement mcaches per instance, same with pools
 
 
 void
 slab_allocator_init(void)
 {
-    if(!instance_table)
-        instance_table = aligned_alloc(1024, sizeof(struct slab_allocator_instance) * SLAB_ALLOCATOR_INITIAL_INSTANCE_COUNT);
+    if(!slab_allocator_table)
+        slab_allocator_table = aligned_alloc(1024, sizeof(struct slab_allocator_instance) * SLAB_ALLOCATOR_INSTANCE_INITIAL_COUNT);
 
-    /* DEBUG-FPRINT */
-    fs_flist = fs_create("allocators/string/string_flist.txt");
-    fs_register_created_mcaches = fs_create("allocators/string/register_created_string_mcaches.txt");
-    fs_append(fs_register_created_mcaches, "OPERATIONS: "
-              "Create-Allocate-Release operations "
-              "of STRING slab allocator mcaches\n"
-              "________________________________________________________"
-              "________________________________________________________"
-              "________________________________________________________\n"
-    );
+#   ifdef SLAB_ALLOCATOR_FPRINT_DEBUG_ENABLED
+    sslall_fprint_init();
+#   endif
+
 }
 
 const char* pool_names[SLAB_ALLOCATOR_POOL_SIZES_COUNT] = {
@@ -73,9 +57,15 @@ const char* pool_names[SLAB_ALLOCATOR_POOL_SIZES_COUNT] = {
 
 
 memid_t
-slab_allocator_create_new_instance()
+slab_allocator_create_new_instance(const pageid_t num_pages, const char* name)
 {
-    assert(instance_table);
+    /* case first time stack allocator instance creation */
+    if(!slab_allocator_table) {
+        slab_allocator_init();
+    }
+
+    print("%s###################################################\n"
+          "SLAB CREATE NEW INSTANCE: %s\n", RED, name, CLEAR);
 
     struct slab_allocator_instance instance = {
         .instance_id = -1, // MAX_UINT for ERROR
@@ -85,10 +75,10 @@ slab_allocator_create_new_instance()
 
     const salltable_t idx = instance_count;
     instance_count++;
-    instance_table[idx] = instance;
+    slab_allocator_table[idx] = instance;
 
     if(!pool_table)
-        pool_table = aligned_alloc(1024, sizeof(struct slab_allocator_pool) * 8);
+        pool_table = aligned_alloc(1024, sizeof(struct slab_allocator_pool) * SLAB_ALLOCATOR_POOLS_COUNT);
 
     /* create all sized pools for allocator */
     uint32 i = 0;
@@ -97,21 +87,21 @@ slab_allocator_create_new_instance()
         struct slab_allocator_pool pool = {
             .name = i, // indexes the pool_names
             .start = start,
-            .num_pages = SLAB_ALLOCATOR_NUM_PAGES_PER_POOLS,
-            .size = SLAB_ALLOCATOR_NUM_PAGES_PER_POOLS * PAGE_SIZE,
-            .mem_id = memman_alloc_create(SLAB_ALLOCATOR_NUM_PAGES_PER_POOLS, PAGE_SIZE*16),
+            .num_pages = SLAB_ALLOCATOR_POOL_NUM_PAGES,
+            .size = SLAB_ALLOCATOR_POOL_NUM_PAGES * PAGE_SIZE,
+            .mem_id = memman_alloc_create(num_pages, PAGE_SIZE*16),
         };
 
         pool_table[i] = pool;
-        instance_table[idx].count++;
+        slab_allocator_table[idx].count++;
 
-        instance_table[idx].instance_id = pool.mem_id;
+        slab_allocator_table[idx].instance_id = pool.mem_id;
         pool_table[i] = pool;
 
 
         const uint32 min_num_caches = sizeof(struct slab_allocator_mcache) * SLAB_ALLOCATOR_MCACHE_SIZES_COUNT;
         const uint32 table_size = ROUND_UP(min_num_caches, PAGE_SIZE);
-        mcache_table = aligned_alloc(1024, table_size);
+        mcache_table = aligned_alloc(8, table_size);
         // TODO:HERE: mcache_table should be unique for each instance
 
         /* allocate mcache's table element memory storage */
@@ -127,7 +117,6 @@ slab_allocator_create_new_instance()
 
     }
 
-    // return instance_table[idx].instance_id;
     return idx;
 
 }
@@ -136,7 +125,7 @@ void
 slab_allocator_create_new_pool(const pageid_t num_pages)
 { // TODO: UNUSED, IMPLEMENT
     if(!pool_table)
-        pool_table = aligned_alloc(1024, sizeof(struct slab_allocator_pool) * 8);
+        pool_table = aligned_alloc(1024, sizeof(struct slab_allocator_pool) * SLAB_ALLOCATOR_POOLS_COUNT);
 
     const salltable_t idx = instance_count;
     instance_count++;
@@ -172,10 +161,6 @@ slab_allocator_create_mcache(const slab_elems_t num_elems, const uint8 type_size
     void* ptr = memman_get_alloc_mem_by_handle(hnd);
     memset(ptr, 0x0, requested_num_pages * PAGE_SIZE);
 
-    /** create mcache name */
-    const char str_slab_size[INT32_TO_STR_BUFFER_SIZE] = {0};
-    // TODO: add name to mcache
-
     /* updated mcache */
     mcache->mem_handle = hnd;
     mcache->slabs_start = ptr;
@@ -186,17 +171,6 @@ slab_allocator_create_mcache(const slab_elems_t num_elems, const uint8 type_size
     mcache->slabs_free_list = (struct flist*) ptr;
     mcache->last_slab_end = ptr + (slabs_capacity * slab_size);
 
-    /* DEBUG-FPRINT */
-    {
-#ifdef DEBUG_FPRINT_MCACHES_IN_FILES
-        char filename[64] = "allocators/string/mcache_";
-        str_concat_memcpy(filename, str_slab_size, 64);
-        str_concat_memcpy(filename, "byte.txt", 64);
-        fs_mcaches[mcache->idx] = fs_create(filename);
-        fs_register_mcache_create(fs_mcaches[mcache->idx], mcache);
-        fs_register_mcache_create(fs_register_created_mcaches, mcache);
-#endif
-    }
 
 
     /* build slabs free list */
@@ -207,6 +181,11 @@ slab_allocator_create_mcache(const slab_elems_t num_elems, const uint8 type_size
         flist->next = (struct flist*) ptr;
         flist = flist->next;
     }
+
+#   ifdef SLAB_ALLOCATOR_FPRINT_DEBUG_ENABLED
+        slall_fprint_mcaches(mcache, "CREATE");
+#   endif
+
 
     return mcache;
 }
@@ -257,10 +236,10 @@ mcache_extend_allocation(struct slab_allocator_mcache* const mcache, const uint3
     /* MAYBE BUG: If we null the memman freelist then we have a bug */
     flist->next = NULL;
 
-    /* DEBUG-FPRINT */
-#ifdef DEBUG_FPRINT_MCACHES_IN_FILES
-    fs_register_mcache_extend_alloc(fs_mcaches[mcache->idx], mcache, address);
-#endif
+
+#   ifdef SLAB_ALLOCATOR_FPRINT_DEBUG_ENABLED
+    slall_fprint_mcaches(mcache, "EXTEND");
+#   endif
 
     return mcache;
 }
@@ -293,10 +272,10 @@ mcache_alloc_slab(struct slab_allocator_mcache* mcache)
     mcache->slabs_used++;
     mcache->slabs_count++;
 
-    /* DEBUG-FPRINT */
-#ifdef DEBUG_FPRINT_MCACHES_IN_FILES
-    fs_register_mcache_alloc_slab(fs_mcaches[mcache->idx], mcache);
-#endif
+
+#   ifdef SLAB_ALLOCATOR_FPRINT_DEBUG_ENABLED
+    slall_fprint_mcaches(mcache, "ALLOCATE");
+#   endif
 
     return free;
 }
@@ -334,10 +313,10 @@ mcache_free_slab(struct slab_allocator_mcache* mcache, void* slab_address)
     mcache->slabs_used--;
     mcache->slabs_count--;
 
-    /* DEBUG-FPRINT */
-#ifdef DEBUG_FPRINT_MCACHES_IN_FILES
-    fs_register_mcache_release_slab(fs_mcaches[mcache->idx], mcache);
-#endif
+#   ifdef SLAB_ALLOCATOR_FPRINT_DEBUG_ENABLED
+    slall_fprint_mcaches(mcache, "FREE SLAB");
+#   endif
+
 
     return TRUE;
 }

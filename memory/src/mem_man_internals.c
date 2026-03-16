@@ -18,10 +18,6 @@
 #include "string_struct.h"
 
 
-/*
- * TODO:
- *  an allocator initializes itself by calling
- */
 
 #define CHUNK_FLAGS_FREE     BIT_MASK_FROM_UINT(0) // chunk is not in use
 #define CHUNK_FLAGS_OCCUPIED BIT_MASK_FROM_UINT(1) // chunk is in use but has free pages
@@ -140,6 +136,8 @@ mem_table_destroy(void)
 memid_t
 mem_create(const uint16 num_pages, const uint32 alignment)
 {
+    CHECK_MEM_NULL(mem_table, NO_MEMORY_MANAGER_INIT, "caller: mem_create()")
+
     const uint32 page_size = PAGE_SIZE;
     const uint32 memory_bound_check = 64;
 
@@ -269,10 +267,6 @@ mem_realloc_extend(const pageid_t num_pages, const memid_t mem_id)
         color_page[3] = 'E';
     }
 
-
-    // fs_write_list(fs_flist, flist_heads_table[mem_id],
-    //     "\n--------------------\n  new memory free list\n  head:%x\n", flist_heads_table[mem_id]
-    // );
     return (struct memhnd_t){
         .mem_id = mem_id,
         .page_id = page_id,

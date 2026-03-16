@@ -57,4 +57,8 @@
 #define ROUND_UP(val, limit) (((val) + limit - 1) & ~((limit - 1)))
 #define ROUND_DOWN(val, limit) (((val) & ~((limit - 1))))
 
+#define ALIGN(size, alignment) ((size + alignment - 1) & ~(alignment - 1))
+
+#define HACK_LIT_STR_TO_NUM(str, type) (*(type*)(str))
+
 #endif // MY_MACROS_H

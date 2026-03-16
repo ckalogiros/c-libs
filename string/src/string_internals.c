@@ -10,9 +10,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include "slab_allocator_internals.h"
-#include "slab_allocator_mcache.h"
+#include "slab_allocator.h"
 #include "stringc.h"
-#include "slab_allocator_internals.h"
 #include "stack_allocator.h"
 
 
@@ -22,58 +21,14 @@
 static uint32 string_alloced_count = 0;
 static memid_t allocator_instance_id = -1; // MAX_UINT for ERROR
 
-
-/***************************************************************************************************
- * FOR DEBUG */
-/* output one debug file and register all created strings  */
-static struct fs_t* fs_register_created_strings = NULL;
-static struct fs_t* fs_register_realloced_strings = NULL;
-
-#define DEBUG_FPRINT_BUFFER 1
-#ifdef DEBUG_FPRINT_BUFFER
-/* append info on string creation */
-#define fs_register_string(fs, string, op)\
-fs_append(fs,       \
-"%10s: | "           \
-"len:  %3u | "      \
-"size: %3u | "      \
-"self-size:  %3u | "\
-"data: %08x %08x "  \
-"data: %s\n",       \
-op,           \
-string->len,        \
-string->size,       \
-string->self_size,  \
-(uint64)string->data >> 32,(uint64)string->data & 0xFFFFFFFF, \
-string->data \
-)
-
-/* append formated data to the string's file */
-#define fs_string_append(fs, fmt, ...)\
-fs_append(fs, fmt, ##__VA_ARGS__)
-
-#else
-
-#endif
-/* FOR DEBUG
- **************************************************************************************************/
-
 static inline strlen_t string_get_self_size() { return sizeof(string_t) - sizeof(char); }
 
 
 void
 string_container_init(void)
 {
-    // HERE!!!
-    // string_mem_cache_table_init();
-    slab_allocator_init();
-    allocator_instance_id = slab_allocator_create_new_instance();
+    allocator_instance_id = slab_allocator_create_new_instance(2, "string_container_init()");
     // allocator_instance_id = stack_allocator_create_new_instance(4);
-
-
-    /* DEBUG-FPRINT */
-    fs_register_created_strings = fs_create("allocators/string/register_created_strings.txt");
-    fs_register_realloced_strings = fs_create("allocators/string/register_realloced_strings.txt");
 }
 
 void
@@ -115,11 +70,6 @@ string_constructor(const char* str, const strlen_t size)
 
     string_alloced_count++;
 
-    /* DEBUG-FPRINT */
-#ifdef DEBUG_FPRINT_MCACHE
-    fs_register_string(fs_register_created_strings, string, "CREATE");
-#endif
-
     return string;
 }
 
@@ -139,7 +89,7 @@ string_destructor(string_t* string)
         // char inttostr[INT32_TO_STR_BUFFER_SIZE];
         // str_conv_int32_to_str(inttostr, string->id);
         // str_concat_memcpy(dinfo.buf, inttostr, 16);
-        char* writable_data = string->data + sizeof(char*); // leave pointer size mem for slabs free list
+        char* writable_data = string->data + sizeof(char*); // offset of size *pointer for slabs free list
         while(string->len) {
             memcpy((void*)writable_data, dinfo.buf, sizeof(char*));
             writable_data += sizeof(char);
@@ -183,9 +133,6 @@ string_release(string_t* string)
 string_t*
 string_reallocate(string_t* string, const strlen_t len, bool copy)
 {
-#ifdef DEBUG_FPRINT_MCACHE
-    fs_register_string(fs_register_realloced_strings, string, "REALLOC");
-#endif
 
     const uint16 new_len = string->len + len + string->self_size+1;
     assert(new_len > sizeof(strlen_t));
@@ -202,12 +149,12 @@ string_reallocate(string_t* string, const strlen_t len, bool copy)
     void* data_ptr = NULL;
     data_ptr = slab_allocator_alloc(max_size, sizeof(char));
     // stack_allocator_release(allocator_instance_id);
-    // data_ptr = stack_allocator_alloc(allocator_instance_id, max_size);
+    // data_ptr = stack_allocator_alloc(allocator_instance_id, max_size, sizeof(char));
 
 
     strlen_t old_len = string->len;
     strlen_t old_self_size = string->self_size;
-    // memset((void*)data_ptr, 0, max_size);
+    memset((void*)data_ptr, 0, max_size);
     if(copy) memcpy((void*)data_ptr, string, string->len + string->self_size);
 
     slab_allocator_release(string->data, string->size, sizeof(char));

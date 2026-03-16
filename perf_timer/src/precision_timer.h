@@ -38,6 +38,10 @@ uint64 perf_timer_get_accum(struct timer* const);
 
 uint32 perf_timer_get_avg(struct timer* const);
 
+uint32 perf_timer_calc_avg(struct timer* const);
+
+uint32 perf_timer_calc_avg_from_count(struct timer* const, const uint32 count);
+
 uint32 perf_timer_get_count(struct timer* const);
 
 uint32 perf_timer_get_fps(struct timer* const);

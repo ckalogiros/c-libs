@@ -2,7 +2,7 @@
  * Created by ckalo on 12/31/25.
  */
 
-#include "slab_allocator_mcache.h"
+#include "slab_allocator.h"
 #include "logger.h"
 #include "slab_allocator_internals.h"
 #include "slab_allocator_log.h"

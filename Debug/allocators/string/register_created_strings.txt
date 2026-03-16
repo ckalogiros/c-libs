@@ -1,5 +1,0 @@
-    CREATE: | len:   32 | size:  64 | self-size:    5 | data: 0000621d 2faa0005 data: .-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-    CREATE: | len:    0 | size:  32 | self-size:    5 | data: 0000621d 2faa1405 data: 
-    CREATE: | len:    0 | size:  32 | self-size:    5 | data: 0000621d 2faa1425 data: 
-    CREATE: | len:    0 | size:  32 | self-size:    5 | data: 0000621d 2faa1445 data: 
-    CREATE: | len:    0 | size:  32 | self-size:    5 | data: 0000621d 2faa1465 data: 

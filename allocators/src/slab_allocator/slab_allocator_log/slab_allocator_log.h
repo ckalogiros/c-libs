@@ -4,7 +4,7 @@
 #ifndef ALLOCATORS_SLAB_ALLOCATOR_LOG_H
 #define ALLOCATORS_SLAB_ALLOCATOR_LOG_H
 
-#include "slab_allocator_mcache.h"
+#include "slab_allocator.h"
 
 void print_mem_cache_struct(const struct slab_allocator_mcache* const mem_cache);
 

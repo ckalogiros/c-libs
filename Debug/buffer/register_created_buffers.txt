@@ -1,1 +1,0 @@
-CREATE  : |  id:      1 |  tsize:    40 |  capac:    16 slabs |  count:   0 |  tail:   -1 |  data:  00005e54 ef238000  flist: 00005e54 ef238400

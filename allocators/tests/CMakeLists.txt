@@ -18,10 +18,12 @@ register_module(
         ${CMAKE_CURRENT_LIST_DIR}/test_performance.c
         ${CMAKE_CURRENT_LIST_DIR}/test_slab_allocator.c
         ${CMAKE_CURRENT_LIST_DIR}/test_stack_allocator.c
+        ${CMAKE_CURRENT_LIST_DIR}/stack_unit_test.c
         headers
         ${CMAKE_CURRENT_LIST_DIR}/test_performance.h
         ${CMAKE_CURRENT_LIST_DIR}/test_slab_allocator.h
         ${CMAKE_CURRENT_LIST_DIR}/test_stack_allocator.h
+        ${CMAKE_CURRENT_LIST_DIR}/stack_unit_test.h
         include_dirs
         ${CMAKE_CURRENT_LIST_DIR}
 )

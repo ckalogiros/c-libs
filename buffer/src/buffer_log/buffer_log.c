@@ -113,6 +113,20 @@ buffer_print_error(const enum BUFFER_ERROR_CODE code)
             );
             break;
         }
+        case BUFFER_TABLE_ALREADY_INIT: {
+            print("%sERROR:\n"
+                  "buffer table already initialized%s\n",
+                  RED, CLEAR
+            );
+            break;
+        }
+        case BUFFER_TABLE_INIT_FROM_CREATE_FUN: {
+            print("%sWARNING:\n"
+                  "buffer table initialized from buffer_create()%s\n",
+                  YELLOW, CLEAR
+            );
+            break;
+        }
     }
 
     // my_exit("buffer_print_error", __FILE__, __LINE__);

@@ -8,22 +8,23 @@
  */
 
 #include "stack_allocator.h"
-
-#include <assert.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include "ascii_characters.h"
 #include "logger.h"
 #include "mem_man_interface.h"
+#include "my_macros.h"
+#include "../../../g_includes/alignment.h"
 
 enum STACK_ALLOCATOR {
+    STACK_ALLOCATOR_INSTANCE_INITIAL_TABLE_SIZE = 64,
     STACK_ALLOCATOR_INSTANCE_INITIAL_NUM_PAGES = 1,
 };
 
 static struct stack_allocator_instance* stack_allocator_table = NULL;
 static uint32 table_count = 0;
+
 
 
 /***************************************************************************************************
@@ -36,7 +37,7 @@ stack_allocator_create_new_instance(const pageid_t num_pages)
 
     /* case first time stack allocator instance creation */
     if(!stack_allocator_table) {
-        stack_allocator_table = aligned_alloc(struct_type_size, struct_type_size * 64);
+        stack_allocator_table = aligned_alloc(struct_type_size, struct_type_size * STACK_ALLOCATOR_INSTANCE_INITIAL_TABLE_SIZE);
     }
 
     /* create memory for allocator's offsets table */
@@ -95,21 +96,46 @@ stack_allocator_create_new_instance(const pageid_t num_pages)
 }
 
 
+
 /***************************************************************************************************
- *
+ * INTERFACE
  **************************************************************************************************/
 
 void*
-stack_allocator_alloc(const memid_t inst_id, const size_t size)
+stack_allocator_alloc(const memid_t inst_id, const size_t size, const typesize_t type_size)
 {
+    const uint32 aligned_size = ALIGN(size, type_size);
     struct stack_allocator_instance* instance = &stack_allocator_table[inst_id];
 
-    void* free_address = (char*) instance->data.start + instance->stack_ptr_offset;
+    const char* const sp_addr = (char*)instance->data.start + instance->stack_ptr_offset;
 
-    instance->data.used_size += size;
-    instance->stack_ptr_offset += size;
+    if(instance->table_count > 0) {
+
+        uint32 prev_count = instance->table_count-1;
+        const uint32 unaligned = align_pointer_to_type(sp_addr, type_size);
+        if(unaligned) {
+
+            /* set previous table offset to new alignement */
+            char** offsets_table0 = instance->table_start + (sizeof(memoffset_t) * prev_count);
+            *(memoffset_t*) offsets_table0 += unaligned;
+
+            /* advance stack pointer to aligned offset */
+            instance->stack_ptr_offset += unaligned;
+        }
+
+    }
+
+    const uint32 padding_size = 0;
+
+    void* free_address = (char*) instance->data.start + instance->stack_ptr_offset + padding_size;
+
+    instance->data.used_size += aligned_size;
+    /* advance stack pointer */
+    instance->stack_ptr_offset += aligned_size;
+
+    /* set current table offset to size */
     char** offsets_table = instance->table_start + (sizeof(memoffset_t) * instance->table_count);
-    *(memoffset_t*) offsets_table = size;
+    *(memoffset_t*) offsets_table = aligned_size;
     instance->table_count++;
 
     return (void*) free_address;
@@ -128,5 +154,33 @@ stack_allocator_release(const memid_t inst_id)
 
     void* free_address = (char*) instance->data.start + instance->stack_ptr_offset;
 
+    /* debug-mark released memory with value */
+    // memset(free_address, 0xCD, offset_size);
+
     return (void*) free_address;
 }
+
+
+
+
+/***************************************************************************************************
+ * TEST-DEBUG
+ **************************************************************************************************/
+
+struct stack_allocator_instance*
+debug_get_stack_allocator_table()
+{return stack_allocator_table;}
+
+struct stack_allocator_instance*
+debug_get_stack_allocator_instance(const memid_t inst_id)
+{return &stack_allocator_table[inst_id];}
+
+void*
+debug_get_stack_allocator_instance_start_address(const memid_t inst_id)
+{return stack_allocator_table[inst_id].data.start;}
+
+uint32 debug_get_stack_allocator_init_table_size()
+{return STACK_ALLOCATOR_INSTANCE_INITIAL_TABLE_SIZE;}
+
+uint32 debug_get_stack_allocator_init_instance_num_pages()
+{return STACK_ALLOCATOR_INSTANCE_INITIAL_NUM_PAGES*PAGE_SIZE;}

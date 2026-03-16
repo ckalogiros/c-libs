@@ -32,6 +32,18 @@ print_test(const char* name,const char* format, ...)
     printf("%s________________________________________________%s\n\n",GREEN, CLEAR);
 }
 
+void
+print_mem_hex(const uint32 size, char* address)
+{
+    print("-------- -------- -------- -------- \n");
+    for(uint32 i = 0; i < size; i++) {
+        print("%02x", address[i]);
+        if((i + 1) % 16 == 0) print("\n");
+        else if((i + 1) % (8 / 2) == 0) print(" ");
+    }
+    print("\n-------- -------- -------- -------- \n");
+}
+
 
 void
 logger_test_variadic(const uint32 args_count, ...)
@@ -55,7 +67,7 @@ print_test_result(const char* test_name, bool passed, const char* file, int line
     const uint32 keep_chars = (path_len > 20) ? 20 : path_len;
     const char* path = &(file[path_len-keep_chars]);
     if(passed) {
-        printf("%s[PASS]%s %s%s%s %s \"at %s:%d\"", GREEN, CLEAR, br3, test_name, CLEAR, msg, path, line);
+        printf("[%s✓%s] %s%s%s %s \"at %s:%d\"", GREEN, CLEAR, ry, test_name, CLEAR, msg, path, line);
     } else {
         printf("%s[FAIL]%s %s%s%s %s \"at %s:%d\"", RED, CLEAR, br3, test_name, CLEAR, msg, path, line);
     }

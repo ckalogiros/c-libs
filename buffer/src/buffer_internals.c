@@ -11,7 +11,7 @@
 #include "buffer_log.h"
 #include "logger.h"
 #include "sys_utils.h"
-#include "slab_allocator_mcache.h"
+#include "slab_allocator.h"
 
 #include <string.h>
 
@@ -121,10 +121,12 @@ btable_flist_get_free(void)
 void
 buffer_init_table(void)
 {
-    if(buffer_table) return;
+    if(buffer_table) {
+        buffer_print_error(BUFFER_TABLE_ALREADY_INIT);
+        return;
+    }
 
-    slab_allocator_init();
-    allocator_instance_id = slab_allocator_create_new_instance();
+    allocator_instance_id = slab_allocator_create_new_instance(16, "buffer_init_table()");
 
     const uint32 btable_typesize = sizeof(buffer_t);
     assert(sizeof(buffer_t) > sizeof(void*));
@@ -167,7 +169,7 @@ buffer_constructor_uint32(const bufidx_t capacity)
     if(!buffer_table) {
         buffer_init_table();
         buffer_print_error(NO_BUFFER_TABLE_INIT);
-        my_exit("buffer_constructor_uint32", __FILE__, __LINE__);
+        // my_exit("buffer_constructor_uint32", __FILE__, __LINE__);
     }
     if(capacity <= 0) {
         buffer_print_error(BUFFER_CAPACITY_LESS_THAN_1);
@@ -209,8 +211,9 @@ buffer_t*
 buffer_constructor_gentype(const bufidx_t capacity, const typesize_t typesize)
 {
     if(!buffer_table) {
-        buffer_print_error(NO_BUFFER_TABLE_INIT);
-        my_exit("buffer_constructor_uint32", __FILE__, __LINE__);
+        buffer_init_table();
+        buffer_print_error(BUFFER_TABLE_INIT_FROM_CREATE_FUN);
+        // my_exit("buffer_constructor_uint32", __FILE__, __LINE__);
     }
     if(capacity <= 0) {
         buffer_print_error(BUFFER_CAPACITY_LESS_THAN_1);

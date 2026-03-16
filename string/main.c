@@ -1,7 +1,7 @@
 #include <stdio.h>
 
+#include "mem_man_interface.h"
 #include "stringc.h"
-#include "string_allocator_internals.h"
 #include "string_internals.h"
 
 int

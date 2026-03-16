@@ -39,6 +39,14 @@
 #include "mem_man_interface.h"
 #include "my_types.h"
 
+
+enum SLAB_ALLOCATOR {
+    SLAB_ALLOCATOR_INSTANCE_INITIAL_COUNT = 8,
+    SLAB_ALLOCATOR_POOL_NUM_PAGES = 8,
+    SLAB_ALLOCATOR_POOLS_COUNT = 32,
+};
+
+
 enum SLAB_ALLOCATOR_POOL_SIZES {
     /* -1 is for the '\0' character */
     SLAB_ALLOCATOR_POOL_SIZE_SMALL = 255 - 1, // 256 does no comply with the strlen_t type:1 byte

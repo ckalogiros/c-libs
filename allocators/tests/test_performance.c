@@ -3,7 +3,7 @@
  */
 
 #include "test_performance.h"
-#include "slab_allocator_mcache.h"
+#include "slab_allocator.h"
 #include "mem_man_interface.h"
 #include "buffer_internals.h"
 #include "logger.h"
@@ -11,6 +11,7 @@
 #include "precision_timer_logger.h"
 #include "precision_timer_struct.h"
 #include "slab_allocator_internals.h"
+#include "stack_allocator.h"
 #include "string_internals.h"
 
 void
@@ -40,18 +41,8 @@ void
 test_perf_slab_allocation_release()
 {
     memman_init();
-    string_container_init();
-    // slab_allocator_init();
-    // slab_allocator_create_new_instance();
-
-    buffer_init_table();
-    timer_init_table();
-
-    // const uint32 repeat = 1000000;
     const uint32 repeat = 1000;
     const uint32 num_allocations = 8;
-
-
 
     struct timer* t = timer_create_perf_timer();
 
@@ -254,4 +245,84 @@ test_perf_slab_allocation_release()
 
     // mem_cache_table_destroy();
     memman_terminate();
+}
+
+
+void
+test_perf_slab_vs_stack()
+{
+    memman_init();
+    const uint32 repeat = 800000;
+    const uint32 num_allocations = 2;
+
+    buffer_table_init();
+    struct timer* t = timer_create_perf_timer();
+
+    /* TEST: type:uint32, capacity:64 */
+    {
+        const uint32 num_elems = 512;
+        const uint32 type_size = sizeof(uint16);
+
+        print_test("Slab Allocator VS Stack Allocator",
+            " . use allocate() function\n"
+            " . use release() function\n"
+            " type_size:   %s%u bytes%s\n"
+            " num_elems: %s%u%s elems\n"
+            " repeat: %s%u%s\n"
+            " num allocs/releases: %s%u%s per iteration\n",
+            ry, type_size, CLEAR,
+            ry, num_elems, CLEAR,
+            ry, repeat, CLEAR,
+            ry, num_allocations, CLEAR
+        );
+
+
+        const memid_t slab_inst_id = slab_allocator_create_new_instance(32, "test_perf_slab_vs_stack()");
+        perf_timer_start(t);
+        buffer_t* buffer[num_allocations];
+        for(uint32 r = 0; r < repeat; r++) {
+            for(uint32 i = 0; i < num_allocations; i++) {
+                buffer[i] = slab_allocator_alloc(num_elems, type_size);
+            }
+            for(uint32 i = 0; i < num_allocations; i++) {
+                slab_allocator_release(buffer[i], num_elems, type_size);
+            }
+        }
+
+        perf_timer_stop(t);
+        const uint32 slab_timer_avg = perf_timer_calc_avg_from_count(t, repeat);
+        perf_timer_print(timer_print_config((timer_print_params){
+            .t = t, .repeat = repeat, .buf_capacity = num_elems, .flags = PERF_T_USE_REPEAT|PERF_T_ALL
+        }));
+        perf_timer_reset(t);
+
+        const memid_t stack_inst_id = stack_allocator_create_new_instance(32);
+        perf_timer_start(t);
+        for(uint32 r = 0; r < repeat; r++) {
+            for(uint32 i = 0; i < num_allocations; i++) {
+                stack_allocator_alloc(stack_inst_id, num_elems, type_size);
+            }
+            for(uint32 i = 0; i < num_allocations; i++) {
+                stack_allocator_release(stack_inst_id);
+            }
+        }
+
+        perf_timer_stop(t);
+        const uint32 stack_timer_avg = perf_timer_calc_avg_from_count(t, repeat);
+        perf_timer_print(timer_print_config((timer_print_params){
+            .t = t, .repeat = repeat, .buf_capacity = num_elems, .flags = PERF_T_USE_REPEAT|PERF_T_ALL
+        }));
+        perf_timer_reset(t);
+
+        print(
+            "ratio: %f\n",
+            (float)LESS_THAN(slab_timer_avg, stack_timer_avg) /
+            (float)GREATER_THAN(slab_timer_avg, stack_timer_avg)
+        );
+
+    }
+
+
+    memman_terminate();
+
 }

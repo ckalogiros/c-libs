@@ -104,6 +104,50 @@ str_conv_int64_to_str(char buffer[INT64_TO_STR_BUFFER_SIZE], const int64 number)
     return buffer;
 }
 
+bool // TODO: implement faster with uint64 values
+str_cmp(const char* str1, const char* str2)
+{
+    assert(str1);
+    assert(str2);
+
+    /* check first char */
+    if(*str1 == *str2) return FALSE;
+
+    /* check lengths */
+    const uint32 str_len1 = strlen(str1);
+    const uint32 str_len2 = strlen(str2);
+    if(str_len1 != str_len2) return FALSE;
+
+    /* check last char */
+    if(*(str1+str_len2-1) == *(str2+str_len2-1)) return FALSE;
+
+    /* check char by char */
+    for(uint32 i = 0; i < str_len1; i++) {
+        if(str1[i] != str2[i]) return FALSE;
+    }
+    return TRUE;
+}
+bool
+buf32_cmp(const uint32* buf1, const uint32* buf2, const uint32 buf_len1, const uint32 buf_len2)
+{
+    assert(buf1);
+    assert(buf2);
+
+    /* check first char */
+    if(*buf1 != *buf2) return FALSE;
+
+    /* check lengths */
+    if(buf_len1 != buf_len2) return FALSE;
+
+    /* check last char */
+    if(*(buf1+buf_len2-1) != *(buf2+buf_len2-1)) return FALSE;
+
+    /* check val by val */
+    for(uint32 i = 0; i < buf_len1; i++) {
+        if(buf1[i] != buf2[i]) return FALSE;
+    }
+    return TRUE;
+}
 
 /***************************************************************************************************
  * CONCATENATION
