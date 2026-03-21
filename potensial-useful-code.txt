@@ -1,0 +1,23 @@
+____________________________________________________________________________________________
+Option 1: Compile-time constant length
+// Using _Generic or macro dispatching
+#define CHECK_CHAR(str, c) \
+    _Generic(&(str), \
+        char(*)[4]: check_4, \
+        char(*)[8]: check_8, \
+        default: check_dynamic \
+    )(str, c)
+
+// Or with macro overloading
+#define CHECK_CHAR(str, c) check_char_dispatch(str, sizeof(str), c)
+
+inline bool check_char_dispatch(char* str, size_t len, char c) {
+    switch(len) {
+        case 4: return check_4(str, c);
+        case 8: return check_8(str, c);
+        default: return check_loop(str, len, c);
+    }
+}
+
+
+____________________________________________________________________________________________

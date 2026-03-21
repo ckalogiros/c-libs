@@ -28,7 +28,9 @@ include_project(${parent_dir}/memory/src/mem_log)
 include_project(${parent_dir}/memory/src/internal)
 include_project(${parent_dir}/allocators/src/slab_allocator)
 include_project(${parent_dir}/allocators/src/slab_allocator/slab_allocator_log)
+include_project(${parent_dir}/allocators/src/stack_allocator)
 include_project(${parent_dir}/string/src)
+include_project(${parent_dir}/string/src/string_log)
 include_project(${parent_dir}/perf_timer/src)
 
 # 3. create executable with all the source files

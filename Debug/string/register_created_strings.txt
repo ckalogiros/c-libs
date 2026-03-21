@@ -1,5 +1,0 @@
-    CREATE: | len:   32 | size:  64 | self-size:    5 | data: 0000562c 5d0b4005 data: .-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
-    CREATE: | len:    0 | size:  32 | self-size:    5 | data: 0000562c 5d0b5405 data: 
-    CREATE: | len:    0 | size:  32 | self-size:    5 | data: 0000562c 5d0b5425 data: 
-    CREATE: | len:    0 | size:  32 | self-size:    5 | data: 0000562c 5d0b5445 data: 
-    CREATE: | len:    0 | size:  32 | self-size:    5 | data: 0000562c 5d0b5465 data: 

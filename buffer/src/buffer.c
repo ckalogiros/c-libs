@@ -6,9 +6,7 @@
 #include "buffer_internals.h"
 #include "sys_utils.h"
 #include "bits.h"
-
-#include <string.h>
-
+// #include <string.h>
 #include "buffer_log.h"
 #include "logger.h"
 

@@ -1,4 +1,6 @@
 #include "logger.h"
+
+#include <assert.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
@@ -11,6 +13,8 @@ print(const char* format, ...)
     va_start(args, format);
     vprintf(format, args);
     va_end(args);
+
+    fflush(stdout);
 }
 
 void
@@ -27,6 +31,26 @@ print_test(const char* name,const char* format, ...)
     va_start(args, format);
     vprintf(format, args);
     va_end(args);
+
+    // printf("%s------------------------------------------------%s\n",GREEN, CLEAR);
+    printf("%s________________________________________________%s\n\n",GREEN, CLEAR);
+}
+
+void
+print_implement(const char* function_name, const char* file_name, const uint32 line_number)
+{
+    printf(
+        "%s________________________________________________\n"
+        " IMPLEMENT function: %s\n"
+        " at: %s\n"
+        " line: %u\n"
+        "%s\n",
+        RED,
+        function_name,
+        file_name,
+        line_number,
+        CLEAR
+    );
 
     // printf("%s------------------------------------------------%s\n",GREEN, CLEAR);
     printf("%s________________________________________________%s\n\n",GREEN, CLEAR);
@@ -64,8 +88,15 @@ print_test_result(const char* test_name, bool passed, const char* file, int line
 {
     // reduce the file directory
     const uint32 path_len = strlen(file);
-    const uint32 keep_chars = (path_len > 20) ? 20 : path_len;
-    const char* path = &(file[path_len-keep_chars]);
+    assert(path_len);
+    assert(file);
+
+    uint32 pos = path_len-1;
+    while(file[pos] && file[pos] != '/' && pos > 0)
+        pos--;
+    pos++;
+
+    const char* path = &(file[pos]);
     if(passed) {
         printf("[%s✓%s] %s%s%s %s \"at %s:%d\"", GREEN, CLEAR, ry, test_name, CLEAR, msg, path, line);
     } else {

@@ -6,7 +6,8 @@
 #include "mem_log.h"
 #include "my_types.h"
 #include "tests.h"
-#include "mem_test_bitfields.h"
+// #include "mem_test_bitfields.h"
+#include "mem_unit_test.h"
 
 uint32 test_id = 0;
 
@@ -15,9 +16,9 @@ uint32 test_id = 0;
 int
 main(void)
 {
+    memman_init();
 
-    mem_table_init();
-    mem_create();
+    unit_test_runner_slab_allocator();
 
 
     // Some bit tests, see everything is working
@@ -29,15 +30,9 @@ main(void)
 
 
     // tests
-    { // basic allocations
-        // mem_log_print_free_list(1);
-        // test_mem_alloc(3);
-        // test_mem_alloc(3);
-        // test_mem_alloc(2);
-    }
     { // test algorithm for non contiguous pages
-        mem_log_print_free_list(1);
-        test_mem_alloc1();
+        // mem_log_print_free_list(1);
+        // test_mem_alloc();
     }
 
     // test_alloc_release_insequence(2, TRUE);
@@ -54,6 +49,6 @@ main(void)
     // test_alloc_release_fragment_mem();
 
 
-    mem_table_destroy();
+    memman_terminate();
     return 0;
 }

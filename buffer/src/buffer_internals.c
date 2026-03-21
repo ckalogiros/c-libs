@@ -3,19 +3,13 @@
  */
 
 #include "buffer_internals.h"
-
+#include "bits.h"
 #include <stdlib.h>
 #include <string.h>
-
-#include "bits.h"
 #include "buffer_log.h"
 #include "logger.h"
 #include "sys_utils.h"
 #include "slab_allocator.h"
-
-#include <string.h>
-
-#include "file_sys_debug.h"
 #include "file_sys_interface.h"
 #include "slab_allocator_internals.h"
 #include "str_utils.h"
@@ -133,7 +127,7 @@ buffer_init_table(void)
 
     /* create memory for buffer table and buffer's free list */
     void* const address =
-            (buffer_t*) memman_temp_alloc_sys_call(4096, BUFFER_TABLE_MIN_CAPACITY * btable_typesize);
+            (buffer_t*) aligned_alloc(4096, BUFFER_TABLE_MIN_CAPACITY * btable_typesize);
 
     buffer_table = address;
 
@@ -181,9 +175,11 @@ buffer_constructor_uint32(const bufidx_t capacity)
     const uint32 free_list_uint64_count = ((capacity - 1) / BITS64) + 1;
 
     /* alloc storage for bufer data */
-    const void* const data_ptr = slab_allocator_alloc(capacity, sizeof(uint32));
+    const void* const data_ptr =
+        slab_allocator_alloc(allocator_instance_id, capacity, sizeof(uint32), "buffer_constructor_uint32()");
     /* alloc storage for buffer free-list data (a uint64 for each 64 buffer elements) */
-    uint64* const buffer_flist_ptr = slab_allocator_alloc(free_list_uint64_count, sizeof(uint64));
+    uint64* const buffer_flist_ptr =
+        slab_allocator_alloc(allocator_instance_id, free_list_uint64_count, sizeof(uint64), "buffer_constructor_uint32()-free list");
 
     // file_sys_push(pname, sizeof(char*), TYPE_POINTER);
 
@@ -224,10 +220,10 @@ buffer_constructor_gentype(const bufidx_t capacity, const typesize_t typesize)
     const uint32 free_list_uint64_count = ((capacity - 1) / BITS64) + 1;
 
     /* allocate storage for bufer data */
-    const void* const data_ptr = slab_allocator_alloc(capacity, typesize);
+    const void* const data_ptr = slab_allocator_alloc(allocator_instance_id, capacity, typesize, "buffer_constructor_gentype()");
 
     /* allocate storage for buffer free-list data (an uint64 for each 64 buffer elements) */
-    uint64* const buffer_flist_ptr = slab_allocator_alloc(free_list_uint64_count, sizeof(uint64));
+    uint64* const buffer_flist_ptr = slab_allocator_alloc(allocator_instance_id, free_list_uint64_count, sizeof(uint64), "buffer_constructor_gentype()-free list");
 
     buffer_t* buffer = btable_flist_get_free();
     buffer->free_list = buffer_flist_ptr;
@@ -259,15 +255,15 @@ buffer_destructor(buffer_t* buffer)
     void* const ptr = buffer;
 
     /* Release buffer's data slab */
-    slab_allocator_release(buffer->free_list, buffer->free_list_capacity, sizeof(uint64));
-    slab_allocator_release(buffer->data, buffer->capacity, buffer->typesize);
+    slab_allocator_release(allocator_instance_id, buffer->free_list, buffer->free_list_capacity, sizeof(uint64));
+    slab_allocator_release(allocator_instance_id, buffer->data, buffer->capacity, buffer->typesize);
 
     /* DEBUG-FPRINT
      * write a string to buffer's->data memory
      * CAN COLOR MEMORY FOR SLAB SIZE > 8 BYTES */
     if(buffer->typesize > 8) {
         char_buf16_t dinfo;
-        char_buf16_copy_from_str("EMPTY", &dinfo);
+        char_buf16_copy_from_str(&dinfo, "EMPTY");
         char inttostr[INT32_TO_STR_BUFFER_SIZE];
         str_conv_int32_to_str(inttostr, buffer->id);
         str_concat_memcpy(dinfo.buf, inttostr, 16);
@@ -306,7 +302,7 @@ buffer_release(buffer_t* buffer)
     void* const ptr = buffer;
 
     /* Release buffer's data slab */
-    slab_allocator_release(buffer->data, buffer->capacity, buffer->typesize);
+    slab_allocator_release(allocator_instance_id, buffer->data, buffer->capacity, buffer->typesize);
 
 
     /* DEBUG-FPRINT
@@ -314,7 +310,7 @@ buffer_release(buffer_t* buffer)
      */
     /* const char* dinfo = "DESTROYED ID:"; */
     char_buf16_t dinfo;
-    char_buf16_copy_from_str("DESTROYED ID:", &dinfo);
+    char_buf16_copy_from_str(&dinfo, "DESTROYED ID:");
     char inttostr[INT32_TO_STR_BUFFER_SIZE];
     str_conv_int32_to_str(inttostr, buffer->id);
     str_concat_memcpy(dinfo.buf, inttostr, 16);
@@ -376,25 +372,27 @@ buffer_reallocate(buffer_t* const buffer)
     const bufidx_t new_capacity = buffer->capacity * 2;
 
     // 1.
-    void* const data_ptr = (uint32*) slab_allocator_alloc(new_capacity, buffer->typesize);
+    void* const data_ptr =
+        (uint32*) slab_allocator_alloc(allocator_instance_id, new_capacity, buffer->typesize, "buffer_reallocate()");
 
     // 2.
     memcpy(data_ptr, buffer->data, buffer->capacity * buffer->typesize);
 
     // 3.
-    slab_allocator_release(buffer->data, buffer->capacity, buffer->typesize);
+    slab_allocator_release(allocator_instance_id, buffer->data, buffer->capacity, buffer->typesize);
 
     // 4.
     const uint32 flist_old_capacity = ((buffer->capacity - 1) / BITS64) + 1;
     const uint32 flist_capacity = ((new_capacity - 1) / BITS64) + 1;
-    void* const free_list_ptr = (uint64*) slab_allocator_alloc(flist_capacity, sizeof(uint64));
+    void* const free_list_ptr =
+        (uint64*) slab_allocator_alloc(allocator_instance_id, flist_capacity, sizeof(uint64), "buffer_reallocate()");
     memset(free_list_ptr, MAX_UINT32, flist_capacity * sizeof(uint64));
 
     // 5.
     memcpy(free_list_ptr, buffer->free_list, flist_old_capacity * sizeof(uint64));
 
     // 6.
-    slab_allocator_release(buffer->free_list, flist_old_capacity, sizeof(uint64));
+    slab_allocator_release(allocator_instance_id, buffer->free_list, flist_old_capacity, sizeof(uint64));
 
     buffer->data = data_ptr;
     buffer->capacity = new_capacity;
@@ -455,14 +453,14 @@ buffer_find_tail_recur(const uint64 val, uint32* accum_num_bits)
     // todo: reimplement with: __builtin_ctzll();
 
     uint64 low = bits_mask_low(val);
-    const uint32 type_size = type_size_bits(val);
+    const uint32 type_size = types_get_bitsize_from_val(val);
 
     int32 index = INT_NULL;
     if(low != 0) {
         index = find_first_free_helper(low, type_size);
     } else {
         // on every recursion, cut type size by half, and accumulate all the previous devisions lower part
-        *accum_num_bits += half_type_bits(low);
+        *accum_num_bits += types_get_half_bitsize_from_type(low);
         const uint64 high = bits_mask_high(val);
         index = buffer_find_tail_recur(high, accum_num_bits);
     }

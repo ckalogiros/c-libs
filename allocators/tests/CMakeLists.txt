@@ -19,11 +19,13 @@ register_module(
         ${CMAKE_CURRENT_LIST_DIR}/test_slab_allocator.c
         ${CMAKE_CURRENT_LIST_DIR}/test_stack_allocator.c
         ${CMAKE_CURRENT_LIST_DIR}/stack_unit_test.c
+        ${CMAKE_CURRENT_LIST_DIR}/slab_unit_test.c
         headers
         ${CMAKE_CURRENT_LIST_DIR}/test_performance.h
         ${CMAKE_CURRENT_LIST_DIR}/test_slab_allocator.h
         ${CMAKE_CURRENT_LIST_DIR}/test_stack_allocator.h
         ${CMAKE_CURRENT_LIST_DIR}/stack_unit_test.h
+        ${CMAKE_CURRENT_LIST_DIR}/slab_unit_test.h
         include_dirs
         ${CMAKE_CURRENT_LIST_DIR}
 )
@@ -37,10 +39,10 @@ include_project(${parent_dir}/memory/src/mem_log)
 include_project(${parent_dir}/memory/src/internal)
 include_project(${parent_dir}/buffer/src)
 include_project(${parent_dir}/buffer/src/buffer_log)
-include_project(${parent_dir}/allocators/src/slab_allocator)
+#include_project(${parent_dir}/allocators/src/slab_allocator)
+#include_project(${parent_dir}/allocators/src/slab_allocator/slab_allocator_log)
 include_project(${parent_dir}/string/src)
 include_project(${parent_dir}/string/src/string_log)
-include_project(${parent_dir}/allocators/src/slab_allocator/slab_allocator_log)
 include_project(${parent_dir}/perf_timer/src)
 
 

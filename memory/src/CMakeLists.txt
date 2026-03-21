@@ -5,6 +5,8 @@ register_module(
             ${CMAKE_CURRENT_LIST_DIR}/mem_man.c
             ${CMAKE_CURRENT_LIST_DIR}/mem_man_internals.c
         headers
+            ${CMAKE_CURRENT_LIST_DIR}/mem_man_types.h
+            ${CMAKE_CURRENT_LIST_DIR}/mem_man_structs.h
             ${CMAKE_CURRENT_LIST_DIR}/mem_man_interface.h
             ${CMAKE_CURRENT_LIST_DIR}/mem_man_internals.h
         include_dirs

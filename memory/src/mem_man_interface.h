@@ -5,18 +5,9 @@
 #define MEMORY_MEM_MAN_INTERFACE_H
 
 #include "my_types.h"
-#include "mem_structs.h"
-
-#define PAGE_SIZE 1024
+#include "mem_man_types.h"
 
 
-enum MEM_ID_SELECTOR {
-    MEM_ID_SELF_MEM_STORAGE = 0,
-    MEM_ID_ALLOCATOR_SLAB,
-    MEM_ID_ALLOCATOR_STRING,
-    // leave initial chunks for specific allocators
-    MEM_ID_MAX_ELEMS, // TODO: there are no fixed pools, get the allocators pool count from slab allocator
-};
 
 enum MEMORY_ERROR_CODE {
     MALLOC_FAILED_TO_ALLOC_MEMORY = BIT_MASK_FROM_UINT(0),
@@ -27,34 +18,24 @@ enum MEMORY_ERROR_CODE {
     MEMORY_IS_IN_USE = BIT_MASK_FROM_UINT(5),
     FREE_MEMORY_FAILED = BIT_MASK_FROM_UINT(6),
     FREE_PAGE_ALREADY_FREED = BIT_MASK_FROM_UINT(7),
+    MEMORY_CORRUPTED = BIT_MASK_FROM_UINT(7),
 };
 
-
-/* ************************************
- * allocation's return type to caller */
-struct memhnd_t {
-    memid_t mem_id;
-    pageid_t page_id;
-    memid_t num_pages;
-};
-
-
-#define PAGE_SIZE 1024
 
 void memman_init(void);
 
 void memman_terminate(void);
 
-memid_t memman_alloc_create(const uint16 num_pages, const uint32 alignment);
+memid_t memman_allocate_block(const uint16 num_pages, const uint32 alignment, const char* info);
 
-struct memhnd_t memman_alloc_get(const uint16 num_pages, enum MEM_ID_SELECTOR);
+memid_t memman_deallocate_block(const memid_t memid);
+
+struct memhnd_t memman_page_request(const uint16 num_pages, const memid_t memid);
 
 void* memman_get_mem_start_by_memid(const memid_t memid);
 
-bool memman_alloc_release(const struct memhnd_t hnd);
+bool memman_page_release(const struct memhnd_t hnd);
 
 void* memman_get_alloc_mem_by_handle(const struct memhnd_t handle);
-
-void* memman_temp_alloc_sys_call(const uint32 alignment, const uint32 total_size);
 
 #endif //MEMORY_MEM_MAN_INTERFACE_H

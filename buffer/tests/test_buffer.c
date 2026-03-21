@@ -54,7 +54,7 @@ remove_from(buffer_t* const buffer, const uint32 index)
 void
 test_create_buffer(const uint32 capacity)
 {
-    memman_init();
+    
 
     buffer_table_init();
 
@@ -68,13 +68,13 @@ test_create_buffer(const uint32 capacity)
     }));
 
     DEBUG_FPRINT_ALL_ALLOC_MEM();
-    memman_terminate();
+    
 }
 
 void
 test_buffer_fill_remove_insert()
 {
-    memman_init();
+    
 
     buffer_table_init();
 
@@ -119,7 +119,7 @@ test_buffer_fill_remove_insert()
     }));
 
     DEBUG_FPRINT_ALL_ALLOC_MEM();
-    memman_terminate();
+    
 }
 
 void
@@ -128,7 +128,7 @@ test_buffer_different_capacity_buffers()
     print("%s-- -- -- TEST: -- -- --%s\n", GREEN, CLEAR);
     print("%s create different capacity buffers%s\n\n", CYAN, CLEAR);
 
-    memman_init();
+    
 
     buffer_table_init();
 
@@ -221,7 +221,7 @@ test_buffer_different_capacity_buffers()
     buffer_table_destroy();
 
     DEBUG_FPRINT_ALL_ALLOC_MEM();
-    memman_terminate();
+    
 }
 
 void
@@ -230,7 +230,7 @@ test_buffer_remove_elements(const uint32 capacity)
     print("%s-- -- -- TEST: -- -- --%s\n", GREEN, CLEAR);
     print("%s buffer remove elements %s\n\n", CYAN, CLEAR);
 
-    memman_init();
+    
 
     buffer_table_init();
 
@@ -257,7 +257,7 @@ test_buffer_remove_elements(const uint32 capacity)
     }));
 
     DEBUG_FPRINT_ALL_ALLOC_MEM();
-    memman_terminate();
+    
 }
 
 void
@@ -266,7 +266,7 @@ test_buffer_insert_elements(const uint32 capacity)
     print("%s-- -- -- TEST: -- -- --%s\n", GREEN, CLEAR);
     print("%s buffer remove elements %s\n\n", CYAN, CLEAR);
 
-    memman_init();
+    
 
     buffer_table_init();
 
@@ -296,7 +296,7 @@ test_buffer_insert_elements(const uint32 capacity)
     buffer_fprint(buffer);
 
     DEBUG_FPRINT_ALL_ALLOC_MEM();
-    memman_terminate();
+    
 }
 
 void
@@ -305,7 +305,7 @@ test_buffer_realloc()
     print("%s-- -- -- TEST: -- -- --%s\n", GREEN, CLEAR);
     print("%s buffer realloc%s\n\n", CYAN, CLEAR);
 
-    memman_init();
+    
 
     buffer_table_init();
 
@@ -380,7 +380,7 @@ test_buffer_realloc()
 
 
     DEBUG_FPRINT_ALL_ALLOC_MEM();
-    memman_terminate();
+    
 }
 
 void
@@ -389,7 +389,7 @@ test_destroy_buffer()
     print("%s-- -- -- TEST: -- -- --%s\n", GREEN, CLEAR);
     print("%s buffer destroy - (no slabs realease)%s\n\n", CYAN, CLEAR);
 
-    memman_init();
+    
 
     buffer_table_init();
 
@@ -602,7 +602,7 @@ test_destroy_buffer()
 
 
     DEBUG_FPRINT_ALL_ALLOC_MEM();
-    memman_terminate();
+    
 }
 
 void
@@ -611,7 +611,7 @@ test_generic_type_buffer()
     print("%s-- -- -- TEST: -- -- --%s\n", GREEN, CLEAR);
     print("%s test_generic_type_buffer%s\n\n", CYAN, CLEAR);
 
-    memman_init();
+    
 
     buffer_table_init();
 
@@ -643,7 +643,7 @@ test_generic_type_buffer()
 
 
     DEBUG_FPRINT_ALL_ALLOC_MEM();
-    memman_terminate();
+    
 }
 
 void
@@ -652,7 +652,7 @@ test_buffer_free_elem()
     print("%s-- -- -- TEST: -- -- --%s\n", GREEN, CLEAR);
     print("%s test_buffer_find_tail%s\n\n", CYAN, CLEAR);
 
-    memman_init();
+    
 
     buffer_table_init();
 
@@ -683,7 +683,7 @@ test_buffer_free_elem()
     }));
 
     DEBUG_FPRINT_ALL_ALLOC_MEM();
-    memman_terminate();
+    
 }
 
 void // todo
@@ -704,7 +704,7 @@ test_buffer_with_children()
     print("%s-- -- -- TEST: -- -- --%s\n", GREEN, CLEAR);
     print("%s test_buffer_with_children%s\n\n", CYAN, CLEAR);
 
-    memman_init();
+    
 
     buffer_table_init();
 
@@ -751,7 +751,7 @@ test_buffer_with_children()
     // }));
 
     DEBUG_FPRINT_ALL_ALLOC_MEM();
-    memman_terminate();
+    
 }
 
 
@@ -761,7 +761,7 @@ test_buffer_with_children()
 void
 test_buffer_fprint_values()
 {
-    memman_init();
+    
 
     buffer_table_init();
 
@@ -859,5 +859,5 @@ test_buffer_fprint_values()
 #undef TEST_CHAR_ARRAY
 
     DEBUG_FPRINT_ALL_ALLOC_MEM();
-    memman_terminate();
+    
 }

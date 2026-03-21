@@ -42,8 +42,9 @@
 
 enum SLAB_ALLOCATOR {
     SLAB_ALLOCATOR_INSTANCE_INITIAL_COUNT = 8,
-    SLAB_ALLOCATOR_POOL_NUM_PAGES = 8,
-    SLAB_ALLOCATOR_POOLS_COUNT = 32,
+    SLAB_ALLOCATOR_POOL_NUM_PAGES = 16,
+    SLAB_ALLOCATOR_POOL_TABLE_COUNT = 32,
+    SLAB_ALLOCATOR_MCACHE_TABLE_COUNT = 32,
 };
 
 
@@ -77,7 +78,7 @@ enum SLAB_ALLOCATOR_MCACHE_SIZES_IDXS {
     SLAB_ALLOCATOR_SIZE_128_IDX,
     SLAB_ALLOCATOR_SIZE_256_IDX,
     SLAB_ALLOCATOR_SIZE_512_IDX,
-    SLAB_ALLOCATOR_SIZE_1024_IDX, /// this is the current memory page size
+    SLAB_ALLOCATOR_SIZE_1024_IDX,
     SLAB_ALLOCATOR_SIZE_2048_IDX,
     SLAB_ALLOCATOR_SIZE_4096_IDX,
     SLAB_ALLOCATOR_SIZE_8192_IDX,
@@ -109,9 +110,14 @@ typedef uint32 slab_size_t;
 typedef uint16 slab_elems_t; // MAX:65535
 
 struct slab_allocator_instance {
-    memid_t instance_id;
-    salltable_t count;
-    salltable_t size; // TODO:UNUSED
+    struct slab_allocator_pool* pool_table;
+    struct slab_allocator_mcache* mcache_table;
+    uint16 instance_id;
+    // salltable_t count; // TODO:UNUSED
+    // salltable_t size; // TODO:UNUSED
+    uint16 pool_count;
+    uint16 mcache_count;
+    pageid_t reserve_num_pages;
 };
 
 
@@ -119,14 +125,13 @@ struct slab_allocator_instance {
  * small, mid, large,
  * each one have its seperate pool of memory */
 struct slab_allocator_pool {
-    nameid_t name;
-    void* start;
-    uint64 size;
-    pageid_t num_pages;
     memid_t mem_id;
+    uint16 min_mcache_size; // denotes the min sized mcache this pool handles
+    uint16 max_mcache_size; // denotes the max sized mcache this pool handles
+    uint16 mcache_count;
 };
 
-// TODO: remove: slabs_used, slabs_num_pages
+// TODO: remove: slabs_num_pages
 struct slab_allocator_mcache {
     struct flist* slabs_free_list;
     void* slabs_start; // the start of slabs alocated memory
@@ -134,13 +139,12 @@ struct slab_allocator_mcache {
     slab_size_t slab_size; // each slab's size in bytes
     uint16 slabs_capacity; // total slabs count
     uint16 slabs_count; // used/unused slabs count
-    uint16 slabs_used; // used slabs count
     uint16 slabs_num_pages; // number of pages of all the slabs
     struct memhnd_t mem_handle;
     uint8 idx; // index in the mcaches table
     uint8 is_active; // the stored objects type
 
-    char_buf16_t name; // todo: later use indexed string buffer
+    const char* name; // todo: later use indexed string buffer
 };
 
 #endif // ALLOCATORS_SLAB_ALLOCATOR_STRUCT_H

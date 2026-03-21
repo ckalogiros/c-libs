@@ -34,7 +34,7 @@ file_sys_push(void* const value, typesize_t typesize, const enum TYPES type, voi
     if(!debug_all_values_buffer) {
         file_sys_debug_init(); // Initialize if not already done
     }
-    print("-- address:%016llx\n", address);
+    // print("-- address:%016llx\n", address);
 
     fsdebug* d = (fsdebug*) debug_all_values_buffer;
 
@@ -267,8 +267,7 @@ file_sys_exists(void* address)
 void
 file_sys_test()
 {
-    memman_init();
-    string_init_table();
+    string_init_table(2);
     const uint8 x8 = 8;
     const uint16 x16 = 16;
     const uint32 x32 = 32;
@@ -280,27 +279,27 @@ file_sys_test()
     void* fnptr = &file_sys_test;
     uint32 size = 0;
 
-    file_sys_push(&x8, sizeof(uint8), TYPE_UINT8, &x8);
+    file_sys_push((void*)&x8, sizeof(uint8), TYPE_UINT8, (void*)&x8);
     size += sizeof(uint8);
-    file_sys_push(&x16, sizeof(uint16), TYPE_UINT16, &x16);
+    file_sys_push((void*)&x16, sizeof(uint16), TYPE_UINT16, (void*)&x16);
     size += sizeof(uint16);
-    file_sys_push(&x32, sizeof(uint32), TYPE_UINT32, &x32);
+    file_sys_push((void*)&x32, sizeof(uint32), TYPE_UINT32, (void*)&x32);
     size += sizeof(uint32);
-    file_sys_push(&x64, sizeof(uint64), TYPE_UINT64, &x64);
+    file_sys_push((void*)&x64, sizeof(uint64), TYPE_UINT64, (void*)&x64);
     size += sizeof(uint64);
-    file_sys_push(&f, sizeof(float), TYPE_FLOAT, &f);
+    file_sys_push((void*)&f, sizeof(float), TYPE_FLOAT, (void*)&f);
     size += sizeof(float);
-    file_sys_push(&d, sizeof(double), TYPE_DOUBLE, &d);
+    file_sys_push((void*)&d, sizeof(double), TYPE_DOUBLE, (void*)&d);
     size += sizeof(double);
-    file_sys_push(str, strlen(str) + 1, TYPE_CHAR_PTR, str);
+    file_sys_push((void*)str, strlen(str) + 1, TYPE_CHAR_PTR, (void*)str);
     size += strlen(str);
-    file_sys_push(ptr, sizeof(char*), TYPE_POINTER, ptr);
+    file_sys_push((void*)ptr, sizeof(char*), TYPE_POINTER, (void*)ptr);
     size += sizeof(char*);
-    file_sys_push(fnptr, sizeof(void*), TYPE_FUNC_PTR, fnptr);
+    file_sys_push((void*)fnptr, sizeof(void*), TYPE_FUNC_PTR, (void*)fnptr);
     size += sizeof(void*);
 
     struct fs_t* fs = fs_create("debug_with_info");
-    void* from = &x8;
+    void* from = (void*)&x8;
 
     from = (void*) ROUND_DOWN((uint64)from, 64);
     size = ROUND_UP(size, 64);
@@ -308,13 +307,11 @@ file_sys_test()
     fs_append_mem_with_msg(fs, from, size, "");
     // file_sys_retrieve();
 
-    memman_terminate();
 }
 
 void
 file_sys_test2()
 {
-    memman_init();
 
     // {
     //     buffer_table_init();
@@ -335,14 +332,14 @@ file_sys_test2()
     // }
 
     { // string: create
-        string_init_table();
+        string_init_table(2);
         struct fs_t* fs = fs_create("debug_with_info");
         void* from = NULL;
         uint64 size = 0;
         for(uint32 i = 0; i < 4; i++) {
             // allocate new buffer
             string_t* str = string_create("HELLO WORLD!");
-            file_sys_push(str->data, str->len + 1, TYPE_CHAR_PTR, str);
+            file_sys_push((void*)str->data, str->len + 1, TYPE_CHAR_PTR, (void*)str);
 
 
             if(!from) from = str;
@@ -353,6 +350,4 @@ file_sys_test2()
         fs_append_mem_with_msg(fs, from, size, msg);
     }
 
-
-    memman_terminate();
 }

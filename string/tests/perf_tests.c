@@ -11,6 +11,7 @@
 #include "logger.h"
 #include "precision_timer.h"
 #include "precision_timer_logger.h"
+#include "string_internals.h"
 
 #define tests_print_string(str, realloc_iter)\
 print("string:%s\nlen:%u\nsize:%u\ntotal size:%u\nself size:%u\nrealloc_iter:%u\n",\
@@ -19,6 +20,8 @@ str->data,str->len,str->size, str->len+str->self_size, str->self_size, realloc_i
 void
 perf_test_string_set(void)
 {
+    string_container_init(2);
+
     /* If measuring performance, with a high count of repeats,
      * dissable file print to avoid writing too much data to the file */
     const uint32 repeat = 1000000;
@@ -69,6 +72,7 @@ perf_test_string_append(void)
 #define empty_string(str) { str = string_empty(str); realloc_iter++; }
 // #define empty_string(str) {str->len = 0;}
 
+    string_container_init(2);
 
 
     /* If measuring performance, with a high count of repeats,

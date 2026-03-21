@@ -15,7 +15,7 @@
 #include "logger.h"
 #include "mem_man_interface.h"
 #include "my_macros.h"
-#include "../../../g_includes/alignment.h"
+#include "alignment.h"
 
 enum STACK_ALLOCATOR {
     STACK_ALLOCATOR_INSTANCE_INITIAL_TABLE_SIZE = 64,
@@ -33,6 +33,9 @@ static uint32 table_count = 0;
 memid_t
 stack_allocator_create_new_instance(const pageid_t num_pages)
 {
+    print("%s###################################################\n"
+      "STACK CREATE NEW INSTANCE: %s\n", br3, CLEAR);
+
     const uint32 struct_type_size = sizeof(struct stack_allocator_instance);
 
     /* case first time stack allocator instance creation */
@@ -43,12 +46,12 @@ stack_allocator_create_new_instance(const pageid_t num_pages)
     /* create memory for allocator's offsets table */
     const uint32 offsets_table_alignment = struct_type_size;
     const int32 offsets_table_num_pages = STACK_ALLOCATOR_INSTANCE_INITIAL_NUM_PAGES;
-    const memid_t offsets_table_memid = memman_alloc_create(offsets_table_num_pages, offsets_table_alignment);
+    const memid_t offsets_table_memid = memman_allocate_block(offsets_table_num_pages, offsets_table_alignment, "stack_allocator: offsets table");
     void* const offsets_table_address = memman_get_mem_start_by_memid(offsets_table_memid);
 
     /* create memory for data storage */
     const uint32 data_alignment = PAGE_SIZE;
-    const memid_t data_memid = memman_alloc_create(num_pages, data_alignment);
+    const memid_t data_memid = memman_allocate_block(num_pages, data_alignment, "stack_allocator: data storage");
     void* const data_address = memman_get_mem_start_by_memid(data_memid);
 
     /* FOR DEBUG */
@@ -57,10 +60,10 @@ stack_allocator_create_new_instance(const pageid_t num_pages)
     struct stack_allocator_instance inst = {
 
         /* internal storage: offsets table */
-        .table_start = offsets_table_address,
+        .offsets_table_start = offsets_table_address,
         .instance_id = offsets_table_memid,
-        .table_size = offsets_table_num_pages * PAGE_SIZE,
-        .table_count = 0,
+        .offsets_table_size = offsets_table_num_pages * PAGE_SIZE,
+        .offsets_table_count = 0,
         .stack_ptr_offset = 0, /* points to offsets table [0]*/
 
         .data = { /* data storage */
@@ -77,12 +80,12 @@ stack_allocator_create_new_instance(const pageid_t num_pages)
         const memoffset_t val = (ASCII_F << 8) | ASCII_R; /* ascii:"FR" */
 
         /* calculate the rest of the allocated memory, in size of address offsets */
-        const uint32 len = (inst.table_size / sizeof(memoffset_t));
+        const uint32 len = (inst.offsets_table_size / sizeof(memoffset_t));
         memoffset_t offset = inst.stack_ptr_offset;
 
 
         for(uint32 i = 0; i < len; i++) {
-            char** ptr1 = inst.table_start + offset;
+            char** ptr1 = inst.offsets_table_start + offset;
             *(memoffset_t*) ptr1 = (memoffset_t) val;
             offset += sizeof(memoffset_t);
         }
@@ -104,20 +107,23 @@ stack_allocator_create_new_instance(const pageid_t num_pages)
 void*
 stack_allocator_alloc(const memid_t inst_id, const size_t size, const typesize_t type_size)
 {
+    assert(IS_POWER_OF_2(type_size)); // alignment value must be power of 2
     const uint32 aligned_size = ALIGN(size, type_size);
     struct stack_allocator_instance* instance = &stack_allocator_table[inst_id];
 
-    const char* const sp_addr = (char*)instance->data.start + instance->stack_ptr_offset;
+    /* get stack pointer */
+    const char* sp_addr = (char*)instance->data.start + instance->stack_ptr_offset;
 
-    if(instance->table_count > 0) {
+    /* align: align allocation, and previous allocation's offset */
+    if(instance->offsets_table_count > 0) {
 
-        uint32 prev_count = instance->table_count-1;
+        uint32 prev_count = instance->offsets_table_count-1;
         const uint32 unaligned = align_pointer_to_type(sp_addr, type_size);
         if(unaligned) {
 
-            /* set previous table offset to new alignement */
-            char** offsets_table0 = instance->table_start + (sizeof(memoffset_t) * prev_count);
-            *(memoffset_t*) offsets_table0 += unaligned;
+            /* set table's previous offset to new alignement */
+            char** offsets_table = instance->offsets_table_start + (sizeof(memoffset_t) * prev_count);
+            *(memoffset_t*) offsets_table += unaligned;
 
             /* advance stack pointer to aligned offset */
             instance->stack_ptr_offset += unaligned;
@@ -129,14 +135,15 @@ stack_allocator_alloc(const memid_t inst_id, const size_t size, const typesize_t
 
     void* free_address = (char*) instance->data.start + instance->stack_ptr_offset + padding_size;
 
-    instance->data.used_size += aligned_size;
-    /* advance stack pointer */
-    instance->stack_ptr_offset += aligned_size;
 
-    /* set current table offset to size */
-    char** offsets_table = instance->table_start + (sizeof(memoffset_t) * instance->table_count);
+    /* set current offset to table */
+    char** offsets_table = instance->offsets_table_start + (sizeof(memoffset_t) * instance->offsets_table_count);
     *(memoffset_t*) offsets_table = aligned_size;
-    instance->table_count++;
+
+    instance->data.used_size += aligned_size;
+    /* advance the stack pointer */
+    instance->stack_ptr_offset += aligned_size;
+    instance->offsets_table_count++;
 
     return (void*) free_address;
 }
@@ -146,9 +153,12 @@ stack_allocator_release(const memid_t inst_id)
 {
     struct stack_allocator_instance* instance = &stack_allocator_table[inst_id];
 
-    instance->table_count--;
+    if(instance->offsets_table_count == 0)
+        return NULL;
 
-    memoffset_t offset_size = *(memoffset_t*) (instance->table_start + (sizeof(memoffset_t) * instance->table_count));
+    instance->offsets_table_count--;
+
+    memoffset_t offset_size = *(memoffset_t*) (instance->offsets_table_start + (sizeof(memoffset_t) * instance->offsets_table_count));
     instance->stack_ptr_offset -= offset_size;
     instance->data.used_size -= offset_size;
 

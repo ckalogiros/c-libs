@@ -18,8 +18,6 @@
 void
 test_stack_allocator(void)
 {
-    memman_init();
-
     const memid_t instance_id = stack_allocator_create_new_instance(4);
 
     const char* some_text[] = {
@@ -48,7 +46,7 @@ test_stack_allocator(void)
         print("[%u] %s\n", i, address);
     }
 
-    memman_terminate();
+    
 }
 
 // void test_stack_alignment(const void* ptr, const typesize_t typesize)
@@ -91,8 +89,6 @@ test_stack_allocator(void)
 void
 test_stack_allocator_alignment(void)
 {
-    memman_init();
-
     void* address = NULL;
     const memid_t instance_id = stack_allocator_create_new_instance(4);
     char* start_address = debug_get_stack_allocator_instance_start_address(instance_id);
@@ -342,5 +338,5 @@ test_stack_allocator_alignment(void)
     }
 
 
-    memman_terminate();
+    
 }

@@ -4,10 +4,13 @@
 
 // #include <string.h>
 
+#include <stdio.h>
+
 #include "glad.h"
 #include "GL/glx.h"
 #include "renderer_internal.h"
 #include "logger.h"
+#include "renderer_structs.h"
 #include "sys_utils.h"
 
 
@@ -106,12 +109,12 @@ generate_temp_gfx()
     float quadVertices[] = {
         // positions     // colors
         -0.05f, 0.05f, 1.0f, 0.0f, 0.0f,
-        0.05f, -0.05f, 0.0f, 1.0f, 0.0f,
+         0.05f, -0.05f, 0.0f, 1.0f, 0.0f,
         -0.05f, -0.05f, 0.0f, 0.0f, 1.0f,
 
         -0.05f, 0.05f, 1.0f, 0.0f, 0.0f,
-        0.05f, -0.05f, 0.0f, 1.0f, 0.0f,
-        0.05f, 0.05f, 0.0f, 1.0f, 1.0f
+         0.05f, -0.05f, 0.0f, 1.0f, 0.0f,
+         0.05f, 0.05f, 0.0f, 1.0f, 1.0f
     };
     unsigned int VAO, quadVBO;
     glGenVertexArrays(1, &VAO);

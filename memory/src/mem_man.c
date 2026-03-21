@@ -4,7 +4,6 @@
 #include "file_sys_interface.h"
 #include "mem_man_interface.h"
 #include "mem_man_internals.h"
-#include "stringc.h"
 #include "mem_log/mem_log.h"
 
 
@@ -16,9 +15,9 @@ memman_init(void)
     /* initialize file system files table */
     fs_init_table();
 
-#ifdef MEM_DEBUG_FPRINT_ALL_USE_MEM
-    string_init_table();
-#endif
+// #ifdef MEM_DEBUG_FPRINT_ALL_USE_MEM
+//     string_init_table();
+// #endif
 
     if(!initialized)
         mem_print_error(MEMMAN_ALREADY_INITIALIZED);
@@ -34,24 +33,30 @@ memman_terminate(void)
 }
 
 memid_t
-memman_alloc_create(const uint16 num_pages, const uint32 alignment)
+memman_allocate_block(const uint16 num_pages, const uint32 alignment, const char* info)
 {
-    const memid_t mem_id = mem_create(num_pages, alignment);
+    const memid_t mem_id = mem_allocate_block(num_pages, alignment, info);
+    return mem_id;
+}
+
+memid_t
+memman_deallocate_block(const memid_t memid)
+{
+    const memid_t mem_id = mem_deallocate_block(memid);
     return mem_id;
 }
 
 struct memhnd_t
-memman_alloc_get(const uint16 num_pages, const enum MEM_ID_SELECTOR chunk_selector)
+memman_page_request(const uint16 num_pages, const memid_t memid)
 {
-    const memid_t mem_id = (memid_t) chunk_selector;
-    const struct memhnd_t hnd = mem_alloc(num_pages, mem_id);
+    const struct memhnd_t hnd = mem_page_request(num_pages, memid);
     return hnd;
 }
 
 bool
-memman_alloc_release(const struct memhnd_t hnd)
+memman_page_release(const struct memhnd_t hnd)
 {
-    return mem_release(hnd);
+    return mem_page_release(hnd);
 }
 
 void*
@@ -67,8 +72,3 @@ memman_get_alloc_mem_by_handle(const struct memhnd_t handle)
     return mem_get_addr_by_handle(handle);
 }
 
-void*
-memman_temp_alloc_sys_call(const uint32 alignment, const uint32 total_size)
-{
-    return mem_temp_alloc_sys_call(alignment, total_size);
-}

@@ -3,10 +3,11 @@
  */
 #ifndef STRING_STRING_INTERNALS_H
 #define STRING_STRING_INTERNALS_H
+#include "mem_man_structs.h"
 #include "string_struct.h"
 
 
-void string_container_init(void);
+void string_container_init(const pageid_t reserve_num_pages);
 
 void string_container_destroy(void);
 

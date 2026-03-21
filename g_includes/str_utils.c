@@ -14,7 +14,7 @@
  **************************************************************************************************/
 
 char* /* up to 32bit integer to string conversion */
-str_conv_int32_to_str(char buffer[INT32_TO_STR_BUFFER_SIZE], const int32 number)
+str_conv_int32_to_str(const char buffer[INT32_TO_STR_BUFFER_SIZE], const int32 number)
 {
     char* ptr = buffer;
     unsigned int num;
@@ -42,7 +42,7 @@ str_conv_int32_to_str(char buffer[INT32_TO_STR_BUFFER_SIZE], const int32 number)
     return buffer;
 }
 char*
-str_concat_int32_to_str(char* dest, const uint16 dest_size, const int32 number)
+str_concat_int32_to_str(const char* dest, const uint16 dest_size, const int32 number)
 {
     uint32 dest_len = strlen(dest);
     char* ptr = dest + dest_len;
@@ -76,7 +76,7 @@ str_concat_int32_to_str(char* dest, const uint16 dest_size, const int32 number)
 
 
 char* /* up to 64bit integer to string conversion */
-str_conv_int64_to_str(char buffer[INT64_TO_STR_BUFFER_SIZE], const int64 number)
+str_conv_int64_to_str(const char buffer[INT64_TO_STR_BUFFER_SIZE], const int64 number)
 {
     char* ptr = buffer;
     unsigned int num;

@@ -17,6 +17,8 @@ void print_mem_hex(const uint32 size, char* address);
 
 void print_test(const char* name, const char* format, ...);
 
+void print_implement(const char* function_name, const char* file_name, const uint32 line_number);
+
 void logger_test_variadic(const uint32 args_count, ...);
 
 /* ***************

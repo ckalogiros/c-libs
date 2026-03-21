@@ -8,13 +8,15 @@
 #include "slab_allocator_log.h"
 
 void*
-slab_allocator_alloc(const slab_elems_t num_elems, const uint16 type_size)
+slab_allocator_alloc(const salltable_t inst_id, const slab_elems_t num_elems,
+    const uint16 type_size, const char* name)
 {
     const slab_size_t slab_size_bytes = num_elems * type_size;
-    struct slab_allocator_mcache* mcache = mcache_find_size(slab_size_bytes);
+
+    struct slab_allocator_mcache* mcache = mcache_find_size(inst_id, slab_size_bytes);
 
     if(!mcache)
-        mcache = slab_allocator_create_mcache(num_elems, type_size);
+        mcache = slab_allocator_create_mcache(inst_id, num_elems, type_size, name);
 
     /* get next free slab */
     struct flist* free_slab = mcache_alloc_slab(mcache);
@@ -23,11 +25,11 @@ slab_allocator_alloc(const slab_elems_t num_elems, const uint16 type_size)
 }
 
 void
-slab_allocator_release(void* ptr, const slab_elems_t size, const uint16 type_size)
+slab_allocator_release(const salltable_t inst_id, void* ptr, const slab_elems_t size, const uint16 type_size)
 {
     const slab_size_t slab_size = size * type_size;
 
-    struct slab_allocator_mcache* mcache = mcache_find_size(slab_size);
+    struct slab_allocator_mcache* mcache = mcache_find_size(inst_id, slab_size);
 
     if(!mcache) /* handle error: cache not found */
         slab_allocator_print_error(SLAB_ALLOCATOR_MEMCACHE_NOT_FOUND);

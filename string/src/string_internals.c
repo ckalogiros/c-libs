@@ -25,9 +25,9 @@ static inline strlen_t string_get_self_size() { return sizeof(string_t) - sizeof
 
 
 void
-string_container_init(void)
+string_container_init(const pageid_t reserve_num_pages)
 {
-    allocator_instance_id = slab_allocator_create_new_instance(2, "string_container_init()");
+    allocator_instance_id = slab_allocator_create_new_instance(reserve_num_pages, "string_container_init()");
     // allocator_instance_id = stack_allocator_create_new_instance(4);
 }
 
@@ -56,7 +56,7 @@ string_constructor(const char* str, const strlen_t size)
     /* alloc storage for bufer data */
     void* data_ptr = NULL;
 
-    data_ptr = slab_allocator_alloc(max_size, sizeof(char));
+    data_ptr = slab_allocator_alloc(allocator_instance_id, max_size, sizeof(char), "string_constructor()");
     // data_ptr = stack_allocator_alloc(allocator_instance_id, max_size);
 
     string_t* string = data_ptr;
@@ -78,14 +78,14 @@ string_destructor(string_t* string)
 {
     // Release string's data slab
     // string_slab_alloc_release(string->data, string->size);
-    slab_allocator_release(string->data, string->size, sizeof(char));
+    slab_allocator_release(allocator_instance_id, string->data, string->size, sizeof(char));
 
     /* DEBUG-FPRINT
      * write a string to string's->data memory
      * CAN COLOR MEMORY FOR SLAB SIZE > 8 BYTES */
     if(string->len > 8) {
         char_buf16_t dinfo;
-        char_buf16_copy_from_str("EMPTY", &dinfo);
+        char_buf16_copy_from_str(&dinfo, "EMPTY");
         // char inttostr[INT32_TO_STR_BUFFER_SIZE];
         // str_conv_int32_to_str(inttostr, string->id);
         // str_concat_memcpy(dinfo.buf, inttostr, 16);
@@ -109,14 +109,14 @@ string_release(string_t* string)
 {
     /* Release string's data (slab) */
     // string_slab_alloc_release(string->data, string->size);
-    slab_allocator_release(string->data, string->size, sizeof(char));
+    slab_allocator_release(allocator_instance_id, string->data, string->size, sizeof(char));
 
 
     /* DEBUG-FPRINT
      * write a string to string's->data memory
      */
     char_buf16_t dinfo;
-    char_buf16_copy_from_str("DESTROYED ID:", &dinfo);
+    char_buf16_copy_from_str(&dinfo, (const char*)"DESTROYED ID:");
     // char inttostr[INT32_TO_STR_BUFFER_SIZE];
     // str_conv_int32_to_str(inttostr, string->id);
     // str_concat_memcpy(dinfo.buf, inttostr, 16);
@@ -147,7 +147,7 @@ string_reallocate(string_t* string, const strlen_t len, bool copy)
 
     assert("IMPLEMENT realloc() for stack allocator" > 0);
     void* data_ptr = NULL;
-    data_ptr = slab_allocator_alloc(max_size, sizeof(char));
+    data_ptr = slab_allocator_alloc(allocator_instance_id, max_size, sizeof(char), "string_reallocate()");
     // stack_allocator_release(allocator_instance_id);
     // data_ptr = stack_allocator_alloc(allocator_instance_id, max_size, sizeof(char));
 
@@ -157,7 +157,7 @@ string_reallocate(string_t* string, const strlen_t len, bool copy)
     memset((void*)data_ptr, 0, max_size);
     if(copy) memcpy((void*)data_ptr, string, string->len + string->self_size);
 
-    slab_allocator_release(string->data, string->size, sizeof(char));
+    slab_allocator_release(allocator_instance_id, string->data, string->size, sizeof(char));
     // stack_allocator_release(allocator_instance_id);
 
     string = data_ptr;

@@ -64,7 +64,7 @@ perf_test_buffer_create_generic_vs_uint32(void)
           "uint32 buffer versus generic buffer.%s\n\n", CYAN, CLEAR);
 
     const uint32_t num_pages = 16;
-    memman_init();
+    
 
     buffer_table_init();
 
@@ -228,7 +228,7 @@ perf_test_buffer_create_generic_vs_uint32(void)
         perf_timer_reset(t);
     }
 
-    memman_terminate();
+    
 }
 
 /*******************************************************************************
@@ -239,7 +239,7 @@ perf_test_buffer_create_generic_vs_uint32(void)
 void
 perf_test_buffer_remove_insert(void)
 {
-    memman_init();
+    
 
     const uint32 repeat = 1000000;
     // const uint32 repeat = 2000;
@@ -316,7 +316,7 @@ perf_test_buffer_remove_insert(void)
     }));
     perf_timer_reset(t);
 
-    memman_terminate();
+    
 }
 
 
@@ -341,7 +341,7 @@ perf_test_insert_abstruct_call(void)
           " from inside the loop\n compare to push via function\n using  the buffer id%s\n\n",
           ry, CLEAR);
 
-    memman_init();
+    
 
 
     buffer_table_init();
@@ -404,7 +404,7 @@ perf_test_insert_abstruct_call(void)
 
     print("%s-- TEST: --\n", ry, CLEAR);
 
-    memman_terminate();
+    
 }
 
 
@@ -456,7 +456,7 @@ perf_test_buffer_find_tail(void)
     print("%s test_buffer_find_tail%s\n\n", CYAN, CLEAR);
 
     const uint32_t num_pages = 15;
-    memman_init();
+    
 
     buffer_table_init();
 
@@ -573,7 +573,7 @@ perf_test_buffer_find_tail(void)
     }
 
 
-    memman_terminate();
+    
 }
 
 
@@ -603,7 +603,7 @@ perf_test_buffer_mixed_capacities_add(void)
     print("%s perf_test_buffer_mixed_capacities_add%s\n\n", CYAN, CLEAR);
     print("%s description%s\n%s\n\n", ry, CLEAR, description);
 
-    memman_init();
+    
 
     buffer_table_init();
     timer_init_table();
@@ -694,7 +694,7 @@ perf_test_buffer_mixed_capacities_add(void)
 
     debug_mem_corrupted(MEM_ID_ALLOCATOR_SLAB);
 
-    memman_terminate();
+    
 }
 
 void
@@ -713,7 +713,7 @@ perf_test_buffer_mixed_capacities_add_remove(void)
     print("%s perf_test_buffer_mixed_capacities_add_remove%s\n\n", CYAN, CLEAR);
     print("%s description%s\n%s\n\n", ry, CLEAR, description);
 
-    memman_init();
+    
 
     buffer_table_init();
     timer_init_table();
@@ -809,7 +809,7 @@ perf_test_buffer_mixed_capacities_add_remove(void)
 
     debug_mem_corrupted(MEM_ID_ALLOCATOR_SLAB);
 
-    memman_terminate();
+    
 }
 
 
@@ -840,7 +840,7 @@ perf_test_buffer_with_children_add_remove(void)
     print("%s perf_test_buffer_with_children_add_remove%s\n\n", CYAN, CLEAR);
     print("%s description%s\n%s\n\n", ry, CLEAR, description);
 
-    memman_init();
+    
 
     buffer_table_init();
     timer_init_table();
@@ -964,7 +964,7 @@ perf_test_buffer_with_children_add_remove(void)
 
     debug_mem_corrupted(MEM_ID_ALLOCATOR_SLAB);
 
-    memman_terminate();
+    
 }
 
 void // test buffer with children, and check memory for correctness. Add, mixed capacities.
@@ -992,7 +992,7 @@ perf_test_buffer_mixed_capacities_with_children_add(void)
     print("%s perf_test_buffer_mixed_capacities_with_children_add%s\n\n", CYAN, CLEAR);
     print("%s description%s\n%s\n\n", ry, CLEAR, description);
 
-    memman_init();
+    
 
     buffer_table_init();
     timer_init_table();
@@ -1093,7 +1093,7 @@ perf_test_buffer_mixed_capacities_with_children_add(void)
 
     debug_mem_corrupted(MEM_ID_ALLOCATOR_SLAB);
 
-    memman_terminate();
+    
 }
 
 void // test buffer with children, and check memory for correctness. Add remove, mixed capacities.
@@ -1121,7 +1121,7 @@ perf_test_buffer_mixed_capacities_with_children_add_remove(void)
     print("%s perf_test_buffer_mixed_capacities_with_children_add_remove%s\n\n", CYAN, CLEAR);
     print("%s description%s\n%s\n\n", ry, CLEAR, description);
 
-    memman_init();
+    
 
     buffer_table_init();
     timer_init_table();
@@ -1248,7 +1248,7 @@ perf_test_buffer_mixed_capacities_with_children_add_remove(void)
 
     debug_mem_corrupted(MEM_ID_ALLOCATOR_SLAB);
 
-    memman_terminate();
+    
 }
 
 void // test buffer with children. All buffers with different (slab) capacities
@@ -1258,7 +1258,7 @@ perf_test_buffer_with_children_in_dif_slabs(void)
     print("%s test_buffer_with_children%s\n", CYAN, CLEAR);
     print("%s DIFFERENT BUFFER CAPACITIES FOR CHILDREN%s\n\n", CYAN, CLEAR);
 
-    memman_init();
+    
 
     buffer_table_init();
     timer_init_table();
@@ -1339,5 +1339,5 @@ perf_test_buffer_with_children_in_dif_slabs(void)
 
     TEMP_PRINT_BUFFER_TABLE_COUNT();
 
-    memman_terminate();
+    
 }

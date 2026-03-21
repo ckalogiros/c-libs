@@ -5,12 +5,10 @@
 #ifndef MEMORY_TESTS_H
 #define MEMORY_TESTS_H
 
-#include "mem_structs.h"
+#include "mem_man_structs.h"
 #include "my_types.h"
 
-void test_mem_alloc(const pageid_t num_pages);
-
-void test_mem_alloc1(void);
+void test_mem_alloc(void);
 
 void test_alloc_release_insequence(const pageid_t num_pages, const bool print_list);
 

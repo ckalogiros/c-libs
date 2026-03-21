@@ -5,13 +5,14 @@
 #include "stringc.h"
 #include <string.h>
 #include "logger.h"
+#include "mem_man_structs.h"
 #include "string_internals.h"
 
 
 void
-string_init_table(void)
+string_init_table(const pageid_t reserve_num_pages)
 {
-    string_container_init();
+    string_container_init(reserve_num_pages);
 }
 
 void

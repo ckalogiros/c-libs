@@ -7,7 +7,7 @@
 #include "my_types.h"
 
 static inline uint64
-align_pointer_to_type(void* ptr, const typesize_t type_size)
+align_pointer_to_type(const void* ptr, const typesize_t type_size)
 {
     assert(ptr);
 

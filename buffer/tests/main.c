@@ -17,10 +17,11 @@
 int
 main(void)
 {
+    memman_init();
     {
         // test_create_buffer(256);
         // test_buffer_fill_remove_insert();        // todo: impl test
-        // test_buffer_different_capacity_buffers(); // todo: impl test
+        test_buffer_different_capacity_buffers(); // todo: impl test
         // test_buffer_remove_elements(256);        // todo: impl test
         // test_buffer_insert_elements(256);        // todo: impl test
         // test_buffer_realloc();                   // todo: impl test
@@ -50,10 +51,10 @@ main(void)
     { /* test debugging buffer values to a file */
         // file_sys_test();
         // file_sys_test2();
-        test_buffer_fprint_values();
+        // test_buffer_fprint_values();
     }
 
 
-
+    memman_terminate();
     return 0;
 }

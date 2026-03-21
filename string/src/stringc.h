@@ -5,10 +5,11 @@
 #define STRING_STRING_H
 
 
+#include "mem_man_structs.h"
 #include "string_struct.h"
 
 
-void string_init_table(void);
+void string_init_table(const pageid_t reserve_num_pages);
 
 void string_destroy_table(void);
 

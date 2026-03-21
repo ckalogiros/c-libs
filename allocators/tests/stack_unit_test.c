@@ -23,8 +23,8 @@ test_create_instance_basic()
     assert(inst->data.size == TEST_NUM_PAGES * PAGE_SIZE);
     assert(inst->data.used_size == 0);
     assert(inst->stack_ptr_offset == 0);
-    assert(inst->table_count == 0);
-    assert(inst->table_size == debug_get_stack_allocator_init_instance_num_pages());
+    assert(inst->offsets_table_count == 0);
+    assert(inst->offsets_table_size == debug_get_stack_allocator_init_instance_num_pages());
 
     print_test_result("test_create_instance_basic", TRUE, __FILE__, __LINE__, "");
 }
@@ -42,7 +42,7 @@ test_single_allocation()
     assert(ptr == inst->data.start); // First allocation should be at start
     assert(inst->data.used_size == alloc_size);
     assert(inst->stack_ptr_offset == alloc_size);
-    assert(inst->table_count == 1);
+    assert(inst->offsets_table_count == 1);
 
     print_test_result("test_single_allocation", TRUE, __FILE__, __LINE__, "");
 }
@@ -70,7 +70,7 @@ test_multiple_allocations()
     size_t total = sizes[0] + sizes[1] + sizes[2] + sizes[3];
     assert(inst->data.used_size == total);
     assert(inst->stack_ptr_offset == total);
-    assert(inst->table_count == 4);
+    assert(inst->offsets_table_count == 4);
 
     print_test_result("test_multiple_allocations", TRUE, __FILE__, __LINE__, "");
 }
@@ -92,17 +92,17 @@ test_release_lifo_order()
     void* released3 = stack_allocator_release(inst_id);
     assert(released3 == ptr3);
     assert(inst->data.used_size == before_used - 150);
-    assert(inst->table_count == 2);
+    assert(inst->offsets_table_count == 2);
 
     void* released2 = stack_allocator_release(inst_id);
     assert(released2 == ptr2);
     assert(inst->data.used_size == before_used - 350);
-    assert(inst->table_count == 1);
+    assert(inst->offsets_table_count == 1);
 
     void* released1 = stack_allocator_release(inst_id);
     assert(released1 == ptr1);
     assert(inst->data.used_size == 0);
-    assert(inst->table_count == 0);
+    assert(inst->offsets_table_count == 0);
     assert(inst->stack_ptr_offset == 0);
 
     print_test_result("test_release_lifo_order", TRUE, __FILE__, __LINE__, "");
@@ -121,7 +121,7 @@ test_zero_size_allocation()
 
     assert(ptr == inst->data.start); // Should still return a valid pointer?
     assert(inst->data.used_size == before_used); // Should not change?
-    assert(inst->table_count == 1); // Should it track zero-size allocations?
+    assert(inst->offsets_table_count == 1); // Should it track zero-size allocations?
 
     print_test_result("test_zero_size_allocation", TRUE, __FILE__, __LINE__, "");
 }
@@ -131,11 +131,9 @@ test_release_on_empty_allocator()
 {
     memid_t inst_id = stack_allocator_create_new_instance(TEST_NUM_PAGES);
 
-    // This should probably fail gracefully
+    // should return NULL
     void* ptr = stack_allocator_release(inst_id);
-
-    void* new_ptr = stack_allocator_alloc(inst_id, 128, sizeof(SOME_TYPE));
-    assert(ptr == new_ptr); // Or some error indicator
+    assert(ptr == NULL); // Or some error indicator
 
     print_test_result("test_release_on_empty_allocator", TRUE, __FILE__, __LINE__, "");
 }
@@ -240,12 +238,10 @@ test_multiple_instances()
 
 /*Test Runner*/
 void
-unit_test_runner_stack_allocator()
+unit_test_runner_stack_allocator(void)
 {
     print("Running Stack Allocator Tests\n");
     print("==============================\n\n");
-
-    memman_init();
 
     test_create_instance_basic();
     test_single_allocation();
@@ -260,7 +256,6 @@ unit_test_runner_stack_allocator()
 
     print("\n✓ All tests completed\n");
 
-    memman_terminate();
 }
 
 #undef SOME_TYPE

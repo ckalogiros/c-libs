@@ -5,7 +5,6 @@
 #define FILE_SYS_FILE_SYS_INTERFACE_H
 
 #define HOME_DIR "/home/ckalo/data/projects/clion/Debug/"
-#include "mem_structs.h"
 #include "my_types.h"
 
 struct fs_t;
@@ -28,7 +27,7 @@ void fs_append_mem(struct fs_t* fs, const char* ptr, const uint64 size, const ch
 
 void fs_fprint_all_allocated_mem(const char* filename);
 
-void fs_fprint_all_used_mem(const char* filename, const memid_t memid);
+void fs_fprint_all_used_mem(const char* filename);
 
 void fs_append_mem_with_msg(struct fs_t* fs, const char* ptr, const uint64 size, const char* msg);
 

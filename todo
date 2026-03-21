@@ -1,11 +1,15 @@
 TODO: create {"use of", "refference"} .md files for allocators
 #################################################################################
 implement a generic pool allocator for use of:
+#################################################################################
+1. finish tests for memory manager
+2. implement realloc()
+3. implement memory copy with intrinsics __m128, etc
+#################################################################################
  large text
  large objects that do not need locality(aren't important)
  any other none important object
 #################################################################################
-
 allocate memory for all tables from the memory manager
 slab_allocator mcache, string mcache, buffer table, timer table, etc
 find all aligned_alloc() and:
@@ -20,17 +24,17 @@ create key-value pairs data structure.
 create tree views - list views
     based on buffer container
 #################################################################################
-
+create trie prefix-tree 
 #################################################################################
 implement file read-write, for reading variables
 #################################################################################
-implement bitfields(seperate project)    
+
 #################################################################################
-implement serializatio, reading variables to 2 buffers
+implement serialization, reading variables to 2 buffers
 34  text0  1,34, 0xffdd
 int string float pointer
 #################################################################################
-    should allocators implement realloc() that callc release() also???
+should allocators implement realloc() that callc release() also???
 #################################################################################
 
 

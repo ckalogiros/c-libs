@@ -3,7 +3,7 @@
  */
 
 #include "mem_log.h"
-#include "mem_structs.h"
+#include "mem_man_structs.h"
 #include "mem_man_interface.h"
 #include "logger.h"
 #include "sys_utils.h"
@@ -32,7 +32,7 @@ mem_log_print_terminate_mem(void)
 }
 
 void
-mem_log_print_mem(const struct mem* const mem)
+mem_log_print_mem(const struct mem_block* const mem)
 {
 #ifdef DEBUG_PRINT_MEM
     print("-- %smemory%s --\n", ry, CLEAR);
@@ -40,7 +40,7 @@ mem_log_print_mem(const struct mem* const mem)
         " size bytes:  %s%lu, %lukb%s\n"
         " data size:   %s%lu, %lukb%s\n"
         " total pages: %s%u%s\n"
-        " mem start:      %s%x%s\n"
+        " mem_block start:      %s%x%s\n"
         " data start:     %s%x%s\n"
         " last page:      %s%x%s\n"
         " unauth page:    %s%x%s\n",
@@ -49,7 +49,7 @@ mem_log_print_mem(const struct mem* const mem)
         YELLOW, mem->num_pages, CLEAR,
         CYAN, REDUCE_ADDR((char*)mem->start, F6), CLEAR,
         CYAN, REDUCE_ADDR((char*)mem->start + mem->data_size, F6), CLEAR,
-        CYAN, REDUCE_ADDR((char*)mem->start + mem->size - mem->bound_check_size, F6), CLEAR,
+        CYAN, REDUCE_ADDR((char*)mem->start + mem->size - mem->poison_data_size, F6), CLEAR,
         CYAN, REDUCE_ADDR((char*)mem->start + mem->size, F6), CLEAR
     );
 
@@ -135,7 +135,7 @@ mem_print_error(const enum MEMORY_ERROR_CODE code)
                   "There is no free memory%s\n",
                   RED, CLEAR
             );
-            my_exit("NO FREE MEMORY", __FILE__, __LINE__);
+            // my_exit("NO FREE MEMORY", __FILE__, __LINE__);
             break;
         }
         case MEMMAN_ALREADY_INITIALIZED: {

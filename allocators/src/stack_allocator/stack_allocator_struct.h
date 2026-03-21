@@ -4,7 +4,7 @@
 #ifndef ALLOCATORS_STACK_ALLOCATOR_STRUCT_H
 #define ALLOCATORS_STACK_ALLOCATOR_STRUCT_H
 
-#include "mem_structs.h"
+#include "mem_man_structs.h"
 
 typedef uint16 memoffset_t;
 
@@ -16,10 +16,10 @@ struct stack_allocator_data {
 };
 
 struct stack_allocator_instance {
-    void* table_start; // memory address
+    void* offsets_table_start; // memory address
     memid_t instance_id; // memory manager's table index
-    memoffset_t table_size; // allocated memory block size
-    memoffset_t table_count; // num allocations
+    memoffset_t offsets_table_size; // allocated memory block size
+    memoffset_t offsets_table_count; // num allocations
     memoffset_t stack_ptr_offset;
 
     struct stack_allocator_data data;

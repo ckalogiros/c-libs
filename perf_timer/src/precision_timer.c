@@ -1,6 +1,6 @@
-//
-// Created by ckalo on 12/28/25.
-//
+/*
+ * Created by ckalo on 12/28/25.
+ */
 
 #include "precision_timer.h"
 #include "buffer.h"
@@ -9,8 +9,6 @@
 #include "logger.h"
 #include "sys_utils.h"
 #include <time.h>
-
-#include "mem_structs.h"
 #include "slab_allocator_internals.h"
 
 

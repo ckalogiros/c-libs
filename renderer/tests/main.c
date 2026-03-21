@@ -2,6 +2,7 @@
 
 #include "renderer.h"
 #include "renderer_internal.h"
+#include "test_window.h"
 
 // void init_dprint ()
 // {
@@ -19,32 +20,30 @@ int
 main(void)
 {
 
-    // create file for debug-print
+    {
+        // create file for debug-print
 
 
-    // glutDisplayFunc(MainLoopStep);
-    //
-    // // Setup Dear ImGui context
-    // IMGUI_CHECKVERSION();
-    // ImGui::CreateContext();
-    // ImGuiIO& io = ImGui::GetIO(); (void)io;
-    // io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-    //
-    // ImGui_ImplGLUT_Init();
-    // ImGui_ImplOpenGL2_Init();
-    //
-    // ImGui_ImplGLUT_InstallFuncs();
+        // glutDisplayFunc(MainLoopStep);
+        //
+        // // Setup Dear ImGui context
+        // IMGUI_CHECKVERSION();
+        // ImGui::CreateContext();
+        // ImGuiIO& io = ImGui::GetIO(); (void)io;
+        // io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+        //
+        // ImGui_ImplGLUT_Init();
+        // ImGui_ImplOpenGL2_Init();
+        //
+        // ImGui_ImplGLUT_InstallFuncs();
 
-    // create renderer
-    // create window
-    struct os_window *os_win = renderer_create_x11_window(500, 100, 800, 600);
+        // create renderer
+        // create window
+        struct os_window *os_win = renderer_create_x11_window(500, 100, 800, 600);
 
-    render(os_win);
+        render(os_win);
+    }
 
-
-    // create a mesh
-    // set up....
-    // call renderloop
-
+    // test_window_create();
     return 0;
 }

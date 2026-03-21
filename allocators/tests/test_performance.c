@@ -40,11 +40,12 @@ timer_print(struct timer* t, const uint32 repeat, const uint32 num_allocations,
 void
 test_perf_slab_allocation_release()
 {
-    memman_init();
     const uint32 repeat = 1000;
     const uint32 num_allocations = 8;
 
     struct timer* t = timer_create_perf_timer();
+
+    uint16 slab_inst_id = slab_allocator_create_new_instance(4, "test_mem_cache_alloc_release_slabs");
 
     {
         const uint32 buffer_size = 32;
@@ -70,23 +71,23 @@ test_perf_slab_allocation_release()
 
         perf_timer_start(t);
         for(uint32 r = 0; r < repeat; r++) {
-            uint32* buffer32_1 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
-            uint32* buffer32_2 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
-            uint32* buffer32_3 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
-            uint32* buffer32_4 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
-            uint32* buffer32_5 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
-            uint32* buffer32_6 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
-            uint32* buffer32_7 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
-            uint32* buffer32_8 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
+            uint32* buffer32_1 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+            uint32* buffer32_2 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+            uint32* buffer32_3 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+            uint32* buffer32_4 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+            uint32* buffer32_5 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+            uint32* buffer32_6 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+            uint32* buffer32_7 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+            uint32* buffer32_8 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
 
-            slab_allocator_release(buffer32_8, buffer_size, type_size);
-            slab_allocator_release(buffer32_1, buffer_size, type_size);
-            slab_allocator_release(buffer32_7, buffer_size, type_size);
-            slab_allocator_release(buffer32_2, buffer_size, type_size);
-            slab_allocator_release(buffer32_3, buffer_size, type_size);
-            slab_allocator_release(buffer32_6, buffer_size, type_size);
-            slab_allocator_release(buffer32_4, buffer_size, type_size);
-            slab_allocator_release(buffer32_5, buffer_size, type_size);
+            slab_allocator_release(slab_inst_id, buffer32_8, buffer_size, type_size);
+            slab_allocator_release(slab_inst_id, buffer32_1, buffer_size, type_size);
+            slab_allocator_release(slab_inst_id, buffer32_7, buffer_size, type_size);
+            slab_allocator_release(slab_inst_id, buffer32_2, buffer_size, type_size);
+            slab_allocator_release(slab_inst_id, buffer32_3, buffer_size, type_size);
+            slab_allocator_release(slab_inst_id, buffer32_6, buffer_size, type_size);
+            slab_allocator_release(slab_inst_id, buffer32_4, buffer_size, type_size);
+            slab_allocator_release(slab_inst_id, buffer32_5, buffer_size, type_size);
         }
 
         perf_timer_stop(t);
@@ -120,23 +121,23 @@ test_perf_slab_allocation_release()
 
         perf_timer_start(t);
         for(uint32 r = 0; r < repeat; r++) {
-            uint32* buffer32_1 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
-            uint32* buffer32_2 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
-            uint32* buffer32_3 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
-            uint32* buffer32_4 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
-            uint32* buffer32_5 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
-            uint32* buffer32_6 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
-            uint32* buffer32_7 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
-            uint32* buffer32_8 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
+            uint32* buffer32_1 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+            uint32* buffer32_2 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+            uint32* buffer32_3 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+            uint32* buffer32_4 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+            uint32* buffer32_5 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+            uint32* buffer32_6 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+            uint32* buffer32_7 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+            uint32* buffer32_8 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
 
-            slab_allocator_release(buffer32_8, buffer_size, type_size);
-            slab_allocator_release(buffer32_1, buffer_size, type_size);
-            slab_allocator_release(buffer32_7, buffer_size, type_size);
-            slab_allocator_release(buffer32_2, buffer_size, type_size);
-            slab_allocator_release(buffer32_3, buffer_size, type_size);
-            slab_allocator_release(buffer32_6, buffer_size, type_size);
-            slab_allocator_release(buffer32_4, buffer_size, type_size);
-            slab_allocator_release(buffer32_5, buffer_size, type_size);
+            slab_allocator_release(slab_inst_id, buffer32_8, buffer_size, type_size);
+            slab_allocator_release(slab_inst_id, buffer32_1, buffer_size, type_size);
+            slab_allocator_release(slab_inst_id, buffer32_7, buffer_size, type_size);
+            slab_allocator_release(slab_inst_id, buffer32_2, buffer_size, type_size);
+            slab_allocator_release(slab_inst_id, buffer32_3, buffer_size, type_size);
+            slab_allocator_release(slab_inst_id, buffer32_6, buffer_size, type_size);
+            slab_allocator_release(slab_inst_id, buffer32_4, buffer_size, type_size);
+            slab_allocator_release(slab_inst_id, buffer32_5, buffer_size, type_size);
         }
 
         perf_timer_stop(t);
@@ -166,23 +167,23 @@ test_perf_slab_allocation_release()
 
         perf_timer_start(t);
         for(uint32 r = 0; r < repeat; r++) {
-            uint32* buffer32_1 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
-            uint32* buffer32_2 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
-            uint32* buffer32_3 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
-            uint32* buffer32_4 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
-            uint32* buffer32_5 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
-            uint32* buffer32_6 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
-            uint32* buffer32_7 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
-            uint32* buffer32_8 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
+            uint32* buffer32_1 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+            uint32* buffer32_2 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+            uint32* buffer32_3 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+            uint32* buffer32_4 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+            uint32* buffer32_5 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+            uint32* buffer32_6 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+            uint32* buffer32_7 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+            uint32* buffer32_8 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
 
-            slab_allocator_release(buffer32_8, buffer_size, type_size);
-            slab_allocator_release(buffer32_1, buffer_size, type_size);
-            slab_allocator_release(buffer32_7, buffer_size, type_size);
-            slab_allocator_release(buffer32_2, buffer_size, type_size);
-            slab_allocator_release(buffer32_3, buffer_size, type_size);
-            slab_allocator_release(buffer32_6, buffer_size, type_size);
-            slab_allocator_release(buffer32_4, buffer_size, type_size);
-            slab_allocator_release(buffer32_5, buffer_size, type_size);
+            slab_allocator_release(slab_inst_id, buffer32_8, buffer_size, type_size);
+            slab_allocator_release(slab_inst_id, buffer32_1, buffer_size, type_size);
+            slab_allocator_release(slab_inst_id, buffer32_7, buffer_size, type_size);
+            slab_allocator_release(slab_inst_id, buffer32_2, buffer_size, type_size);
+            slab_allocator_release(slab_inst_id, buffer32_3, buffer_size, type_size);
+            slab_allocator_release(slab_inst_id, buffer32_6, buffer_size, type_size);
+            slab_allocator_release(slab_inst_id, buffer32_4, buffer_size, type_size);
+            slab_allocator_release(slab_inst_id, buffer32_5, buffer_size, type_size);
         }
 
         perf_timer_stop(t);
@@ -216,23 +217,23 @@ test_perf_slab_allocation_release()
 
         perf_timer_start(t);
         for(uint32 r = 0; r < repeat; r++) {
-            uint32* buffer32_1 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
-            uint32* buffer32_2 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
-            uint32* buffer32_3 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
-            uint32* buffer32_4 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
-            uint32* buffer32_5 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
-            uint32* buffer32_6 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
-            uint32* buffer32_7 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
-            uint32* buffer32_8 = (uint32*) slab_allocator_alloc(buffer_size, type_size);
+            uint32* buffer32_1 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+            uint32* buffer32_2 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+            uint32* buffer32_3 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+            uint32* buffer32_4 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+            uint32* buffer32_5 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+            uint32* buffer32_6 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+            uint32* buffer32_7 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+            uint32* buffer32_8 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
 
-            slab_allocator_release(buffer32_8, buffer_size, type_size);
-            slab_allocator_release(buffer32_1, buffer_size, type_size);
-            slab_allocator_release(buffer32_7, buffer_size, type_size);
-            slab_allocator_release(buffer32_2, buffer_size, type_size);
-            slab_allocator_release(buffer32_3, buffer_size, type_size);
-            slab_allocator_release(buffer32_6, buffer_size, type_size);
-            slab_allocator_release(buffer32_4, buffer_size, type_size);
-            slab_allocator_release(buffer32_5, buffer_size, type_size);
+            slab_allocator_release(slab_inst_id, buffer32_8, buffer_size, type_size);
+            slab_allocator_release(slab_inst_id, buffer32_1, buffer_size, type_size);
+            slab_allocator_release(slab_inst_id, buffer32_7, buffer_size, type_size);
+            slab_allocator_release(slab_inst_id, buffer32_2, buffer_size, type_size);
+            slab_allocator_release(slab_inst_id, buffer32_3, buffer_size, type_size);
+            slab_allocator_release(slab_inst_id, buffer32_6, buffer_size, type_size);
+            slab_allocator_release(slab_inst_id, buffer32_4, buffer_size, type_size);
+            slab_allocator_release(slab_inst_id, buffer32_5, buffer_size, type_size);
         }
 
         perf_timer_stop(t);
@@ -244,19 +245,21 @@ test_perf_slab_allocation_release()
 
 
     // mem_cache_table_destroy();
-    memman_terminate();
+    
 }
 
 
 void
 test_perf_slab_vs_stack()
 {
-    memman_init();
     const uint32 repeat = 800000;
-    const uint32 num_allocations = 2;
+    const uint32 num_allocations = 8;
+    const uint32 num_pages = 32;
 
     buffer_table_init();
     struct timer* t = timer_create_perf_timer();
+
+
 
     /* TEST: type:uint32, capacity:64 */
     {
@@ -277,15 +280,15 @@ test_perf_slab_vs_stack()
         );
 
 
-        const memid_t slab_inst_id = slab_allocator_create_new_instance(32, "test_perf_slab_vs_stack()");
+        const memid_t slab_inst_id = slab_allocator_create_new_instance(num_pages, "test_perf_slab_vs_stack()");
         perf_timer_start(t);
         buffer_t* buffer[num_allocations];
         for(uint32 r = 0; r < repeat; r++) {
             for(uint32 i = 0; i < num_allocations; i++) {
-                buffer[i] = slab_allocator_alloc(num_elems, type_size);
+                buffer[i] = slab_allocator_alloc(slab_inst_id, num_elems, type_size, "test_perf_slab_vs_stack()");
             }
             for(uint32 i = 0; i < num_allocations; i++) {
-                slab_allocator_release(buffer[i], num_elems, type_size);
+                slab_allocator_release(slab_inst_id, buffer[i], num_elems, type_size);
             }
         }
 
@@ -296,7 +299,7 @@ test_perf_slab_vs_stack()
         }));
         perf_timer_reset(t);
 
-        const memid_t stack_inst_id = stack_allocator_create_new_instance(32);
+        const memid_t stack_inst_id = stack_allocator_create_new_instance(num_pages);
         perf_timer_start(t);
         for(uint32 r = 0; r < repeat; r++) {
             for(uint32 i = 0; i < num_allocations; i++) {
@@ -323,6 +326,6 @@ test_perf_slab_vs_stack()
     }
 
 
-    memman_terminate();
+    
 
 }

@@ -22,7 +22,7 @@
  * @param PTR Source pointer
  * @return Pointer cast to TYPE
  */
-#define CAST_PTR(TYPE, PTR) ((TYPE) (PTR))
+#define CAST_PTR(type, ptr) ((type) (ptr))
 
 /**
  * @brief Cast to void* (useful for generic containers)
@@ -54,10 +54,12 @@
 #define CONTAINER_OF(ptr, type, member) ((type *) ((char *) (ptr) - offsetof(type, member)))
 
 
-#define ROUND_UP(val, limit) (((val) + limit - 1) & ~((limit - 1)))
-#define ROUND_DOWN(val, limit) (((val) & ~((limit - 1))))
+#define ROUND_UP(val, limit) (((val) + (limit) - 1) & ~((limit) - 1))
+#define ROUND_DOWN(val, limit) (((val) & ~((limit) - 1)))
 
-#define ALIGN(size, alignment) ((size + alignment - 1) & ~(alignment - 1))
+#define ALIGN(size, alignment) (((size) + (alignment) - 1) & ~((alignment) - 1))
+
+#define IS_POWER_OF_2(val) ((val) && (!((val) & ((val) - 1))))
 
 #define HACK_LIT_STR_TO_NUM(str, type) (*(type*)(str))
 

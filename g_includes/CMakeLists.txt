@@ -10,11 +10,9 @@ register_module(
         sources
             ${CMAKE_CURRENT_LIST_DIR}/sys_utils.c
             ${CMAKE_CURRENT_LIST_DIR}/str_utils.c
-            ${CMAKE_CURRENT_LIST_DIR}/bits.c
         headers
             ${CMAKE_CURRENT_LIST_DIR}/sys_utils.h
             ${CMAKE_CURRENT_LIST_DIR}/str_utils.h
-            ${CMAKE_CURRENT_LIST_DIR}/bits.h
             ${CMAKE_CURRENT_LIST_DIR}/my_types.h
             ${CMAKE_CURRENT_LIST_DIR}/my_macros.h
             ${CMAKE_CURRENT_LIST_DIR}/smath.h

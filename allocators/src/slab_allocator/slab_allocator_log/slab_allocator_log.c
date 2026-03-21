@@ -11,7 +11,7 @@ void
 print_mem_cache_struct(const struct slab_allocator_mcache* const mem_cache)
 {
     print("%s-- mem_cache struct --%s\n", ry, CLEAR);
-    print("  name:%s\n", mem_cache->name.buf);
+    print("  name:%s\n", mem_cache->name);
     print("  slab_size:%u\n", mem_cache->slab_size);
     print("  slabs_count:%u\n", mem_cache->slabs_count);
     print("  slabs_capacity:%u\n", mem_cache->slabs_capacity);
@@ -30,7 +30,7 @@ print_mem_cache_create(const struct slab_allocator_mcache* const mem_cache)
 {
     // debug-print
     print("\n%s-- Create Mem Cache --%s\n", YELLOW, CLEAR);
-    print("  name: %s\n", mem_cache->name.buf);
+    print("  name: %s\n", mem_cache->name);
     print("  slab_size:      %s%u%s\n", YELLOW, mem_cache->slab_size, CLEAR);
     print("  slabs_count:    %s%u%s\n", YELLOW, mem_cache->slabs_count, CLEAR);
     print("  slabs_capacity: %s%u%s\n", YELLOW, mem_cache->slabs_capacity, CLEAR);

@@ -6,7 +6,10 @@
 
 #include "my_types.h"
 
-struct os_window* win_x11_init_display();
+
+struct os_window;
+
+struct os_window* win_x11_init_display(void);
 
 struct os_window* renderer_create_x11_window(const uint32 xpos, const uint32 ypos, const uint32 w, const uint32 h);
 

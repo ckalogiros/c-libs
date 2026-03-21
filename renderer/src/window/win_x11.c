@@ -4,17 +4,16 @@
 
 #include "win_x11.h"
 // #include "window.h" // TODO: implement a window INTERFACE
+#include "renderer_structs.h"
 #include "sys_utils.h"
-#include <X11/Xlib.h>
-#include "renderer_internal.h"
+// #include <X11/Xlib.h>
+// #include "renderer_internal.h"
 
-static struct os_window os_win;
-
-
+struct os_window os_win;
 
 XSetWindowAttributes win_x11_create_attributes(struct os_window* win);
 
-struct os_window* win_x11_init_display()
+struct os_window* win_x11_init_display(void)
 {
     os_win.display = XOpenDisplay(NULL);
     if (os_win.display == NULL)

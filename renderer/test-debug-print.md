@@ -2,7 +2,7 @@
 *** renderer.c
  * 
 *** opengl.c ***
- * glXGetProcAddress test: 0x73456a3956c0
+ * glXGetProcAddress test: 0x7609ac0986c0
  * GL Vendor: NVIDIA Corporation
  * GL Renderer: NVIDIA GeForce GTX 1050 Ti/PCIe/SSE2
  * GL Version: 4.6.0 NVIDIA 535.288.01

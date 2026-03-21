@@ -1,68 +1,48 @@
-cmake_minimum_required(VERSION 4.1)
-project(tests C)
+cmake_minimum_required(VERSION 3.28.3)
 
 set(CMAKE_C_STANDARD 11)
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
-#set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O3")
+# 1. include utility functions
+include(${cmake_utils})
 
-set(project_dir "${CMAKE_SOURCE_DIR}")
-include("${project_dir}/src/renderer/CMakeLists.txt")
-include("${project_dir}/src/window/CMakeLists.txt")
-include("${project_dir}/src/graphics/CMakeLists.txt")
-
-
-################# external directories #################
-get_filename_component(parent_dir ${CMAKE_SOURCE_DIR} DIRECTORY)
-include("${parent_dir}/g_includes/CMakeLists.txt")
-#include("${parent_dir}/perf_timer/src/CMakeLists.txt")
-include("${parent_dir}/logger/src/CMakeLists.txt")
-#include("${parent_dir}/memory/src/CMakeLists.txt")
-#include("${parent_dir}/memory/src/mem_log/CMakeLists.txt")
-#include("${parent_dir}/allocators/src/slab_allocator/CMakeLists.txt")
-#include("${parent_dir}/allocators/src/slab_allocator/slab_allocator_log/CMakeLists.txt")
-#include("${parent_dir}/buffer/src/CMakeLists.txt")
-#include("${parent_dir}/buffer/src/buffer_logger/CMakeLists.txt")
-include("/home/ckalo/data/projects/third_party/glad/src/CMakeLists.txt")
-set(external_include
-        ${g_includes}
-        #        ${precision_timer_include}
-        ${logger_include}
-        #        ${mms_include}
-        #        ${slab_allocator_include}
-        #        ${slab_allocator_log_include}
-        #        ${mms_loger_include}
-        #        ${buffer_include}
-        #        ${buffer_log_include}
-        ${glad_include}
-)
-set(external_source
-        ${sys_utils}
-        #        ${bitfields}
-        #        ${precision_timer_source}
-        ${logger_source}
-        #        ${mms_source}
-        #        ${slab_allocator_source}
-        #        ${slab_allocator_log_source}
-        #        ${mms_loger_source}
-        #        ${buffer_source}
-        #        ${buffer_log_source}
-        ${glad_source}
+# 2. add /src that adds .c.h files and adds other sub-directories
+register_module(
+        sources
+        ${CMAKE_CURRENT_LIST_DIR}/test_window.c
+        headers
+        ${CMAKE_CURRENT_LIST_DIR}/test_window.h
+        include_dirs
+        ${CMAKE_CURRENT_LIST_DIR}
 )
 
-add_executable(tests main.c
-        ${renderer_source}
-        ${window_source}
-        ${graphics_source}
-        ${external_source}
-)
-target_include_directories(tests PRIVATE
-        ${renderer_include}
-        ${window_include}
-        ${graphics_include}
-        ${external_include}
-)
+
+
+include_project(${parent_dir}/g_includes)
+include_project(${parent_dir}/logger/src)
+include_project(${parent_dir}/file_sys/src)
+include_project(${parent_dir}/string_format/src)
+include_project(${parent_dir}/bits/src)
+include_project(${parent_dir}/memory/src)
+include_project(${parent_dir}/memory/src/mem_log)
+include_project(${parent_dir}/memory/src/internal)
+include_project(${parent_dir}/buffer/src)
+include_project(${parent_dir}/buffer/src/buffer_log)
+include_project(${parent_dir}/allocators/src/slab_allocator)
+include_project(${parent_dir}/allocators/src/slab_allocator/slab_allocator_log)
+include_project(${parent_dir}/allocators/src/stack_allocator)
+include_project(${parent_dir}/string/src)
+include_project(${parent_dir}/string/src/string_log)
+include_project(${parent_dir}/perf_timer/src)
+include_project(/home/ckalo/data/projects/third_party/glad/src)
+
+
+# 3. create executable with all the source files
+add_project_executable(tests main.c)
+#add_executable(tests main.c)
+
+# Debug: global properties
+print_all_registered()
+
 
 # Link X11 lib
 target_link_libraries(tests X11 GL)
-

@@ -18,7 +18,7 @@
 #include "mem_log.h"
 #include "mem_man_internals.h"
 #include "sys_utils.h"
-#include "mem_structs.h"
+#include "mem_man_structs.h"
 #include "file_sys_debug.h"
 #include "stringc.h"
 #include "string_struct.h"
@@ -83,6 +83,28 @@ fs_create(const char* filename)
     return fs;
 }
 
+FILE*
+fs_open(struct fs_t* fs, const char* mode)
+{
+    dprint("%s-- FILE SYS: open() --%s\n", ry, CLEAR);
+    fs->file = fopen(fs->filename, mode);
+    fs->flags |= IS_OPEN;
+    FS_CHECK_NULL_FILE(fs->file, fs->filename);
+    dprint("file:%s\nopened successfully\n", fs->filename);
+
+    return fs->file;
+}
+
+void
+fs_close(struct fs_t* fs, const char* caller_function)
+{
+    dprint("%sclosing file:%s\n %s\n %s%s%s ... ", ry, CLEAR, fs->filename, YELLOW, caller_function, CLEAR);
+    const int32 res = fclose(fs->file);
+    fs->flags = 0x0;
+    fs->file = NULL;
+    dprint("%sfile closed successfully%s\nresult:%u\n", GREEN, res, CLEAR);
+}
+
 void
 fs_write_list(struct fs_t* fs, struct flist* head, const char* format, ...)
 {
@@ -92,7 +114,7 @@ fs_write_list(struct fs_t* fs, struct flist* head, const char* format, ...)
 
     bool is_opened = FALSE;
     if(!(fs->flags & IS_OPEN)) {
-        fs->file = fopen(fs->filename, "a");
+        fs->file = fs_open(fs, "a");
         FS_CHECK_NULL_FILE(fs->file, fs->filename);
         is_opened = TRUE;
     }
@@ -128,16 +150,6 @@ fs_write(const char* filename, const char* data)
 }
 
 void
-fs_close(struct fs_t* fs, const char* caller_function)
-{
-    dprint("%sclosing file:%s\n %s\n %s%s%s ... ",
-           ry, CLEAR, fs->filename, YELLOW, caller_function, CLEAR);
-    const int32 res = fclose(fs->file);
-    fs->file = NULL;
-    dprint("%sfile closed successfully%s\nresult:%u\n", GREEN, res, CLEAR);
-}
-
-void
 fs_read(const char* filename)
 {
     // FILE* file = fopen(filename, "r");
@@ -164,7 +176,7 @@ fs_append(struct fs_t* fs, const char* format, ...)
 {
     bool is_opened = FALSE;
     if(!(fs->flags & IS_OPEN)) {
-        fs->file = fopen(fs->filename, "a");
+        fs->file = fs_open(fs, "a");
         FS_CHECK_NULL_FILE(fs->file, fs->filename);
         is_opened = TRUE;
     }
@@ -182,7 +194,13 @@ fs_append(struct fs_t* fs, const char* format, ...)
 void
 fs_append_mem(struct fs_t* fs, const char* ptr, const uint64 size, const char* msg)
 {
-    fs->file = fopen(fs->filename, "a");
+    // fs->file = fopen(fs->filename, "a");
+    bool is_opened = FALSE;
+    if(!(fs->flags & IS_OPEN)) {
+        fs->file = fs_open(fs, "a");
+        FS_CHECK_NULL_FILE(fs->file, fs->filename);
+        is_opened = TRUE;
+    }
     FS_CHECK_NULL_FILE(fs->file, fs->filename);
 
     /* define memory boundaries */
@@ -199,7 +217,7 @@ fs_append_mem(struct fs_t* fs, const char* ptr, const uint64 size, const char* m
         buffer[i] = '_';
     buffer[i] = '\0';
     fprintf(fs->file, "\n%s\n"
-            "message: %s\n"
+            "msg:%s\n"
             "start:%08x %08x\n"
             "end:  %08x %08x\n"
             "dif:[%llu bytes] | [%llx hex] | "
@@ -256,57 +274,93 @@ fs_append_mem(struct fs_t* fs, const char* ptr, const uint64 size, const char* m
         }
     }
 
-    fs_close(fs, "fs_mem_blocks_debug()");
+    // fs_close(fs, "fs_mem_blocks_debug()");
+    if(is_opened) {
+        fs_close(fs, "fs_write_list()");
+    }
 }
 
 void
 fs_fprint_all_allocated_mem(const char* filename)
 {
     struct fs_t* fs = fs_create(filename);
-    fs->file = fopen(fs->filename, "a");
+    fs->file = fs_open(fs, "a");
     FS_CHECK_NULL_FILE(fs->file, fs->filename);
 
-    /* print all allocated memory from mem table */
-    const struct mem* mem_table = debug_mem_get_table();
+    /* print all allocated memory from mem_block table */
+    const struct mem_block* mem_table = debug_mem_get_table();
     const uint32 mem_table_count = debug_mem_get_table_count();
     for(uint32 i = 0; i < mem_table_count; i++) {
         const char* mem_address = mem_table[i].start;
         const uint64 size = mem_table[i].size;
-        fs_append_mem(fs, mem_address, size, "");
+        fs_append_mem(fs, mem_address, size, mem_table[i].name);
     }
+
+    fclose(fs->file);
 }
 
 void
-fs_fprint_all_used_mem(const char* filename, const memid_t memid)
+fs_fprint_all_used_mem(const char* filename)
 {
     struct fs_t* fs = fs_create(filename);
-    fs->file = fopen(fs->filename, "a");
+    fs->file = fs_open(fs, "a");
     FS_CHECK_NULL_FILE(fs->file, fs->filename);
 
-    /* print used pages of memory, from mem table by id */
-    struct mem* mem_table = debug_mem_get_table();
+    /* print used pages of memory, from mem_block table by id */
+    struct mem_block* mem_table = debug_mem_get_table();
+    const uint32 mem_table_count = debug_mem_get_table_count();
+
+    for(uint32 memid = 0; memid < mem_table_count; memid++) {
+
+        const struct mem_block* mem = &mem_table[memid];
 
 
-    struct mem* mem = &mem_table[memid];
-    for(uint32 i = 0; i < mem->size; i += PAGE_SIZE) {
-        const char* address = (char*) &mem->start[i];
-        const char* offset_addr = FREE_LIST_GET_PAGE_COLOR_OFFSET(address);
+        /* print header, info, and draw a line ____ separator */
+        const uint32 word_size = 8, line_size = 32;
+        char buffer[256];
+        uint32 i = 0;
+        uint32 sep_len = (line_size + (line_size / word_size)) * 2 + line_size + word_size + 24;
+        for(; i < sep_len; i++)
+            buffer[i] = '_';
+        buffer[i] = '\0';
+        fprintf(fs->file, "%s\n"
+                "----------------------------------------------------------------\n"
+                "mem_block creator: %s\nsize:%llu\ndata size: %llu\nnum pages: %u\n"
+                "start:%08x %08x\n"
+                "end:  %08x %08x\n"
+                "dif:[%llu bytes]\n"
+                "----------------------------------------------------------------\n",
+                buffer,
+                mem->name, mem->size, mem->data_size, mem->num_pages,
+                (uint32) ((uint64) mem->start >> 32), (uint32) ((uint64) mem->start & 0xFFFFFFFF),
+                (uint32) ((uint64) mem->start + mem->size >> 32), (uint32) ((uint64) mem->start + mem->size & 0xFFFFFFFF),
+                (uint64) (mem->start + mem->size) - (uint64) mem->start
+        );
 
-        if(*(uint32_t*) offset_addr == (uint32) COLOR_PAGE_FREE) {
-            fs_append(fs, "[%5u] FREE PAGE | addr:%08x %08x\n", i,
-                      (uint64) address >> 32, (uint64) address & 0xFFFFFFFF
-            );
-        } else {
-            // mem_log_print_mem(mem);
-            fs_append_mem(fs, address, PAGE_SIZE, "");
+        for(uint32 i = 0; i < mem->size; i += PAGE_SIZE) {
+
+            const char* address = (char*) &mem->start[i];
+            const char* offset_addr = FREE_LIST_GET_PAGE_COLOR_OFFSET(address);
+
+            if(*(uint32_t*) offset_addr == (uint32) COLOR_PAGE_FREE) {
+                fs_append(fs, "[%5u] FREE PAGE | addr:%08x %08x\n", i,
+                          (uint64) address >> 32, (uint64) address & 0xFFFFFFFF
+                );
+            } else {
+                fs_append_mem(fs, address, PAGE_SIZE, mem_table[memid].name);
+            }
         }
+
     }
+
+    fclose(fs->file);
+
 }
 
 void
 fs_append_mem_with_msg(struct fs_t* fs, const char* ptr, const uint64 size, const char* msg)
 {
-    fs->file = fopen(fs->filename, "a");
+    fs->file = fs_open(fs, "a");
     FS_CHECK_NULL_FILE(fs->file, fs->filename);
 
     /* define memory boundaries */
@@ -390,5 +444,5 @@ fs_append_mem_with_msg(struct fs_t* fs, const char* ptr, const uint64 size, cons
         }
     }
 
-    fs_close(fs, "fs_mem_blocks_debug()");
+    fs_close(fs, "fs_append_mem_with_msg()");
 }

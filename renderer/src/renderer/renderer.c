@@ -3,6 +3,9 @@
  */
 
 #include "renderer.h"
+#include "renderer_structs.h"
+
+#include <stdio.h>
 
 #include "glad.h"
 #include "renderer_internal.h"

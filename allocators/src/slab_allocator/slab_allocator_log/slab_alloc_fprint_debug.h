@@ -9,7 +9,7 @@
 #include "str_utils.h"
 
 
-#define DEBUG_FPRINT_MCACHE
+// #define DEBUG_FPRINT_MCACHE
 // #define DEBUG_FPRINT_MCACHES_IN_FILES
 #ifdef DEBUG_FPRINT_MCACHE
 #   define fs_register_mcache_create(fs, mcache)\
@@ -19,14 +19,12 @@
         "pages: %3u | "       \
         "capac: %5u slabs | "        \
         "count: %3u | "        \
-        "used:  %3u | "         \
         "flist: %08x %08x\n",   \
         "CREATE",       \
         mcache->name.buf,       \
         mcache->slabs_num_pages,\
         mcache->slabs_capacity, \
         mcache->slabs_count,    \
-        mcache->slabs_used,     \
         (uint64)mcache->slabs_free_list >> 32,(uint64)mcache->slabs_free_list & 0xFFFFFFFF\
         )
 
@@ -37,7 +35,6 @@
         "pages: %3u | "       \
         "capac: %5u slabs | "        \
         "count: %3u | "        \
-        "used:  %3u | "         \
         "flist: %08x %08x | "   \
         "free: %08x %08x | "    \
         "dif: %04llu bytes\n",  \
@@ -46,7 +43,6 @@
         mcache->slabs_num_pages,\
         mcache->slabs_capacity, \
         mcache->slabs_count,    \
-        mcache->slabs_used,     \
         (uint64)mcache->slabs_free_list >> 32,(uint64)mcache->slabs_free_list & 0xFFFFFFFF,\
         (uint64)free >> 32,(uint64)free & 0xFFFFFFFF,\
         (uint64*)mcache->slabs_free_list - (uint64*)free\
@@ -59,7 +55,6 @@
         "pages: %3u | "       \
         "capac: %5u slabs | "        \
         "count: %3u | "        \
-        "used:  %3u | "         \
         "flist: %08x %08x | "   \
         "addr: %08x %08x | "    \
         "dif: %04llu bytes\n",  \
@@ -68,7 +63,6 @@
         mcache->slabs_num_pages,\
         mcache->slabs_capacity, \
         mcache->slabs_count,    \
-        mcache->slabs_used,     \
         (uint64)mcache->slabs_free_list >> 32,(uint64)mcache->slabs_free_list & 0xFFFFFFFF,\
         (uint64)address >> 32,(uint64)address & 0xFFFFFFFF,\
         (uint64*)address - (uint64*)mcache->slabs_free_list\
@@ -81,7 +75,6 @@
         "pages: %3u | "       \
         "capac: %5u slabs | "        \
         "count: %3u | "        \
-        "used:  %3u | "         \
         "flist: %08x %08x | "   \
         "free: %08x %08x | "    \
         "dif: %04llu bytes\n",  \
@@ -90,7 +83,6 @@
         mcache->slabs_num_pages,\
         mcache->slabs_capacity, \
         mcache->slabs_count,    \
-        mcache->slabs_used,     \
         (uint64)mcache->slabs_free_list >> 32,(uint64)mcache->slabs_free_list & 0xFFFFFFFF,\
         (uint64)free >> 32,(uint64)free & 0xFFFFFFFF,\
         (uint64*)mcache->slabs_free_list - (uint64*)free\
@@ -137,16 +129,16 @@ void fprint_register_mcache(struct fs_t* fs, struct slab_allocator_mcache* mcach
             "pages: %3u | "
             "capac: %5u slabs | "
             "count: %3u | "
-            "used:  %3u | "
+            "slab size: %3u | "
             "flist: %08x %08x | "
             "name: %14s\n",
             operation,
             mcache->slabs_num_pages,
             mcache->slabs_capacity,
             mcache->slabs_count,
-            mcache->slabs_used,
+            mcache->slab_size,
             (uint64)mcache->slabs_free_list >> 32,(uint64)mcache->slabs_free_list & 0xFFFFFFFF,
-            mcache->name.buf
+            mcache->name
         );
 }
 

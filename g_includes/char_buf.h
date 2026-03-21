@@ -23,7 +23,7 @@ typedef struct char_buf16_t {
 } char_buf16_t;
 
 static inline void
-char_buf16_copy_from_str(const char* const src, char_buf16_t* const dst)
+char_buf16_copy_from_str(char_buf16_t* const dst, const char* const src)
 {
     uint16 i = 0;
     while(src[i] != '\0') {
@@ -37,7 +37,7 @@ char_buf16_copy_from_str(const char* const src, char_buf16_t* const dst)
 }
 
 static inline void
-char_buf16_copy_from_str_append(const char* const src, char_buf16_t* const dst)
+char_buf16_copy_from_str_append(char_buf16_t* const dst, const char* const src)
 {
     uint16 i = 0;
     uint16 k = dst->len;
@@ -52,7 +52,7 @@ char_buf16_copy_from_str_append(const char* const src, char_buf16_t* const dst)
 }
 
 static inline void
-char_buf16_copy(const char_buf16_t* const src, char_buf16_t* const dst)
+char_buf16_copy(char_buf16_t* const dst, const char_buf16_t* const src)
 {
     CHAR_BUF_16_CHECK(src, dst);
 

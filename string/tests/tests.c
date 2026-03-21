@@ -7,6 +7,7 @@
 #include "tests.h"
 
 #include "logger.h"
+#include "string_internals.h"
 
 
 const char* large_text =
@@ -28,8 +29,9 @@ const char* large_text =
 void
 test_string_create_and_extend_slabs(void)
 {
+    string_container_init(8);
     /* string set (+ realloc) */
-    for(uint32 i = 0; i < 40; i++) {
+    for(uint32 i = 0; i < 140; i++) {
         string_t* str = string_create("this is a 32 byte string");
     }
 }
@@ -37,6 +39,7 @@ test_string_create_and_extend_slabs(void)
 void
 test_string_set_and_realloc(void)
 {
+    string_container_init(14);
     const char* text = ".-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-";
     string_t* str = string_create(text);
     printf("string:%s\n", str->data);
@@ -64,6 +67,8 @@ test_string_set_and_realloc(void)
 void
 test_string_append_and_realloc(void)
 {
+    string_container_init(2);
+
     const char* text = ".-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-";
     string_t* str = string_create(text);
     printf("string:%s\n", str->data);
