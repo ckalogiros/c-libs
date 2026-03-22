@@ -81,7 +81,7 @@ buffer_print_error(const enum BUFFER_ERROR_CODE code)
                   "Call buffer_init_table()%s\n",
                   RED, CLEAR
             );
-            break;
+            my_exit("", __FILE__, __LINE__);
         }
         case BUFFER_INDEX_GREATER_THAN_TAIL: {
             print("%sERROR:\n"

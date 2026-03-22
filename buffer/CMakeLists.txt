@@ -3,6 +3,9 @@ project(buffer C)
 
 set(CMAKE_C_STANDARD 11)
 
+enable_sanitizer()
+
+
 get_filename_component(parent_dir ${CMAKE_SOURCE_DIR} DIRECTORY)
 
 # 1. include utility functions
@@ -19,9 +22,9 @@ include_project(${parent_dir}/g_includes)
 include_project(${parent_dir}/logger/src)
 include_project(${parent_dir}/file_sys/src)
 include_project(${parent_dir}/string_format/src)
+include_project(${parent_dir}/bits/src)
 include_project(${parent_dir}/memory/src)
 include_project(${parent_dir}/memory/src/mem_log)
-include_project(${parent_dir}/memory/src/internal)
 include_project(${parent_dir}/allocators/src/slab_allocator)
 include_project(${parent_dir}/allocators/src/slab_allocator/slab_allocator_log)
 include_project(${parent_dir}/allocators/src/stack_allocator)

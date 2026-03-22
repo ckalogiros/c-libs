@@ -19,9 +19,6 @@
  **************************************************************************************************/
 
 
-
-
-
 /***************************************************************************************************
  * TESTS
  **************************************************************************************************/
@@ -40,16 +37,17 @@ void*   flist_peek_next_free_page               (memid_t mem_id);
 */
 
 /* Basic Creation and Initial State Tests */
-void test_mem_struct()
+void
+test_mem_struct()
 {
 #define ALLOCPAGES 16
-#define ALIGNMENT (PAGE_SIZE*4)
+#define ALIGNMENT PAGE_SIZE
 #define fl struct flist
 
     uint32 prev_table_count = debug_mem_get_table_count();
 
     memid_t memid = mem_allocate_block(ALLOCPAGES, ALIGNMENT, "");
-    struct  mem_block* mem = mem_get_byid(memid);
+    struct mem_block* mem = mem_get_byid(memid);
     void* start = debug_mem_get_start_address(memid);
     assert(start == mem->start);
 
@@ -84,7 +82,7 @@ void
 test_mem_multiple_allocations()
 {
 #define ALLOCPAGES 16
-#define ALIGNMENT (PAGE_SIZE*4)
+#define ALIGNMENT PAGE_SIZE
 #define N 8
 #define M 1 // number of pages per allocation request
 #define fl struct flist
@@ -94,8 +92,8 @@ test_mem_multiple_allocations()
     uint32 prev_table_count = debug_mem_get_table_count();
 
     struct mem_block* mems[N] = {NULL};
-    memid_t memids[N] = {0};
-    uint32 num_allocs[N] = {0};
+    memid_t memids[N]     = {0};
+    uint32  num_allocs[N] = {0};
 
     // create
     FOR(N) {
@@ -111,21 +109,20 @@ test_mem_multiple_allocations()
     }
     // allocate
     FOR(N) {
-
         struct mem_block* mem = mems[i];
 
-        uint64 alloced_size = num_allocs[i]*PAGE_SIZE;;
+        uint64 alloced_size = num_allocs[i] * PAGE_SIZE;;
         char* ptr = mem->start;
 
         mem_page_request(num_allocs[i], memids[i]);
 
-        memset(mems[i]->start, MARK, num_allocs[i]*PAGE_SIZE);
+        memset(mems[i]->start, MARK, num_allocs[i] * PAGE_SIZE);
         assert(*ptr == MARK);
 
-        char* end = ptr+mem->size;
+        char* end = ptr + mem->size;
         /* check last uint32 size is the already marked poison memory */
         assert(*(((uint32*) end)-4) == (uint32)(MEM_POISON_PATTERN&0xFFFFFFFF));
-        char* alloced_end = ptr+alloced_size;
+        char* alloced_end = ptr + alloced_size;
         assert(*(alloced_end-1) == MARK);
         /* end of allocated mem_block + a pointer size must equal to:'F' from flist's mark:'FREE" */
         assert(*(uint8*)((uint64*)alloced_end+1) == 'F');
@@ -175,5 +172,5 @@ unit_test_runner_slab_allocator(void)
 }
 
 #undef SOME_TYPE
-#undef FOR(n)
-#undef FOR_REV(n)
+#undef FOR
+#undef FOR_REV

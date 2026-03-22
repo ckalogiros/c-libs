@@ -22,7 +22,9 @@ static struct fs_t* fs_buffer = NULL;
 /* output one debug file and register all created buffers  */
 static struct fs_t* fs_register_created_buffers = NULL;
 // todo: must be dynamicaly reallocated
+
 #define BUFFER_TABLE_MIN_CAPACITY 512
+#define BUFFER_ALIGNMENT 1024
 
 
 #define DEBUG_FPRINT_BUFFER 1
@@ -60,14 +62,16 @@ fs_append(fs, fmt, ##__VA_ARGS__)
 
 /*******************************************************************************
  * buffer_table: a buffer to store all applications buffer structures
- *               this is dynamicaly reallocated buffer
  ******************************************************************************/
-static buffer_t* buffer_table = NULL; // ptr to memory block
-static uint32 buffer_table_count = 0;
-static uint32 ID = 0;
-static memid_t allocator_instance_id = 0;
+/* an array of pointers of type buffer_t, that the [0] elem is the pointer to memory block start */
+buffer_t* buffer_table = NULL;
+uint32 buffer_table_count = 0;
+uint32 ID = 0;
+uint16 allocator_instance_id = 0;
+uint16 buffer_get_allocator_instance_id(){ return allocator_instance_id; }
 
-static uint32 buffer_get_id(){ return ++ID; }
+
+uint32 buffer_get_id(){ return ++ID; }
 
 
 
@@ -91,48 +95,51 @@ struct buffer_table_free_list {
 
 static struct buffer_table_free_list* buffer_table_free_list_head = NULL;
 
-static uint32 temp_cnt = 0;
+static uint32 buffer_table_allocations_count = 0;
 void
 btable_flist_add(void* ptr)
 {
     struct buffer_table_free_list* list = ptr;
     list->next = buffer_table_free_list_head;
     buffer_table_free_list_head = list;
-    temp_cnt++;
+    buffer_table_allocations_count++;
 }
 
 buffer_t*
 btable_flist_get_free(void)
 {
+    if(!buffer_table) {
+        buffer_print_error(NO_BUFFER_TABLE_INIT);
+    }
     struct buffer_table_free_list* list = buffer_table_free_list_head;
     buffer_table_free_list_head = buffer_table_free_list_head->next;
     buffer_table_count++;
-    temp_cnt--;
+    buffer_table_allocations_count--;
     return (buffer_t*) list;
 }
 
 
 void
-buffer_init_table(void)
+buffer_init_table(const pageid_t num_pages)
 {
     if(buffer_table) {
         buffer_print_error(BUFFER_TABLE_ALREADY_INIT);
         return;
     }
 
-    allocator_instance_id = slab_allocator_create_new_instance(16, "buffer_init_table()");
+    allocator_instance_id = slab_allocator_create_new_instance(num_pages, "buffer_init_table()");
 
     const uint32 btable_typesize = sizeof(buffer_t);
     assert(sizeof(buffer_t) > sizeof(void*));
 
     /* create memory for buffer table and buffer's free list */
-    void* const address =
-            (buffer_t*) aligned_alloc(4096, BUFFER_TABLE_MIN_CAPACITY * btable_typesize);
+    void* address =
+            (buffer_t*) aligned_alloc(BUFFER_ALIGNMENT, BUFFER_TABLE_MIN_CAPACITY * btable_typesize);
 
     buffer_table = address;
 
     buffer_t* btable_ptr = buffer_table;
-    while((uint64) btable_ptr < (uint64) (buffer_table + BUFFER_TABLE_MIN_CAPACITY)) {
+    while((uint64) btable_ptr < (uint64) (buffer_table + BUFFER_TABLE_MIN_CAPACITY-1)) {
         btable_flist_add(btable_ptr);
         btable_ptr++;
     }
@@ -161,7 +168,7 @@ buffer_t*
 buffer_constructor_uint32(const bufidx_t capacity)
 {
     if(!buffer_table) {
-        buffer_init_table();
+        // buffer_init_table();
         buffer_print_error(NO_BUFFER_TABLE_INIT);
         // my_exit("buffer_constructor_uint32", __FILE__, __LINE__);
     }
@@ -207,7 +214,7 @@ buffer_t*
 buffer_constructor_gentype(const bufidx_t capacity, const typesize_t typesize)
 {
     if(!buffer_table) {
-        buffer_init_table();
+        // buffer_init_table();
         buffer_print_error(BUFFER_TABLE_INIT_FROM_CREATE_FUN);
         // my_exit("buffer_constructor_uint32", __FILE__, __LINE__);
     }

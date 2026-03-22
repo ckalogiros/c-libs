@@ -124,6 +124,16 @@ static void sslall_fprint_init()
 
 void fprint_register_mcache(struct fs_t* fs, struct slab_allocator_mcache* mcache, const char* operation) {
 
+    uint32 lower = 0, upper = 0;
+    if(mcache->slabs_free_list) {
+        upper = (uint32) mcache->slabs_free_list>>32;
+        lower = (uint32) mcache->slabs_free_list&0xFFFFFFFF;
+    }
+    static uint32 x = 0;
+    x++;
+    if (x == 21)
+        print("");
+
         fs_append(fs,
             "%9s | "
             "pages: %3u | "
@@ -137,7 +147,7 @@ void fprint_register_mcache(struct fs_t* fs, struct slab_allocator_mcache* mcach
             mcache->slabs_capacity,
             mcache->slabs_count,
             mcache->slab_size,
-            (uint64)mcache->slabs_free_list >> 32,(uint64)mcache->slabs_free_list & 0xFFFFFFFF,
+            upper, lower,
             mcache->name
         );
 }

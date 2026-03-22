@@ -129,7 +129,7 @@ test_of_tests(const pageid_t num_pages, const bool print_list)
 void
 test_mem_alloc(void)
 {
-    const memid_t memid = memman_allocate_block(4, 1024, "test_mem_alloc");
+    const memid_t memid = memman_allocate_block(8, 1024, "test_mem_alloc");
     {
         print("%stest the allocation algorithm when allocation does not fit in some free pages:2 %s\n", GREEN, CLEAR);
 

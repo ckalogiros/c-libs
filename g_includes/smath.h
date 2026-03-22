@@ -6,6 +6,9 @@
 
 #include "my_types.h"
 
+#define is_power_of_two(x) ((x) != 0 && ((x) & ((x) - 1)) == 0)
+
+
 static inline int32 fast_abs32(int32 x) {
     int32 mask = x >> 31;  // All 1's if negative, all 0's if positive
     return (x + mask) ^ mask;

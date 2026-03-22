@@ -6,18 +6,17 @@
 #include "mem_man_internals.h"
 #include "mem_log/mem_log.h"
 
+#include <sanitizer/asan_interface.h>
 
 void
 memman_init(void)
 {
+    /* enable santizers to the stderr out */
+    __sanitizer_set_report_path("stderr");
     const bool initialized = mem_table_init();
 
     /* initialize file system files table */
-    fs_init_table();
-
-// #ifdef MEM_DEBUG_FPRINT_ALL_USE_MEM
-//     string_init_table();
-// #endif
+    fs_init_table(); // todo: move to an appropriate initialization place
 
     if(!initialized)
         mem_print_error(MEMMAN_ALREADY_INITIALIZED);

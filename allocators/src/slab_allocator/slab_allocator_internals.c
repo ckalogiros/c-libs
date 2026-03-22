@@ -17,7 +17,7 @@
 #include "slab_alloc_fprint_debug.h"
 
 
-#define ALIGNMENT (PAGE_SIZE * 8)
+#define ALIGNMENT (64)
 
 /***************************************************************************************************
  * FUNCTION MACROS */
@@ -54,8 +54,11 @@ slab_allocator_get_instance(const salltable_t inst_id)
 void
 slab_allocator_init(void)
 {
-    if(!slab_allocator_table)
-        slab_allocator_table = aligned_alloc(1024, sizeof(struct slab_allocator_instance) * SLAB_ALLOCATOR_INSTANCE_INITIAL_COUNT);
+    if(!slab_allocator_table) {
+        const uint32 minsize = ALIGN(sizeof(struct slab_allocator_instance) * SLAB_ALLOCATOR_INSTANCE_INITIAL_COUNT, 64);
+        slab_allocator_table = aligned_alloc(64, minsize);
+
+    }
 
 #   ifdef SLAB_ALLOCATOR_FPRINT_DEBUG_ENABLED
     sslall_fprint_init();
@@ -78,6 +81,8 @@ slab_allocator_create_new_instance(const pageid_t reserve_num_pages, const char*
 
     // print("%s###################################################\n"
     //       "SLAB CREATE NEW INSTANCE: %s %s\n", br1, name, CLEAR);
+
+    // TODO: maybe both tables been allocad together, so that they are not too far apart(memory fragmentation)
 
     /* initialize pool table */
     struct slab_allocator_pool* pool_table =
@@ -109,10 +114,25 @@ slab_allocator_create_new_instance(const pageid_t reserve_num_pages, const char*
 
 uint16
 slab_allocator_instance_create_new_pool(const salltable_t inst_id, const pageid_t num_pages,
-    const uint16 min_cache_size, const uint16 max_cache_size, const char* name)
+    const slab_size_t slab_size, const char* name)
 {
     // TODO: check null
     struct slab_allocator_instance* inst = slab_allocator_get_instance(inst_id);
+
+    uint16 max_cache_size = 0;
+    uint16 min_cache_size = 0;
+    if(slab_size < 256) {
+        max_cache_size = 128;
+        min_cache_size = 8;
+    }
+    else if(slab_size < 4096) {
+        max_cache_size = 2048;
+        min_cache_size = 256;
+    }
+    else {
+        max_cache_size = 0xf000;
+        min_cache_size = 4096;
+    }
 
     struct slab_allocator_pool pool = {
         .mem_id = memman_allocate_block(num_pages, ALIGNMENT, name),
@@ -136,11 +156,11 @@ slab_allocator_create_mcache(const salltable_t inst_id, const slab_elems_t num_e
     const slab_size_t slab_size = num_elems * type_size;
 
     struct slab_allocator_instance* inst = slab_allocator_get_instance(inst_id);
-
+// HERE: both call for get_instance
     int16 pool_id = pool_find_size(inst_id, slab_size);
     if(pool_id == INT_NULL) {
         pool_id = slab_allocator_instance_create_new_pool(inst_id, inst->reserve_num_pages,
-            SLAB_ALLOCATOR_MCACHE_SIZE_8, SLAB_ALLOCATOR_MCACHE_SIZE_64, name);
+            slab_size, name);
     }
 
     struct slab_allocator_pool* pool = &inst->pool_table[pool_id];
@@ -188,9 +208,9 @@ slab_allocator_create_mcache(const salltable_t inst_id, const slab_elems_t num_e
     inst->mcache_table[mcache_id] = mcache;
     inst->mcache_count++;
 
-#   ifdef SLAB_ALLOCATOR_FPRINT_DEBUG_ENABLED
-        slall_fprint_mcaches(&inst->mcache_table[mcache_id], "CREATE");
-#   endif
+// #   ifdef SLAB_ALLOCATOR_FPRINT_DEBUG_ENABLED
+//         slall_fprint_mcaches(&inst->mcache_table[mcache_id], "CREATE");
+// #   endif
 
 
     return &inst->mcache_table[mcache_id];
@@ -284,9 +304,9 @@ mcache_alloc_slab(struct slab_allocator_mcache* mcache)
     // assert(mcache->slabs_count > mcache->slabs_capacity);
 
 
-#   ifdef SLAB_ALLOCATOR_FPRINT_DEBUG_ENABLED
-    slall_fprint_mcaches(mcache, "ALLOCATE");
-#   endif
+// #   ifdef SLAB_ALLOCATOR_FPRINT_DEBUG_ENABLED
+//     slall_fprint_mcaches(mcache, "ALLOCATE");
+// #   endif
 
     return free;
 }
@@ -399,7 +419,7 @@ pool_find_size(const salltable_t inst_id, const slab_size_t slab_size)
 
     for(uint32 i = 0; i < inst->pool_count; i++) {
         const struct slab_allocator_pool* pool = &inst->pool_table[i];
-        if(pool[i].max_mcache_size <= slab_size && pool[i].min_mcache_size >= slab_size) {
+        if(slab_size >= pool->min_mcache_size && slab_size <= pool->max_mcache_size) {
             return i;
         }
     }

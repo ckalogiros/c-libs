@@ -154,7 +154,7 @@ string_reallocate(string_t* string, const strlen_t len, bool copy)
 
     strlen_t old_len = string->len;
     strlen_t old_self_size = string->self_size;
-    memset((void*)data_ptr, 0, max_size);
+    memset((void*)data_ptr, 0x0, max_size);
     if(copy) memcpy((void*)data_ptr, string, string->len + string->self_size);
 
     slab_allocator_release(allocator_instance_id, string->data, string->size, sizeof(char));

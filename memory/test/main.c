@@ -16,22 +16,20 @@ uint32 test_id = 0;
 int
 main(void)
 {
+#include <sanitizer/asan_interface.h>
+    /* enable santizers to the stderr out */
+    __sanitizer_set_report_path("stderr");
+
     memman_init();
 
     unit_test_runner_slab_allocator();
 
 
-    // Some bit tests, see everything is working
-    {
-        // test_calc_bitmask_from_start_end_bits();
-        // test_bitfield_set();
-        // test_macro_impl_bitfield_set();
-    }
-
-
     // tests
     { // test algorithm for non contiguous pages
-        // mem_log_print_free_list(1);
+        // memid_t memid = mem_allocate_block(8, 128, "");
+        // mem_log_print_free_list(memid);
+
         // test_mem_alloc();
     }
 
@@ -52,3 +50,4 @@ main(void)
     memman_terminate();
     return 0;
 }
+

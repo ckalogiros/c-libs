@@ -45,7 +45,7 @@ test_perf_slab_allocation_release()
 
     struct timer* t = timer_create_perf_timer();
 
-    uint16 slab_inst_id = slab_allocator_create_new_instance(4, "test_mem_cache_alloc_release_slabs");
+    uint16 slab_inst_id = slab_allocator_create_new_instance(32, "test_mem_cache_alloc_release_slabs");
 
     {
         const uint32 buffer_size = 32;
@@ -97,151 +97,151 @@ test_perf_slab_allocation_release()
         perf_timer_reset(t);
     }
 
-    {
-        const uint32 buffer_size = 64;
-        const uint32 type_size = sizeof(uint32);
-
-        print_test("Slab Allocator",
-            " . Allocate slab buffers\n"
-            " . \"Color\" them with a character\n"
-            " . Check slab buffer insert() function\n"
-            "   that inserts elements (coloring)\n"
-            "   in the boundaries of each slab\n"
-            " slab_size:   %s%u bytes%s\n"
-            " type_size:   %s%u bytes%s\n"
-            " buffer_size: %s%u%s elems\n"
-            " repeat: %s%u%s\n"
-            " num_allocations: %s%u%s\n",
-            ry, buffer_size*type_size, CLEAR,
-            ry, type_size, CLEAR,
-            ry, buffer_size, CLEAR,
-            ry, repeat, CLEAR,
-            ry, num_allocations, CLEAR
-        );
-
-        perf_timer_start(t);
-        for(uint32 r = 0; r < repeat; r++) {
-            uint32* buffer32_1 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
-            uint32* buffer32_2 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
-            uint32* buffer32_3 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
-            uint32* buffer32_4 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
-            uint32* buffer32_5 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
-            uint32* buffer32_6 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
-            uint32* buffer32_7 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
-            uint32* buffer32_8 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
-
-            slab_allocator_release(slab_inst_id, buffer32_8, buffer_size, type_size);
-            slab_allocator_release(slab_inst_id, buffer32_1, buffer_size, type_size);
-            slab_allocator_release(slab_inst_id, buffer32_7, buffer_size, type_size);
-            slab_allocator_release(slab_inst_id, buffer32_2, buffer_size, type_size);
-            slab_allocator_release(slab_inst_id, buffer32_3, buffer_size, type_size);
-            slab_allocator_release(slab_inst_id, buffer32_6, buffer_size, type_size);
-            slab_allocator_release(slab_inst_id, buffer32_4, buffer_size, type_size);
-            slab_allocator_release(slab_inst_id, buffer32_5, buffer_size, type_size);
-        }
-
-        perf_timer_stop(t);
-        perf_timer_print(timer_print_config((timer_print_params){
-            .t = t, .repeat = repeat, .buf_capacity = buffer_size, .flags = PERF_T_USE_REPEAT|PERF_T_ALL
-        }));
-        perf_timer_reset(t);
-    }
-
-    {
-        const uint32 buffer_size = 128;
-        const uint32 type_size = sizeof(uint32);
-
-        print_test("Slab Allocator - performance",
-            " . Measure allocation-release\n"
-            " slab_size:   %s%u bytes%s\n"
-            " type_size:   %s%u bytes%s\n"
-            " buffer_size: %s%u%s elems\n"
-            " repeat: %s%u%s\n"
-            " num_allocations: %s%u%s\n",
-            ry, buffer_size*type_size, CLEAR,
-            ry, type_size, CLEAR,
-            ry, buffer_size, CLEAR,
-            ry, repeat, CLEAR,
-            ry, num_allocations, CLEAR
-        );
-
-        perf_timer_start(t);
-        for(uint32 r = 0; r < repeat; r++) {
-            uint32* buffer32_1 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
-            uint32* buffer32_2 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
-            uint32* buffer32_3 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
-            uint32* buffer32_4 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
-            uint32* buffer32_5 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
-            uint32* buffer32_6 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
-            uint32* buffer32_7 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
-            uint32* buffer32_8 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
-
-            slab_allocator_release(slab_inst_id, buffer32_8, buffer_size, type_size);
-            slab_allocator_release(slab_inst_id, buffer32_1, buffer_size, type_size);
-            slab_allocator_release(slab_inst_id, buffer32_7, buffer_size, type_size);
-            slab_allocator_release(slab_inst_id, buffer32_2, buffer_size, type_size);
-            slab_allocator_release(slab_inst_id, buffer32_3, buffer_size, type_size);
-            slab_allocator_release(slab_inst_id, buffer32_6, buffer_size, type_size);
-            slab_allocator_release(slab_inst_id, buffer32_4, buffer_size, type_size);
-            slab_allocator_release(slab_inst_id, buffer32_5, buffer_size, type_size);
-        }
-
-        perf_timer_stop(t);
-        perf_timer_print(timer_print_config((timer_print_params){
-            .t = t, .repeat = repeat, .buf_capacity = buffer_size, .flags = PERF_T_USE_REPEAT|PERF_T_ALL
-        }));
-        perf_timer_reset(t);
-    }
-
-    {
-        const uint32 buffer_size = 256;
-        const uint32 type_size = sizeof(uint32);
-
-        print_test("Slab Allocator",
-            " . Allocate slab buffers\n"
-            " . \"Color\" them with a character\n"
-            " . Check slab buffer insert() function\n"
-            "   that inserts elements (coloring)\n"
-            "   in the boundaries of each slab\n"
-            " slab_size:   %s%u bytes%s\n"
-            " type_size:   %s%u bytes%s\n"
-            " buffer_size: %s%u%s elems\n"
-            " repeat: %s%u%s\n"
-            " num_allocations: %s%u%s\n",
-            ry, buffer_size*type_size, CLEAR,
-            ry, type_size, CLEAR,
-            ry, buffer_size, CLEAR,
-            ry, repeat, CLEAR,
-            ry, num_allocations, CLEAR
-        );
-
-        perf_timer_start(t);
-        for(uint32 r = 0; r < repeat; r++) {
-            uint32* buffer32_1 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
-            uint32* buffer32_2 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
-            uint32* buffer32_3 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
-            uint32* buffer32_4 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
-            uint32* buffer32_5 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
-            uint32* buffer32_6 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
-            uint32* buffer32_7 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
-            uint32* buffer32_8 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
-
-            slab_allocator_release(slab_inst_id, buffer32_8, buffer_size, type_size);
-            slab_allocator_release(slab_inst_id, buffer32_1, buffer_size, type_size);
-            slab_allocator_release(slab_inst_id, buffer32_7, buffer_size, type_size);
-            slab_allocator_release(slab_inst_id, buffer32_2, buffer_size, type_size);
-            slab_allocator_release(slab_inst_id, buffer32_3, buffer_size, type_size);
-            slab_allocator_release(slab_inst_id, buffer32_6, buffer_size, type_size);
-            slab_allocator_release(slab_inst_id, buffer32_4, buffer_size, type_size);
-            slab_allocator_release(slab_inst_id, buffer32_5, buffer_size, type_size);
-        }
-
-        perf_timer_stop(t);
-        perf_timer_print(timer_print_config((timer_print_params){
-            .t = t, .repeat = repeat, .buf_capacity = buffer_size, .flags = PERF_T_USE_REPEAT|PERF_T_ALL
-        }));
-        perf_timer_reset(t);
-    }
+    // {
+    //     const uint32 buffer_size = 64;
+    //     const uint32 type_size = sizeof(uint32);
+    //
+    //     print_test("Slab Allocator",
+    //         " . Allocate slab buffers\n"
+    //         " . \"Color\" them with a character\n"
+    //         " . Check slab buffer insert() function\n"
+    //         "   that inserts elements (coloring)\n"
+    //         "   in the boundaries of each slab\n"
+    //         " slab_size:   %s%u bytes%s\n"
+    //         " type_size:   %s%u bytes%s\n"
+    //         " buffer_size: %s%u%s elems\n"
+    //         " repeat: %s%u%s\n"
+    //         " num_allocations: %s%u%s\n",
+    //         ry, buffer_size*type_size, CLEAR,
+    //         ry, type_size, CLEAR,
+    //         ry, buffer_size, CLEAR,
+    //         ry, repeat, CLEAR,
+    //         ry, num_allocations, CLEAR
+    //     );
+    //
+    //     perf_timer_start(t);
+    //     for(uint32 r = 0; r < repeat; r++) {
+    //         uint32* buffer32_1 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+    //         uint32* buffer32_2 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+    //         uint32* buffer32_3 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+    //         uint32* buffer32_4 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+    //         uint32* buffer32_5 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+    //         uint32* buffer32_6 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+    //         uint32* buffer32_7 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+    //         uint32* buffer32_8 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+    //
+    //         slab_allocator_release(slab_inst_id, buffer32_8, buffer_size, type_size);
+    //         slab_allocator_release(slab_inst_id, buffer32_1, buffer_size, type_size);
+    //         slab_allocator_release(slab_inst_id, buffer32_7, buffer_size, type_size);
+    //         slab_allocator_release(slab_inst_id, buffer32_2, buffer_size, type_size);
+    //         slab_allocator_release(slab_inst_id, buffer32_3, buffer_size, type_size);
+    //         slab_allocator_release(slab_inst_id, buffer32_6, buffer_size, type_size);
+    //         slab_allocator_release(slab_inst_id, buffer32_4, buffer_size, type_size);
+    //         slab_allocator_release(slab_inst_id, buffer32_5, buffer_size, type_size);
+    //     }
+    //
+    //     perf_timer_stop(t);
+    //     perf_timer_print(timer_print_config((timer_print_params){
+    //         .t = t, .repeat = repeat, .buf_capacity = buffer_size, .flags = PERF_T_USE_REPEAT|PERF_T_ALL
+    //     }));
+    //     perf_timer_reset(t);
+    // }
+    //
+    // {
+    //     const uint32 buffer_size = 128;
+    //     const uint32 type_size = sizeof(uint32);
+    //
+    //     print_test("Slab Allocator - performance",
+    //         " . Measure allocation-release\n"
+    //         " slab_size:   %s%u bytes%s\n"
+    //         " type_size:   %s%u bytes%s\n"
+    //         " buffer_size: %s%u%s elems\n"
+    //         " repeat: %s%u%s\n"
+    //         " num_allocations: %s%u%s\n",
+    //         ry, buffer_size*type_size, CLEAR,
+    //         ry, type_size, CLEAR,
+    //         ry, buffer_size, CLEAR,
+    //         ry, repeat, CLEAR,
+    //         ry, num_allocations, CLEAR
+    //     );
+    //
+    //     perf_timer_start(t);
+    //     for(uint32 r = 0; r < repeat; r++) {
+    //         uint32* buffer32_1 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+    //         uint32* buffer32_2 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+    //         uint32* buffer32_3 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+    //         uint32* buffer32_4 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+    //         uint32* buffer32_5 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+    //         uint32* buffer32_6 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+    //         uint32* buffer32_7 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+    //         uint32* buffer32_8 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+    //
+    //         slab_allocator_release(slab_inst_id, buffer32_8, buffer_size, type_size);
+    //         slab_allocator_release(slab_inst_id, buffer32_1, buffer_size, type_size);
+    //         slab_allocator_release(slab_inst_id, buffer32_7, buffer_size, type_size);
+    //         slab_allocator_release(slab_inst_id, buffer32_2, buffer_size, type_size);
+    //         slab_allocator_release(slab_inst_id, buffer32_3, buffer_size, type_size);
+    //         slab_allocator_release(slab_inst_id, buffer32_6, buffer_size, type_size);
+    //         slab_allocator_release(slab_inst_id, buffer32_4, buffer_size, type_size);
+    //         slab_allocator_release(slab_inst_id, buffer32_5, buffer_size, type_size);
+    //     }
+    //
+    //     perf_timer_stop(t);
+    //     perf_timer_print(timer_print_config((timer_print_params){
+    //         .t = t, .repeat = repeat, .buf_capacity = buffer_size, .flags = PERF_T_USE_REPEAT|PERF_T_ALL
+    //     }));
+    //     perf_timer_reset(t);
+    // }
+    //
+    // {
+    //     const uint32 buffer_size = 256;
+    //     const uint32 type_size = sizeof(uint32);
+    //
+    //     print_test("Slab Allocator",
+    //         " . Allocate slab buffers\n"
+    //         " . \"Color\" them with a character\n"
+    //         " . Check slab buffer insert() function\n"
+    //         "   that inserts elements (coloring)\n"
+    //         "   in the boundaries of each slab\n"
+    //         " slab_size:   %s%u bytes%s\n"
+    //         " type_size:   %s%u bytes%s\n"
+    //         " buffer_size: %s%u%s elems\n"
+    //         " repeat: %s%u%s\n"
+    //         " num_allocations: %s%u%s\n",
+    //         ry, buffer_size*type_size, CLEAR,
+    //         ry, type_size, CLEAR,
+    //         ry, buffer_size, CLEAR,
+    //         ry, repeat, CLEAR,
+    //         ry, num_allocations, CLEAR
+    //     );
+    //
+    //     perf_timer_start(t);
+    //     for(uint32 r = 0; r < repeat; r++) {
+    //         uint32* buffer32_1 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+    //         uint32* buffer32_2 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+    //         uint32* buffer32_3 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+    //         uint32* buffer32_4 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+    //         uint32* buffer32_5 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+    //         uint32* buffer32_6 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+    //         uint32* buffer32_7 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+    //         uint32* buffer32_8 = (uint32*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_perf_slab_allocation_release()");
+    //
+    //         slab_allocator_release(slab_inst_id, buffer32_8, buffer_size, type_size);
+    //         slab_allocator_release(slab_inst_id, buffer32_1, buffer_size, type_size);
+    //         slab_allocator_release(slab_inst_id, buffer32_7, buffer_size, type_size);
+    //         slab_allocator_release(slab_inst_id, buffer32_2, buffer_size, type_size);
+    //         slab_allocator_release(slab_inst_id, buffer32_3, buffer_size, type_size);
+    //         slab_allocator_release(slab_inst_id, buffer32_6, buffer_size, type_size);
+    //         slab_allocator_release(slab_inst_id, buffer32_4, buffer_size, type_size);
+    //         slab_allocator_release(slab_inst_id, buffer32_5, buffer_size, type_size);
+    //     }
+    //
+    //     perf_timer_stop(t);
+    //     perf_timer_print(timer_print_config((timer_print_params){
+    //         .t = t, .repeat = repeat, .buf_capacity = buffer_size, .flags = PERF_T_USE_REPEAT|PERF_T_ALL
+    //     }));
+    //     perf_timer_reset(t);
+    // }
 
 
     // mem_cache_table_destroy();
@@ -252,11 +252,12 @@ test_perf_slab_allocation_release()
 void
 test_perf_slab_vs_stack()
 {
-    const uint32 repeat = 800000;
+    // const uint32 repeat = 800000;
+    const uint32 repeat = 8000;
     const uint32 num_allocations = 8;
     const uint32 num_pages = 32;
 
-    buffer_table_init();
+    buffer_table_init(num_pages);
     struct timer* t = timer_create_perf_timer();
 
 

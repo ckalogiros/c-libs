@@ -14,14 +14,21 @@
 #include "test_buffer.h"
 
 
+#include <sanitizer/asan_interface.h>
+
+
+
 int
 main(void)
 {
+    /* enable santizers to the stderr out */
+    __sanitizer_set_report_path("stderr");
+
     memman_init();
     {
         // test_create_buffer(256);
         // test_buffer_fill_remove_insert();        // todo: impl test
-        test_buffer_different_capacity_buffers(); // todo: impl test
+        // test_buffer_different_capacity_buffers(); // todo: impl test
         // test_buffer_remove_elements(256);        // todo: impl test
         // test_buffer_insert_elements(256);        // todo: impl test
         // test_buffer_realloc();                   // todo: impl test
@@ -31,7 +38,7 @@ main(void)
     }
 
     {
-        // perf_test_buffer_mixed_capacities_add();
+        perf_test_buffer_mixed_capacities_add();
         // perf_test_buffer_mixed_capacities_add_remove();
 
         // perf_test_buffer_with_children_add_remove();

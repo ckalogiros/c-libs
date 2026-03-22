@@ -48,6 +48,54 @@ function(include_project PROJECT_PATH)
     endif()
 endfunction()
 
+########################################################################################
+# Enable AddressSanitizer for debugging
+function(enable_sanitizer)
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        # Debug mode - only ASAN, explicitly disable LSAN
+        message(STATUS "Debug: ASAN enabled, LSAN disabled")
+
+        add_compile_options(-fsanitize=address -g -O0 -fno-omit-frame-pointer)
+        add_link_options(-fsanitize=address)
+
+        # Disable LSAN completely
+        set(ENV{ASAN_OPTIONS} "detect_leaks=0")
+        set(ENV{LSAN_OPTIONS} "detect_leaks=0")
+
+        # Also set as compile definition
+        add_compile_definitions(ASAN_OPTIONS="detect_leaks=0")
+
+    else()
+        # Non-debug builds - full sanitizer
+        message(STATUS "Sanitize build: ASAN+LSAN enabled")
+
+        add_compile_options(-fsanitize=address,leak -g -O0 -fno-omit-frame-pointer)
+        add_link_options(-fsanitize=address,leak)
+
+        set(ENV{ASAN_OPTIONS} "detect_leaks=1")
+        set(ENV{LSAN_OPTIONS} "verbosity=1:log_threads=1:detect_leaks=1")
+    endif()
+endfunction()
+#function(enable_sanitizer)
+#
+#    set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -fsanitize=address -g")
+#    set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -fsanitize=address")
+#
+#    # Set LSAN options for all tests
+#    set(ENV{LSAN_OPTIONS} "verbosity=1:log_threads=1")
+#
+#    # Or more generally for all builds (but typically just for Debug)
+#    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+#        add_compile_options(-fsanitize=address -g)
+#        add_link_options(-fsanitize=address)
+#
+#        # Disable leak detection when running under debugger
+#        set(ENV{ASAN_OPTIONS} "detect_leaks=0")
+#        add_compile_definitions(ASAN_OPTIONS="detect_leaks=0")
+#    endif()
+#endfunction()
+########################################################################################
+
 
 #
 ## In your proj_utils.cmake, modify include_project:

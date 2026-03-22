@@ -5,6 +5,7 @@ set(CMAKE_C_STANDARD 11)
 # 1. include utility functions
 #set(cmake_utils "${parent_dir}/cmake_utils/proj_utils.cmake")
 include(${cmake_utils})
+enable_sanitizer()
 
 # 2. add other sub-directories files
 include(${CMAKE_SOURCE_DIR}/src/CMakeLists.txt)

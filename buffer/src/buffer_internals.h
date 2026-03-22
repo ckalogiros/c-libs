@@ -7,9 +7,11 @@
 
 #include "buffer.h"
 
+uint16 buffer_get_allocator_instance_id();
+
 void TEMP_PRINT_BUFFER_TABLE_COUNT(void);
 
-void buffer_init_table(void);
+void buffer_init_table(const pageid_t num_pages);
 
 void buffer_destroy_table(void);
 

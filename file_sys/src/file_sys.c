@@ -47,16 +47,20 @@ struct fs_t {
 
 
 FILE* debug_file = NULL;
-static struct fs_t files_table[MAX_FILES_TABLE];
-static uint32 files_table_counter = 0;
+struct fs_t files_table[MAX_FILES_TABLE];
+uint32 files_table_counter = 0;
+bool is_initialized = FALSE;
 
 
 void
 fs_init_table()
 {
+    if(is_initialized) return;
     for(uint32 i = 0; i < MAX_FILES_TABLE; i++) {
         files_table[i] = (struct fs_t){.file = NULL, .filename = {0}, .flags = 0x0};
     }
+
+    is_initialized = TRUE;
 
     // file_sys_debug_init();
 }
@@ -249,6 +253,12 @@ fs_append_mem(struct fs_t* fs, const char* ptr, const uint64 size, const char* m
         }
 
         /* print memory hex values (per line, reverse printing) */
+        // if(i + sidx[cnt] >= 1016)
+        if((char*)&data[i + sidx[cnt]] >= ptr-128) {
+            break;
+        }
+        if(i + sidx[cnt] >= 16447)
+            print("size:%llu | i + sidx[cnt]:%llu | i:%u\n", (uint64) size, i + sidx[cnt], i);
         fprintf(fs->file, "%02x", data[i + sidx[cnt++]]);
         if(cnt == 8) cnt = 0;
         if((i + 1) % (word_size / 2) == 0)

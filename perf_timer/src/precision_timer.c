@@ -3,16 +3,22 @@
  */
 
 #include "precision_timer.h"
-#include "buffer.h"
+
+#include <assert.h>
+#include <stdlib.h>
 #include "buffer_impl.h"
 #include "precision_timer_logger.h"
 #include "logger.h"
 #include "sys_utils.h"
 #include <time.h>
-#include "slab_allocator_internals.h"
+#include "my_macros.h"
+// #include "slab_allocator_internals.h"
+#include "slab_allocator_struct.h"
 
 
-#define MIN_TIMER_TABLE_CAPACITY 16
+#define TIMER_TABLE_MIN_CAPACITY 16
+#define TIMER_ALIGNMENT 64
+
 
 #define TIMER_CHECK_TABLE(t_table)\
 if(!t_table) {\
@@ -21,26 +27,54 @@ if(!t_table) {\
 }
 
 #define TIMER_CHECK_TABLE_OVERFLOW_INDEX(index)\
-if(index > MIN_TIMER_TABLE_CAPACITY) {\
-    print("%sERROR\ntimer_table: INDEX OUT OF BOUNDS\nIncrease \"MIN_TIMER_TABLE_CAPACITY\" MACRO%s", RED, CLEAR);\
+if(index > TIMER_TABLE_MIN_CAPACITY) {\
+    print("%sERROR\ntimer_table: INDEX OUT OF BOUNDS\nIncrease \"TIMER_TABLE_MIN_CAPACITY\" MACRO%s", RED, CLEAR);\
     my_exit("timer_create_perf_timer", __FILE__, __LINE__);\
 }
 
-static memid_t allocator_instance_id = 0;
+
+/*******************************************************************************
+ * timer_table: a buffer to store all applications timers
+ ******************************************************************************/
+struct timer* timer_table = NULL;
+struct flist* timer_table_free_list_head = NULL;
+static uint32 timer_table_count = 0;
+static uint32 timer_table_allocations_count = 0;
 
 
+/*******************************************************************************
+ * timer objects: a free list is created inside the timer_table
+ * timer_table_flist_get_free():
+ *     gives back a free timer from table
+ * timer_table_flist_add():
+ *     frees a timer and adds it to the free list
+ ******************************************************************************/
 void
-constructor(struct timer* t)
+timer_table_flist_add(void* ptr)
 {
-    t->start = 0;
-    t->stop = 0;
-    t->accum = 0;
-    t->delta = 0;
-    t->avg = 0;
-    t->count = 0;
+    struct flist* list = ptr;
+    list->next = timer_table_free_list_head;
+    timer_table_free_list_head = list;
+    timer_table_allocations_count++;
 }
 
-static buffer_t* timer_table = NULL;
+buffer_t*
+timer_table_flist_get_free(void)
+{
+    if(!timer_table) {
+        print("%sERROR: timer_table already initialized\n%s", RED, CLEAR);
+        my_exit("ERROR: timer_table not initialized\nforget to call timer_init_table()?", __FILE__, __LINE__);
+    }
+
+    /* ERROR: if there are no free timer elements */
+    assert(timer_table_free_list_head);
+
+    struct flist* list = timer_table_free_list_head;
+    timer_table_free_list_head = timer_table_free_list_head->next;
+    timer_table_count++;
+    timer_table_allocations_count--;
+    return (buffer_t*) list;
+}
 
 void
 timer_init_table(void)
@@ -50,8 +84,16 @@ timer_init_table(void)
         return;
     }
 
-    allocator_instance_id = slab_allocator_create_new_instance(1, "precision timer");
-    timer_table = buffer_create_gentype(MIN_TIMER_TABLE_CAPACITY, sizeof(struct timer));
+    const uint32 minsize = ALIGN(sizeof(struct timer) * TIMER_TABLE_MIN_CAPACITY, TIMER_ALIGNMENT);
+    timer_table = aligned_alloc(TIMER_ALIGNMENT, minsize);
+
+    /* initialize table, with empty timer objects */
+    struct timer* ptr = timer_table;
+    while((uint64) ptr < (uint64) (timer_table + TIMER_TABLE_MIN_CAPACITY)) {
+        timer_table_flist_add(ptr);
+        ptr++;
+    }
+
 }
 
 
@@ -60,22 +102,15 @@ timer_create_perf_timer(void)
 {
     if(!timer_table) timer_init_table();
 
-    // todo: we need to insert(), after we have a free index from buffer
-    // OR implement insert at next free element in buffer.c
-    // const uint16 index = buffer_get_next_free(timer_table);
-    const uint16 index = buffer_set_for_push(timer_table);
+    struct timer* timer = (struct timer*)timer_table_flist_get_free();
 
-    TIMER_CHECK_TABLE_OVERFLOW_INDEX(index);
-
-
-    struct timer* data = (struct timer*) timer_table->data; // cast (for complains)
     struct timer t = {0};
-    data[index] = t;
-    return &data[index];
+    *timer = t; /* copy new timer to table */
+    return timer;
 }
 
 
-static uint64
+static inline uint64
 perf_timer_get(void)
 { // https://www.man7.org/linux/man-pages/man3/clock_gettime.3.html
 
@@ -170,30 +205,3 @@ perf_timer_get_fps(struct timer* const t) { return NANO_SEC / t->avg; }
 
 uint32
 perf_timer_calc_fps_from_nano(const uint32 avg) { return NANO_SEC / avg; }
-
-
-//#include "logger.h"
-//void perf_timer_calc_timer_overhead()
-//{
-//    uint32 repeat = 10000000;
-//    perf_timer_start();
-//    for (uint32 i = 0; i < repeat; i++)
-//    {
-//        struct timespec ts;
-//        clock_gettime(CLOCK_MONOTONIC, &ts);
-//        const uint64_t nanosec = ts.tv_sec * NANO_SEC + ts.tv_nsec;
-//    }
-//    perf_timer_stop_with_count(repeat);
-//    {
-//        perf_timer_calc_accum();
-//        print("--- Timer\n");
-//        const uint32 fps = perf_timer_get_fps();
-//        print("fps: %d\n", fps);
-//        const uint32 avg = perf_timer_get_avg();
-//        print("avg: %d nanosec\n", avg);
-//        const uint64 accum = perf_timer_get_accum();
-//        print("avg: %ld microsec\n", avg / NANO_TO_MICRO);
-//        perf_timer_reset();
-//    }
-//
-//}

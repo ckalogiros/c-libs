@@ -6,15 +6,11 @@
 #include <assert.h>
 #include <math.h>
 #include <string.h>
-
 #include "logger.h"
-#include "mem_log.h"
-#include "mem_man_interface.h"
-#include "mem_structs.h"
+#include "mem_man_structs.h"
 #include "my_macros.h"
 #include "slab_allocator.h"
 #include "slab_allocator_internals.h"
-#include "str_utils.h"
 #include "mem_man_internals.h"
 #include "slab_allocator_log.h"
 
@@ -160,26 +156,19 @@ test_slab_instance_struct()
 void
 test_slab_pool_struct()
 {
-    /*
-     *  struct slab_allocator_pool
-     *      nameid_t name;
-     *      memid_t mem_id;
-     *      uint16 min_mcache_size;
-     *      uint16 max_mcache_size;
-     *      uint16 mcache_count;
-     */
     memid_t inst_id = slab_allocator_create_new_instance(TEST_NUM_PAGES, "test_slab_pool_struct()");
     struct slab_allocator_instance* inst = slab_allocator_get_instance(inst_id);
-
-    uint16 pool_id = slab_allocator_instance_create_new_pool(inst_id, TEST_NUM_PAGES, 8, 64, "test_slab_pool_struct()");
+    uint32 numlems = 1024, typesize = sizeof(uint32);
+    const uint32 slab_size = numlems * typesize;
+    uint16 pool_id = slab_allocator_instance_create_new_pool(inst_id, TEST_NUM_PAGES, slab_size, "test_slab_pool_struct()");
 
     struct slab_allocator_pool pool = inst->pool_table[pool_id];
 
 
     // assert(pool.mem_id == inst_id);
     assert(pool.mcache_count == 0);
-    assert(pool.max_mcache_size == 64);
-    assert(pool.min_mcache_size == 8);
+    assert(pool.max_mcache_size >= slab_size);
+    assert(pool.min_mcache_size <= slab_size);
 
     print_test_result("test_slab_pool_struct", TRUE, __FILE__, __LINE__, "");
 }
@@ -208,7 +197,6 @@ test_slab_mcache_struct()
     uint32 numlems = 1024, typesize = sizeof(uint32);
     struct slab_allocator_mcache* mcache =
             slab_allocator_create_mcache(inst_id, numlems, typesize, "test_slab_mcache_struct()");
-
     const uint32 num_pages = ROUND_UP(numlems * typesize, PAGE_SIZE) / PAGE_SIZE;
 
     assert(inst->mcache_table != NULL);
@@ -225,7 +213,7 @@ test_slab_mcache_struct()
     assert(mcache->last_slab_end == mcache->slabs_start+mcache->slab_size*mcache->slabs_capacity);
 
 
-    struct mem* mem = mem_get_byid(mcache->mem_handle.mem_id);
+    struct mem_block* mem = mem_get_byid(mcache->mem_handle.mem_id);
     assert(mcache->slabs_start == mem->start);
     assert(mcache->slabs_free_list == mcache->slabs_start);
     assert(mcache->mem_handle.page_id == calc_page_id_from_address(mcache->slabs_start, mcache->mem_handle.mem_id));

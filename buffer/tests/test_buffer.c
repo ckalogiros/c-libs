@@ -14,6 +14,8 @@
 #include "slab_allocator_internals.h"
 #include "string_format.h"
 
+#define TEST_BUFFER_ALLOC_NUM_PAGES 4
+
 #define DEBUG_FPRINT_ALL_ALLOC_MEM()\
 const char* fname = "/exit_status_ok_debug.txt";\
 struct fs_t* fs = fs_create(fname);\
@@ -56,7 +58,7 @@ test_create_buffer(const uint32 capacity)
 {
     
 
-    buffer_table_init();
+    buffer_table_init(TEST_BUFFER_ALLOC_NUM_PAGES);
 
     // allocate new buffer
     buffer_t* buffer = buffer_create_uint32(capacity);
@@ -76,7 +78,7 @@ test_buffer_fill_remove_insert()
 {
     
 
-    buffer_table_init();
+    buffer_table_init(TEST_BUFFER_ALLOC_NUM_PAGES);
 
     // allocate new buffer
     const uint32 capacity = 64;
@@ -130,7 +132,7 @@ test_buffer_different_capacity_buffers()
 
     
 
-    buffer_table_init();
+    buffer_table_init(TEST_BUFFER_ALLOC_NUM_PAGES);
 
     // allocate buffer: capacity=16
     {
@@ -141,6 +143,7 @@ test_buffer_different_capacity_buffers()
         buffer_print_uint32(buffer_print_config((buffer_print_params){
             .buffer = buffer, .print_num_elems = buffer->capacity
         }));
+        debug_mem_corrupted(buffer_get_memid(buffer), TRUE);
     }
 
     // allocate buffer: capacity=32
@@ -152,6 +155,7 @@ test_buffer_different_capacity_buffers()
         buffer_print_uint32(buffer_print_config((buffer_print_params){
             .buffer = buffer, .print_num_elems = buffer->capacity
         }));
+        debug_mem_corrupted(buffer_get_memid(buffer), TRUE);
     }
 
     {
@@ -162,6 +166,7 @@ test_buffer_different_capacity_buffers()
         buffer_print_uint32(buffer_print_config((buffer_print_params){
             .buffer = buffer, .print_num_elems = buffer->capacity
         }));
+        debug_mem_corrupted(buffer_get_memid(buffer), TRUE);
     }
 
     {
@@ -172,6 +177,7 @@ test_buffer_different_capacity_buffers()
         buffer_print_uint32(buffer_print_config((buffer_print_params){
             .buffer = buffer, .print_num_elems = buffer->capacity
         }));
+        debug_mem_corrupted(buffer_get_memid(buffer), TRUE);
     }
 
     {
@@ -182,6 +188,7 @@ test_buffer_different_capacity_buffers()
         buffer_print_uint32(buffer_print_config((buffer_print_params){
             .buffer = buffer, .print_num_elems = buffer->capacity
         }));
+        debug_mem_corrupted(buffer_get_memid(buffer), TRUE);
     }
 
 
@@ -194,17 +201,19 @@ test_buffer_different_capacity_buffers()
         buffer_print_uint32(buffer_print_config((buffer_print_params){
             .buffer = buffer, .print_num_elems = buffer->capacity
         }));
+        debug_mem_corrupted(buffer_get_memid(buffer), TRUE);
     }
 
     // allocate buffer: capacity=256
     {
         uint32 capacity = 256;
         print("CREATE %scapacity:%u%s\n", GREEN, capacity, CLEAR);
-        buffer_t* buffer_c256 = buffer_create_uint32(capacity);
-        fill(buffer_c256); // fill buffer
+        buffer_t* buffer = buffer_create_uint32(capacity);
+        fill(buffer); // fill buffer
         buffer_print_uint32(buffer_print_config((buffer_print_params){
-            .buffer = buffer_c256, .print_num_elems = buffer_c256->capacity
+            .buffer = buffer, .print_num_elems = buffer->capacity
         }));
+        debug_mem_corrupted(buffer_get_memid(buffer), TRUE);
     }
 
     // allocate buffer: capacity=512
@@ -216,6 +225,7 @@ test_buffer_different_capacity_buffers()
         buffer_print_uint32(buffer_print_config((buffer_print_params){
             .buffer = buffer, .print_num_elems = buffer->capacity
         }));
+        debug_mem_corrupted(buffer_get_memid(buffer), TRUE);
     }
 
     buffer_table_destroy();
@@ -232,7 +242,7 @@ test_buffer_remove_elements(const uint32 capacity)
 
     
 
-    buffer_table_init();
+    buffer_table_init(TEST_BUFFER_ALLOC_NUM_PAGES);
 
     // allocate buffer
     buffer_t* buffer = buffer_create_uint32(capacity);
@@ -268,7 +278,7 @@ test_buffer_insert_elements(const uint32 capacity)
 
     
 
-    buffer_table_init();
+    buffer_table_init(TEST_BUFFER_ALLOC_NUM_PAGES);
 
     // allocate buffer
     buffer_t* buffer = buffer_create_gentype(capacity, sizeof(uint32));
@@ -307,7 +317,7 @@ test_buffer_realloc()
 
     
 
-    buffer_table_init();
+    buffer_table_init(TEST_BUFFER_ALLOC_NUM_PAGES);
 
     // allocate buffer
     const uint32 capacity = 16;
@@ -391,7 +401,7 @@ test_destroy_buffer()
 
     
 
-    buffer_table_init();
+    buffer_table_init(TEST_BUFFER_ALLOC_NUM_PAGES);
 
     print("%sTEST CREATE-DESTROY,\nSAME BUFFER TWICE%s\n", GREEN, CLEAR);
     {
@@ -613,7 +623,7 @@ test_generic_type_buffer()
 
     
 
-    buffer_table_init();
+    buffer_table_init(TEST_BUFFER_ALLOC_NUM_PAGES);
 
     buffer_t* buffer = buffer_create_gentype(32, sizeof(uint8));
 
@@ -654,7 +664,7 @@ test_buffer_free_elem()
 
     
 
-    buffer_table_init();
+    buffer_table_init(TEST_BUFFER_ALLOC_NUM_PAGES);
 
     const uint32 repeat = 1;
     const uint32 capacity = 128;
@@ -706,7 +716,7 @@ test_buffer_with_children()
 
     
 
-    buffer_table_init();
+    buffer_table_init(TEST_BUFFER_ALLOC_NUM_PAGES);
 
     struct node {
         uint32 nameid;
@@ -763,7 +773,7 @@ test_buffer_fprint_values()
 {
     
 
-    buffer_table_init();
+    buffer_table_init(TEST_BUFFER_ALLOC_NUM_PAGES);
 
     struct fs_t* fsdebug = fs_create("debug_with_info");
 
@@ -861,3 +871,6 @@ test_buffer_fprint_values()
     DEBUG_FPRINT_ALL_ALLOC_MEM();
     
 }
+
+
+#undef TEST_BUFFER_ALLOC_NUM_PAGES 4

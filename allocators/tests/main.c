@@ -7,6 +7,7 @@
 #include "test_performance.h"
 #include "test_slab_allocator.h"
 #include "test_stack_allocator.h"
+#include "stack_unit_test.h"
 
 int
 main(void)
@@ -29,9 +30,9 @@ main(void)
     /***************************************************************************************************
     * STACK ALLOCATOR TESTS
      **************************************************************************************************/
-    test_stack_allocator();
+    // test_stack_allocator();
     // test_stack_allocator_alignment();
-    // unit_test_runner_stack_allocator();
+    unit_test_runner_stack_allocator();
 
     memman_terminate();
     return 0;

@@ -14,6 +14,7 @@
 #include "file_sys_interface.h"
 #include "logger.h"
 #include "my_macros.h"
+#include "smath.h"
 
 
 #define MEMORY_POISON_SIZE 64
@@ -83,6 +84,7 @@ mem_table_init(void)
 
 
     mem_table[mem_table_count] = memory;
+    print("ALLOC mem_block:%p\n", mem_table[mem_table_count]);
     mem_table_count++;
 
     return TRUE;
@@ -106,11 +108,18 @@ mem_table_destroy(void)
 
     if(!mem_table) return FALSE;
     print("FREEING MEMORY MANAGER: %x ... ", ry, mem_table[0].start, CLEAR);
-    for(uint32 i = 0; i < mem_table_count; i++) {
+    for(uint32 i = mem_table_count-1; i > 0; i--) {
+
         void** ptr = &mem_table[i].start;
+        if(*ptr == NULL)
+        assert(*ptr != NULL);
+
         print("free mem_block:%p\n", ptr);
         free(*ptr);
+        *ptr = NULL;
     }
+
+    free(mem_table);
     print("OK", GREEN, CLEAR);
     return TRUE;
 }
@@ -122,9 +131,14 @@ mem_allocate_block(const uint16 num_pages, const uint32 alignment, const char* n
     assert(MEMORY_POISON_SIZE <= MAX_UINT64);
 
     const uint32 page_size = PAGE_SIZE;
-    const uint32 poison_data_size = MEMORY_POISON_SIZE;
+    // const uint32 poison_data_size = MEMORY_POISON_SIZE;
+    const uint32 poison_data_size = alignment;
 
     const uint32 total_size = (num_pages * page_size) + poison_data_size;
+
+    assert(is_power_of_two(alignment)); /* alignment must be power of 2 */
+    assert(alignment<total_size);
+    assert((total_size%alignment) == 0); /* size must be multiple of alignment */
 
     void* addr = aligned_alloc(alignment, total_size);
     CHECK_MEM_NULL(addr, MALLOC_FAILED_TO_ALLOC_MEMORY, "MALLOC_FAILED_TO_ALLOC_MEMORY\nin mem_allocate_block()");
@@ -174,6 +188,8 @@ mem_deallocate_block(const memid_t memid)
 struct memhnd_t
 mem_page_request(const uint16 num_pages, const memid_t mem_id)
 {
+    // HERE: double calling mem_get_byid(mem_id)
+    // flist_get_next_free_page() is used only by this function, so we can padd the mem to it
     struct mem_block* mem = mem_get_byid(mem_id);
 
     CHECK_MEM_NULL(mem, NO_MEMORY_MANAGER_INIT, "mem_page_request");
@@ -315,6 +331,7 @@ mem_init_free_list_table(struct mem_block* mem)
     }
 
     // Add the last color to the NULL list element
+    flist->next = NULL;
     color_page = FREE_LIST_GET_PAGE_COLOR_OFFSET(flist);
     color_page[0] = 'F'; color_page[1] = 'R'; color_page[2] = 'E'; color_page[3] = 'E';
 }
@@ -323,7 +340,8 @@ struct memhnd_t
 flist_get_next_free_page(const uint16 num_pages, const memid_t mem_id)
 {
     const struct mem_block* mem = mem_get_byid(mem_id);
-    if(!mem->flist || !mem->flist->next){
+    // if(!mem->flist || !mem->flist->next){
+    if(!mem->flist){
         mem_print_error(NO_FREE_MEMORY);
         if(!mem->flist) print("free list = NULL\n");
         else print("free list -> next = NULL  free list:%p\n", mem->flist);

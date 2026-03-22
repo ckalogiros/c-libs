@@ -18,6 +18,8 @@
 #include "str_utils.h"
 
 
+#define TEST_BUFFER_ALLOC_NUM_PAGES 4
+
 
 /*******************************************************************************
  * private
@@ -66,7 +68,7 @@ perf_test_buffer_create_generic_vs_uint32(void)
     const uint32_t num_pages = 16;
     
 
-    buffer_table_init();
+    buffer_table_init(TEST_BUFFER_ALLOC_NUM_PAGES);
 
 
     timer_init_table();
@@ -244,9 +246,9 @@ perf_test_buffer_remove_insert(void)
     const uint32 repeat = 1000000;
     // const uint32 repeat = 2000;
 
-    string_init_table();
+    string_init_table(1);
 
-    buffer_table_init();
+    buffer_table_init(TEST_BUFFER_ALLOC_NUM_PAGES);
 
     timer_init_table();
 
@@ -344,7 +346,7 @@ perf_test_insert_abstruct_call(void)
     
 
 
-    buffer_table_init();
+    buffer_table_init(TEST_BUFFER_ALLOC_NUM_PAGES);
 
     timer_init_table();
 
@@ -458,7 +460,7 @@ perf_test_buffer_find_tail(void)
     const uint32_t num_pages = 15;
     
 
-    buffer_table_init();
+    buffer_table_init(TEST_BUFFER_ALLOC_NUM_PAGES);
 
     timer_init_table();
 
@@ -605,7 +607,8 @@ perf_test_buffer_mixed_capacities_add(void)
 
     
 
-    buffer_table_init();
+    // buffer_table_init(TEST_BUFFER_ALLOC_NUM_PAGES);
+    buffer_table_init(1);
     timer_init_table();
 
 
@@ -642,6 +645,7 @@ perf_test_buffer_mixed_capacities_add(void)
 
      uint32 id = 0;
      char* pfree = NULL;
+    const buffer_t* buffer = NULL;
 
      for(uint32 testcnt = 0; testcnt < num_buffers; testcnt++) {
          fs_append(fs_debug_mem,
@@ -658,7 +662,7 @@ perf_test_buffer_mixed_capacities_add(void)
 
          perf_timer_start_accum(t_create);
 
-         const buffer_t* buffer = buffer_create_gentype(capacities[testcnt], type_size);
+         buffer = buffer_create_gentype(capacities[testcnt], type_size);
          if((char*) buffer->data > pfree)
              pfree = (char*) buffer->data;
 
@@ -692,7 +696,7 @@ perf_test_buffer_mixed_capacities_add(void)
     fs_fprint_all_allocated_mem(fname);
     fs_append(fs, "EXIT WITH STATUS OK\n");
 
-    debug_mem_corrupted(MEM_ID_ALLOCATOR_SLAB);
+    debug_mem_corrupted(buffer_get_memid(buffer), TRUE);
 
     
 }
@@ -715,7 +719,7 @@ perf_test_buffer_mixed_capacities_add_remove(void)
 
     
 
-    buffer_table_init();
+    buffer_table_init(TEST_BUFFER_ALLOC_NUM_PAGES);
     timer_init_table();
 
 
@@ -743,6 +747,7 @@ perf_test_buffer_mixed_capacities_add_remove(void)
 
     uint32 id = 0;
     char* pfree = NULL;
+    buffer_t* buffer = NULL;
 
     for(uint32 testcnt = 0; testcnt < num_buffers; testcnt++) {
         fs_append(fs_debug_mem,
@@ -759,7 +764,7 @@ perf_test_buffer_mixed_capacities_add_remove(void)
 
         perf_timer_start_accum(t_create);
 
-        buffer_t* buffer = buffer_create_gentype(capacities[testcnt], type_size);
+        buffer = buffer_create_gentype(capacities[testcnt], type_size);
         if((char*) buffer->data > pfree)
             pfree = (char*) buffer->data;
 
@@ -807,7 +812,7 @@ perf_test_buffer_mixed_capacities_add_remove(void)
     fs_fprint_all_allocated_mem(fname);
     fs_append(fs, "EXIT WITH STATUS OK\n");
 
-    debug_mem_corrupted(MEM_ID_ALLOCATOR_SLAB);
+    debug_mem_corrupted(buffer_get_memid(buffer), TRUE);
 
     
 }
@@ -842,7 +847,7 @@ perf_test_buffer_with_children_add_remove(void)
 
     
 
-    buffer_table_init();
+    buffer_table_init(TEST_BUFFER_ALLOC_NUM_PAGES);
     timer_init_table();
 
 
@@ -878,6 +883,7 @@ perf_test_buffer_with_children_add_remove(void)
     uint32 id = 0;
     char* pfree = NULL;
     char* cfree = NULL;
+    buffer_t* buffer = NULL;
 
     for(uint32 r = 0; r < repeat; r++) {
         fs_append(fs_debug_mem,
@@ -894,7 +900,7 @@ perf_test_buffer_with_children_add_remove(void)
 
         perf_timer_start_accum(t_create);
 
-        buffer_t* buffer = buffer_create_gentype(pcapac, type_size);
+        buffer = buffer_create_gentype(pcapac, type_size);
         if((char*) buffer->data > pfree) pfree = (char*) buffer->data;
 
         // fill buffer
@@ -962,7 +968,7 @@ perf_test_buffer_with_children_add_remove(void)
     fs_fprint_all_allocated_mem(fname);
     fs_append(fs, "EXIT WITH STATUS OK\n");
 
-    debug_mem_corrupted(MEM_ID_ALLOCATOR_SLAB);
+    debug_mem_corrupted(buffer_get_memid(buffer), TRUE);
 
     
 }
@@ -994,7 +1000,7 @@ perf_test_buffer_mixed_capacities_with_children_add(void)
 
     
 
-    buffer_table_init();
+    buffer_table_init(TEST_BUFFER_ALLOC_NUM_PAGES);
     timer_init_table();
 
 
@@ -1029,6 +1035,7 @@ perf_test_buffer_mixed_capacities_with_children_add(void)
     uint32 id = 0;
     char* pfree = NULL;
     char* cfree = NULL;
+    buffer_t* buffer = NULL;
 
     for(uint32 testcnt = 0; testcnt < buffer_tests_num; testcnt++) {
         const uint32 pcapac = parent_capacity[testcnt];
@@ -1048,7 +1055,7 @@ perf_test_buffer_mixed_capacities_with_children_add(void)
 
         perf_timer_start_accum(t_create);
 
-        const buffer_t* buffer = buffer_create_gentype(pcapac, type_size);
+        buffer = buffer_create_gentype(pcapac, type_size);
         if((char*) buffer->data > pfree) pfree = (char*) buffer->data;
 
         // fill buffer
@@ -1091,7 +1098,7 @@ perf_test_buffer_mixed_capacities_with_children_add(void)
     fs_fprint_all_allocated_mem(fname);
     fs_append(fs, "EXIT WITH STATUS OK\n");
 
-    debug_mem_corrupted(MEM_ID_ALLOCATOR_SLAB);
+    debug_mem_corrupted(buffer_get_memid(buffer), TRUE);
 
     
 }
@@ -1123,7 +1130,7 @@ perf_test_buffer_mixed_capacities_with_children_add_remove(void)
 
     
 
-    buffer_table_init();
+    buffer_table_init(TEST_BUFFER_ALLOC_NUM_PAGES);
     timer_init_table();
 
 
@@ -1157,6 +1164,7 @@ perf_test_buffer_mixed_capacities_with_children_add_remove(void)
     uint32 id = 0;
     const char* pfree = NULL;
     const char* cfree = NULL;
+    buffer_t* buffer = NULL;
 
     for(uint32 testcnt = 0; testcnt < buffer_tests_num; testcnt++) {
         const uint32 pcapac = parent_capacity[testcnt];
@@ -1176,7 +1184,7 @@ perf_test_buffer_mixed_capacities_with_children_add_remove(void)
 
         perf_timer_start_accum(t_create);
 
-        buffer_t* buffer = buffer_create_gentype(pcapac, type_size);
+        buffer = buffer_create_gentype(pcapac, type_size);
         if((char*) buffer->data > pfree) pfree = (char*) buffer->data;
 
         // fill buffer
@@ -1246,7 +1254,7 @@ perf_test_buffer_mixed_capacities_with_children_add_remove(void)
     fs_fprint_all_allocated_mem(fname);
     fs_append(fs, "EXIT WITH STATUS OK\n");
 
-    debug_mem_corrupted(MEM_ID_ALLOCATOR_SLAB);
+    debug_mem_corrupted(buffer_get_memid(buffer), TRUE);
 
     
 }
@@ -1260,7 +1268,7 @@ perf_test_buffer_with_children_in_dif_slabs(void)
 
     
 
-    buffer_table_init();
+    buffer_table_init(TEST_BUFFER_ALLOC_NUM_PAGES);
     timer_init_table();
 
 
@@ -1341,3 +1349,6 @@ perf_test_buffer_with_children_in_dif_slabs(void)
 
     
 }
+
+
+#undef TEST_BUFFER_ALLOC_NUM_PAGES 4

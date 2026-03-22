@@ -86,7 +86,7 @@ string_append_cstr(string_t* string, const char* str)
 string_t*
 string_empty(string_t* string)
 {
-    memset((void*) string->data, 0, string->len);
+    memset((void*) string->data, 0x0, string->len);
     string->len = 0;
     return string;
 }

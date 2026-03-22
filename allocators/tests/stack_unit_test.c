@@ -2,10 +2,11 @@
  * Created by ckalo on 3/15/26.
  */
 
+#include "stack_unit_test.h"
 #include <assert.h>
 #include "logger.h"
 #include "mem_man_interface.h"
-#include "mem_structs.h"
+#include "mem_man_structs.h"
 #include "my_macros.h"
 #include "stack_allocator.h"
 
@@ -157,35 +158,12 @@ test_allocation_alignment()
 {
     memid_t inst_id = stack_allocator_create_new_instance(TEST_NUM_PAGES);
 
-    {
-        // void* ptr1 = stack_allocator_alloc(inst_id, 1, sizeof(char));
-        // *(char*) ptr1 = 'A';
-        // assert(((uintptr_t)ptr1 & (sizeof(void*) - 1)) == 0); // Should be pointer-aligned
-        //
-        // void* ptr2 = stack_allocator_alloc(inst_id, 3, sizeof(char));
-        // *((char*) ptr2 + 0) = 'A';
-        // *((char*) ptr2 + 1) = 'B';
-        // *((char*) ptr2 + 2) = 'C';
-        // assert((uintptr_t)ptr2 == (uintptr_t)ptr1 + 1);
-    }
-
-    {
-        // void* ptr1 = stack_allocator_alloc(inst_id, sizeof(uint32), sizeof(uint32));
-        // *(uint32*) ptr1 = HACK_LIT_STR_TO_NUM("AAA.", uint32);
-        // assert(((uintptr_t)ptr1 & (sizeof(void*) - 1)) == 0); // Should be pointer-aligned
-        //
-        // void* ptr2 = stack_allocator_alloc(inst_id, sizeof(uint32), sizeof(uint32));
-        // *((uint32*) ptr2 + 0) = HACK_LIT_STR_TO_NUM("BBB.", uint32);
-        // // assert((uintptr_t)ptr2 == (uintptr_t)ptr1 + 1);
-        // assert(((uintptr_t)ptr2 & (sizeof(uint32) - 1)) == 0);
-    }
-    void* ptr1 = stack_allocator_alloc(inst_id, sizeof(char), sizeof(char));
-    *(uint32*) ptr1 = HACK_LIT_STR_TO_NUM("A", uint32);
+    void* ptr1 = stack_allocator_alloc(inst_id, sizeof(uint32)*2, sizeof(char));
+    *(char*) ptr1 = HACK_LIT_STR_TO_NUM("A", char);
     assert(((uintptr_t)ptr1 & (sizeof(void*) - 1)) == 0); // Should be pointer-aligned
 
     void* ptr2 = stack_allocator_alloc(inst_id, sizeof(uint32), sizeof(uint32));
     *((uint32*) ptr2 + 0) = HACK_LIT_STR_TO_NUM("BBB.", uint32);
-    // assert((uintptr_t)ptr2 == (uintptr_t)ptr1 + 1);
     assert(((uintptr_t)ptr2 & (sizeof(uint32) - 1)) == 0);
 
     print_test_result("test_allocation_alignment", TRUE, __FILE__, __LINE__, "");

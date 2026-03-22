@@ -14,7 +14,7 @@ void slab_allocator_init(void);
 memid_t slab_allocator_create_new_instance(const pageid_t reserve_num_pages, const char* name);
 
 uint16 slab_allocator_instance_create_new_pool(const salltable_t inst_id, const pageid_t num_pages,
-    const uint16 min_cache_size, const uint16 max_cache_size, const char* name);
+    const slab_size_t slab_size, const char* name);
 
 struct slab_allocator_mcache* slab_allocator_create_mcache(const salltable_t inst_id,
     const slab_elems_t num_elems, const uint8 type_size, const char* name);

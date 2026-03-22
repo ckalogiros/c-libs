@@ -19,10 +19,12 @@ static void* store_ptr = NULL;
 static void* retrieve_ptr = NULL;
 
 
+#define FS_DEBUG_VARS_ALLOC_SIZE (PAGE_SIZE * 24)
+
 void
 file_sys_debug_init()
 {
-    debug_all_values_buffer = aligned_alloc(1024, 8192);
+    debug_all_values_buffer = aligned_alloc(1024, FS_DEBUG_VARS_ALLOC_SIZE);
     start = debug_all_values_buffer;
     store_ptr = debug_all_values_buffer;
     retrieve_ptr = debug_all_values_buffer;
@@ -37,6 +39,11 @@ file_sys_push(void* const value, typesize_t typesize, const enum TYPES type, voi
     // print("-- address:%016llx\n", address);
 
     fsdebug* d = (fsdebug*) debug_all_values_buffer;
+
+    const uint64 size = (uint64)(debug_all_values_buffer + (uint8) (sizeof(d->address) + sizeof(d->size))) - (uint64)start;
+
+    if(size >= FS_DEBUG_VARS_ALLOC_SIZE)
+    assert(size < FS_DEBUG_VARS_ALLOC_SIZE);
 
     d->address = address;
     *(char*) d->data = *((char*) debug_all_values_buffer + (uint8) (sizeof(d->address) + sizeof(d->size)));

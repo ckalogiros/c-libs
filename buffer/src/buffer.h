@@ -6,9 +6,10 @@
 #define BUFFER_BUFFER_H
 
 #include "buffer_struct.h"
+#include "mem_man_types.h"
 
 
-void buffer_table_init(void);
+void buffer_table_init(const pageid_t num_pages);
 
 void buffer_table_destroy(void);
 
@@ -30,8 +31,11 @@ void buffer_free_elem(buffer_t* const buffer, const bufidx_t index);
 
 void buffer_empty(buffer_t* const buffer, const bufidx_t index);
 
-/* getters */
 uint16 buffer_get_next_free(buffer_t* const buffer);
+
+
+/* getters */
+memid_t buffer_get_memid(buffer_t* const buffer);
 
 /* DEBUG-FPRINT */
 void buffer_fprint(buffer_t* buffer);

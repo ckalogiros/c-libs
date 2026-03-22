@@ -33,10 +33,11 @@ static uint32 table_count = 0;
 memid_t
 stack_allocator_create_new_instance(const pageid_t num_pages)
 {
-    print("%s###################################################\n"
-      "STACK CREATE NEW INSTANCE: %s\n", br3, CLEAR);
+    // print("%s###################################################\n"
+    //   "STACK CREATE NEW INSTANCE: %s\n", br3, CLEAR);
 
-    const uint32 struct_type_size = sizeof(struct stack_allocator_instance);
+    // const uint32 struct_type_size = sizeof(struct stack_allocator_instance);
+    const uint32 struct_type_size = 1024;
 
     /* case first time stack allocator instance creation */
     if(!stack_allocator_table) {

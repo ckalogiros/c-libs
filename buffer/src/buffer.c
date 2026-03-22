@@ -9,6 +9,8 @@
 // #include <string.h>
 #include "buffer_log.h"
 #include "logger.h"
+#include "mem_man_types.h"
+#include "slab_allocator.h"
 
 #define BUFFER_DEBUG_PRINT 1
 #undef BUFFER_DEBUG_PRINT
@@ -19,9 +21,9 @@
 
 
 void
-buffer_table_init(void)
+buffer_table_init(const pageid_t num_pages)
 {
-    buffer_init_table();
+    buffer_init_table(num_pages);
 }
 
 void
@@ -125,10 +127,6 @@ buffer_empty(buffer_t* const buffer, const bufidx_t index)
     buffer->tail = -1;
 }
 
-
-/*
- * getters
- */
 uint16
 buffer_get_next_free(buffer_t* const buffer)
 {
@@ -171,6 +169,22 @@ buffer_set_for_insert(buffer_t* const buffer, const bufidx_t index)
     // uint64* free_list = buffer->free_list + offset;
     // buffer_free_list_remove(*free_list, index);
 }
+
+
+
+/*
+ * getters
+ */
+
+memid_t
+buffer_get_memid(buffer_t* const buffer)
+{
+    const uint16 inst_id = buffer_get_allocator_instance_id();
+    memid_t memid = slab_allocator_get_memid(inst_id, buffer->capacity, buffer->typesize);
+    return memid;
+}
+
+
 
 /* DEBUG-FPRINT */
 void buffer_fprint(buffer_t* buffer)
