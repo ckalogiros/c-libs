@@ -98,13 +98,7 @@ mem_table_destroy(void)
     MEMORY_DEBUG_FPRINT_USED_MEM(fname);
 #endif
 
-    // string_t* str2 = string_create_empty(32);
-    // const char* filename = string_format(str2->data, "/all_allocated_mem.txt");
-    // fs_fprint_all_allocated_mem(filename);
-
-    char_buf16_t filename;
-    char_buf16_copy_from_str(&filename, "/all_allocated_mem.txt");
-    fs_fprint_all_allocated_mem(filename.buf);
+    fs_fprint_all_allocated_mem("all_allocated_mem.txt");
 
     if(!mem_table) return FALSE;
     print("FREEING MEMORY MANAGER: %x ... ", ry, mem_table[0].start, CLEAR);
@@ -131,10 +125,11 @@ mem_allocate_block(const uint16 num_pages, const uint32 alignment, const char* n
     assert(MEMORY_POISON_SIZE <= MAX_UINT64);
 
     const uint32 page_size = PAGE_SIZE;
-    // const uint32 poison_data_size = MEMORY_POISON_SIZE;
-    const uint32 poison_data_size = alignment;
+    // const uint32 poison_data_size = alignment;
+    const uint32 poison_data_size = PAGE_SIZE;
 
     const uint32 total_size = (num_pages * page_size) + poison_data_size;
+    // const uint32 total_size = (num_pages * page_size);
 
     assert(is_power_of_two(alignment)); /* alignment must be power of 2 */
     assert(alignment<total_size);
@@ -160,14 +155,14 @@ mem_allocate_block(const uint16 num_pages, const uint32 alignment, const char* n
 
     mem_init_free_list_table(mem);
 
-    /* set off boundary area, for corruption detection */
+    /* set poison data area, for corruption detection */
     char* off_bound_mem_start = (char*) mem->start + mem->data_size;
     uint64* ptr = (uint64*) off_bound_mem_start;
     const uint32 len = poison_data_size / sizeof(uint64);
     for(uint32 i = 0; i < len; i++)
         ptr[i] = MEM_POISON_PATTERN;
 
-    // test it
+    // tests it
     const bool memory_corrupted = check_mem_off_boundaries_writes(off_bound_mem_start, poison_data_size);
     if(memory_corrupted) {
         my_exit("ERROR: MEMORY CORRUPTION DETECTED", __FILE__, __LINE__);
@@ -394,7 +389,7 @@ flist_get_next_free_page(const uint16 num_pages, const memid_t mem_id)
     }
 
 
-    if(num_pages <= 0) {
+    if(num_pages <= 0 || numpages != 0) {
         mem_print_error(NO_FREE_MEMORY);
         print("num pages left:%u \n", num_pages);
         my_exit("NO FREE MEMORY", __FILE__, __LINE__);

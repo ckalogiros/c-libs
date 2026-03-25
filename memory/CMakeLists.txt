@@ -1,36 +1,36 @@
-cmake_minimum_required(VERSION 3.28.3)
+cmake_minimum_required(VERSION 3.28)
 project(memory C)
 
 set(CMAKE_C_STANDARD 11)
-
-get_filename_component(parent_dir ${CMAKE_CURRENT_LIST_DIR} DIRECTORY)
-
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
 
 # 1. include utility functions
-set(cmake_utils "${parent_dir}/cmake_utils/proj_utils.cmake")
+set(cmake_utils "/home/ckalo/data/projects/clion/cmake_utils/proj_utils.cmake")
 include(${cmake_utils})
+set(root_path ${CLION_ROOT_DIR})
+enable_sanitizer()
 
-# 2. add /src that adds .c.h files and adds other sub-directories
+# 2. add project's sub-directories
 add_subdirectory(src)
-add_subdirectory(test)
+add_subdirectory(tests)
 
-#include_project(${parent_dir}/memory/src)
-#include_project(${parent_dir}/memory/src/mem_log)
-#include_project(${parent_dir}/memory/src/internal)
+# 3. add external projects
+include_project(${root_path}/g_includes)
+include_project(${root_path}/logger/src)
+include_project(${root_path}/file_sys/src)
+include_project(${root_path}/string_format/src)
+include_project(${root_path}/bits/src)
+include_project(${root_path}/memory/src)
+include_project(${root_path}/memory/src/mem_log)
+include_project(${root_path}/allocators/slab_array/src)
+include_project(${root_path}/allocators/slab_array/log)
+include_project(${root_path}/allocators/stack/src)
+#include_project(${root_path}/containers/sparse_array/src)
+#include_project(${root_path}/containers/sparse_array/log)
+include_project(${root_path}/containers/string/src)
+#include_project(${root_path}/perf_timer/src)
 
-include_project(${parent_dir}/g_includes)
-include_project(${parent_dir}/logger/src)
-include_project(${parent_dir}/file_sys/src)
-include_project(${parent_dir}/string_format/src)
-#include_project(${parent_dir}/buffer/src)
-#include_project(${parent_dir}/buffer/src/buffer_log)
-#include_project(${parent_dir}/allocators/src/slab_allocator)
-#include_project(${parent_dir}/allocators/src/slab_allocator/slab_allocator_log)
-include_project(${parent_dir}/string/src)
-include_project(${parent_dir}/string/src/string_log)
-include_project(${parent_dir}/perf_timer/src)
-
-# 3. create executable with all the source files
+# 4. create executable with all the source files
 add_project_executable(memory main.c)
 
 # Debug: global properties

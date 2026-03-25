@@ -1,0 +1,1407 @@
+/*
+ * Created by ckalo on 1/8/26.
+ */
+
+#include "test_performance.h"
+#include <ctype.h>
+#include <string.h>
+#include "sparse_arr_internals.h"
+#include "sparse_arr_log.h"
+#include "file_sys_debug.h"
+#include "file_sys_interface.h"
+#include "logger.h"
+#include "mem_man_internals.h"
+#include "precision_timer.h"
+#include "precision_timer_logger.h"
+#include "slab_allocator.h"
+#include "slab_allocator_internals.h"
+#include "stringc.h"
+#include "str_utils.h"
+
+
+#define TEST_SPARSE_ARR_ALLOC_NUM_PAGES 4
+
+
+/*******************************************************************************
+ * private
+ ******************************************************************************/
+
+static void
+fill(sparse_arr_t* const buffer)
+{
+    for(uint32 i = 0; i < buffer->capacity; i++) {
+        sparse_arr_set_for_push(buffer);
+        uint32* data = buffer->data;
+        data[i] = i + 1;
+    }
+}
+
+static void
+insert_at(const uint32 val, sparse_arr_t* const buffer, const uint32 index)
+{
+    // assert(index != INT_NULL);
+    sparse_arr_insert_uint32(val, buffer, index);
+}
+
+static void
+remove_from(sparse_arr_t* const buffer, const uint32 index)
+{
+    sparse_arr_free_elem(buffer, index);
+}
+
+// A function heavy on divisions that transforms a seed
+// This is intentionally inefficient with many division operations
+uint64_t division_heavy_hash(uint32 seed, uint32 i);
+
+
+/*******************************************************************************
+ * test: measure performance of:
+ * remove buffer element
+ * insert buffer element
+ ******************************************************************************/
+void
+perf_test_sparse_arr_create_generic_vs_uint32(void)
+{
+    print("%s-- -- -- TEST: -- -- --%s\n", GREEN, CLEAR);
+    print("%stest performance of allocating and releasing\n"
+          "uint32 buffer versus generic buffer.%s\n\n", CYAN, CLEAR);
+
+    const uint32_t num_pages = 16;
+    
+
+    sparse_arr_table_init(TEST_SPARSE_ARR_ALLOC_NUM_PAGES);
+
+
+    timer_init_table();
+    struct timer* t = timer_create_perf_timer();
+
+    // const uint32 repeat = 5000000;
+    const uint32 repeat = 5000;
+    const uint32 type_size = sizeof(uint32);
+
+
+    /*****************************************************************************
+     *  buffer capacity: 32
+     ****************************************************************************/
+    { // test: buffer capacity 32
+        const uint32 capacity = 32;
+
+        perf_timer_start(t);
+        for(uint32 i = 0; i < repeat; i++) {
+            sparse_arr_t* buffer = sparse_arr_create_uint32(capacity);
+            sparse_arr_destroy(buffer);
+        }
+        perf_timer_stop(t);
+        perf_timer_print(timer_print_config((timer_print_params){
+            .t = t, .repeat = repeat, .buf_capacity = capacity,
+            .flags = PERF_T_ALL | PERF_T_USE_REPEAT | PERF_T_USE_BUF_CAPACITY
+            // .flags = PERF_T_ALL | PERF_T_USE_REPEAT
+        }));
+        perf_timer_reset(t);
+    }
+    { // test: generic
+        const uint32 capacity = 32;
+
+        perf_timer_start(t);
+        for(uint32 i = 0; i < repeat; i++) {
+            sparse_arr_t* buffer = sparse_arr_create_gentype(capacity, type_size);
+            sparse_arr_destroy(buffer);
+        }
+        perf_timer_stop(t);
+        perf_timer_print(timer_print_config((timer_print_params){
+            .t = t, .repeat = repeat, .buf_capacity = capacity,
+            .flags = PERF_T_ALL | PERF_T_USE_REPEAT | PERF_T_USE_BUF_CAPACITY
+            // .flags = PERF_T_ALL | PERF_T_USE_REPEAT
+        }));
+        perf_timer_reset(t);
+    }
+
+
+    /*****************************************************************************
+    *  buffer capacity: 64
+    ****************************************************************************/
+    { // test: uint32
+        const uint32 capacity = 64;
+
+        perf_timer_start(t);
+        for(uint32 i = 0; i < repeat; i++) {
+            sparse_arr_t* buffer = sparse_arr_create_uint32(capacity);
+            sparse_arr_destroy(buffer);
+        }
+        perf_timer_stop(t);
+        perf_timer_print(timer_print_config((timer_print_params){
+            .t = t, .repeat = repeat, .buf_capacity = capacity,
+            .flags = PERF_T_ALL | PERF_T_USE_REPEAT | PERF_T_USE_BUF_CAPACITY
+            // .flags = PERF_T_ALL | PERF_T_USE_REPEAT
+        }));
+        perf_timer_reset(t);
+    }
+    { // test: buffer capacity 64
+        // allocate new buffer
+        const uint32 capacity = 64;
+
+        perf_timer_start(t);
+        for(uint32 i = 0; i < repeat; i++) {
+            sparse_arr_t* buffer = sparse_arr_create_gentype(capacity, type_size);
+            sparse_arr_destroy(buffer);
+        }
+        perf_timer_stop(t);
+        perf_timer_print(timer_print_config((timer_print_params){
+            .t = t, .repeat = repeat, .buf_capacity = capacity,
+            .flags = PERF_T_ALL | PERF_T_USE_REPEAT | PERF_T_USE_BUF_CAPACITY
+            // .flags = PERF_T_ALL | PERF_T_USE_REPEAT
+        }));
+        perf_timer_reset(t);
+    }
+
+
+    /*****************************************************************************
+    *  buffer capacity: 128
+    ****************************************************************************/
+    { // test: uint32
+        const uint32 capacity = 128;
+
+        perf_timer_start(t);
+        for(uint32 i = 0; i < repeat; i++) {
+            sparse_arr_t* buffer = sparse_arr_create_uint32(capacity);
+            sparse_arr_destroy(buffer);
+        }
+        perf_timer_stop(t);
+        perf_timer_print(timer_print_config((timer_print_params){
+            .t = t, .repeat = repeat, .buf_capacity = capacity,
+            .flags = PERF_T_ALL | PERF_T_USE_REPEAT | PERF_T_USE_BUF_CAPACITY
+            // .flags = PERF_T_ALL | PERF_T_USE_REPEAT
+        }));
+        perf_timer_reset(t);
+    }
+    { // test: buffer capacity 128
+        // allocate new buffer
+        const uint32 capacity = 128;
+
+        perf_timer_start(t);
+        for(uint32 i = 0; i < repeat; i++) {
+            sparse_arr_t* buffer = sparse_arr_create_gentype(capacity, type_size);
+            sparse_arr_destroy(buffer);
+        }
+        perf_timer_stop(t);
+        perf_timer_print(timer_print_config((timer_print_params){
+            .t = t, .repeat = repeat, .buf_capacity = capacity,
+            .flags = PERF_T_ALL | PERF_T_USE_REPEAT | PERF_T_USE_BUF_CAPACITY
+            // .flags = PERF_T_ALL | PERF_T_USE_REPEAT
+        }));
+        perf_timer_reset(t);
+    }
+
+
+    /*****************************************************************************
+    *  buffer capacity: 256
+    ****************************************************************************/
+    { // test: uint32
+        // allocate new buffer
+        const uint32 capacity = 256;
+
+        perf_timer_start(t);
+        for(uint32 i = 0; i < repeat; i++) {
+            sparse_arr_t* buffer = sparse_arr_create_uint32(capacity);
+            sparse_arr_destroy(buffer);
+        }
+        perf_timer_stop(t);
+        perf_timer_print(timer_print_config((timer_print_params){
+            .t = t, .repeat = repeat, .buf_capacity = capacity,
+            .flags = PERF_T_ALL | PERF_T_USE_REPEAT | PERF_T_USE_BUF_CAPACITY
+            // .flags = PERF_T_ALL | PERF_T_USE_REPEAT
+        }));
+        perf_timer_reset(t);
+    }
+    { // test: buffer capacity 256
+        // allocate new buffer
+        const uint32 capacity = 256;
+
+        perf_timer_start(t);
+        for(uint32 i = 0; i < repeat; i++) {
+            sparse_arr_t* buffer = sparse_arr_create_gentype(capacity, type_size);
+            sparse_arr_destroy(buffer);
+        }
+        perf_timer_stop(t);
+        perf_timer_print(timer_print_config((timer_print_params){
+            .t = t, .repeat = repeat, .buf_capacity = capacity,
+            .flags = PERF_T_ALL | PERF_T_USE_REPEAT | PERF_T_USE_BUF_CAPACITY
+            // .flags = PERF_T_ALL | PERF_T_USE_REPEAT
+        }));
+        perf_timer_reset(t);
+    }
+
+    
+}
+
+/*******************************************************************************
+ * test: measure performance of:
+ * remove buffer element
+ * insert buffer element
+ ******************************************************************************/
+void
+perf_test_sparse_arr_remove_insert(void)
+{
+    
+
+    const uint32 repeat = 1000000;
+    // const uint32 repeat = 2000;
+
+    string_init_table(1);
+
+    sparse_arr_table_init(TEST_SPARSE_ARR_ALLOC_NUM_PAGES);
+
+    timer_init_table();
+
+    // allocate new buffer
+    const uint32 capacity = 64;
+    sparse_arr_t* buffer = sparse_arr_create_gentype(capacity, sizeof(uint32));
+
+
+    // fill buffer
+    fill(buffer);
+
+    sparse_arr_print_uint32((sparse_arr_print_config((sparse_arr_print_params){
+        .buffer = buffer, .print_num_elems = buffer->capacity
+    })));
+
+
+    const int32 index = 9;
+    struct timer* t = timer_create_perf_timer();
+
+    // remove an element, using free buffer to store all free buffer elems
+    print("%s-- REMOVE ELEMENTS AT INDEX:%d%s\n\n", gc, index, CLEAR);
+    perf_timer_start(t);
+    for(uint32 i = 0; i < repeat; i++) {
+        /* cheat: */
+        // set free list as if the buffer is full
+        for(uint32 i = 0; i < buffer->free_list_capacity; i++)
+            buffer->free_list[i] = MAX_UINT64;
+        // set tail as if the buffer is full
+        buffer->tail = capacity - 1;
+
+        for(uint32 j = 0; j < buffer->capacity; j++) {
+            remove_from(buffer, j);
+        }
+    }
+    perf_timer_stop(t);
+    perf_timer_print(timer_print_config((timer_print_params){
+        .t = t, .repeat = repeat, .buf_capacity = capacity,
+        .flags = PERF_T_ALL | PERF_T_USE_REPEAT | PERF_T_USE_BUF_CAPACITY
+        // .flags = PERF_T_ALL | PERF_T_USE_REPEAT
+    }));
+    perf_timer_reset(t);
+
+
+    // insert a value in the buffer at specific index, using the free buffer 'find' a free element
+    print("%s-- INSERT ELEMENTS AT INDEX:%d%s\n\n", gc, index, CLEAR);
+    perf_timer_start(t);
+    for(uint32 i = 0; i < repeat; i++) {
+        /* cheat: */
+        // set free list as if the buffer is empty
+        for(uint32 i = 0; i < buffer->free_list_capacity; i++)
+            buffer->free_list[i] = 0;
+        // set tail as if the buffer is empty
+        buffer->tail = -1;
+
+        for(uint32 j = 0; j < buffer->capacity; j++) {
+            // const uint32 v = (((i + 1) / 2) * i) / 2;
+            const uint32 v = (i + 1);
+            // const uint32 v = division_heavy_hash(i, i);
+            insert_at(v, buffer, j);
+        }
+    }
+    perf_timer_stop(t);
+    perf_timer_print(timer_print_config((timer_print_params){
+        .t = t, .repeat = repeat, .buf_capacity = capacity,
+        .flags = PERF_T_ALL | PERF_T_USE_REPEAT | PERF_T_USE_BUF_CAPACITY
+        // .flags = PERF_T_ALL | PERF_T_USE_REPEAT
+    }));
+    perf_timer_reset(t);
+
+    
+}
+
+
+/*******************************************************************************
+ * test: measure performance overhead of pushing to buffer
+ * inside the loop compare to push via function overhead (using the buffer id)
+ ******************************************************************************/
+void
+push_abstructed(sparse_arr_t* buffer, const uint32 index, uint32 val)
+{
+    uint32* data = buffer->data;
+    data[index] = val;
+    buffer->tail++;
+    buffer->count++;
+}
+
+void
+perf_test_insert_abstruct_call(void)
+{
+    print("%s-- TEST: --\n", ry, CLEAR);
+    print("%s measure performance overhead\n of pushing to buffer\n"
+          " from inside the loop\n compare to push via function\n using  the buffer id%s\n\n",
+          ry, CLEAR);
+
+    
+
+
+    sparse_arr_table_init(TEST_SPARSE_ARR_ALLOC_NUM_PAGES);
+
+    timer_init_table();
+
+    // allocate new buffer
+    const uint32 capacity = 16;
+    sparse_arr_t* buffer = sparse_arr_create_uint32(capacity);
+
+
+    // fill buffer
+    const uint32 len = 64;
+    const uint32 repeat = 1000000;
+    print("%s-- buffer push len: %u values%s\n", ry, len, CLEAR);
+    print("%s-- test repeat: %u times%s\n\n", ry, repeat, CLEAR);
+
+
+    print("%s-- measurment outside the loops%s\n", GREEN, CLEAR);
+    // measure inside the loop
+    {
+        struct timer* t = timer_create_perf_timer();
+        print("%s-- test: with function call overhead%s\n", BLUE, CLEAR);
+        perf_timer_start(t);
+        for(uint32 k = 0; k < repeat; k++) {
+            for(uint32 i = 0; i < len; i++) {
+                push_abstructed(buffer, i, 1);
+            }
+        }
+        perf_timer_stop(t);
+        perf_timer_print(timer_print_config((timer_print_params){
+            .t = t, .repeat = repeat, .buf_capacity = len,
+            .flags = PERF_T_ALL | PERF_T_USE_REPEAT | PERF_T_USE_BUF_CAPACITY
+            // .flags = PERF_T_ALL | PERF_T_USE_REPEAT
+        }));
+        perf_timer_reset(t);
+
+
+        buffer->tail = -1;
+        buffer->count = 0;
+
+        print("%s-- test: push inside the loop%s\n", BLUE, CLEAR);
+        perf_timer_start(t);
+        uint32* data = buffer->data;
+        for(uint32 k = 0; k < repeat; k++) {
+            for(uint32 i = 0; i < len; i++) {
+                data[i] = 0;
+                buffer->tail++;
+                buffer->count++;
+            }
+        }
+        perf_timer_stop(t);
+        perf_timer_print(timer_print_config((timer_print_params){
+            .t = t, .repeat = repeat, .buf_capacity = len,
+            .flags = PERF_T_ALL | PERF_T_USE_REPEAT | PERF_T_USE_BUF_CAPACITY
+            // .flags = PERF_T_ALL | PERF_T_USE_REPEAT
+        }));
+        perf_timer_reset(t);
+    }
+
+    print("%s-- TEST: --\n", ry, CLEAR);
+
+    
+}
+
+
+uint64_t
+division_heavy_hash(const uint32 seed, const uint32 i)
+{
+    uint64_t value = seed;
+
+    // Chain multiple division operations with varying divisors
+    // Using primes and odd numbers as divisors
+
+    // First series of divisions
+    value = (value / 3) ^ (value % 7);
+    value = value / 5 + (value % 11) * 13;
+    value = (value / 17) | (value % 19);
+
+    // More divisions with mixing
+    value = ((value / 23) + (value % 29)) * ((value / 31) - (value % 37));
+    value = (value / 41) ^ (value / 43) ^ (value % 47);
+
+    // Nested division expressions
+    value = ((value / 53) * (value % 59)) / ((value % 61) + 1);
+    value = (value / 67) + ((value % 71) / 73) * 79;
+
+    // // Division chains
+    // value = (((value / 83) % 89) / 97) * 101;
+    // value = (value / 103) + (value / 107) - (value / 109);
+    //
+    // // More complex division patterns
+    // uint64_t temp = value;
+    // value = (temp / 113) * (temp % 127);
+    // value = value / ((temp % 131) + 137) + (temp / 139);
+    // //
+    // // Mix with iteration counter
+    // value = value / (i + 151) + (value % (i + 157)) * 163;
+    // value = ((value / 167) + i) * ((value % 173) - i);
+
+    // Ensure value doesn't become zero (avoid division by zero later)
+    if(value == 0) value = seed + i + 1;
+
+    return value;
+}
+
+
+void
+perf_test_sparse_arr_find_tail(void)
+{
+    print("%s-- -- -- TEST: -- -- --%s\n", GREEN, CLEAR);
+    print("%s test_sparse_arr_find_tail%s\n\n", CYAN, CLEAR);
+
+    const uint32_t num_pages = 15;
+    
+
+    sparse_arr_table_init(16);
+
+    timer_init_table();
+
+    const uint32 repeat = 1000000;
+    const uint32 type_size = sizeof(uint32);
+
+    struct timer* t = timer_create_perf_timer();
+
+    // capacity 64
+    {
+        const uint32 capacity = 64;
+        sparse_arr_t* buffer = sparse_arr_create_gentype(capacity, type_size);
+
+        perf_timer_start(t);
+        for(uint32 r = 0; r < repeat; r++) {
+            /* cheat: */
+            // set free list as if the buffer is full
+            for(uint32 i = 0; i < buffer->free_list_capacity; i++)
+                buffer->free_list[i] = 0;
+            // set tail as if the buffer is full
+            buffer->tail = capacity - 1;
+
+            for(uint32 i = 0; i < buffer->capacity; i++) {
+                sparse_arr_free_elem(buffer, i);
+            }
+        }
+        perf_timer_stop(t);
+        perf_timer_print(timer_print_config((timer_print_params){
+            .t = t, .repeat = repeat, .buf_capacity = capacity,
+            .flags = PERF_T_ALL | PERF_T_USE_REPEAT | PERF_T_USE_BUF_CAPACITY
+            // .flags = PERF_T_ALL | PERF_T_USE_REPEAT
+        }));
+        perf_timer_reset(t);
+    }
+    // capacity 128
+    {
+        const uint32 capacity = 128;
+        sparse_arr_t* buffer = sparse_arr_create_gentype(capacity, type_size);
+
+        perf_timer_start(t);
+        for(uint32 r = 0; r < repeat; r++) {
+            /* cheat: */
+            // set free list as if the buffer is full
+            for(uint32 i = 0; i < buffer->free_list_capacity; i++)
+                buffer->free_list[i] = 0;
+            // set tail as if the buffer is full
+            buffer->tail = capacity - 1;
+
+            for(uint32 i = 0; i < buffer->capacity; i++) {
+                sparse_arr_free_elem(buffer, i);
+            }
+        }
+        perf_timer_stop(t);
+        perf_timer_print(timer_print_config((timer_print_params){
+            .t = t, .repeat = repeat, .buf_capacity = capacity,
+            .flags = PERF_T_ALL | PERF_T_USE_REPEAT | PERF_T_USE_BUF_CAPACITY
+            // .flags = PERF_T_ALL | PERF_T_USE_REPEAT
+        }));
+        perf_timer_reset(t);
+    }
+    // capacity 256
+    {
+        const uint32 capacity = 256;
+        sparse_arr_t* buffer = sparse_arr_create_gentype(capacity, type_size);
+
+        perf_timer_start(t);
+        for(uint32 r = 0; r < repeat; r++) {
+            /* cheat: */
+            // set free list as if the buffer is full
+            for(uint32 i = 0; i < buffer->free_list_capacity; i++)
+                buffer->free_list[i] = 0;
+            // set tail as if the buffer is full
+            buffer->tail = capacity - 1;
+
+            for(uint32 i = 0; i < buffer->capacity; i++) {
+                sparse_arr_free_elem(buffer, i);
+            }
+        }
+        perf_timer_stop(t);
+        perf_timer_print(timer_print_config((timer_print_params){
+            .t = t, .repeat = repeat, .buf_capacity = capacity,
+            .flags = PERF_T_ALL | PERF_T_USE_REPEAT | PERF_T_USE_BUF_CAPACITY
+            // .flags = PERF_T_ALL | PERF_T_USE_REPEAT
+        }));
+        perf_timer_reset(t);
+    }
+    // capacity 512
+    {
+        const uint32 capacity = 512;
+        sparse_arr_t* buffer = sparse_arr_create_gentype(capacity, type_size);
+
+        perf_timer_start(t);
+        for(uint32 r = 0; r < repeat; r++) {
+            /* cheat: */
+            // set free list as if the buffer is full
+            for(uint32 i = 0; i < buffer->free_list_capacity; i++)
+                buffer->free_list[i] = 0;
+            // set tail as if the buffer is full
+            buffer->tail = capacity - 1;
+
+            for(uint32 i = 0; i < buffer->capacity; i++) {
+                sparse_arr_free_elem(buffer, i);
+            }
+        }
+        perf_timer_stop(t);
+        perf_timer_print(timer_print_config((timer_print_params){
+            .t = t, .repeat = repeat, .buf_capacity = capacity,
+            .flags = PERF_T_ALL | PERF_T_USE_REPEAT | PERF_T_USE_BUF_CAPACITY
+            // .flags = PERF_T_ALL | PERF_T_USE_REPEAT
+        }));
+        perf_timer_reset(t);
+    }
+
+
+    
+}
+
+
+/***************************************************************************************************
+ * buffers tests with mem debug-file print !
+ **************************************************************************************************/
+#define ENABLE_FPRINT 0
+#define custom_fs_append(fs_debug_mem, start, total_size, message)
+
+
+void
+perf_test_sparse_arr_mixed_capacities_add(void)
+{
+    const char* description =
+            "1.\n"
+            "  Create buffers of type sparse_arr_t.\n"
+            "2.\n"
+            "  repeat proccess in a loop\n"
+            "  print memory to file.";
+
+    print("%s-- -- -- TEST: -- -- --%s\n", GREEN, CLEAR);
+    print("%s perf_test_sparse_arr_mixed_capacities_add%s\n\n", CYAN, CLEAR);
+    print("%s description%s\n%s\n\n", ry, CLEAR, description);
+
+    struct node {
+        sparse_arr_t* children;
+        void* data;
+        void* freelist;
+        void* nameid;
+    };
+
+    const uint32 type_size = sizeof(struct node);
+    // const uint32 capacities[] = {32, 32, 16, 32}; // tested: OK
+    // const uint32 capacities[] = {30, 30, 16, 30}; // tested: OK
+    // const uint32 capacities[] = {12, 12, 12, 12, 12, 30, 12, 12}; // tested: OK
+    // const uint32 capacities[] = {12, 12, 12, 12, 12, 4, 12, 12, 4, 4, 4, 4, 4, 4, 4, 4 }; // tested: OK
+    // const uint32 capacities[] = {3, 4, 2, 3, 4, 2, 3, 4, 2, 3, 4, 2, 3, 4, 2, 3, 4, 2,}; // tested: OK
+    // const uint32 capacities[] = {
+    //     3, 4, 2,  3, 4, 2,
+    //     3, 4, 2,  3, 4, 2,
+    //     3, 4, 2,  3, 4, 2,
+    //     3, 4, 2,  3, 4, 2,
+    // }; // tested: OK
+    const uint32 capacities[] = {36, 36, 36, 58, 36}; // tested: OK
+    const uint32 num_buffers = ARRAY_LENGTH(capacities);
+    uint32 totalsize = 0;
+
+    for(uint32 i = 0; i < num_buffers; i++)
+        totalsize += capacities[i] * type_size;
+
+    totalsize = ALIGN(totalsize, PAGE_SIZE); /* align to page size */
+    const pageid_t numpages = totalsize/PAGE_SIZE;
+
+    sparse_arr_table_init(numpages);
+    timer_init_table();
+
+
+     struct timer* t_create = timer_create_perf_timer();
+
+
+
+     /* DEBUG-FPRINT */
+     const char* filename = "buffer/tests/perf_test_sparse_arr_mixed_capacities_add.txt";
+     struct fs_t* fs_debug_mem = fs_create(filename);
+     fs_append(fs_debug_mem, description);
+
+
+     uint32 id = 0;
+     char* pfree = NULL;
+    const sparse_arr_t* buffer = NULL;
+
+     for(uint32 testcnt = 0; testcnt < num_buffers; testcnt++) {
+         fs_append(fs_debug_mem,
+                   "\n\n********************************\n"
+                   "test:%u\n buffers capacity:%u\n"
+                   "********************************\n",
+                   id, capacities[testcnt]
+         );
+         id++;
+
+         /******************************************************************************************
+          * create and fill buffer objects
+          *****************************************************************************************/
+
+         perf_timer_start_accum(t_create);
+
+         buffer = sparse_arr_create_gentype(capacities[testcnt], type_size);
+         if((char*) buffer->data > pfree)
+             pfree = (char*) buffer->data;
+
+         // fill buffer
+         for(uint32 i = 0; i < buffer->capacity; i++) {
+             struct node* data = buffer->data;
+
+             char pname[16] = "BUF:";
+             str_concat_int32_to_str(pname, 16, buffer->id);
+             memcpy(&data[i].nameid, pname, sizeof(char*));
+             // file_sys_push(pname, sizeof(char*), TYPE_POINTER);
+         }
+         perf_timer_stop_accum(t_create);
+
+
+         char* start = (uint64)buffer->data < (uint64)buffer->free_list ? buffer->data : buffer->free_list;
+         const char* end = (char*)((uint64)pfree + (capacities[testcnt] * type_size));
+         const uint64 total_size = ((uint64) end - (uint64) start) + PAGE_SIZE;
+         custom_fs_append(fs_debug_mem, start, total_size, "CREATE BUFFERS");
+     }
+
+     perf_timer_print(timer_print_config((timer_print_params){
+         .t = t_create, .repeat = num_buffers, .buf_capacity = 0, .flags = PERF_T_ALL | PERF_T_USE_REPEAT
+     }));
+     perf_timer_reset(t_create);
+
+     TEMP_PRINT_SPARSE_ARR_TABLE_COUNT();
+
+    const char* fname = "/exit_status_ok_debug.txt";
+    struct fs_t* fs = fs_create(fname);
+    fs_fprint_all_allocated_mem(fname);
+    fs_append(fs, "EXIT WITH STATUS OK\n");
+
+    // debug_mem_corrupted(sparse_arr_get_memid(buffer), TRUE);
+
+    
+}
+
+void
+perf_test_sparse_arr_mixed_capacities_add_remove(void)
+{
+    const char* description =
+            "1.\n"
+            "  Create buffers of type sparse_arr_t.\n"
+            "2.\n"
+            "  Destroy buffers.\n"
+            "3.\n"
+            "  repeat proccess in a loop\n"
+            "  print memory to file.";
+
+    print("%s-- -- -- TEST: -- -- --%s\n", GREEN, CLEAR);
+    print("%s perf_test_sparse_arr_mixed_capacities_add_remove%s\n\n", CYAN, CLEAR);
+    print("%s description%s\n%s\n\n", ry, CLEAR, description);
+
+
+    struct node {
+        sparse_arr_t* children;
+        void* data;
+        void* freelist;
+        void* nameid;
+    };
+    const uint32 type_size = sizeof(struct node);
+    const uint32 capacities[] = {64, 64, 64, 16};
+    const uint32 num_buffers = ARRAY_LENGTH(capacities);
+    uint32 totalsize = 0;
+
+    for(uint32 i = 0; i < num_buffers; i++)
+        totalsize += capacities[i] * type_size;
+
+    totalsize = ALIGN(totalsize, PAGE_SIZE); /* align to page size */
+    const pageid_t numpages = totalsize/PAGE_SIZE;
+
+    sparse_arr_table_init(numpages);
+    timer_init_table();
+
+
+    struct timer* t_create = timer_create_perf_timer();
+    struct timer* t_destroy = timer_create_perf_timer();
+
+
+
+    /* DEBUG-FPRINT */
+    const char* filename = "buffer/tests/perf_test_sparse_arr_mixed_capacities_add_remove.txt";
+    struct fs_t* fs_debug_mem = fs_create(filename);
+    fs_append(fs_debug_mem, description);
+
+
+    uint32 id = 0;
+    char* pfree = NULL;
+    sparse_arr_t* buffer = NULL;
+
+    for(uint32 testcnt = 0; testcnt < num_buffers; testcnt++) {
+        fs_append(fs_debug_mem,
+                  "\n\n**********************************************"
+                  "**************************************************"
+                  "**************************************************\n"
+                  "test:%u\n buffers capacity:%u",
+                  id++, capacities[testcnt]
+        );
+
+        /*******************************************************************************************
+         * create and fill buffer objects
+         ******************************************************************************************/
+
+        perf_timer_start_accum(t_create);
+
+        buffer = sparse_arr_create_gentype(capacities[testcnt], type_size);
+        if((char*) buffer->data > pfree)
+            pfree = (char*) buffer->data;
+
+        // fill buffer
+        for(uint32 i = 0; i < buffer->capacity; i++) {
+            struct node* data = buffer->data;
+
+            char pname[16] = "BUF:";
+            str_concat_int32_to_str(pname, 16, buffer->id);
+            memcpy(&data[i].nameid, pname, sizeof(char*));
+        }
+        perf_timer_stop_accum(t_create);
+
+
+        char* start = (uint64)buffer->data < (uint64)buffer->free_list ? buffer->data : buffer->free_list;
+        const char* end = (char*)((uint64)pfree + (capacities[testcnt] * type_size));
+        const uint64 total_size = ((uint64) end - (uint64) start) + PAGE_SIZE;
+        custom_fs_append(fs_debug_mem, start, total_size, "CREATE BUFFERS");
+
+
+        /*******************************************************************************************
+         * destroy buffer objects
+         ******************************************************************************************/
+        perf_timer_start_accum(t_destroy);
+        sparse_arr_destroy(buffer);
+        perf_timer_stop_accum(t_destroy);
+#       if ENABLE_FPRINT
+        print("2. total_size:%u\n", total_size);
+        custom_fs_append(fs_debug_mem, start, total_size, "DESTROY BUFFERS");
+#       endif
+    }
+
+    perf_timer_print(timer_print_config((timer_print_params){
+        .t = t_create, .repeat = num_buffers, .buf_capacity = 0, .flags = PERF_T_ALL | PERF_T_USE_REPEAT
+    }));
+    perf_timer_reset(t_create);
+
+    perf_timer_print(timer_print_config((timer_print_params){
+        .t = t_destroy, .repeat = num_buffers, .buf_capacity = 0, .flags = PERF_T_ALL | PERF_T_USE_REPEAT
+    }));
+    perf_timer_reset(t_destroy);
+
+
+    TEMP_PRINT_SPARSE_ARR_TABLE_COUNT();
+
+    const char* fname = "/exit_status_ok_debug.txt";
+    struct fs_t* fs = fs_create(fname);
+    fs_fprint_all_allocated_mem(fname);
+    fs_append(fs, "EXIT WITH STATUS OK\n");
+
+    // debug_mem_corrupted(sparse_arr_get_memid(buffer), TRUE);
+
+    
+}
+
+
+/***************************************************************************************************
+ * buffers inside of buffers !
+ **************************************************************************************************/
+void // test buffer with children and check memory for correctness. Add remove many buffers repeatedly.
+perf_test_sparse_arr_with_children_add_remove(void)
+{
+    /* If measuring performance, with a high count of repeats,
+     * dissable file print to avoid writing too much data to the file */
+    const uint32 repeat = 1;
+    if(ENABLE_FPRINT==1)
+        assert(repeat < 50);
+
+    const char* description =
+            "1.\n"
+            "  Create parent objects of type sparse_arr_t.\n"
+            "  Create children objects of type sparse_arr_t\n"
+            "  to the parent buffer.\n"
+            "2.\n"
+            "  Destroy children buffers.\n"
+            "  Destroy parent buffers\n"
+            "3.\n"
+            "  repeat proccess in a loop\n"
+            "  print memory to file.";
+
+    print("%s-- -- -- TEST: -- -- --%s\n", GREEN, CLEAR);
+    print("%s perf_test_sparse_arr_with_children_add_remove%s\n\n", CYAN, CLEAR);
+    print("%s description%s\n%s\n\n", ry, CLEAR, description);
+
+
+    struct node {
+        sparse_arr_t* children;
+        void* data;
+        void* freelist;
+        void* nameid;
+    };
+
+    const uint32 type_size = sizeof(struct node);
+
+    const uint32 pcapac = 32;
+    const uint32 ccapac = 64;
+    uint32 totalsize = ((pcapac*ccapac) + pcapac)*type_size;
+
+
+
+    totalsize = ALIGN(totalsize, PAGE_SIZE); /* align to page size */
+    const pageid_t numpages = totalsize/PAGE_SIZE;
+
+    sparse_arr_table_init(numpages);
+    timer_init_table();
+
+
+    struct timer* t_create = timer_create_perf_timer();
+    struct timer* t_destroy = timer_create_perf_timer();
+
+
+
+    /* DEBUG-FPRINT */
+    const char* filename = "buffer/tests/"
+            "perf_test_sparse_arr_with_children_add_remove.txt";
+    struct fs_t* fs_debug_mem = fs_create(filename);
+    fs_append(fs_debug_mem,
+              "__________________________________________\n"
+              "IMPORTANT!\n"
+              "Memory is alligned at buffer->freelist\n"
+              "OR buffer->data address\n"
+              "__________________________________________\n"
+    );
+    fs_append(fs_debug_mem, description);
+
+
+    uint32 id = 0;
+    char* pfree = NULL;
+    char* cfree = NULL;
+    sparse_arr_t* buffer = NULL;
+
+    for(uint32 r = 0; r < repeat; r++) {
+        fs_append(fs_debug_mem,
+                  "\n\n**********************************************"
+                  "**************************************************"
+                  "**************************************************\n"
+                  "test:%u\n parents capacity:%u\n childrens capacity:%u*%u=%u\n",
+                  id++, pcapac, pcapac, ccapac, pcapac * ccapac
+        );
+
+        /*******************************************************************************************
+         * create and fill buffer objects
+         ******************************************************************************************/
+
+        perf_timer_start_accum(t_create);
+
+        buffer = sparse_arr_create_gentype(pcapac, type_size);
+        if((char*) buffer->data > pfree) pfree = (char*) buffer->data;
+
+        // fill buffer
+        for(uint32 i = 0; i < buffer->capacity; i++) {
+            struct node* data = buffer->data;
+
+            char pname[16] = "PAR:";
+            str_concat_int32_to_str(pname, 16, buffer->id);
+            memcpy(&data[i].nameid, pname, sizeof(char*));
+
+            data[i].children = sparse_arr_create_gentype(ccapac, type_size);
+
+            for(uint32 j = 0; j < data[i].children->capacity; j++) {
+                sparse_arr_set_for_insert(data[i].children, j);
+                struct node* cdata = data[i].children->data;
+                char cname[16] = "CHD:";
+                str_concat_int32_to_str(cname, 16, data[i].children->id);
+                memcpy(&cdata[j].nameid, cname, sizeof(char*));
+
+                if((char*) &cdata[j] > cfree)
+                    cfree = (char*) &cdata[j];
+            }
+        }
+        perf_timer_stop_accum(t_create);
+
+
+        char* start = ((uint64)buffer->data < (uint64)buffer->free_list) ? (char*)buffer->data : (char*)buffer->free_list;
+        const char* end = (char*)buffer->data+(buffer->capacity*sizeof(struct node));
+        // const char* end = ((uint64)pfree > (uint64)cfree) ? pfree : cfree;
+        const uint64 total_size = ((uint64) end - (uint64) start) + PAGE_SIZE;
+#       if ENABLE_FPRINT
+        print("1. total_size:%u\n", total_size);
+        custom_fs_append(fs_debug_mem, start, total_size, "CREATE BUFFERS");
+#       endif
+
+        /*******************************************************************************************
+         * destroy buffer objects
+         ******************************************************************************************/
+        perf_timer_start_accum(t_destroy);
+
+        for(uint32 i = 0; i < buffer->capacity; i++) {
+            const struct node* data = (struct node*) buffer->data;
+            sparse_arr_t* child = data[i].children;
+            sparse_arr_destroy(child);
+        }
+        sparse_arr_destroy(buffer);
+
+        perf_timer_stop_accum(t_destroy);
+
+#       if ENABLE_FPRINT
+        print("2. total_size:%u\n", total_size);
+        custom_fs_append(fs_debug_mem, start, total_size, "DESTROY BUFFERS");
+#       endif
+    }
+
+    perf_timer_print(timer_print_config((timer_print_params){
+        .t = t_create, .repeat = repeat, .buf_capacity = 0, .flags = PERF_T_ALL | PERF_T_USE_REPEAT
+    }));
+    perf_timer_reset(t_create);
+
+    perf_timer_print(timer_print_config((timer_print_params){
+        .t = t_destroy, .repeat = repeat, .buf_capacity = 0, .flags = PERF_T_ALL | PERF_T_USE_REPEAT
+    }));
+    perf_timer_reset(t_destroy);
+
+
+    TEMP_PRINT_SPARSE_ARR_TABLE_COUNT();
+
+    const char* fname = "/exit_status_ok_debug.txt";
+    struct fs_t* fs = fs_create(fname);
+    fs_fprint_all_allocated_mem(fname);
+    fs_append(fs, "EXIT WITH STATUS OK\n");
+
+    debug_mem_corrupted(slab_allocator_get_memid(sparse_arr_get_allocator_instance_id(), pcapac, type_size), TRUE);
+
+    
+}
+
+void // test buffer with children, and check memory for correctness. Add, mixed capacities.
+perf_test_sparse_arr_mixed_capacities_with_children_add(void)
+{
+    /* If measuring performance, with a high count of repeats,
+     * dissable file print to avoid writing too much data to the file */
+    // const uint32 repeat = 100;
+    const uint32 repeat = 10;
+    if(ENABLE_FPRINT==1)
+        assert(repeat < 50);
+
+    const char* description =
+            "1.\n"
+            "  Create parent objects of type sparse_arr_t.\n"
+            "  Create children objects of type sparse_arr_t\n"
+            "  to the parent buffer.\n"
+            "2.\n"
+            "  Destroy children buffers.\n"
+            "  Destroy parent buffers\n"
+            "3.\n"
+            "  repeat proccess, each time changing the\n"
+            "  capacity of the newly created buffers\n\n";
+
+    print("%s-- -- -- TEST: -- -- --%s\n", GREEN, CLEAR);
+    print("%s perf_test_sparse_arr_mixed_capacities_with_children_add%s\n\n", CYAN, CLEAR);
+    print("%s description%s\n%s\n\n", ry, CLEAR, description);
+
+    
+    struct node {
+        sparse_arr_t* children;
+        void* data;
+        void* freelist;
+        void* nameid;
+    };
+    const uint32 type_size = sizeof(struct node);
+    // const uint32 parent_capacity[]   = {16,16,16,16,16};
+    // const uint32 children_capacity[] = {2, 2, 2, 2, 2};
+    const uint32 parent_capacity[] = {2, 2, 2, 2, 8, 8, 8, 8};
+    const uint32 children_capacity[] = {4, 4, 4, 4, 4, 4, 4, 4};
+    // const uint32 parent_capacity[]   = {2, 2, 2, 2, 8, 8, 8, 8};
+    // const uint32 children_capacity[] = {4, 4, 4, 4, 1, 1, 1, 1};
+    // const uint32 parent_capacity[]   = {3, 8, 14, 3, 6, 7, 5};
+    // const uint32 children_capacity[] = {5, 3, 8, 14, 3, 6, 7};
+    const uint32 sparse_arr_tests_num = ARRAY_LENGTH(parent_capacity);
+    const uint32 num_parent_buffers = ARRAY_LENGTH(parent_capacity);
+    const uint32 num_children_buffers = ARRAY_LENGTH(children_capacity);
+    uint32 totalsize = 0;
+
+    for(uint32 i = 0; i < num_parent_buffers; i++) {
+
+        totalsize += parent_capacity[i] * type_size;
+        for(uint32 j = 0; j < num_children_buffers; j++) {
+            totalsize += children_capacity[j] * type_size;
+        }
+    }
+
+    totalsize = ALIGN(totalsize, PAGE_SIZE); /* align to page size */
+    const pageid_t numpages = totalsize/PAGE_SIZE;
+
+    sparse_arr_table_init(numpages);
+    timer_init_table();
+
+
+    struct timer* t_create = timer_create_perf_timer();
+
+
+    /* DEBUG-FPRINT */
+    const char* filename = "buffer/tests/perf_test_sparse_arr_mixed_capacities_with_children_add.txt";
+    struct fs_t* fs_debug_mem = fs_create(filename);
+    fs_append(fs_debug_mem, description);
+
+
+    uint32 id = 0;
+    char* pfree = NULL;
+    char* cfree = NULL;
+    sparse_arr_t* buffer = NULL;
+
+    for(uint32 testcnt = 0; testcnt < sparse_arr_tests_num; testcnt++) {
+        const uint32 pcapac = parent_capacity[testcnt];
+        const uint32 ccapac = children_capacity[testcnt];
+
+        fs_append(fs_debug_mem,
+                  "\n\n**********************************************"
+                  "**************************************************"
+                  "**************************************************\n"
+                  "test:%u\n parents capacity:%u\n childrens capacity:%u*%u=%u\n",
+                  id++, pcapac, pcapac, ccapac, pcapac * ccapac
+        );
+
+        /*******************************************************************************************
+         * create and fill buffer objects
+         ******************************************************************************************/
+
+        perf_timer_start_accum(t_create);
+
+        buffer = sparse_arr_create_gentype(pcapac, type_size);
+        if((char*) buffer->data > pfree) pfree = (char*) buffer->data;
+
+        // fill buffer
+        for(uint32 i = 0; i < buffer->capacity; i++) {
+            struct node* data = buffer->data;
+
+            char pname[16] = "PAR:";
+            str_concat_int32_to_str(pname, 16, buffer->id);
+            memcpy(&data[i].nameid, pname, sizeof(char*));
+
+            data[i].children = sparse_arr_create_gentype(ccapac, type_size);
+
+            for(uint32 j = 0; j < data[i].children->capacity; j++) {
+                sparse_arr_set_for_insert(data[i].children, j);
+                struct node* cdata = data[i].children->data;
+                // const char* childname = memcpy(&cdata[j].nameid, "CHILDREN", sizeof(char*));
+                char cname[16] = "CHD:";
+                str_concat_int32_to_str(cname, 16, data[i].children->id);
+                memcpy(&cdata[j].nameid, cname, sizeof(char*));
+
+                if((char*) &cdata[j] > cfree)
+                    cfree = (char*) &cdata[j];
+            }
+        }
+        perf_timer_stop_accum(t_create);
+
+
+        // char* start = (uint64)buffer->data < (uint64)buffer->free_list ? buffer->data : buffer->free_list;
+        char* start = (char*)buffer->data;
+        const char* end = (char*)buffer->data+(buffer->capacity*sizeof(struct node));
+        const uint64 total_size = ((uint64) end - (uint64) start) + PAGE_SIZE;
+        print("1. total_size:%u\n", total_size);
+#       if ENABLE_FPRINT
+        print("1. total_size:%u\n", total_size);
+        custom_fs_append(fs_debug_mem, start, total_size, "CREATE BUFFERS");
+#       endif
+    }
+
+
+    TEMP_PRINT_SPARSE_ARR_TABLE_COUNT();
+
+    const char* fname = "/exit_status_ok_debug.txt";
+    struct fs_t* fs = fs_create(fname);
+    fs_fprint_all_allocated_mem(fname);
+    fs_append(fs, "EXIT WITH STATUS OK\n");
+
+    debug_mem_corrupted(sparse_arr_get_memid(buffer), TRUE);
+
+    
+}
+
+void // test buffer with children, and check memory for correctness. Add remove, mixed capacities.
+perf_test_sparse_arr_mixed_capacities_with_children_add_remove(void)
+{
+    /* If measuring performance, with a high count of repeats,
+    * dissable file print to avoid writing too much data to the file */
+    // const uint32 repeat = 100;
+    const uint32 repeat = 10000;
+    if(ENABLE_FPRINT==1)
+        assert(repeat < 50);
+
+    const char* description =
+            "1.\n"
+            "  Create parent objects of type sparse_arr_t.\n"
+            "  Create children objects of type sparse_arr_t\n"
+            "  to the parent buffer.\n"
+            "2.\n"
+            "  Destroy children buffers.\n"
+            "  Destroy parent buffers\n"
+            "3.\n"
+            "  repeat proccess, each time changing the\n"
+            "  capacity of the newly created buffers\n\n";
+
+    print("%s-- -- -- TEST: -- -- --%s\n", GREEN, CLEAR);
+    print("%s perf_test_sparse_arr_mixed_capacities_with_children_add_remove%s\n\n", CYAN, CLEAR);
+    print("%s description%s\n%s\n\n", ry, CLEAR, description);
+
+    struct node {
+        sparse_arr_t* children;
+        void* data;
+        void* freelist;
+        void* nameid;
+    };
+    const uint32 type_size = sizeof(struct node);
+
+    // const uint32 parent_capacity[]   = {2, 14, 8,  2};
+    // const uint32 children_capacity[] = {18, 2, 4, 18};
+    const uint32 parent_capacity[] = {1, 1,};
+    const uint32 children_capacity[] = {88, 32};
+    // const uint32 parent_capacity[]   = {3, 8, 14, 3, 6, 7, 5};
+    // const uint32 children_capacity[] = {5, 3, 8, 14, 3, 6, 7};
+    const uint32 sparse_arr_tests_num = ARRAY_LENGTH(parent_capacity);
+    const uint32 num_parent_buffers = ARRAY_LENGTH(parent_capacity);
+    const uint32 num_children_buffers = ARRAY_LENGTH(children_capacity);
+    uint32 totalsize = 0;
+
+    for(uint32 i = 0; i < num_parent_buffers; i++) {
+
+        totalsize += parent_capacity[i] * type_size;
+        for(uint32 j = 0; j < num_children_buffers; j++) {
+            totalsize += children_capacity[j] * type_size;
+        }
+    }
+
+    totalsize = ALIGN(totalsize, PAGE_SIZE); /* align to page size */
+    const pageid_t numpages = totalsize/PAGE_SIZE;
+
+    sparse_arr_table_init(numpages);
+    timer_init_table();
+
+
+    struct timer* t_create = timer_create_perf_timer();
+    struct timer* t_destroy = timer_create_perf_timer();
+
+
+
+    /* DEBUG-FPRINT */
+    const char* filename = "buffer/tests/perf_test_sparse_arr_mixed_capacities_with_children_add_remove.txt";
+    struct fs_t* fs_debug_mem = fs_create(filename);
+    fs_append(fs_debug_mem, description);
+
+
+    uint32 id = 0;
+    const char* pfree = NULL;
+    const char* cfree = NULL;
+    sparse_arr_t* buffer = NULL;
+
+    for(uint32 r = 0; r < repeat; r++) {
+        for(uint32 testcnt = 0; testcnt < sparse_arr_tests_num; testcnt++) {
+
+            const uint32 pcapac = parent_capacity[testcnt];
+            const uint32 ccapac = children_capacity[testcnt];
+
+            fs_append(fs_debug_mem,
+                      "\n\n**********************************************"
+                      "**************************************************"
+                      "**************************************************\n"
+                      "test:%u\n parents capacity:%u\n childrens capacity:%u*%u=%u\n",
+                      id++, pcapac, pcapac, ccapac, pcapac * ccapac
+            );
+
+            /***************************************************************************************
+             * create and fill buffer objects
+             **************************************************************************************/
+
+            perf_timer_start_accum(t_create);
+            buffer = sparse_arr_create_gentype(pcapac, type_size);
+            if((char*) buffer->data > pfree) pfree = (char*) buffer->data;
+
+            // fill buffer
+            for(uint32 i = 0; i < buffer->capacity; i++) {
+                struct node* data = buffer->data;
+
+                char pname[16] = "PAR:";
+                str_concat_int32_to_str(pname, 16, buffer->id);
+                memcpy(&data[i].nameid, pname, sizeof(char*));
+
+                data[i].children = sparse_arr_create_gentype(ccapac, type_size);
+
+                for(uint32 j = 0; j < data[i].children->capacity; j++) {
+                    sparse_arr_set_for_insert(data[i].children, j);
+                    struct node* cdata = data[i].children->data;
+                    char cname[16] = "CHD:";
+                    str_concat_int32_to_str(cname, 16, data[i].children->id);
+                    memcpy(&cdata[j].nameid, cname, sizeof(char*));
+
+                    if((char*) &cdata[j] > cfree)
+                        cfree = (char*) &cdata[j];
+                }
+            }
+            perf_timer_stop_accum(t_create);
+
+
+            char* start = (char*)buffer->data;
+            const char* end = (char*)buffer->data+(buffer->capacity*sizeof(struct node));
+            const uint64 total_size = ((uint64) end - (uint64) start) + PAGE_SIZE;
+#       if ENABLE_FPRINT
+            print("1. total_size:%u\n", total_size);
+            custom_fs_append(fs_debug_mem, start, total_size, "CREATE BUFFERS");
+#       endif
+
+
+
+            /***************************************************************************************
+             * destroy buffer objects
+             **************************************************************************************/
+            perf_timer_start_accum(t_destroy);
+            for(uint32 i = 0; i < buffer->capacity; i++) {
+                const struct node* data = (struct node*) buffer->data;
+                sparse_arr_t* child = data[i].children;
+                sparse_arr_destroy(child);
+            }
+            sparse_arr_destroy(buffer);
+            perf_timer_stop_accum(t_destroy);
+
+#       if ENABLE_FPRINT
+            print("2. total_size:%u\n", total_size);
+            custom_fs_append(fs_debug_mem, start, total_size, "DESTROY BUFFERS");
+#       endif
+
+        }
+    }
+
+    perf_timer_print(timer_print_config((timer_print_params){
+        .t = t_destroy, .repeat = repeat, .buf_capacity = buffer->capacity, .flags = PERF_T_ALL
+    }));
+    perf_timer_reset(t_destroy);
+
+    perf_timer_print(timer_print_config((timer_print_params){
+        .t = t_create, .repeat = repeat, .buf_capacity = buffer->capacity, .flags = PERF_T_ALL | PERF_T_USE_BUF_CAPACITY
+    }));
+    perf_timer_reset(t_create);
+
+    TEMP_PRINT_SPARSE_ARR_TABLE_COUNT();
+
+    const char* fname = "/exit_status_ok_debug.txt";
+    struct fs_t* fs = fs_create(fname);
+    fs_fprint_all_allocated_mem(fname);
+    fs_append(fs, "EXIT WITH STATUS OK\n");
+
+    // debug_mem_corrupted(sparse_arr_get_memid(buffer), TRUE);
+}
+
+void // test buffer with children. All buffers with different (slab) capacities
+perf_test_sparse_arr_with_children_in_dif_slabs(void)
+{
+    print("%s-- -- -- TEST: -- -- --%s\n", GREEN, CLEAR);
+    print("%s test_sparse_arr_with_children%s\n", CYAN, CLEAR);
+    print("%s DIFFERENT SPARSE_ARR CAPACITIES FOR CHILDREN%s\n\n", CYAN, CLEAR);
+
+
+    struct node {
+        uint32 nameid;
+        sparse_arr_t* children;
+    };
+
+    const uint32 repeat = 100000;
+
+    const uint32 capacity = 4;
+    uint32 dif_capacity = 18;
+
+    sparse_arr_table_init(32);
+    timer_init_table();
+
+
+    struct timer* t = timer_create_perf_timer();
+
+
+    const uint32 type_size = sizeof(struct node);
+    sparse_arr_t* buffer = sparse_arr_create_gentype(capacity, type_size);
+
+
+    uint32 num_sparse_arr_elems = buffer->capacity;
+
+
+    print("\n\n%sparent buffer capacity:%u%s\n", GREEN, capacity, CLEAR);
+
+    uint64 sum = 0;
+    // fill buffer
+    for(uint32 i = 0; i < buffer->capacity; i++) {
+        sparse_arr_set_for_insert(buffer, i);
+        struct node* data = buffer->data;
+        data[i].nameid = i + 1;
+
+        dif_capacity *= 4;
+        num_sparse_arr_elems += dif_capacity;
+        print("child capacity:%u\n", dif_capacity);
+
+        data[i].children = sparse_arr_create_gentype(dif_capacity, type_size);
+        // print("add child at:%x\n", REDUCE_ADDR(data[i].children->data, F6));
+        for(uint32 j = 0; j < data[i].children->capacity; j++) {
+            sparse_arr_set_for_insert(data[i].children, j);
+            struct node* cdata = data[i].children->data;
+            cdata[j].nameid = j + 1;
+            cdata[j].children = NULL;
+        }
+    }
+
+
+    // perf-access
+    perf_timer_start(t);
+    for(uint32 r = 0; r < repeat; r++) {
+        for(uint32 i = 0; i < buffer->capacity; i++) {
+            struct node* data = (struct node*) buffer->data;
+            data[i].nameid++;
+            sum += data[i].nameid;
+
+            for(uint32 j = 0; j < data[i].children->capacity; j++) {
+                struct node* cdata = data[i].children->data;
+                cdata[i].nameid++;
+                sum += cdata[j].nameid;
+            }
+        }
+    }
+    perf_timer_stop(t);
+
+    print("sum:%u\n", sum);
+    perf_timer_print(timer_print_config((timer_print_params){
+        .t = t, .repeat = repeat, .buf_capacity = 0,
+        .flags = PERF_T_ALL | PERF_T_USE_REPEAT
+    }));
+
+    print("perf with total buffers accesses:%u\n", num_sparse_arr_elems);
+
+    perf_timer_reset(t);
+
+
+    TEMP_PRINT_SPARSE_ARR_TABLE_COUNT();
+
+    
+}
+
+
+#undef TEST_SPARSE_ARR_ALLOC_NUM_PAGES

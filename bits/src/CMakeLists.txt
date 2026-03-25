@@ -12,4 +12,7 @@ register_module(
         ${CMAKE_CURRENT_LIST_DIR}/bitfields.h
         include_dirs
         ${CMAKE_CURRENT_LIST_DIR}
+        compiler_macros
+                    ENABLE_DEBUG=1
+                    VERSION_MAJOR=0
 )

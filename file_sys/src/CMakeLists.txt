@@ -14,5 +14,3 @@ include(${cmake_utils})
             ENABLE_DEBUG=1
             VERSION_MAJOR=0
     )
-#    set(G_INCLUDES_ADDED TRUE CACHE INTERNAL "G includes added")
-#endif()

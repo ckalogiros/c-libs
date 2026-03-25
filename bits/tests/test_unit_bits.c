@@ -5,8 +5,9 @@
 
 #include <assert.h>
 #include <string.h>
+
+#include "bits.h"
 #include "logger.h"
-#include "mem_man_internals.h"
 #include "string_format.h"
 
 // #define ENABLE_PRINT_DEBUG

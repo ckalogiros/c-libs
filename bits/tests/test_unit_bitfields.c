@@ -13,6 +13,7 @@
 #include <string.h>
 
 #include "bitfields.h"
+#include "bits.h"
 #include "logger.h"
 #include "mem_man_internals.h"
 #include "my_macros.h"

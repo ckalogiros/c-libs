@@ -9,6 +9,7 @@ get_filename_component(parent_dir ${CMAKE_CURRENT_LIST_DIR} DIRECTORY)
 # 1. include utility functions
 set(cmake_utils "${parent_dir}/cmake_utils/proj_utils.cmake")
 include(${cmake_utils})
+enable_sanitizer()
 
 # 2. add /src that adds .c.h files and adds other sub-directories
 add_subdirectory(src)
@@ -21,7 +22,6 @@ include_project(${parent_dir}/file_sys/src)
 include_project(${parent_dir}/string_format/src)
 include_project(${parent_dir}/memory/src)
 include_project(${parent_dir}/memory/src/mem_log)
-include_project(${parent_dir}/memory/src/internal)
 include_project(${parent_dir}/buffer/src)
 include_project(${parent_dir}/buffer/src/buffer_log)
 include_project(${parent_dir}/allocators/src/slab_allocator)

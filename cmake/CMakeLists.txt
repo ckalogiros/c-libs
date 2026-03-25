@@ -9,10 +9,13 @@ get_filename_component(parent_dir ${CMAKE_SOURCE_DIR} DIRECTORY)
 include(${parent_dir}/cmake_utils/proj_utils.cmake)
 
 # 2. add /src that adds .c.h files and adds other sub-directories
-add_subdirectory(src)
+add_subdirectory(src ${CMAKE_SOURCE_DIR})
+include_project(${parent_dir}/g_includes ${CMAKE_SOURCE_DIR})
 
 # 3. create executable with all the source files
 add_project_executable(cmake main.c)
+
+# 4. find
 
 # Debug: global properties
 print_all_registered()

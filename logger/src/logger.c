@@ -125,9 +125,9 @@ dprint(struct _IO_FILE* file, uint16 indent, const char* format, ...)
     }
 
 
-    file = fopen("../../test-debug-print.md", mode);
+    file = fopen("../../tests-debug-print.md", mode);
     if(file == NULL)
-        my_exit("ERROR opening file: test-debug-print.md", __FILE__, __LINE__);
+        my_exit("ERROR opening file: tests-debug-print.md", __FILE__, __LINE__);
 
 
     if(indent > 0) indent--;
@@ -188,7 +188,7 @@ dprintmd(struct _IO_FILE* file, const char* dir, const char* filename, uint16 in
     // Construct path
     int result = snprintf(path, sizeof(path), "%s/%s", dir, filename);
 
-    // file = fopen("../../test-debug-print.md", mode);
+    // file = fopen("../../tests-debug-print.md", mode);
     file = fopen(path, mode);
     if(file == NULL)
         my_exit("ERROR opening file: ", __FILE__, __LINE__);

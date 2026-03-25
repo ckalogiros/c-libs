@@ -352,8 +352,8 @@ int main(void)
     unit_test_runner_bits();
     unit_test_runner_bitfields();
 
-    // test_bits_binary_operations();
-    // test_calc_bitmask_from_start_end_bits();
+    test_bits_binary_operations();
+    test_calc_bitmask_from_start_end_bits();
 
     return 0;
 }
