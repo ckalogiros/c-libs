@@ -281,7 +281,7 @@ file_sys_test()
     const uint64 x64 = 64;
     const float f = 3.14;
     const double d = 4.14;
-    const char* str = "Hello!";
+    char* str = "Hello!";
     char** ptr = &str;
     void* fnptr = &file_sys_test;
     uint32 size = 0;

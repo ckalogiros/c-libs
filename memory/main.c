@@ -16,10 +16,6 @@ uint32 test_id = 0;
 int
 main(void)
 {
-#include <sanitizer/asan_interface.h>
-    /* enable santizers to the stderr out */
-    __sanitizer_set_report_path("stderr");
-
     memman_init();
 
     unit_test_runner_slab_allocator();

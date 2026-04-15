@@ -1,8 +1,8 @@
 /*
  * Created by ckalo on 1/4/26.
  */
-#ifndef MEM_MAN_H
-#define MEM_MAN_H
+#ifndef MEMORY_INTERNALS_H
+#define MEMORY_INTERNALS_H
 
 #include "my_types.h"
 #include "mem_man_interface.h"
@@ -79,4 +79,4 @@ bool check_mem_off_boundaries_writes(void* mem_start, const uint32 byte_size);
 
 bool debug_flist_check_continuity(const memid_t memid);
 
-#endif //MEM_MAN_H
+#endif //MEMORY_INTERNALS_H

@@ -1,0 +1,15 @@
+include(${cmake_utils})
+register_module(
+        sources
+            ${CMAKE_CURRENT_LIST_DIR}/opengl.c
+            ${CMAKE_CURRENT_LIST_DIR}/program.c
+            ${CMAKE_CURRENT_LIST_DIR}/vertex_array.c
+            ${CMAKE_CURRENT_LIST_DIR}/gfx_context.c
+        headers
+            ${CMAKE_CURRENT_LIST_DIR}/opengl.h
+        include_dirs
+            ${CMAKE_CURRENT_LIST_DIR}
+        compiler_macros
+            ENABLE_DEBUG=1
+            VERSION_MAJOR=0
+)

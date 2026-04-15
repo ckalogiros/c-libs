@@ -5,7 +5,7 @@
 #include "tests.h"
 
 
-#include "buffer_internals.h"
+#include "sparse_arr_internals.h"
 #include "component.h"
 #include "ecs.h"
 #include "entity.h"
@@ -13,9 +13,6 @@
 #include "mem_man_interface.h"
 #include "precision_timer_logger.h"
 
-
-// static const uint32 REPEAT = 1000000;
-static const uint32 REPEAT = 100000;
 
 void
 test_create_entities(const uint32 count)
@@ -29,7 +26,7 @@ test_create_entities(const uint32 count)
 
 }
 
-void // adding to each component in its own for loop
+uint32 // adding to each component in its own for loop
 test_components_seperate_add(const uint32 count)
 {
     // create many entities
@@ -50,16 +47,12 @@ test_components_seperate_add(const uint32 count)
         // add component scale
         for(uint32 i = 0; i < count; i++) {
             const uint32 eid = entity_get_id(i);
-            add_scale_component(eid, (vec2f){
-                .x = i, .y=i+count,
-            });
+            add_scale_component(eid, (vec2f){ .x = i, .y=i+count, });
         }
         // add component col
         for(uint32 i = 0; i < count; i++) {
             const uint32 eid = entity_get_id(i);
-            add_col_component(eid, (vec4f){
-                .r = i, .g=i+count, .b = 0, .a=1.0,
-            });
+            add_col_component(eid, (vec4f){ .r = i, .g=i+count, .b = 0, .a=1.0, });
         }
     }
     perf_timer_stop(t);
@@ -69,11 +62,11 @@ test_components_seperate_add(const uint32 count)
 
 
     // print_components();
-
+    return perf_timer_calc_avg_from_count(t, repeat);
 }
 
 
-void // adding to components in 1 for loop
+uint32 // adding to components in 1 for loop
 test_components_together_add(const uint32 count)
 {
     // create many entities
@@ -89,17 +82,11 @@ test_components_together_add(const uint32 count)
     for(uint32 r = 0; r < repeat; r++) {
         for(uint32 i = 0; i < count; i++) {
             const uint32 eid = entity_get_id(i);
-            add_pos_component(eid, (vec3f){
-                                  .x = i, .y = i + count, .z = 0,
-                              });
+            add_pos_component(eid, (vec3f){ .x = i, .y = i + count, .z = 0, });
             // add component scale
-            add_scale_component(eid, (vec2f){
-                .x = i, .y=i+count,
-            });
+            add_scale_component(eid, (vec2f){ .x = i, .y=i+count, });
             // add component col
-            add_col_component(eid, (vec4f){
-                .r = i, .g=i+count, .b = 0, .a=1.0,
-            });
+            add_col_component(eid, (vec4f){ .r = i, .g=i+count, .b = 0, .a=1.0, });
         }
     }
     perf_timer_stop(t);
@@ -109,10 +96,11 @@ test_components_together_add(const uint32 count)
 
 
     // print_components();
+    return perf_timer_calc_avg_from_count(t, repeat);
 }
 
 
-void
+uint32
 test_components_all_attribs(const uint32 count)
 {
     // create many entities
@@ -143,6 +131,7 @@ test_components_all_attribs(const uint32 count)
 
 
     // print_components();
+    return perf_timer_calc_avg_from_count(t, repeat);
 }
 
 
@@ -236,7 +225,7 @@ void
 test_perf_ecs_insert_to_comp()
 {
     memman_init();
-    buffer_init_table();
+    sparse_arr_init_table(4);
     timer_init_table();
 
     init_entity_table();
@@ -282,7 +271,7 @@ void
 test_ecs_groups()
 {
     memman_init();
-    buffer_init_table();
+    sparse_arr_init_table(4);
     init_entity_table();
 
     // create many entities

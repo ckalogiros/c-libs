@@ -1,8 +1,8 @@
 /*
  * Created by ckalo on 1/8/26.
  */
-#ifndef SPARSE_ARR_TEST_SPARSE_ARR_H
-#define SPARSE_ARR_TEST_SPARSE_ARR_H
+#ifndef SPARSE_ARR_TEST_OTHER_H
+#define SPARSE_ARR_TEST_OTHER_H
 
 #include "my_types.h"
 
@@ -30,4 +30,4 @@ void test_buffer_with_children();
 void test_sparse_arr_print_values();
 
 
-#endif //SPARSE_ARR_TEST_SPARSE_ARR_H
+#endif //SPARSE_ARR_TEST_OTHER_H

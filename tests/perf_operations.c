@@ -10,7 +10,7 @@
 #include "logger.h"
 #include "precision_timer.h"
 #include "precision_timer_logger.h"
-#include "buffer_internals.h"
+#include "sparse_arr_internals.h"
 #include "mem_man_interface.h"
 
 #define LEN 64
@@ -35,7 +35,7 @@ void
 test_prerf_basic_operations()
 {
     memman_init();
-    buffer_init_table();
+    sparse_arr_init_table(4);
     timer_init_table();
 
     volatile uint32 buffer[LEN] = {0};
@@ -470,7 +470,7 @@ void
 test_perf_unaligned_memory_buffers()
 {
     memman_init();
-    buffer_init_table();
+    sparse_arr_init_table(4);
     timer_init_table();
     struct timer* t = timer_create_perf_timer();
 

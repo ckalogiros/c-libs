@@ -11,8 +11,10 @@
 void
 memman_init(void)
 {
+#ifdef ENABLE_SANITIZER
     /* enable santizers to the stderr out */
     __sanitizer_set_report_path("stderr");
+#endif
     const bool initialized = mem_table_init();
 
     /* initialize file system files table */

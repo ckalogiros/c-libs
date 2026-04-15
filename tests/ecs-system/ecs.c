@@ -4,7 +4,7 @@
 
 #include "ecs.h"
 
-#include "buffer_internals.h"
+#include "sparse_arr_internals.h"
 #include "component.h"
 #include "entity.h"
 #include "logger.h"

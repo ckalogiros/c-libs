@@ -1,0 +1,136 @@
+include(${cmake_utils})
+register_module(
+        sources
+            ${CMAKE_CURRENT_LIST_DIR}/cocoa_time.c
+            ${CMAKE_CURRENT_LIST_DIR}/context.c
+            ${CMAKE_CURRENT_LIST_DIR}/egl_context.c
+            ${CMAKE_CURRENT_LIST_DIR}/glx_context.c
+            ${CMAKE_CURRENT_LIST_DIR}/init.c
+            ${CMAKE_CURRENT_LIST_DIR}/input.c
+            ${CMAKE_CURRENT_LIST_DIR}/linux_joystick.c
+            ${CMAKE_CURRENT_LIST_DIR}/monitor.c
+            ${CMAKE_CURRENT_LIST_DIR}/null_init.c
+            ${CMAKE_CURRENT_LIST_DIR}/null_joystick.c
+            ${CMAKE_CURRENT_LIST_DIR}/null_monitor.c
+            ${CMAKE_CURRENT_LIST_DIR}/null_window.c
+            ${CMAKE_CURRENT_LIST_DIR}/osmesa_context.c
+            ${CMAKE_CURRENT_LIST_DIR}/platform.c
+            ${CMAKE_CURRENT_LIST_DIR}/posix_module.c
+            ${CMAKE_CURRENT_LIST_DIR}/posix_poll.c
+            ${CMAKE_CURRENT_LIST_DIR}/posix_thread.c
+            ${CMAKE_CURRENT_LIST_DIR}/posix_time.c
+            ${CMAKE_CURRENT_LIST_DIR}/vulkan.c
+            ${CMAKE_CURRENT_LIST_DIR}/wgl_context.c
+            ${CMAKE_CURRENT_LIST_DIR}/win32_init.c
+            ${CMAKE_CURRENT_LIST_DIR}/win32_joystick.c
+            ${CMAKE_CURRENT_LIST_DIR}/win32_module.c
+            ${CMAKE_CURRENT_LIST_DIR}/win32_monitor.c
+            ${CMAKE_CURRENT_LIST_DIR}/win32_thread.c
+            ${CMAKE_CURRENT_LIST_DIR}/win32_time.c
+            ${CMAKE_CURRENT_LIST_DIR}/win32_window.c
+            ${CMAKE_CURRENT_LIST_DIR}/window.c
+            ${CMAKE_CURRENT_LIST_DIR}/wl_init.c
+            ${CMAKE_CURRENT_LIST_DIR}/wl_monitor.c
+            ${CMAKE_CURRENT_LIST_DIR}/wl_window.c
+            ${CMAKE_CURRENT_LIST_DIR}/x11_init.c
+            ${CMAKE_CURRENT_LIST_DIR}/x11_monitor.c
+            ${CMAKE_CURRENT_LIST_DIR}/x11_window.c
+            ${CMAKE_CURRENT_LIST_DIR}/xkb_unicode.c
+        headers
+            ${CMAKE_CURRENT_LIST_DIR}/cocoa_joystick.h
+            ${CMAKE_CURRENT_LIST_DIR}/cocoa_platform.h
+            ${CMAKE_CURRENT_LIST_DIR}/cocoa_time.h
+            ${CMAKE_CURRENT_LIST_DIR}/internal.h
+            ${CMAKE_CURRENT_LIST_DIR}/linux_joystick.h
+            ${CMAKE_CURRENT_LIST_DIR}/mappings.h
+            ${CMAKE_CURRENT_LIST_DIR}/mappings.h.in
+            ${CMAKE_CURRENT_LIST_DIR}/null_joystick.h
+            ${CMAKE_CURRENT_LIST_DIR}/null_platform.h
+            ${CMAKE_CURRENT_LIST_DIR}/platform.h
+            ${CMAKE_CURRENT_LIST_DIR}/posix_poll.h
+            ${CMAKE_CURRENT_LIST_DIR}/posix_thread.h
+            ${CMAKE_CURRENT_LIST_DIR}/posix_time.h
+            ${CMAKE_CURRENT_LIST_DIR}/win32_joystick.h
+            ${CMAKE_CURRENT_LIST_DIR}/win32_platform.h
+            ${CMAKE_CURRENT_LIST_DIR}/win32_thread.h
+            ${CMAKE_CURRENT_LIST_DIR}/wl_platform.h
+            ${CMAKE_CURRENT_LIST_DIR}/x11_platform.h
+            ${CMAKE_CURRENT_LIST_DIR}/xkb_unicode.h
+            ${CMAKE_CURRENT_LIST_DIR}/win32_time.h
+        include_dirs
+            ${CMAKE_CURRENT_LIST_DIR}
+        compiler_macros
+        ENABLE_DEBUG=1
+        VERSION_MAJOR=0
+)
+
+
+#
+#${CMAKE_CURRENT_LIST_DIR}/include
+#
+#${CMAKE_CURRENT_LIST_DIR}/cocoa_joystick.h
+#${CMAKE_CURRENT_LIST_DIR}/cocoa_platform.h
+#${CMAKE_CURRENT_LIST_DIR}/cocoa_time.h
+#${CMAKE_CURRENT_LIST_DIR}/internal.h
+#${CMAKE_CURRENT_LIST_DIR}/linux_joystick.h
+#${CMAKE_CURRENT_LIST_DIR}/mappings.h
+#${CMAKE_CURRENT_LIST_DIR}/mappings.h.in
+#${CMAKE_CURRENT_LIST_DIR}/null_joystick.h
+#${CMAKE_CURRENT_LIST_DIR}/null_platform.h
+#${CMAKE_CURRENT_LIST_DIR}/platform.h
+#${CMAKE_CURRENT_LIST_DIR}/posix_poll.h
+#${CMAKE_CURRENT_LIST_DIR}/posix_thread.h
+#${CMAKE_CURRENT_LIST_DIR}/posix_time.h
+#${CMAKE_CURRENT_LIST_DIR}/win32_joystick.h
+#${CMAKE_CURRENT_LIST_DIR}/win32_platform.h
+#${CMAKE_CURRENT_LIST_DIR}/win32_thread.h
+#${CMAKE_CURRENT_LIST_DIR}/wl_platform.h
+#${CMAKE_CURRENT_LIST_DIR}/x11_platform.h
+#${CMAKE_CURRENT_LIST_DIR}/xkb_unicode.h
+#${CMAKE_CURRENT_LIST_DIR}/win32_time.h
+#
+#${CMAKE_CURRENT_LIST_DIR}/cocoa_time.c
+#${CMAKE_CURRENT_LIST_DIR}/context.c
+#${CMAKE_CURRENT_LIST_DIR}/egl_context.c
+#${CMAKE_CURRENT_LIST_DIR}/glx_context.c
+#${CMAKE_CURRENT_LIST_DIR}/init.c
+#${CMAKE_CURRENT_LIST_DIR}/input.c
+#${CMAKE_CURRENT_LIST_DIR}/linux_joystick.c
+#${CMAKE_CURRENT_LIST_DIR}/monitor.c
+#${CMAKE_CURRENT_LIST_DIR}/null_init.c
+#${CMAKE_CURRENT_LIST_DIR}/null_joystick.c
+#${CMAKE_CURRENT_LIST_DIR}/null_monitor.c
+#${CMAKE_CURRENT_LIST_DIR}/null_window.c
+#${CMAKE_CURRENT_LIST_DIR}/osmesa_context.c
+#${CMAKE_CURRENT_LIST_DIR}/platform.c
+#${CMAKE_CURRENT_LIST_DIR}/posix_module.c
+#${CMAKE_CURRENT_LIST_DIR}/posix_poll.c
+#${CMAKE_CURRENT_LIST_DIR}/posix_thread.c
+#${CMAKE_CURRENT_LIST_DIR}/posix_time.c
+#${CMAKE_CURRENT_LIST_DIR}/vulkan.c
+#${CMAKE_CURRENT_LIST_DIR}/wgl_context.c
+#${CMAKE_CURRENT_LIST_DIR}/win32_init.c
+#${CMAKE_CURRENT_LIST_DIR}/win32_joystick.c
+#${CMAKE_CURRENT_LIST_DIR}/win32_module.c
+#${CMAKE_CURRENT_LIST_DIR}/win32_monitor.c
+#${CMAKE_CURRENT_LIST_DIR}/win32_thread.c
+#${CMAKE_CURRENT_LIST_DIR}/win32_time.c
+#${CMAKE_CURRENT_LIST_DIR}/win32_window.c
+#${CMAKE_CURRENT_LIST_DIR}/window.c
+#${CMAKE_CURRENT_LIST_DIR}/wl_init.c
+#${CMAKE_CURRENT_LIST_DIR}/wl_monitor.c
+#${CMAKE_CURRENT_LIST_DIR}/wl_window.c
+#${CMAKE_CURRENT_LIST_DIR}/x11_init.c
+#${CMAKE_CURRENT_LIST_DIR}/x11_monitor.c
+#${CMAKE_CURRENT_LIST_DIR}/x11_window.c
+#${CMAKE_CURRENT_LIST_DIR}/xkb_unicode.c
+#
+#${CMAKE_CURRENT_LIST_DIR}/glfw.rc.in
+#
+#${CMAKE_CURRENT_LIST_DIR}/cocoa_init.m
+#${CMAKE_CURRENT_LIST_DIR}/cocoa_joystick.m
+#${CMAKE_CURRENT_LIST_DIR}/cocoa_monitor.m
+#${CMAKE_CURRENT_LIST_DIR}/cocoa_window.m
+#${CMAKE_CURRENT_LIST_DIR}/nsgl_context.m
+
+

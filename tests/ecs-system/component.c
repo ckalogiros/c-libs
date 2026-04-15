@@ -4,44 +4,44 @@
 
 #include "component.h"
 
-#include "buffer.h"
-#include "buffer_struct.h"
+#include "sparse_arr.h"
+#include "sparse_arr_struct.h"
 #include "logger.h"
 
 
 #define MIN_CAPACITY 4096
 
-static buffer_t* pos_table;
-static buffer_t* scale_table;
-static buffer_t* col_table;
+static sparse_arr_t* pos_table;
+static sparse_arr_t* scale_table;
+static sparse_arr_t* col_table;
 
-static buffer_t* all_attribs_table;
+static sparse_arr_t* all_attribs_table;
 
 
 
 void
 init_pos_table(void)
 {
-    pos_table = buffer_create_gentype(MIN_CAPACITY, sizeof(vec3f));
+    pos_table = sparse_arr_create_gentype(MIN_CAPACITY, sizeof(vec3f));
 }
 
 void
 init_scale_table(void)
 {
-    scale_table = buffer_create_gentype(MIN_CAPACITY, sizeof(vec2f));
+    scale_table = sparse_arr_create_gentype(MIN_CAPACITY, sizeof(vec2f));
 }
 
 void
 init_col_table(void)
 {
-    col_table = buffer_create_gentype(MIN_CAPACITY, sizeof(vec4f));
+    col_table = sparse_arr_create_gentype(MIN_CAPACITY, sizeof(vec4f));
 }
 
 
 void
 add_pos_component(const uint32 id, const vec3f pos)
 {
-    buffer_set_for_insert(pos_table, id);
+    sparse_arr_set_for_insert(pos_table, id);
     vec3f* data = (vec3f*) pos_table->data;
     data[id] = pos;
 }
@@ -49,7 +49,7 @@ add_pos_component(const uint32 id, const vec3f pos)
 void
 add_scale_component(const uint32 id, const vec2f scale)
 {
-    buffer_set_for_insert(scale_table, id);
+    sparse_arr_set_for_insert(scale_table, id);
     vec2f* data = (vec2f*) scale_table->data;
     data[id] = scale;
 }
@@ -57,7 +57,7 @@ add_scale_component(const uint32 id, const vec2f scale)
 void
 add_col_component(const uint32 id, const vec4f col)
 {
-    buffer_set_for_insert(col_table, id);
+    sparse_arr_set_for_insert(col_table, id);
     vec4f* data = (vec4f*) col_table->data;
     data[id] = col;
 }
@@ -68,12 +68,12 @@ add_col_component(const uint32 id, const vec4f col)
  */
 void init_all_attribs_table()
 {
-    all_attribs_table = buffer_create_gentype(MIN_CAPACITY, sizeof(struct all_attribs));
+    all_attribs_table = sparse_arr_create_gentype(MIN_CAPACITY, sizeof(struct all_attribs));
 }
 
 void add_all_attribs_component(const uint32 id, const struct all_attribs all)
 {
-    buffer_set_for_insert(all_attribs_table, id);
+    sparse_arr_set_for_insert(all_attribs_table, id);
 
     struct all_attribs* data = (struct all_attribs*) all_attribs_table->data;
 

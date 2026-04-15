@@ -28,33 +28,33 @@ typedef uint8 typesize_t;
 #define F4 0xffff
 #define F5 0xfffff
 #define F6 0xffffff
-// reduce the hex digits of an address
+/// reduce the hex digits of an address
 #define REDUCE_ADDR(addr, hex_mask) ((uint64) (addr) & (hex_mask))
 
 
-#define BITS8 8
+#define BITS8  8
 #define BITS16 16
 #define BITS32 32
 #define BITS64 64
 
 #define BYTE_SIZE 8
 
-#define MAX_UINT8 0xff
+#define MAX_UINT8  0xff
 #define MAX_UINT16 0xffff
 #define MAX_UINT32 0xffffffff
 #define MAX_UINT64 0xffffffffffffffff
 
 #define BIT_MASK_FROM_UINT(n) (1ULL << (n))
 
-#define GREATER_THAN(a, b) (((a) > (b)) ? (a) : (b))
-#define LESS_THAN(a, b)    (((a) < (b)) ? (a) : (b))
+#define GET_MAX(a, b) (((a) > (b)) ? (a) : (b))
+#define GET_MIN(a, b) (((a) < (b)) ? (a) : (b))
 
 typedef uint16 bufidx_t; // todo remove from here
 
 
 
 /***************************************************************************************************
- * global generics
+ * GENERICS
  **************************************************************************************************/
 /* get the full mask (hex value) from value's type */
 #define types_get_fullmask_from_type(T) \
@@ -133,14 +133,123 @@ default:      void)
 
 
 /***************************************************************************************************
- * global structs
+ * TYPES
+ **************************************************************************************************/
+/* vectors */
+typedef struct { float  x; float  y; } vec2f;
+typedef struct { int64  x; int64  y; } vec2i64;
+typedef struct { uint64 x; uint64 y; } vec2u64;
+typedef struct { int32  x; int32  y; } vec2i32;
+typedef struct { uint32 x; uint32 y; } vec2u32;
+typedef struct { int16  x; int16  y; } vec2i16;
+typedef struct { uint16 x; uint16 y; } vec2u16;
+typedef struct { int8   x; int8   y; } vec2i8;
+typedef struct { uint8  x; uint8  y; } vec2u8;
+
+typedef union { struct { float x; float y; float z; };
+                struct { float r; float g; float b; }; } vec3f;
+typedef struct { int64  x; int64  y; int64  z; } vec3i64;
+typedef struct { uint64 x; uint64 y; uint64 z; } vec3u64;
+typedef struct { int32  x; int32  y; int32  z; } vec3i32;
+typedef struct { uint32 x; uint32 y; uint32 z; } vec3u32;
+typedef struct { int16  x; int16  y; int16  z; } vec3i16;
+typedef struct { uint16 x; uint16 y; uint16 z; } vec3u16;
+typedef struct { int8   x; int8   y; int8   z ; } vec3i8;
+typedef struct { uint8  x; uint8  y; uint8  z; } vec3u8;
+
+typedef union { struct { float x; float y; float z; float w; };
+                struct { float r; float g; float b; float a; }; } vec4f;
+typedef struct { int64  x; int64  y; int64  z; int64  w; } vec4i64;
+typedef struct { uint64 x; uint64 y; uint64 z; uint64 w; } vec4u64;
+typedef struct { int32  x; int32  y; int32  z; int32  w; } vec4i32;
+typedef struct { uint32 x; uint32 y; uint32 z; uint32 w; } vec4u32;
+typedef struct { int16  x; int16  y; int16  z; int16  w; } vec4i16;
+typedef struct { uint16 x; uint16 y; uint16 z; uint16 w; } vec4u16;
+typedef struct { int8   x; int8   y; int8   z; int8   w; } vec4i8;
+typedef struct { uint8  x; uint8  y; uint8  z; uint8  w; } vec4u8;
+
+/* matrices */
+typedef float  mat2x2f  [2][2]; /// example: mat2x2f mat = { {.0f, .0f}, {.0f, .0f} };
+typedef int64  mat2x2i64[2][2];
+typedef uint64 mat2x2u64[2][2];
+typedef int32  mat2x2i32[2][2];
+typedef uint32 mat2x2u32[2][2];
+typedef int16  mat2x2i16[2][2];
+typedef uint16 mat2x2u16[2][2];
+typedef int8   mat2x2i8 [2][2];
+typedef uint8  mat2x2u8 [2][2];
+
+typedef float  mat2x3f  [2][3];
+typedef int64  mat2x3i64[2][3];
+typedef uint64 mat2x3u64[2][3];
+typedef int32  mat2x3i32[2][3];
+typedef uint32 mat2x3u32[2][3];
+typedef int16  mat2x3i16[2][3];
+typedef uint16 mat2x3u16[2][3];
+typedef int8   mat2x3i8 [2][3];
+typedef uint8  mat2x3u8 [2][3];
+
+typedef float  mat3x3f  [3][3];
+typedef int64  mat3x3i64[3][3];
+typedef uint64 mat3x3u64[3][3];
+typedef int32  mat3x3i32[3][3];
+typedef uint32 mat3x3u32[3][3];
+typedef int16  mat3x3i16[3][3];
+typedef uint16 mat3x3u16[3][3];
+typedef int8   mat3x3i8 [3][3];
+typedef uint8  mat3x3u8 [3][3];
+
+typedef float  mat3x4f  [3][4];
+typedef int64  mat3x4i64[3][4];
+typedef uint64 mat3x4u64[3][4];
+typedef int32  mat3x4i32[3][4];
+typedef uint32 mat3x4u32[3][4];
+typedef int16  mat3x4i16[3][4];
+typedef uint16 mat3x4u16[3][4];
+typedef int8   mat3x4i8 [3][4];
+typedef uint8  mat3x4u8 [3][4];
+
+typedef float  mat4x4f  [4][4];
+typedef int64  mat4x4i64[4][4];
+typedef uint64 mat4x4u64[4][4];
+typedef int32  mat4x4i32[4][4];
+typedef uint32 mat4x4u32[4][4];
+typedef int16  mat4x4i16[4][4];
+typedef uint16 mat4x4u16[4][4];
+typedef int8   mat4x4i8 [4][4];
+typedef uint8  mat4x4u8 [4][4];
+
+
+/// types
+enum TYPES_INDEXING {
+    DOUBLE = 0,
+    FLOAT  , INT64  ,   UINT64 ,   INT32  ,   UINT32 ,   INT16  ,   UINT16 ,   INT8   ,   UINT8  ,
+    VEC2F  , VEC2I64,   VEC2U64,   VEC2I32,   VEC2U32,   VEC2I16,   VEC2U16,   VEC2I8 ,   VEC2U8 ,
+    VEC3F  , VEC3I64,   VEC3U64,   VEC3I32,   VEC3U32,   VEC3I16,   VEC3U16,   VEC3I8 ,   VEC3U8 ,
+    VEC4F  , VEC4I64,   VEC4U64,   VEC4I32,   VEC4U32,   VEC4I16,   VEC4U16,   VEC4I8 ,   VEC4U8 ,
+    MAT2X2F, MAT2X2I64, MAT2X2U64, MAT2X2I32, MAT2X2U32, MAT2X2I16, MAT2X2U16, MAT2X2I8 , MAT2X2U8 ,
+    MAT2X3F, MAT2X3I64, MAT2X3U64, MAT2X3I32, MAT2X3U32, MAT2X3I16, MAT2X3U16, MAT2X3I8 , MAT2X3U8 ,
+    MAT3X3F, MAT3X3I64, MAT3X3U64, MAT3X3I32, MAT3X3U32, MAT3X3I16, MAT3X3U16, MAT3X3I8 , MAT3X3U8 ,
+    MAT3X4F, MAT3X4I64, MAT3X4U64, MAT3X4I32, MAT3X4U32, MAT3X4I16, MAT3X4U16, MAT3X4I8 , MAT3X4U8 ,
+    MAT4X4F, MAT4X4I64, MAT4X4U64, MAT4X4I32, MAT4X4U32, MAT4X4I16, MAT4X4U16, MAT4X4I8 , MAT4X4U8 ,
+
+    TYPES_COUNT,
+};
+
+
+
+/***************************************************************************************************
+ * STRUCTS
  **************************************************************************************************/
 
 struct flist {
     struct flist* next;
 };
 
+
 #endif // MY_TYPES_H
+
+
 
 
 // // For IDs/counters (usually positive)

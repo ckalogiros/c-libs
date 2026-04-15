@@ -1,8 +1,8 @@
 /*
  * Created by ckalo on 2/8/26.
  */
-#ifndef MEMORY_MEM_MAN_INTERFACE_H
-#define MEMORY_MEM_MAN_INTERFACE_H
+#ifndef MEMORY_INTERFACE_H
+#define MEMORY_INTERFACE_H
 
 #include "my_types.h"
 #include "mem_man_types.h"
@@ -38,4 +38,4 @@ bool memman_page_release(const struct memhnd_t hnd);
 
 void* memman_get_alloc_mem_by_handle(const struct memhnd_t handle);
 
-#endif //MEMORY_MEM_MAN_INTERFACE_H
+#endif //MEMORY_INTERFACE_H

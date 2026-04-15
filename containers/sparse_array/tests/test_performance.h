@@ -1,8 +1,8 @@
 /*
  * Created by ckalo on 1/8/26.
  */
-#ifndef BUFFER_PERF_TEST_BUFFER_H
-#define BUFFER_PERF_TEST_BUFFER_H
+#ifndef SPARSE_ARR_TEST_PERFORMANCE_H
+#define SPARSE_ARR_TEST_PERFORMANCE_H
 
 
 void perf_test_buffer_create_generic_vs_uint32(void);
@@ -28,4 +28,4 @@ void perf_test_buffer_mixed_capacities_with_children_add_remove(void);
 
 void perf_test_buffer_with_children_in_dif_slabs(void);
 
-#endif //BUFFER_PERF_TEST_BUFFER_H
+#endif //SPARSE_ARR_TEST_PERFORMANCE_H

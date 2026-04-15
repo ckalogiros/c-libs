@@ -49,38 +49,42 @@ string_destroy(string_t* string)
  * OPERATIONS
  **************************************************************************************************/
 string_t*
-string_set_cstr(string_t* string, const char* str)
+string_set_cstr(string_t** string, const char* str)
 {
+    string_t* l_string = *string;
     const strlen_t str_len = strlen(str);
-    if(string->size <= str_len) {
-        string = string_reallocate(string, str_len, FALSE);
+    if(l_string->size <= str_len) {
+        l_string = string_reallocate(l_string, str_len, FALSE);
     }
     strlen_t k = 0;
     for(uint32 i = 0; i < str_len; i++) {
-        string->data[i] = str[k++];
-        string->len++;
+        l_string->data[i] = str[k++];
+        l_string->len++;
     }
 
-    return string;
+    *string = l_string;
+    return *string;
 }
 
 string_t*
-string_append_cstr(string_t* string, const char* str)
+string_append_cstr(string_t** string, const char* str)
 {
-    const strlen_t string_len = string->len;
+    string_t* l_string = *string;
+    const strlen_t string_len = l_string->len;
     const strlen_t str_len = strlen(str);
-    if(string_len + str_len >= string->size - string->self_size) {
-        string = string_reallocate(string, str_len, TRUE);
+    if(string_len + str_len >= l_string->size - l_string->self_size) {
+        l_string = string_reallocate(l_string, str_len, TRUE);
     }
 
     const strlen_t total_length = string_len + str_len;
     strlen_t k = 0;
     for(uint32 i = string_len; i < total_length; i++) {
-        string->data[i] = str[k++];
-        string->len++;
+        l_string->data[i] = str[k++];
+        l_string->len++;
     }
 
-    return string;
+    *string = l_string;
+    return *string;
 }
 
 string_t*

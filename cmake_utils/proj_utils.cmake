@@ -59,6 +59,9 @@ endfunction()
 ########################################################################################
 # Enable AddressSanitizer for debugging
 function(enable_sanitizer)
+
+    add_compile_definitions(ENABLE_SANITIZER)
+
     if(CMAKE_BUILD_TYPE STREQUAL "Debug")
         # Debug mode - only ASAN, explicitly disable LSAN
         message(STATUS "Debug: ASAN enabled, LSAN disabled")

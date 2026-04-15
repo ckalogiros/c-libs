@@ -1,0 +1,4 @@
+main.c:1:10: fatal error: component.h: No such file or directory
+    1 | #include "component.h"
+      |          ^~~~~~~~~~~~~
+compilation terminated.

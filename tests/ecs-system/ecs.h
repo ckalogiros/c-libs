@@ -5,7 +5,7 @@
 #ifndef TESTS_ECS_H
 #define TESTS_ECS_H
 
-#include "buffer.h"
+#include "sparse_arr.h"
 
 
 

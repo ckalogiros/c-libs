@@ -34,7 +34,7 @@ string_container_init(const pageid_t reserve_num_pages)
 void
 string_container_destroy(void)
 {
-    print("FREEING strings: calling string_mem_cache_table_destroy() from string container.");
+    print("FREEING strings: calling string_mem_cache_table_destroy() from string container.\n");
     // string_mem_cache_table_destroy();
     mcache_table_destroy();
 }
@@ -66,7 +66,7 @@ string_constructor(const char* str, const strlen_t size)
 
     /* set string data */
     string_memset(string, 0x0);
-    string_set_cstr(string, str);
+    string_set_cstr(&string, str);
 
     string_alloced_count++;
 

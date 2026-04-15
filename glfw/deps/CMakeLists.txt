@@ -1,0 +1,17 @@
+include(${cmake_utils})
+register_module(
+        sources
+            ${CMAKE_CURRENT_LIST_DIR}/getopt.c
+            ${CMAKE_CURRENT_LIST_DIR}/tinycthread.c
+        headers
+            ${CMAKE_CURRENT_LIST_DIR}/getopt.h
+            ${CMAKE_CURRENT_LIST_DIR}/linmath.h
+            ${CMAKE_CURRENT_LIST_DIR}/nuklear.h
+            ${CMAKE_CURRENT_LIST_DIR}/nuklear_glfw_gl2.h
+            ${CMAKE_CURRENT_LIST_DIR}/tinycthread.h
+        include_dirs
+            ${CMAKE_CURRENT_LIST_DIR}
+        compiler_macros
+            ENABLE_DEBUG=1
+            VERSION_MAJOR=0
+)

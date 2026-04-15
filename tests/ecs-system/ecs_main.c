@@ -2,7 +2,7 @@
  * Created by ckalo on 1/27/26.
  */
 
-#include "buffer_internals.h"
+#include "sparse_arr_internals.h"
 #include "component.h"
 #include "ecs.h"
 #include "entity.h"
@@ -10,6 +10,7 @@
 #include "mem_man_interface.h"
 #include "precision_timer.h"
 #include "tests.h"
+#include "my_macros.h"
 
 
 int
@@ -17,7 +18,7 @@ main(void)
 {
 
     memman_init();
-    buffer_init_table();
+    sparse_arr_init_table(100);
     timer_init_table();
 
     init_entity_table();
@@ -33,9 +34,27 @@ main(void)
     { // Test: add all 3 components in 3 way. SEE:test_ecs_print_3_loops_test
         const uint32 num = 128;
         test_ecs_print_3_loops_test();
-        test_components_seperate_add(num);
-        test_components_together_add(num);
-        test_components_all_attribs(num);
+        const uint32 avg1 =  test_components_seperate_add(num);
+        const uint32 avg2 =  test_components_together_add(num);
+        const uint32 avg3 =  test_components_all_attribs(num);
+
+        // float ratio12 = (float)GET_MIN(avg1, avg2) / (float)GET_MAX(avg1, avg2);
+        // float ratio13 = (float)GET_MIN(avg1, avg3) / (float)GET_MAX(avg1, avg3);
+        // float ratio23 = (float)GET_MIN(avg3, avg2) / (float)GET_MAX(avg3, avg2);
+        float ratio12 = ((float)avg1 / (float)avg2) * 100;
+        float ratio21 = ((float)avg2 / (float)avg1) * 100;
+        float ratio13 = ((float)avg1 / (float)avg3) * 100;
+        float ratio31 = ((float)avg3 / (float)avg1) * 100;
+        float ratio23 = ((float)avg2 / (float)avg3) * 100;
+        float ratio32 = ((float)avg3 / (float)avg2) * 100;
+        print("repeat: %u\n", REPEAT);
+        print("avg 1: %u | avg 2: %u | avg 3: %u\n", avg1, avg2, avg3);
+        print("buffer size: %u bytes\n", num);
+        print("    1    | 2     | 3 \n");
+        print(" 1: %.1f  | %.1f | %.1f\n", 0.0f, ratio12, ratio13);
+        print(" 2: %.1f | %.1f   | %.1f\n", ratio21, 0.0f, ratio23);
+        print(" 3: %.1f | %.1f  | %.1f\n", ratio31, ratio32, 0.0f);
+        // print(" ratio 1-2: %.1f %\n ratio 1-3: %.1f %\n ratio 2-3: %.1f % \n", ratio12, ratio13, ratio23);
     }
 
 

@@ -1,0 +1,35 @@
+test: add components in seperate loops
+test: all components in 1 loop
+test: 1 component for all attributes in 1 loop
+
+repeat: 100000
+
+buffer size: 8 bytes
+    1    | 2     | 3
+ 1: 0.0  | 134.7 | 235.8
+ 2: 74.2 | 0.0   | 175.0
+ 3: 42.4 | 57.1  | 0.0
+
+buffer size: 16 bytes
+    1    | 2     | 3
+ 1: 0.0  | 136.6 | 251.1
+ 2: 73.2 | 0.0   | 183.8
+ 3: 39.8 | 54.4  | 0.0
+
+buffer size: 32 bytes
+    1    | 2     | 3
+ 1: 0.0  | 134.8 | 231.5
+ 2: 74.2 | 0.0   | 171.8
+ 3: 43.2 | 58.2  | 0.0
+
+buffer size: 64 bytes
+    1    | 2     | 3
+ 1: 0.0  | 134.5 | 235.7
+ 2: 74.4 | 0.0   | 175.3
+ 3: 42.4 | 57.1  | 0.0
+
+buffer size: 128 bytes
+    1    | 2     | 3
+ 1: 0.0  | 19.6 | 35.4
+ 2: 510.8 | 0.0   | 180.7
+ 3: 282.7 | 55.3  | 0.0

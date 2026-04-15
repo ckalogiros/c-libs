@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "buffer_internals.h"
+#include "sparse_arr_internals.h"
 #include "mem_man_interface.h"
 #include "precision_timer.h"
 #include "precision_timer_logger.h"
@@ -142,7 +142,7 @@ void
 test_data_oriented()
 {
     memman_init();
-    buffer_init_table();
+    sparse_arr_init_table(2);
     timer_init_table();
     struct timer* t = timer_create_perf_timer();
 

@@ -84,7 +84,8 @@ mem_table_init(void)
 
 
     mem_table[mem_table_count] = memory;
-    print("ALLOC mem_block:%p\n", mem_table[mem_table_count]);
+    // print("ALLOC mem_block:%p\n", mem_table[mem_table_count]);
+    mem_log_print_mem(&mem_table[mem_table_count]);
     mem_table_count++;
 
     return TRUE;

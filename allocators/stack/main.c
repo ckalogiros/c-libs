@@ -9,10 +9,10 @@ main(void)
 {
     memman_init();
 
-    // test_stack_allocator();
+    test_stack_allocator();
     // test_stack_allocator_alignment();
 
-    unit_test_runner_stack_allocator();
+    // unit_test_runner_stack_allocator();
 
     memman_terminate();
     return 0;

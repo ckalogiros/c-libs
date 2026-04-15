@@ -8,7 +8,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
 set(cmake_utils "/home/ckalo/data/projects/clion/cmake_utils/proj_utils.cmake")
 include(${cmake_utils})
 set(root_path ${CLION_ROOT_DIR})
-enable_sanitizer()
+#enable_sanitizer()
 
 # 2. add project's sub-directories
 add_subdirectory(src)

@@ -43,45 +43,6 @@ typedef struct sparse_arr_t {
  * } sparse_arr_t;
  */
 
-
-typedef struct {
-    float x;
-    float y;
-} vec2f;
-
-struct vec2i32 {
-    float x;
-    float y;
-};
-
-struct vec2u32 {
-    float x;
-    float y;
-};
-
-typedef struct {
-    float x;
-    float y;
-    float z;
-} vec3f;
-
-typedef union {
-    struct {
-        float x;
-        float y;
-        float z;
-        float w;
-    };
-
-    struct {
-        float r;
-        float g;
-        float b;
-        float a;
-    };
-} vec4f;
-
-
 #endif //SPARSE_ARR_SPARSE_ARR_STRUCT_H
 
 

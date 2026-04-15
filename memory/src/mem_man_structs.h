@@ -1,8 +1,8 @@
 /*
  * Created by ckalo on 2/7/26.
  */
-#ifndef MEMORY_MEM_STRUCTS_H
-#define MEMORY_MEM_STRUCTS_H
+#ifndef MEMORY_STRUCTS_H
+#define MEMORY_STRUCTS_H
 
 #include "my_types.h"
 #include "mem_man_types.h"
@@ -32,4 +32,4 @@ struct mem_block {
 };
 
 
-#endif //MEMORY_MEM_STRUCTS_H
+#endif //MEMORY_STRUCTS_H

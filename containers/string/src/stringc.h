@@ -22,13 +22,11 @@ string_t* string_create_empty(const strlen_t size);
 void string_destroy(string_t* string);
 
 /* OPERATIONS */
-string_t* string_set_cstr(string_t* string, const char* str);
+string_t* string_set_cstr(string_t** string, const char* str);
 
-string_t* string_append_cstr(string_t* const string, const char* str);
+string_t* string_append_cstr(string_t** const string, const char* str);
 
 string_t* string_empty(string_t* string);
-
-// void string_push(string_t* string);
 
 
 // int32 string_push_uint32(const uint32 val, string_t* const string);

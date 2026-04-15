@@ -3,17 +3,17 @@
  */
 
 #include "sys_utils.h"
-#include "logger_color.h"
 #include <stdio.h>
 #include "file_sys_interface.h"
+#include "logger.h"
 
 void
 my_exit(const char* msg, const char* file, const uint32 line)
 {
-    printf("%s####################################################\n"
+    print("%s####################################################\n"
            "%s%s\nEXIT AT %s\nline:%u\n", RED, msg, CLEAR, file, line);
-    printf("%s####################################################%s\n", RED, CLEAR);
-
+    print("%s####################################################%s\n", RED, CLEAR);
+    
     const char* filename = "/crash_debug.txt";
     struct fs_t* fs = fs_create(filename);
     fs_fprint_all_allocated_mem(filename);
@@ -295,7 +295,7 @@ struct Digits_Base
 // {
 // 	if (number == 0)
 // 	{
-// 		printf("");
+// 		print("");
 // 		ASSERT(TRUE);
 // 	}
 //
@@ -357,7 +357,7 @@ struct Digits_Base
 // 	while (db.digits != 0 && len)
 // 	{
 // 		if (db.base <= 0)
-// 			printf("");
+// 			print("");
 // 		buffer[i] = (number / db.base) + ASCII_0;
 // 		number %= db.base;
 // 		db.base /= 10;

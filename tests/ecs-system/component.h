@@ -4,7 +4,7 @@
 #ifndef TESTS_COMPONENT_H
 #define TESTS_COMPONENT_H
 
-#include "buffer_struct.h"
+#include "sparse_arr_struct.h"
 #include "my_types.h"
 
 typedef vec3f pos3;
