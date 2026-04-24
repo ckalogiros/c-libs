@@ -3,6 +3,7 @@
  */
 
 #include "opengl.h"
+#include "opengl_debug.h"
 
 #define OPENGL_PROGRAM_TABLE_SIZE 10
 
@@ -40,15 +41,18 @@ progidx_t opengl_program_create(const char* vs, const char* fs)
     const GLuint vertex_shader = gl_create_shader(OPENGL_VERTEX_SHADER);
     gl_shader_source(vertex_shader, 1, &vs, NULL);
     gl_compile_shader(vertex_shader);
+    opengl_debug_shader(vertex_shader);
 
     const GLuint fragment_shader = gl_create_shader(OPENGL_FRAGMENT_SHADER);
     gl_shader_source(fragment_shader, 1, &fs, NULL);
     gl_compile_shader(fragment_shader);
+    opengl_debug_shader(fragment_shader);
 
     const GLuint program = gl_create_program();
     gl_attach_shader(program, vertex_shader);
     gl_attach_shader(program, fragment_shader);
     gl_link_program(program);
+
 
     const progidx_t program_idx = insert_program((GLint)program);
 

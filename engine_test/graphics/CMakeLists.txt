@@ -6,7 +6,9 @@ register_module(
             ${CMAKE_CURRENT_LIST_DIR}/vertex_array.c
             ${CMAKE_CURRENT_LIST_DIR}/gfx_context.c
         headers
+            ${CMAKE_CURRENT_LIST_DIR}/shader_id.h
             ${CMAKE_CURRENT_LIST_DIR}/opengl.h
+            ${CMAKE_CURRENT_LIST_DIR}/opengl_debug.h
         include_dirs
             ${CMAKE_CURRENT_LIST_DIR}
         compiler_macros

@@ -15,13 +15,10 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include "logger.h"
-#include "mem_log.h"
 #include "mem_man_internals.h"
 #include "sys_utils.h"
 #include "mem_man_structs.h"
 #include "file_sys_debug.h"
-#include "stringc.h"
-#include "string_struct.h"
 
 #define MAX_FILES_TABLE 32
 #define MAX_BUFFER 1024

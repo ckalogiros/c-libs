@@ -6,6 +6,7 @@
 #include "mem_man_interface.h"
 #include "shader_builder.h"
 #include "stringc.h"
+#include "test.h"
 
 struct test_struct {
     const char* text;
@@ -16,9 +17,8 @@ struct test_struct test()
     return (struct test_struct){ .text = "HELLO!" };
 }
 
-int main(void)
+void m_main(void)
 {
-
     memman_init();
     shader_builder_init();
 
@@ -59,13 +59,13 @@ int main(void)
      */
 
     sid_t sid_attr = SID_VPOSI2 | SID_SCALE2 | SID_WPOSI3 | SID_ROTAT2 | SID_PIVOT2 | SID_PROJMAT4X4;
-    const sid_t sid_attr_out = SID_COLOR3;
+    const sid_t sid_attr_out = SID_COLOR3 | SID_VPOSI2 | SID_SCALE2 | SID_WPOSI3 ;
     sid_t sid_unif = SID_VPOSI2 | SID_SCALE2 | SID_WPOSI2 | SID_ROTAT2 | SID_COLOR3 | SID_PROJMAT4X4;
     const sid_t sid_other = SHADER_ATTRIBUTE;
 
     // const uint32 attrib_color_idx = create_in_attribute("color4f", VEC4F, TRUE, 0x0);
     sid_attr |= create_in_attribute("############" , VEC2F);
-    // sid_attr |= create_in_attribute("11111" , VEC4I16);
+    sid_attr |= create_in_attribute("11111" , VEC4F);
     // sid_attr |= create_in_attribute("2222" , MAT2X2I8);
     // // create_in_attribute("scale2f", VEC2F, FALSE, TRANSFORM_LOCAL_SPACE);
     // // create_in_attribute("rotate2f", VEC2F, FALSE, TRANSFORM_LOCAL_SPACE);
@@ -77,15 +77,13 @@ int main(void)
     // create_in_uniform("unif_scale2f" , VEC2F, SHADER_VERTEX|SHADER_FRAGMENT, TRANSFORM_LOCAL_SPACE);
     // create_in_uniform("unif_wpos2f"  , VEC2F, SHADER_VERTEX|SHADER_FRAGMENT, TRANSFORM_WORLD_SPACE);
 
-    shader_attribs_info_table_print();
-    shader_uniforms_info_table_print();
-
-
+    // shader_attribs_info_table_print();
+    // shader_uniforms_info_table_print();
 
     shader_builder_build(sid_attr, sid_attr_out, sid_unif, sid_other);
 
 
-
+    // opengl attributes sample
     {
         // GLuint vbo;
         // gl_gen_buffers(1, &vbo);
@@ -113,7 +111,12 @@ int main(void)
 
     shader_builder_destroy();
     memman_terminate();
+}
 
+int main(void)
+{
+    // test_shader_builder();
+    m_main();
 
     return 0;
 }

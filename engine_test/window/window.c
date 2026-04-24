@@ -69,7 +69,7 @@ void window_create()
         exit(EXIT_FAILURE);
     }
 
-    glfwSetWindowPos(window, 1860, 170);
+    glfwSetWindowPos(window, 1760, 500);
 
     glfwSetKeyCallback(window, key_callback);
 
@@ -82,6 +82,8 @@ void window_create()
 
     glfwSwapInterval(0);
 
+    glEnable(GL_DEBUG_OUTPUT);
+
 }
 
 void window_terminate()
@@ -90,31 +92,31 @@ void window_terminate()
     glfwTerminate();
 }
 
-void window_update(struct layer* layer)
-{
-    vec4f color = {.r = .0, .g = .0, .b = .0, .a = .0};
-    while (!glfwWindowShouldClose(window))
-    {
-        glfwPollEvents();
-
-        int width = window_get_width();
-        int height = window_get_height();
-        gl_viewport(width, height);
-
-        gl_clear();
-        gl_clear_color(color);
-
-        layer_on_update(layer);
-        layer_on_render(layer);
-
-        glfwSwapBuffers(window);
-
-    }
-
-    glfwDestroyWindow(window);
-
-    glfwTerminate();
-}
+// void window_update(struct layer* layer)
+// {
+//     vec4f color = {.r = .0, .g = .0, .b = .0, .a = .0};
+//     while (!glfwWindowShouldClose(window))
+//     {
+//         glfwPollEvents();
+//
+//         int width = window_get_width();
+//         int height = window_get_height();
+//         gl_viewport(width, height);
+//
+//         gl_clear();
+//         gl_clear_color(color);
+//
+//         layer_on_update(layer);
+//         layer_on_render(layer);
+//
+//         glfwSwapBuffers(window);
+//
+//     }
+//
+//     glfwDestroyWindow(window);
+//
+//     glfwTerminate();
+// }
 
 bool window_should_close()
 {

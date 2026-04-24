@@ -3,9 +3,13 @@
 #include "layer.h"
 #include "mem_man_interface.h"
 // #include "precision_timer.h"
+// #include "linmath.h"
+#include "entity_test.h"
 #include "scene.h"
+#include "shader_builder.h"
 #include "sparse_arr_internals.h"
 #include "stack_allocator.h"
+
 
 // struct timer* t = timer_create_perf_timer();
 // perf_timer_start(t);
@@ -14,6 +18,36 @@
 //     .t = t, .repeat = 1, .buf_capacity = 1, .flags = PERF_T_USE_REPEAT|PERF_T_ALL
 // }));
 // perf_timer_reset(t);
+
+struct transform {
+    vec3f color;
+    vec3f wpos;
+    vec2f scale;
+};
+
+
+
+// void create_triangle_mesh()
+// {
+//     struct transform transform = {
+//         .color = {.r=1., .g=1., .b=1.},
+//         // .wpos = {.x=0., .y=0., .z=0.},
+//         .scale = {.x=1., .y=1.},
+//     };
+//
+//     const uint32 num_attrbs = 3 + 2;
+//     const uint32 num_verts = 3;
+//     const uint32 num_elems = num_attrbs * num_verts;
+//
+//     float vertices[num_elems] = {};
+//
+//
+//     for(uint32 i = 0; i < num_verts; i++) {
+//         for(uint32 i = 0; i < num_verts; i++) {
+//         vertices[i*3] = transform.color.x;
+//     }
+//
+// }
 
 int
 main(void)
@@ -35,6 +69,7 @@ main(void)
 
     memman_init();
     sparse_arr_init_table(32);
+    shader_builder_init();
     // const memid_t instance_id = stack_allocator_create_new_instance(4);
     // void* address = stack_allocator_alloc(instance_id, size + 1, sizeof(some_text[0][0]));
     // timer_init_table();
@@ -55,42 +90,25 @@ main(void)
     struct scene* scene = scene_create("scene 1");
     struct layer layer1 = {
         .name="layer1",
-        .vertices= {
-                { { -0.6f, -0.6f }, { 1.f, 0.f, 0.f } },
-                { {  0.0f, -0.6f }, { 0.f, 1.f, 0.f } },
-                { { -0.3f, -0.1f }, { 0.f, 0.f, 1.f } }
-            }
     };
     layer_create_layer(&layer1);
-
-    const uint32 x = 4, y = 4;
-    struct layer layer2 = {
-        .name="layer2",
-        .vertices= {
-                    { { 0.6f, 0.6f }, { 1.f, 0.f, 0.f } },
-                    { { 0.0f, 0.6f }, { 0.f, 1.f, 0.f } },
-                    { { 0.3f, 0.1f }, { 0.f, 0.f, 1.f } }
-            }
-        // .vertices= {
-        //             { { -x, -y }, { 1.f, 0.f, 0.f } },
-        //             { { x, -y }, { 0.f, 1.f, 0.f } },
-        //             { { -x, y }, { 1.f, 0.f, 0.f } }
-        //     }
-    };
-    layer_create_layer(&layer2);
-
     scene_push_layer(scene, layer1);
-    scene_push_layer(scene, layer2);
-    // layer_stack_push(layer1);
-    //
-    // struct layer layer2 = {.name="layer2",};
-    // layer_stack_push(layer2);
-    //
-    // app_run();
 
-    // scene_update(scene);
+
+    Vertex vertices[] = {
+        { { -1.f, -1.f }, { 1.0f, 1.0f }, { 1.f, 0.f, 0.f } },
+        { {  1.f, -1.f }, { 1.0f, 1.0f }, { 0.f, 1.f, 0.f } },
+        { {  .0f,  1.f }, { 1.0f, 1.0f }, { 0.f, 0.f, 1.f } }
+    };
+    struct entity e = {
+        .name = "entity1",
+        .vertices = vertices,
+    };
+    scene_add_entity(scene, layer1, e);
+
     scene_run(scene);
 
+    shader_builder_destroy();
     memman_terminate();
 
     return 0;

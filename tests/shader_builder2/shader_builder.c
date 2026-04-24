@@ -191,7 +191,7 @@ shader_builder_init()
 #define SHADERBUILDERGLSL_VS_GL_POSITION "  gl_Position\n"
 
 void
-create_attribute_in(const sid_t sid, string_t** const str, const char* format, const enum SHADER_ATTRIBUTES_INDEXING attribidx)
+create_attribute_out(const sid_t sid, string_t** const str, const char* format, const enum SHADER_ATTRIBUTES_INDEXING attribidx)
 {
     if(sid & shader_attributes_table[attribidx].flag) {
         char buf[64] = {0};
@@ -226,6 +226,7 @@ create_attributes_assignment(const sid_t sid, string_t** const str, const char* 
     }
 }
 
+#define MAX_NUM_ELEMS_PER_LOCATION 4
 void
 shader_builder_build(const sid_t sid_attr, const sid_t sid_attr_out, const sid_t sid_unif, const sid_t sid_other)
 {
@@ -259,77 +260,55 @@ shader_builder_build(const sid_t sid_attr, const sid_t sid_attr_out, const sid_t
 
     // attributes: in
     string_append_cstr(&str, "/// attributes: in\n");
-    // for(uint32 i = 0; i < shader_attributes_table_count; i++) {
-    //     create_attribute_in(sid_attr, &str, "in %s %s;\n", i);
-    //     /// TODO: create generic attribute locations
-    // }
-    uint32 loc_offset = 0; /// counts the locations element by element
-    uint32 loc_cnt = 0; /// counts the locations
-    {
-        char buf[64] = {0};
-        const char* s = string_format(&buf[0], "layout (location = %u) in vec4 a_generic%u;\n", loc_cnt, loc_cnt);
-        string_append_cstr(&str, s);
-    }
+
+    uint32 loc_offset = 0; /// the start offset of each attribute
+    uint32 loc_cnt = 0; /// locations index
+
+    /* algorithm 1 */
     for(uint32 i = 0; i < shader_attributes_table_count; i++) {
 
-        // if(sid_attr & shader_attributes_table[i].flag)
-        {
+        if(sid_attr & shader_attributes_table[i].flag) {
+            uint8 num_elems = shader_attributes_table[i].elems;
+            uint8 type = shader_attributes_table[i].type;
+            const char* name = shader_attributes_table[i].codename;
 
-            uint32 remaining_elems = shader_attributes_table[i].elems;
-            int32 excceding_elems = (remaining_elems + loc_offset) >= 4 ? (remaining_elems + loc_offset) - 4 : 0;
-            if(excceding_elems > 0) {
-
-                // if(loc_offset >= 4) loc_offset = loc_offset - 4;
-                struct generic_location loc = create_location(loc_cnt, remaining_elems, shader_attributes_table[i].typesize, loc_offset);
-                print("loc:%u elems:%u offset:%u\n", loc.loc, loc.size, loc.offset);
-                loc_cnt++;
-
+            // Record the start position for this attribute
+            struct generic_location loc = (struct generic_location){.loc = loc_cnt, .size = num_elems, .type = type, .offset = loc_offset};
+            print("loc:%u elems:%u offset:%u {%s}\n", loc.loc, loc.size, loc.offset, name);
+            {
                 char buf[64] = {0};
-                const char* s = string_format(&buf[0], "layout (location = %u) in vec4 a_generic%u;\n", loc_cnt, loc_cnt);
+                const char* s = string_format(&buf[0], "layout (location = %u) in vec4 a_generic%u;\n", loc.loc, loc.loc);
                 string_append_cstr(&str, s);
-                // loc_offset += remaining_elems;
-                loc_offset += shader_attributes_table[i].elems;
-                if(loc_offset >= 4) loc_offset = loc_offset - 4;
-
-
-            } else {
-                struct generic_location loc = create_location(loc_cnt, shader_attributes_table[i].elems, shader_attributes_table[i].typesize, loc_offset);
-                print("loc:%u elems:%u offset:%u\n", loc.loc, loc.size, loc.offset);
-                loc_offset += shader_attributes_table[i].elems;
-                // if(loc_offset >= 4) loc_offset = loc_offset - 4;
             }
 
+            // attributes_info[i] = loc; // store by attributes, not by locations
+
+            // Advance by the number of elements this attribute occupies
+            loc_offset += num_elems;
+
+            // Handle wrap to next row
+            while(loc_offset >= 4) {
+                loc_offset -= 4;
+                loc_cnt++;
+                if(loc_offset >= 4) {
+                    struct generic_location loc = (struct generic_location){.loc = loc_cnt, .size = num_elems, .type = type, .offset = 0};
+                    print("loc:%u elems:%u offset:%u {%s}\n", loc.loc, loc.size, loc.offset, name);
+                    char buf[64] = {0};
+                    const char* s = string_format(&buf[0], "layout (location = %u) in vec4 a_generic%u;\n", loc.loc, loc.loc);
+                    string_append_cstr(&str, s);
+                }
+            }
         }
+
     }
-    // for(uint32 i = 0; i < shader_attributes_table_count; i++) {
-    //     if(sid_attr & shader_attributes_table[i].flag) {
-    //
-    //         int32 excceding_elems = (shader_attributes_table[i].elems + loc_offset) >= 4 ? (shader_attributes_table[i].elems + loc_offset) - 4 : 0;
-    //         if(excceding_elems > 0) {
-    //
-    //             if(loc_offset >= 4) loc_offset = loc_offset - 4;
-    //             loc_cnt++;
-    //             struct generic_location loc = create_location(loc_cnt, shader_attributes_table[i].elems, shader_attributes_table[i].typesize, loc_offset);
-    //             print("loc:%u elems:%u offset:%u\n", loc.loc, loc.size, loc.offset);
-    //
-    //             char buf[64] = {0};
-    //             const char* s = string_format(&buf[0], "layout (location = %u) in vec4 a_generic%u;\n", loc_cnt, loc_cnt);
-    //             string_append_cstr(&str, s);
-    //             loc_offset += shader_attributes_table[i].elems;
-    //         } else {
-    //             struct generic_location loc = create_location(loc_cnt, shader_attributes_table[i].elems, shader_attributes_table[i].typesize, loc_offset);
-    //             print("loc:%u elems:%u offset:%u\n", loc.loc, loc.size, loc.offset);
-    //             loc_offset += shader_attributes_table[i].elems;
-    //         }
-    //     }
-    // }
+
     string_append_cstr(&str, "\n");
 
 
     /// attributes: out
     string_append_cstr(&str, "/// attributes: out\n");
     for(uint32 i = 0; i < shader_attributes_table_count; i++) {
-        create_attribute_in(sid_attr_out, &str, "out %s out_%s;\n", i);
+        create_attribute_out(sid_attr_out, &str, "out %s out_%s;\n", i);
     }
     string_append_cstr(&str, "\n");
 
@@ -485,19 +464,21 @@ const char*
 shaderinfo_type_to_glsltype_string(const enum TYPES_INDEXING type)
 {
     switch(type) {
-        case FLOAT: return "FLOAT";
-        case INT64: return "INT64";
-        case UINT64: return "UINT64";
-        case UINT32: return "UINT32";
-        case UINT16: return "UINT16";
-        case INT8: return "INT8";
-        case UINT8: return "UINT8";
-        case VEC2F: return "VEC2F";
-        case VEC3F: return "VEC3F";
-        case VEC4F: return "VEC4F";
-        case MAT2X2F: return "MAT2X2F";
-        case MAT3X3F: return "MAT3X3F";
-        case MAT4X4F: return "MAT4X4F";
+        case FLOAT:   return "float";
+        case INT64:   return "INT64";
+        case UINT64:  return "UINT64";
+        case UINT32:  return "int";
+        case INT32:   return "uint";
+        case UINT16:  return "uint16";
+        case INT16:   return "int16";
+        case INT8:    return "int8";
+        case UINT8:   return "uint8";
+        case VEC2F:   return "vec2";
+        case VEC3F:   return "vec3";
+        case VEC4F:   return "vec4";
+        case MAT2X2F: return "mat2";
+        case MAT3X3F: return "mat3";
+        case MAT4X4F: return "mat4";
         default: return "NONE";
     }
 }
@@ -521,3 +502,56 @@ shaderinfo_type_to_elems(const enum TYPES_INDEXING type)
         default: assert(1);
     }
 }
+
+
+
+/* UNUSED-CODE */
+    // for(uint32 i = 0; i < shader_attributes_table_count; i++) {
+    //
+    //     // if(sid_attr & shader_attributes_table[i].flag)
+    //     {
+    //         uint32 remaining_elems = shader_attributes_table[i].elems;
+    //         int32 excceding_elems = (remaining_elems + loc_offset) >= 4 ? (remaining_elems + loc_offset) - 4 : 0;
+    //         if(excceding_elems > 0) {
+    //
+    //             if(loc_offset >= 4) loc_offset = loc_offset - 4;
+    //             struct generic_location loc = create_location(loc_cnt, remaining_elems, shader_attributes_table[i].typesize, loc_offset);
+    //             print("loc:%u elems:%u offset:%u --%u%u%u%u\n", loc.loc, loc.size, loc.offset, i,i,i,i);
+    //             loc_cnt++;
+    //
+    //             char buf[64] = {0};
+    //             const char* s = string_format(&buf[0], "layout (location = %u) in vec4 a_generic%u;\n", loc_cnt, loc_cnt);
+    //             string_append_cstr(&str, s);
+    //             loc_offset += shader_attributes_table[i].elems;
+    //             if(loc_offset >= 4) loc_offset = loc_offset - 4;
+    //         } else {
+    //             struct generic_location loc = create_location(loc_cnt, shader_attributes_table[i].elems, shader_attributes_table[i].typesize, loc_offset);
+    //             print("loc:%u elems:%u offset:%u --%u%u%u%u\n", loc.loc, loc.size, loc.offset, i,i,i,i);
+    //             loc_offset += shader_attributes_table[i].elems;
+    //             if(loc_offset >= 4) loc_offset = loc_offset - 4;
+    //         }
+    //
+    //     }
+    // }
+    // for(uint32 i = 0; i < shader_attributes_table_count; i++) {
+    //     if(sid_attr & shader_attributes_table[i].flag) {
+    //
+    //         int32 excceding_elems = (shader_attributes_table[i].elems + loc_offset) >= 4 ? (shader_attributes_table[i].elems + loc_offset) - 4 : 0;
+    //         if(excceding_elems > 0) {
+    //
+    //             if(loc_offset >= 4) loc_offset = loc_offset - 4;
+    //             loc_cnt++;
+    //             struct generic_location loc = create_location(loc_cnt, shader_attributes_table[i].elems, shader_attributes_table[i].typesize, loc_offset);
+    //             print("loc:%u elems:%u offset:%u\n", loc.loc, loc.size, loc.offset);
+    //
+    //             char buf[64] = {0};
+    //             const char* s = string_format(&buf[0], "layout (location = %u) in vec4 a_generic%u;\n", loc_cnt, loc_cnt);
+    //             string_append_cstr(&str, s);
+    //             loc_offset += shader_attributes_table[i].elems;
+    //         } else {
+    //             struct generic_location loc = create_location(loc_cnt, shader_attributes_table[i].elems, shader_attributes_table[i].typesize, loc_offset);
+    //             print("loc:%u elems:%u offset:%u\n", loc.loc, loc.size, loc.offset);
+    //             loc_offset += shader_attributes_table[i].elems;
+    //         }
+    //     }
+    // }

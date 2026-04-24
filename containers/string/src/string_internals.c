@@ -56,6 +56,7 @@ string_constructor(const char* str, const strlen_t size)
     /* alloc storage for bufer data */
     void* data_ptr = NULL;
 
+    assert(allocator_instance_id != (uint16)INT_NULL);
     data_ptr = slab_allocator_alloc(allocator_instance_id, max_size, sizeof(char), "string_constructor()");
     // data_ptr = stack_allocator_alloc(allocator_instance_id, max_size);
 

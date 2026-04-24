@@ -11,7 +11,7 @@ set(root_path ${CLION_ROOT_DIR})
 enable_sanitizer()
 
 # 2. add project's sub-directories
-#add_subdirectory(data_oriented)
+add_subdirectory(tests)
 register_module(
         sources
         ${CMAKE_CURRENT_LIST_DIR}/shader_builder.c

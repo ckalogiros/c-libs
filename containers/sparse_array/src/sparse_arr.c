@@ -134,6 +134,7 @@ sparse_arr_get_next_free(sparse_arr_t* const buffer)
     return first_free_index;
 }
 
+/// return: elements index
 uint16 // sets up buffer's fields, but the data transform happens at caller site
 sparse_arr_set_for_push(sparse_arr_t* const buffer)
 {

@@ -1,0 +1,21 @@
+include(${cmake_utils})
+register_module(
+        sources
+            ${CMAKE_CURRENT_LIST_DIR}/opengl.c
+            ${CMAKE_CURRENT_LIST_DIR}/opengl_program.c
+            ${CMAKE_CURRENT_LIST_DIR}/gfx_buffers.c
+            ${CMAKE_CURRENT_LIST_DIR}/gfx_context.c
+        ${CMAKE_CURRENT_LIST_DIR}/shader_descriptor.c
+        headers
+            ${CMAKE_CURRENT_LIST_DIR}/gfx_interface.h
+            ${CMAKE_CURRENT_LIST_DIR}/shader_id.h
+            ${CMAKE_CURRENT_LIST_DIR}/opengl.h
+            ${CMAKE_CURRENT_LIST_DIR}/gfx_buffers.h
+            ${CMAKE_CURRENT_LIST_DIR}/opengl_debug.h
+        ${CMAKE_CURRENT_LIST_DIR}/shader_descriptor.h
+        include_dirs
+            ${CMAKE_CURRENT_LIST_DIR}
+        compiler_macros
+            ENABLE_DEBUG=1
+            VERSION_MAJOR=0
+)

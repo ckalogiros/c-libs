@@ -6,16 +6,12 @@
 #include "my_types.h"
 #include "opengl.h"
 
-typedef struct Vertex
-{
-    vec2f pos;
-    vec3f col;
-} Vertex;
 
 
-GLuint renderer_create_vb(Vertex* vertices, const uint32 size);
+
+GLuint renderer_create_vb(void* vertices, const uint32 size);
 void renderer_bind_vb(GLuint vbo);
-void renderer_update_vb(Vertex* vertices);
+void renderer_update_vb(void* vertices, const uint32 bytesize);
 void renderer_destroy_vb(GLuint* vbo);
 
 void renderer_create_ib();

@@ -10,7 +10,7 @@
 
 struct layer {
     const char* name;
-    Vertex vertices[3];
+    // Vertex vertices[3];
     uint32 program;
     uint32 vao;
     uint32 vbo;

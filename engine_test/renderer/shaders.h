@@ -18,11 +18,13 @@ static const char* vertex_shader_text =
 
 static const char* fragment_shader_text =
 "#version 330\n"
-"in vec3 color;\n"
+// "in vec4 out_color4;\n"
+"in vec3 out_color3;\n"
 "out vec4 fragment;\n"
 "void main()\n"
 "{\n"
-"    fragment = vec4(color, 1.0);\n"
+// "    fragment = out_color4;\n"
+"    fragment = vec4(out_color3, 1.0);\n"
 "}\n";
 
 

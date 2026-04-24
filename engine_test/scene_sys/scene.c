@@ -5,6 +5,8 @@
 #include "scene.h"
 #include "my_types.h"
 #include "window.h"
+#include "opengl_debug.h"
+#include "entity_test.h"
 
 
 struct scene scene_table[1];
@@ -27,12 +29,18 @@ struct scene* scene_create(const char* name)
 
     window_create();
 
+    OpenGlDebugContext();
+
+    scene->entities_count = 8;
+    struct entity* entities = entity_create_buffer(scene->entities_count);
+    scene->entities = entities;
+
     return scene;
 }
 
 void scene_run(struct scene* scene)
 {
-    vec4f color = {.r = .0, .g = .0, .b = .0, .a = .0};
+    vec4f color = {.r = .1, .g = .1, .b = .1, .a = 1.0};
 
     while (1)
     {
@@ -56,6 +64,7 @@ void scene_run(struct scene* scene)
 
         window_swap_buffers();
 
+        // OpenGlDebugContext();
         // float currentTime = GetTime();
         // float timestep = glm::clamp(currentTime - lastTime, 0.001f, 0.1f);
         // lastTime = currentTime;
@@ -82,6 +91,16 @@ void scene_push_layer(struct scene* scene, struct layer layer)
     scene->layer_stack.count++;
     // layer_stack_push(layer1);
 }
+
+// TODO: Should layer be passed by index???
+void scene_add_entity(struct scene* scene, struct layer layer, struct entity entity)
+{
+    const uint32 idx = scene->entities_count;
+    scene->entities[idx] = entity;
+    scene->entities_count++;
+}
+
+
 
 void scene_destroy(){}
 void scene_update(struct scene* scene){}

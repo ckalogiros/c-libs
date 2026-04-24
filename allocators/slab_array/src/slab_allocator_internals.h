@@ -6,7 +6,6 @@
 
 #include "slab_allocator_struct.h"
 
-
 struct slab_allocator_instance* slab_allocator_get_instance(const salltable_t inst_id);
 
 void slab_allocator_init(void);

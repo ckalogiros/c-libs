@@ -5,6 +5,7 @@
 #define FILE_SYS_FILE_SYS_INTERFACE_H
 
 #define HOME_DIR "/home/ckalo/data/projects/clion/Debug/"
+// #define HOME_DIR "/media/ckalo2/data/projects/clion/Debug/"
 #include "my_types.h"
 
 struct fs_t;
