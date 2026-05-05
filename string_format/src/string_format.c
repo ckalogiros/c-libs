@@ -3,6 +3,9 @@
  */
 
 #include "string_format.h"
+
+#include <assert.h>
+
 #include "ascii_characters.h"
 #include <stdarg.h>
 #include <stdio.h>
@@ -107,69 +110,101 @@ is_alphabet(char c)
     return 0;
 }
 
-char*
-string_format(char* const buf, const char* format, ...)
+uint32
+string_format(char** const buf, const uint32 size, const char* format, ...)
 {
     uint32 i, k;
 
     va_list args;
     va_start(args, format);
 
-    /* len:%d \n ptr:%x*/
     i = 0, k = 0;
     while(format[i]) {
 
         char c = format[i];
 
         if(c == '%') {
-
-            c=format[++i];
+            c = format[++i];
             switch(c) {
-            case 'u': {
-                uint64 num = va_arg(args, uint64);
-                uint32 len = str_conv_unt32_to_str(&buf[k], num);
-                k += len;
-                break;
-            }
-            case 'd': {
-                int64 num = va_arg(args, int64);
-                uint32 len = str_conv_int32_to_str(&buf[k], num);
-                k += len;
-                break;
-            }
-            case 'x': { break; }
-            case 'f': {
-                // long double num = (long double)va_arg(args, long double);
-                double num = (double)va_arg(args, double);
-                uint32 len = snprintf(&buf[k], 7, "%.3f", num);
-                k+=len;
-                break;
-            }
-            case 'c': {
-                buf[k++] = (char)va_arg(args, int);
-                break;
-            }
-            case 's': {
-                const char* str = va_arg(args, const char*);
-                if(str != NULL) {
-                    uint32 j = 0;
-                    while(str[j]) buf[k++] = str[j++];
+                case 'u': {
+                    uint64 num = va_arg(args, uint64);
+                    uint32 len = str_conv_unt32_to_str(&(*buf)[k], num);
+                    k += len; assert(k < size);
+                    break;
                 }
-                break;
-            }
+                case 'd': {
+                    int64 num = va_arg(args, int64);
+                    uint32 len = str_conv_int32_to_str(&(*buf)[k], num);
+                    k += len; assert(k < size);
+                    break;
+                }
+                case 'x': { break; }
+                case 'f': {
+                    // long double num = (long double)va_arg(args, long double);
+                    double num = (double) va_arg(args, double);
+                    uint32 len = snprintf(buf[k], 7, "%.3f", num);
+                    k += len;
+                    break;
+                }
+                case '.': { /// for notation: "%.2f, %02f, etc". TODO: implement for integers too.
+                    double num = (double) va_arg(args, double);
+
+                    char a[16] = {'\0'}; uint32 m = i-1, n = 0;
+                    a[n++] = format[m++];
+                    while(format[m] != '%' && format[m] != ',' && format[m] != '\0') {
+                        a[n++] = format[m];
+                        m++;
+                    }
+
+                    /// we do not use "snprintf" cause it returns len=4 when it optimizes a "1.00" to a truncated "1.0"
+                    uint32 len = sprintf(buf[k], a, num);
+                    k += len;
+                    /// IMPORTANT COMMENT!!!
+                    /// n-1: because we want i to point at ',' in "%.2f,"
+                    /// and a second n-1: because later in the loop we increment i again (i++)
+                    i += n-2;
+                    break;
+                }
+                case 'c': {
+                    (*buf)[k++] = (char) va_arg(args, int);
+                    assert(k < size);
+                    break;
+                }
+                case 's': {
+                    const char* str = va_arg(args, const char*);
+                    if(str != NULL) {
+                        uint32 j = 0;
+                        while(str[j]) (*buf)[k++] = str[j++];
+                        assert(k < size);
+                    }
+                    break;
+                }
             }
         } else {
-            buf[k++] = c;
+            (*buf)[k++] = c;
+            assert(k < size);
         }
 
         i++;
     }
 
     va_end(args);
-
-    return buf;
+    assert(k < size);
+    return k;
 }
 
+uint32 string_buffer_push(char** const buf, const uint32 size, const char* str)
+{
+    uint32 i = 0, k = 0;
+    while(str[i]) {
+
+        (*buf)[k++] = str[i];
+        assert(k < size);
+        i++;
+    }
+
+    return k;
+}
 
 /*
 0 	NUL 	26 	SUB 	52 	4 		78 	N 		104 	h

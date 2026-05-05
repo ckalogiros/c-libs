@@ -1,0 +1,4 @@
+we have: shader_builds_table that has a vertex_layout[] buffer
+we have: shader_descriptor that is used as a return value of a shader build.
+we have: vertex layout to describe an attribute input
+we need: a vertex_attribute_ids to access O(1) a specific attribute(color) in a vertex_layout[] buffer

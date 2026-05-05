@@ -37,6 +37,29 @@ typedef uint64 sid_t;
 #define SID_COLOR4 BIT_MASK_FROM_UINT(15)
 #define SID_PROJMAT4X4 BIT_MASK_FROM_UINT(16)
 
+enum SID_VAR_IDI {
+    // SID_NULL_=0,
+    SID_OPACIT_IDI = 0,
+    SID_VPOSI2_IDI,
+    SID_WPOSI2_IDI,
+    SID_SCALE2_IDI,
+    SID_ROTAT2_IDI,
+    SID_PIVOT2_IDI,
+    SID_UVCOO2_IDI,
+    SID_VPOSI3_IDI,
+    SID_WPOSI3_IDI,
+    SID_SCALE3_IDI,
+    SID_ROTAT3_IDI,
+    SID_PIVOT3_IDI,
+    SID_COLOR3_IDI,
+    SID_NORMA3_IDI,
+    SID_COLOR4_IDI,
+    SID_PROJMAT4X4_IDI,
+
+    SID_IDI_COUNT,
+};
+
+/// TODO: unite some flags into one
 struct gfx_sid {
     sid_t attr;
     sid_t unif;
@@ -45,38 +68,27 @@ struct gfx_sid {
     sid_t oper;
 };
 
-static bool sid_check_match(struct gfx_sid sid1, struct gfx_sid sid2) {
-
-    // Remove all Block Uniforms flags. Better to reuse a program than to create a duplicate only because some meshes dont use Blocked Uniforms.
-    // For individual uniforms we must include for the match, since a Program's shaders may be compiled before the creation of other meshes with the same sid except an extra uniform
-    // const  unif1 = sid1.unif & ~(SID.UNIF.PROJECTION_MATRIX|SID.UNIF.SCREEN_RESOLUTION);
-    // const  unif2 = sid2.unif & ~(SID.UNIF.PROJECTION_MATRIX|SID.UNIF.SCREEN_RESOLUTION);
-
-    // const  attr1 = sid1.attr & ~(SID.ATTR.TEST_MULTI_VERTEX|SID.ATTR.COL4_PER_VERTEX)
-    // const  attr2 = sid2.attr & ~(SID.ATTR.TEST_MULTI_VERTEX|SID.ATTR.COL4_PER_VERTEX)
-    // const sid_t attr1 = sid1.attr & ~(SID.ATTR.TEST_MULTI_VERTEX);
-    // const sid_t attr2 = sid2.attr & ~(SID.ATTR.TEST_MULTI_VERTEX);
-
-    // const shad1 = sid1.shad;
-    // const shad2 = sid2.shad;
-    // const shader_ops1 = sid1.shad_ops;
-    // const shader_ops2 = sid2.shad_ops;
-    // // const  shad1 = sid1.shad & ~(SID.SHAD.INDEXED_PATT_CONNECTED_FACES_X);
-    // // const  shad2 = sid2.shad & ~(SID.SHAD.INDEXED_PATT_CONNECTED_FACES_X);
-    if (
-          // shad1 === shad2 &&
-          sid1.attr == sid2.attr &&
-          sid1.unif == sid2.unif &&
-          sid1.pass == sid2.pass
-          // sid1.inst === sid2.inst &&
-          // shader_ops1 === shader_ops2 &&
-          // sid1.fx === sid2.fx
-    ) {
+static bool
+sid_check_match(struct gfx_sid sid1, struct gfx_sid sid2)
+{
+    if(sid1.attr == sid2.attr &&
+       sid1.unif == sid2.unif &&
+       sid1.pass == sid2.pass) {
         return TRUE;
     }
 
     return FALSE;
 }
 
+
+static bool
+sid_copy(struct gfx_sid* src, struct gfx_sid dst)
+{
+    src->attr = dst.attr;
+    src->unif = dst.unif;
+    src->out = dst.out;
+    src->pass = dst.pass;
+    src->oper = dst.oper;
+}
 
 #endif //GRAPHICS_TEST_SHADER_ID_H

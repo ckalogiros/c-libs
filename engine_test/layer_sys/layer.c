@@ -37,7 +37,7 @@ void layer_create_layer(struct layer* layer)
     /// TODO: possibly here we will implement
     // GLuint vbo = renderer_create_vb(layer->vertices, sizeof(layer->vertices));
     //
-    progidx_t program = renderer_create_shader();
+    // progidx_t program = renderer_create_shader();
     // GLint mvp_location = gl_get_uniform_location(program, "projection_matrix");
     // // GLint vpos_location = gl_get_attribute_location(program, "vPos");
     // // GLint vcol_location = gl_get_attribute_location(program, "vCol");

@@ -451,7 +451,7 @@ fs_append_mem_with_msg(struct fs_t* fs, const char* ptr, const uint64 size, cons
                 const uint32 exists = file_sys_exists(ptr);
                 if(exists) {
                     char buf[128] = {0};
-                    file_sys_retrieve_info(buf);
+                    file_sys_retrieve_info(buf, 128);
                     fprintf(fs->file, "%s", buf);
                 }
             }

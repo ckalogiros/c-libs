@@ -16,12 +16,14 @@ struct render_queue {
     ibidx_t ibidx;
     tbidx_t tbo;
     tbidx_t tbidx;
+
+    uint32 vertex_count;
 };
 
 struct render_queue* render_queue_get();
-struct render_queue* renderer_renderqueue_add(progidx_t program, progidx_t progidx,
-                                            vbidx_t vao, vbidx_t vaidx,vbidx_t vbo, vbidx_t vbidx);
 
+struct render_queue* renderer_renderqueue_add(progidx_t program, progidx_t progidx, vbidx_t vao,
+                                              vbidx_t vaidx, vbidx_t vbo, vbidx_t vbidx, uint32 vertex_count);
 
 
 void run();

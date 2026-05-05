@@ -28,7 +28,7 @@ void file_sys_push(void* const value, typesize_t typesize, const enum TYPES type
 
 void file_sys_retrieve();
 
-char* file_sys_retrieve_info(char* buffer);
+char* file_sys_retrieve_info(char* buffer, const uint32 size);
 
 bool file_sys_exists(void* address);
 

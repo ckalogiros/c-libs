@@ -1,0 +1,53 @@
+rsion 330 core
+
+/// attributes: in
+layout (location = 0) in vec4 generic_0;
+layout (location = 1) in vec4 generic_1;
+layout (location = 2) in vec4 generic_2;
+
+/// attributes: out
+out vec4 out_color4;
+
+/// uniforms: in
+uniform mat4 projection_matrix;
+
+void main()
+{
+
+  /// reassemble generic attributes
+  float vpos2_x = generic_0.x;
+  float vpos2_y = generic_0.y;
+  float wpos3_x = generic_0.z;
+  float wpos3_y = generic_0.w;
+  float wpos3_z = generic_0.x;
+  float scale2_x = generic_1.y;
+  float scale2_y = generic_1.z;
+  float rot2_x = generic_1.w;
+  float rot2_y = generic_1.x;
+  float color4_x = generic_2.y;
+  float color4_y = generic_2.z;
+  float color4_z = generic_2.w;
+  float color4_w = generic_2.x;
+
+
+  /// calculate transform
+  vec4 final_pos = vec4(0.0, 0.0, 0.0, 0.0);
+  vec2 vpos = vec2(vpos2_x, vpos2_y);
+  vec3 translate = vec3(wpos3_x, wpos3_y, wpos3_z);
+  vec2 scale = (scale2_x, scale2_y);
+  mat2 rot_matrix = mat2(rot2_x, rot2_y, -rot2_y, rot2_x);
+  final_pos = final_pos * rot_matrix * scale + translate ;
+
+  /// outputs assignment
+  out_color4 = vec4(color4_x, color4_y, color4_z, color4_w);
+}
+
+ERROR::SHADER::VERTEX::COMPILATION_FAILED
+0(37) : error C7011: implicit cast from "float" to "vec2"
+0(39) : error C1101: ambiguous overloaded function reference "mul(vec4, mat2)"
+    (0) : mat2x1 mul(mat2, mat2x1)
+    (0) : vec1 mul(mat1x4, vec4)
+    (0) : vec2 mul(mat2, vec2)
+    (0) : vec2 mul(mat2x4, vec4)
+    (0) : vec3 mul(mat3x4, vec4)
+    (0) : vec4 mul(mat4, vec4)

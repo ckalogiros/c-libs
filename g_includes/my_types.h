@@ -136,6 +136,14 @@ default:      void)
  * TYPES
  **************************************************************************************************/
 /* vectors */
+#define SIZE_F32 4
+#define SIZE_F64 8
+#define SIZE_I64 8
+#define SIZE_I32 4
+#define SIZE_I16 2
+#define SIZE_I8  1
+
+/* vectors */
 typedef struct { float  x; float  y; } vec2f;
 typedef struct { int64  x; int64  y; } vec2i64;
 typedef struct { uint64 x; uint64 y; } vec2u64;

@@ -167,7 +167,7 @@ file_sys_retrieve()
 }
 
 char*
-file_sys_retrieve_info(char* buffer)
+file_sys_retrieve_info(char* buffer, uint32 size)
 {
     fsdebug* d = (fsdebug*) retrieve_ptr;
     char* ptr = (char*) d;
@@ -182,72 +182,72 @@ file_sys_retrieve_info(char* buffer)
     switch(type) {
         case TYPE_CHAR: {
             const char val = *(char*) ptr;
-            string_format(buffer, "%c ", val);
+            string_format(&buffer, size, "%c ", val);
             break;
         }
         case TYPE_INT8: {
             const int8_t val = *(int8_t*) ptr;
-            string_format(buffer, "%d ", val);
+            string_format(&buffer, size, "%d ", val);
             break;
         }
         case TYPE_INT16: {
             const int16_t val = *(int16_t*) ptr;
-            string_format(buffer, "%d ", val);
+            string_format(&buffer, size, "%d ", val);
             break;
         }
         case TYPE_INT32: {
             const int32_t val = *(int32_t*) ptr;
-            string_format(buffer, "%d ", val);
+            string_format(&buffer, size, "%d ", val);
             break;
         }
         case TYPE_INT64: {
             const int64_t val = *(int64_t*) ptr;
-            string_format(buffer, "%lld ", val);
+            string_format(&buffer, size, "%lld ", val);
             break;
         }
         case TYPE_UINT8: {
             const uint8_t val = *(uint8_t*) ptr;
-            string_format(buffer, "%u ", val);
+            string_format(&buffer, size, "%u ", val);
             break;
         }
         case TYPE_UINT16: {
             const uint16_t val = *(uint16_t*) ptr;
-            string_format(buffer, "%u ", val);
+            string_format(&buffer, size, "%u ", val);
             break;
         }
         case TYPE_UINT32: {
             const uint32_t val = *(uint32_t*) ptr;
-            string_format(buffer, "%u ", val);
+            string_format(&buffer, size, "%u ", val);
             break;
         }
         case TYPE_UINT64: {
             const uint64_t val = *(uint64_t*) ptr;
-            string_format(buffer, "%llu ", val);
+            string_format(&buffer, size, "%llu ", val);
             break;
         }
         case TYPE_FLOAT: {
             const float val = *(float*) ptr;
-            string_format(buffer, "%f ", val);
+            string_format(&buffer, size, "%f ", val);
             break;
         }
         case TYPE_DOUBLE: {
             const double val = *(double*) ptr;
-            string_format(buffer, "%llf ", val);
+            string_format(&buffer, size, "%llf ", val);
             break;
         }
         case TYPE_POINTER: {
             const void* val = (void*) ptr;
-            string_format(buffer, "%016x ", val);
+            string_format(&buffer, size, "%016x ", val);
             break;
         }
         case TYPE_CHAR_PTR: {
             const char* val = (char*) ptr;
-            string_format(buffer, "{str}:%s ", val);
+            string_format(&buffer, size, "{str}:%s ", val);
             break;
         }
         case TYPE_FUNC_PTR: {
             void (*val)() = (void(*)()) ptr;
-            string_format(buffer, "{fn}:%016x ", val);
+            string_format(&buffer, size, "{fn}:%016x ", val);
             break;
         }
         default:
@@ -322,19 +322,19 @@ file_sys_test2()
 
     // {
     //     buffer_table_init();
-    //     // allocate new buffer
-    //     buffer_t* buffer = buffer_create_gentype(16, sizeof(uint32));
+    //     // allocate new &buffer
+    //     buffer_t* &buffer = buffer_create_gentype(16, sizeof(uint32));
     //
-    //     uint32* data = buffer->data;
-    //     for(uint32 i = 0; i < buffer->capacity; i++) {
-    //         buffer_set_for_push(buffer);
+    //     uint32* data = &buffer->data;
+    //     for(uint32 i = 0; i < &buffer->capacity; i++) {
+    //         buffer_set_for_push(&buffer);
     //         data[i] = i + 1;
     //         file_sys_push(&data[i], sizeof(uint32), TYPE_UINT32, &data[i]);
     //     }
     //
     //     struct fs_t* fs = fs_create("debug_with_info");
-    //     void* from = buffer->data;
-    //     uint64 size = buffer->capacity*buffer->typesize;
+    //     void* from = &buffer->data;
+    //     uint64 size = &buffer->capacity*&buffer->typesize;
     //     fs_append_mem_with_msg(fs, from, size, "");
     // }
 
@@ -344,7 +344,7 @@ file_sys_test2()
         void* from = NULL;
         uint64 size = 0;
         for(uint32 i = 0; i < 4; i++) {
-            // allocate new buffer
+            // allocate new &buffer
             string_t* str = string_create("HELLO WORLD!");
             file_sys_push((void*)str->data, str->len + 1, TYPE_CHAR_PTR, (void*)str);
 
@@ -352,8 +352,8 @@ file_sys_test2()
             if(!from) from = str;
             size += str->size;
         }
-        char msg[128] = {0};
-        string_format(&msg[0], " size:%u", size);
+        char msg[128] = {0}; char* ptr = &msg[0];
+        string_format(&ptr, 128, " size:%u", size);
         fs_append_mem_with_msg(fs, from, size, msg);
     }
 

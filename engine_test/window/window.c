@@ -19,37 +19,45 @@
 GLFWwindow* window = NULL;
 
 
-GLFWwindow* window_get() { return window; }
-uint32 window_get_width()
-{
-    uint32 width, height;
-    glfwGetFramebufferSize(window, &width, &height);
-    return width;
-}
-uint32 window_get_height()
+GLFWwindow*
+window_get() { return window; }
+
+uint32
+window_get_width()
 {
     uint32 width, height;
     glfwGetFramebufferSize(window, &width, &height);
     return width;
 }
 
-void error_callback(int error, const char* description)
+uint32
+window_get_height()
+{
+    uint32 width, height;
+    glfwGetFramebufferSize(window, &width, &height);
+    return width;
+}
+
+void
+error_callback(int error, const char* description)
 {
     fprintf(stderr, "Error: %s\n", description);
 }
 
-void key_callback(GLFWwindow* window, const int key, int scancode, const int action, int mods)
+void
+key_callback(GLFWwindow* window, const int key, int scancode, const int action, int mods)
 {
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+    if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GLFW_TRUE);
 }
 
 
-void window_create()
+void
+window_create()
 {
     glfwSetErrorCallback(error_callback);
 
-    if (!glfwInit())
+    if(!glfwInit())
         exit(EXIT_FAILURE);
 
     /// https://www.glfw.org/docs/latest/window_guide.html
@@ -62,9 +70,10 @@ void window_create()
     glfwWindowHint(GLFW_FLOATING, GLFW_TRUE);
     glfwWindowHint(GLFW_FOCUSED, GLFW_TRUE);
 
-    window = glfwCreateWindow(640, 480, "OpenGL Triangle", NULL, NULL);
-    if (!window)
-    {
+    int32 width = 640, height = 480;
+
+    window = glfwCreateWindow(width, height, "OpenGL Triangle", NULL, NULL);
+    if(!window) {
         glfwTerminate();
         exit(EXIT_FAILURE);
     }
@@ -74,24 +83,27 @@ void window_create()
     glfwSetKeyCallback(window, key_callback);
 
     glfwMakeContextCurrent(window);
-    if (!gladLoadGL(glfwGetProcAddress))
-    {
+    if(!gladLoadGL(glfwGetProcAddress)) {
         fprintf(stderr, "Failed to initialize GLAD\n");
         return;
     }
 
     glfwSwapInterval(0);
 
-    glEnable(GL_DEBUG_OUTPUT);
+    // glfwSetWindowAspectRatio();
+    // gl_viewport(width, height);
 
+    glEnable(GL_DEBUG_OUTPUT);
 }
 
-void window_terminate()
+void
+window_terminate()
 {
     glfwDestroyWindow(window);
     glfwTerminate();
 }
 
+/* DEBUG-WINDOW */
 // void window_update(struct layer* layer)
 // {
 //     vec4f color = {.r = .0, .g = .0, .b = .0, .a = .0};
@@ -118,23 +130,23 @@ void window_terminate()
 //     glfwTerminate();
 // }
 
-bool window_should_close()
+bool
+window_should_close()
 {
     return glfwWindowShouldClose(window);
 }
-void window_poll_events()
+
+void
+window_poll_events()
 {
     glfwPollEvents();
 }
-bool window_swap_buffers()
+
+bool
+window_swap_buffers()
 {
     glfwSwapBuffers(window);
 }
-
-
-
-
-
 
 
 //

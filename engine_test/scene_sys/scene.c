@@ -13,11 +13,14 @@ struct scene scene_table[1];
 uint32 scene_table_count = 0;
 
 
-void scene_init()
+void
+scene_init()
 {
     /* allocate scene table memory */
 }
-struct scene* scene_create(const char* name)
+
+struct scene*
+scene_create(const char* name)
 {
     const uint32 idx = scene_table_count;
     struct scene* scene = &scene_table[idx];
@@ -29,7 +32,7 @@ struct scene* scene_create(const char* name)
 
     window_create();
 
-    OpenGlDebugContext();
+    // OpenGlDebugContext();
 
     scene->entities_count = 8;
     struct entity* entities = entity_create_buffer(scene->entities_count);
@@ -38,16 +41,15 @@ struct scene* scene_create(const char* name)
     return scene;
 }
 
-void scene_run(struct scene* scene)
+void
+scene_run(struct scene* scene)
 {
     vec4f color = {.r = .1, .g = .1, .b = .1, .a = 1.0};
 
-    while (1)
-    {
+    while(1) {
         window_poll_events();
 
-        if (window_should_close())
-        {
+        if(window_should_close()) {
             window_terminate();
             break;
         }
@@ -65,26 +67,11 @@ void scene_run(struct scene* scene)
         window_swap_buffers();
 
         // OpenGlDebugContext();
-        // float currentTime = GetTime();
-        // float timestep = glm::clamp(currentTime - lastTime, 0.001f, 0.1f);
-        // lastTime = currentTime;
-        //
-        // // Main layer update here
-        // for (const std::unique_ptr<Layer>& layer : m_LayerStack)
-        //     layer->OnUpdate(timestep);
-        //
-        // // NOTE: rendering can be done elsewhere (eg. render thread)
-        // for (const std::unique_ptr<Layer>& layer : m_LayerStack)
-        //     layer->OnRender();
-        //
-        // m_Window->Update();
     }
-
-
-
 }
 
-void scene_push_layer(struct scene* scene, struct layer layer)
+void
+scene_push_layer(struct scene* scene, struct layer layer)
 {
     const uint32 idx = scene->layer_stack.count;
     scene->layer_stack.layer[idx] = layer;
@@ -93,7 +80,8 @@ void scene_push_layer(struct scene* scene, struct layer layer)
 }
 
 // TODO: Should layer be passed by index???
-void scene_add_entity(struct scene* scene, struct layer layer, struct entity entity)
+void
+scene_add_entity(struct scene* scene, struct layer layer, struct entity entity)
 {
     const uint32 idx = scene->entities_count;
     scene->entities[idx] = entity;
@@ -101,7 +89,11 @@ void scene_add_entity(struct scene* scene, struct layer layer, struct entity ent
 }
 
 
+void
+scene_destroy() {}
 
-void scene_destroy(){}
-void scene_update(struct scene* scene){}
-void scene_render(struct scene* scene){}
+void
+scene_update(struct scene* scene) {}
+
+void
+scene_render(struct scene* scene) {}

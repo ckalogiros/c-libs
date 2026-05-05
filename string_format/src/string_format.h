@@ -50,6 +50,8 @@ str_conv_int32_to_str(char* buf, const int32 number)
 }
 
 
-char* string_format(char* const buf, const char* format, ...);
+uint32 string_format(char** const buf, const uint32 size, const char* format, ...);
+
+uint32 string_buffer_push(char** const buf, const uint32 size, const char* str);
 
 #endif //STRING_FORMAT_H

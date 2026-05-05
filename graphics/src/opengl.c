@@ -20,12 +20,15 @@ void gl_delete_attrib_array(GLsizei n, const GLuint * arrays) { glDeleteVertexAr
 
 void gl_enable_attrib_array(GLint loc) { glEnableVertexAttribArray(loc); }
 void gl_enable_attrib_pointer(GLint loc, GLuint size, GLuint stride, GLuint vertex_offset) { glVertexAttribPointer(loc, size, GL_FLOAT, GL_FALSE, stride, (void*) vertex_offset); }
+void gl_vertex_attrib_divisor(GLuint index, GLuint divisor) { glVertexAttribDivisor(index, divisor); }
+void gl_enable_vertex_attrib_array(GLuint index) { glEnableVertexAttribArray(index); }
+void gl_disable_vertex_attrib_array(GLuint index) { glDisableVertexAttribArray(index); }
 
 
 void gl_draw_arrays(GLenum mode, GLint start_index, GLsizei vert_n) { glDrawArrays(mode, start_index, vert_n); }
 
 
-void gl_viewport(GLuint width, GLuint height) { glViewport(100, 0, width, height); }
+void gl_viewport(GLuint width, GLuint height) { glViewport(0, 0, width, height); }
 void gl_clear() { glClear(GL_COLOR_BUFFER_BIT); }
 void gl_clear_color(const vec4f col) { glClearColor(col.r, col.g, col.b, col.a); }
 
@@ -35,7 +38,7 @@ void gl_uniform_matrix_4fv(GLint loc, const GLfloat* mvp) { glUniformMatrix4fv(l
 
 
 GLint gl_get_attribute_location(GLuint program, const char* loc_name) { return glGetAttribLocation(program, loc_name); }
-
+void  gl_bind_attribute_location(GLuint program, GLuint index, const char* loc_name) { glBindAttribLocation(program, index, loc_name); }
 
 void gl_gen_buffers(GLsizei n, GLuint* buffer) { glGenBuffers(n, buffer); }
 void gl_bind_buffer(GLenum target, GLuint buffer) { glBindBuffer(target, buffer); }
