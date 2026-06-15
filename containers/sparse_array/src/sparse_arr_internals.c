@@ -156,7 +156,7 @@ sparse_arr_destroy_table(void)
     if(sparse_arr_table) {
         print("FREEING sparse_arr_table: %x ... ", ry, sparse_arr_table, CLEAR);
         free(sparse_arr_table);
-        print("OK", GREEN, CLEAR);
+        print("OK\n\n", GREEN, CLEAR);
     }
 }
 
@@ -168,9 +168,8 @@ sparse_arr_t*
 sparse_arr_constructor_uint32(const bufidx_t capacity)
 {
     if(!sparse_arr_table) {
-        // sparse_arr_init_table();
         sparse_arr_print_error(NO_SPARSE_ARR_TABLE_INIT);
-        // my_exit("sparse_arr_constructor_uint32", __FILE__, __LINE__);
+        my_exit("sparse_arr_constructor_uint32", __FILE__, __LINE__);
     }
     if(capacity <= 0) {
         sparse_arr_print_error(SPARSE_ARR_CAPACITY_LESS_THAN_1);

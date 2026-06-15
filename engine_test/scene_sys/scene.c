@@ -17,6 +17,7 @@ void
 scene_init()
 {
     /* allocate scene table memory */
+    window_create();
 }
 
 struct scene*
@@ -29,10 +30,6 @@ scene_create(const char* name)
     scene->layer_stack.count = 0;
 
     scene_table_count++;
-
-    window_create();
-
-    // OpenGlDebugContext();
 
     scene->entities_count = 8;
     struct entity* entities = entity_create_buffer(scene->entities_count);

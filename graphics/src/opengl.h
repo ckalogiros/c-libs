@@ -139,13 +139,55 @@ void gl_bind_texture(GLenum target, GLuint texture);
 #define OPENGL_FRAGMENT_SHADER  0x8B30 // GL_FRAGMENT_SHADER
 #define OPENGL_TRIANGLES        0x0004 // GL_TRIANGLES
 
+
+// #define GL_POINT 0x1B00
+// #define GL_POINTS 0x0000
+// #define GL_POINT_BIT 0x00000002
+// #define GL_POINT_DISTANCE_ATTENUATION 0x8129
+// #define GL_POINT_FADE_THRESHOLD_SIZE 0x8128
+// #define GL_POINT_SIZE 0x0B11
+// #define GL_POINT_SIZE_GRANULARITY 0x0B13
+// #define GL_POINT_SIZE_MAX 0x8127
+// #define GL_POINT_SIZE_MIN 0x8126
+// #define GL_POINT_SIZE_RANGE 0x0B12
+// #define GL_POINT_SMOOTH 0x0B10
+// #define GL_POINT_SMOOTH_HINT 0x0C51
+// #define GL_POINT_SPRITE 0x8861
+// #define GL_POINT_SPRITE_COORD_ORIGIN 0x8CA0
+// #define GL_POINT_TOKEN 0x0701
+
+// #define GL_TRIANGLES 0x0004
+// #define GL_TRIANGLES_ADJACENCY 0x000C
+// #define GL_TRIANGLE_FAN 0x0006
+// #define GL_TRIANGLE_STRIP 0x0005
+// #define GL_TRIANGLE_STRIP_ADJACENCY 0x000D
+
+// #define GL_LINES 0x0001
+// #define GL_LINES_ADJACENCY 0x000A
+// #define GL_LINE_BIT 0x00000004
+// #define GL_LINE_LOOP 0x0002
+// #define GL_LINE_RESET_TOKEN 0x0707
+// #define GL_LINE_SMOOTH 0x0B20
+// #define GL_LINE_SMOOTH_HINT 0x0C52
+// #define GL_LINE_STIPPLE 0x0B24
+// #define GL_LINE_STIPPLE_PATTERN 0x0B25
+// #define GL_LINE_STIPPLE_REPEAT 0x0B26
+// #define GL_LINE_STRIP 0x0003
+// #define GL_LINE_STRIP_ADJACENCY 0x000B
+// #define GL_LINE_TOKEN 0x0702
+// #define GL_LINE_WIDTH 0x0B21
+// #define GL_LINE_WIDTH_GRANULARITY 0x0B23
+// #define GL_LINE_WIDTH_RANGE 0x0B22
+
 struct opengl_program {
     GLint program;
-    int32 idx;
+    int32 build_idx;
 };
 
-struct shader_descriptor opengl_program_create(const struct gfx_sid sid, const char* fs);
+struct opengl_program* shader_program_get(build_t progidx);
 
-struct opengl_program opengl_program_get_program_byidx(progidx_t idx);
+struct shader_descriptor* opengl_program_create(const struct gfx_sid sid, const build_t build_idx, const char* fs);
+
+struct opengl_program* opengl_program_get_program_byidx(const build_t build_idx);
 
 #endif //ENGINE_TEST_OPENGL_H

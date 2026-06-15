@@ -62,7 +62,7 @@ void renderer_bind_texture(){}
 void renderer_update_texture(){}
 void renderer_destroy_texture(){}
 
-progidx_t renderer_create_shader()
+build_t renderer_create_shader()
 {
     sid_t sid_attr = SID_VPOSI2 | SID_SCALE2 | SID_COLOR3;
     // sid_t sid_attr = SID_VPOSI2 | SID_SCALE2 | SID_COLOR4;

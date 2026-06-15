@@ -1,0 +1,576 @@
+/*
+ * Created by ckalo on 6/11/26.
+ */
+
+#include "object.h"
+
+#include <stdlib.h>
+
+#include "mesh.h"
+#include "shader_builder.h"
+#include "test.h"
+
+
+
+/// TODO: Use dynamic array for removing and reusing objects in the table
+#define OBJECTS_TABLE_MAX_COUNT 128
+struct object object_table[OBJECTS_TABLE_MAX_COUNT];
+uint32 object_table_count = 0;
+static uint32 object_id = 0;
+
+
+struct object*
+object_create(struct gfx_sid sid)
+{
+    struct object obj = {
+        .id         = object_id++,
+        .sid        = sid,
+        .num_faces  = 0,
+        .gfx        = 0,
+        .attrib_count   = 0,
+        .comp_id   = 0,
+        .verts_per_face = 0,
+        .attrib_data    = NULL,
+        .attribs_arr_list = NULL,
+    };
+    
+    uint32 idx = object_table_count;
+    object_table_count++;
+    object_table[idx] = obj;
+    
+    return &object_table[idx];
+}
+
+struct object*
+object_create_triangle(struct gfx_sid sid, float wpos[3], float scale[2], float rot[2], float color[4])
+{
+    struct object* obj = object_create(sid);
+    obj->num_faces = 1;
+    obj->verts_per_face = VERTICES_PER_TRI;
+
+
+    obj->sid.attr = sid.attr | (SID_VPOSI2 | SID_SCALE2 | SID_COLOR3);
+    obj->sid.unif = sid.unif | SID_PROJMAT4X4;
+    obj->sid.out  = sid.out  | SID_COLOR3;
+    obj->sid.pass = sid.pass | SID_COLOR3;
+    obj->sid.oper = sid.oper | SID_NULL;
+
+    /* Create the necessary attribute descriptor and store the attributes data
+    * Do this for all attributes */
+    uint32 attrib_offset = 0;
+    sid_t sid_attr = 0x0;
+    obj->attribs_arr_list = (struct object_attrib*) malloc(18 * SIZE_F32);
+
+    obj->comp_id = test_find_match(obj->sid);
+    test_set_obj_vertex_count(obj->comp_id, obj->num_faces * obj->verts_per_face);
+    const uint32 obj_comp_idx = test_create_new_obj(obj->comp_id);
+
+    shader_create_input(obj->sid, "VPOS2", VEC2F, SID_VPOSI2_IDI, IN_VSHADER | IS_ATTR  | IS_TRANSFORM_VPOS);
+
+    {
+        shader_create_input(obj->sid, "WPOS3", VEC3F, SID_WPOSI3_IDI, IN_VSHADER | IS_ATTR | IS_TRANSFORM_WPOS);
+        sid_attr = SID_WPOSI3;
+        obj->attribs_arr_list[obj->attrib_count].sid_attr = sid_attr;
+        obj->attribs_arr_list[obj->attrib_count].count = shaderinfo_flag_to_numelems(sid_attr);
+        test_add_comp(obj->comp_id, obj_comp_idx, wpos, obj->attribs_arr_list[obj->attrib_count].count, attrib_offset, "wpos3");
+        obj->attribs_arr_list[obj->attrib_count].offset = attrib_offset;
+        attrib_offset += obj->attribs_arr_list[obj->attrib_count].count;
+        obj->attrib_count++;
+    }
+    {
+        shader_create_input(obj->sid, "SCALE2", VEC2F, SID_SCALE2_IDI, IN_VSHADER | IS_ATTR | IS_TRANSFORM_SCALE);
+        sid_attr = SID_SCALE2;
+        obj->attribs_arr_list[obj->attrib_count].sid_attr = sid_attr;
+        obj->attribs_arr_list[obj->attrib_count].count = shaderinfo_flag_to_numelems(sid_attr);
+        obj->attribs_arr_list[obj->attrib_count].offset = attrib_offset;
+        test_add_comp(obj->comp_id, obj_comp_idx, scale, obj->attribs_arr_list[obj->attrib_count].count, attrib_offset, "scale2");
+        attrib_offset += obj->attribs_arr_list[obj->attrib_count].count;
+        obj->attrib_count++;
+    }
+    {
+        shader_create_input(obj->sid, "ROT2", VEC2F, SID_ROTAT2_IDI, IN_VSHADER | IS_ATTR | IS_TRANSFORM_ROT);
+        sid_attr = SID_ROTAT2;
+        obj->attribs_arr_list[obj->attrib_count].sid_attr = sid_attr;
+        obj->attribs_arr_list[obj->attrib_count].count = shaderinfo_flag_to_numelems(sid_attr);
+        obj->attribs_arr_list[obj->attrib_count].offset = attrib_offset;
+        test_add_comp(obj->comp_id, obj_comp_idx, rot, obj->attribs_arr_list[obj->attrib_count].count, attrib_offset, "rot2");
+        attrib_offset += obj->attribs_arr_list[obj->attrib_count].count;
+        obj->attrib_count++;
+    }
+    {
+        shader_create_input(obj->sid, "COL4", VEC4F, SID_COLOR4_IDI, IN_VSHADER | IS_ATTR | IS_OUT);
+        sid_attr = SID_COLOR4;
+        obj->attribs_arr_list[obj->attrib_count].sid_attr = sid_attr;
+        obj->attribs_arr_list[obj->attrib_count].count = shaderinfo_flag_to_numelems(sid_attr);
+        test_add_comp(obj->comp_id, obj_comp_idx, color, obj->attribs_arr_list[obj->attrib_count].count, attrib_offset, "col4");
+        obj->attribs_arr_list[obj->attrib_count].offset = attrib_offset;
+        attrib_offset += obj->attribs_arr_list[obj->attrib_count].count;
+        obj->attrib_count++;
+    }
+
+    test_set_stride(obj->comp_id, attrib_offset);
+
+    shader_create_input(obj->sid, "PROJMAT4X4", MAT4X4F, SID_PROJMAT4X4_IDI, IN_VSHADER | IS_UNIF | IS_TRANSFORM_PROJ);
+
+    print("%s- Create object: triangle -%s\n"
+          "   id:%u\n"
+          "   comp_id:%u\n"
+          "   num_faces:%u\n"
+          "   verts_per_face:%u\n"
+          "   attrib_count:%u\n",
+          BLUE, CLEAR,
+        obj->id,
+        obj->comp_id,
+        obj->num_faces,
+        obj->verts_per_face,
+        obj->attrib_count
+        );
+
+    return obj;
+}
+
+struct object*
+object_create_rectangle(struct gfx_sid sid, float wpos[3], float scale[2], float rot[2], float color[4])
+{
+    struct object* obj = object_create(sid);
+    obj->num_faces = 1;
+    obj->verts_per_face = VERTICES_PER_QUAD;
+
+
+    obj->sid.attr = sid.attr | (SID_VPOSI2 | SID_SCALE2 | SID_COLOR3);
+    obj->sid.unif = sid.unif | SID_PROJMAT4X4;
+    obj->sid.out  = sid.out  | SID_COLOR3;
+    obj->sid.pass = sid.pass | SID_COLOR3;
+    obj->sid.oper = sid.oper | SID_NULL;
+
+    /* Create the necessary attribute descriptor and store the attributes data
+    * Do this for all attributes */
+    uint32 attrib_offset = 0;
+    sid_t sid_attr = 0x0;
+    obj->attribs_arr_list = (struct object_attrib*) malloc(18 * SIZE_F32);
+
+    obj->comp_id = test_find_match(obj->sid);
+    test_set_obj_vertex_count(obj->comp_id, obj->num_faces * obj->verts_per_face);
+    const uint32 obj_comp_idx = test_create_new_obj(obj->comp_id);
+
+    shader_create_input(obj->sid, "VPOS2", VEC2F, SID_VPOSI2_IDI, IN_VSHADER | IS_ATTR  | IS_TRANSFORM_VPOS);
+
+    {
+        shader_create_input(obj->sid, "WPOS3", VEC3F, SID_WPOSI3_IDI, IN_VSHADER | IS_ATTR | IS_TRANSFORM_WPOS);
+        sid_attr = SID_WPOSI3;
+        obj->attribs_arr_list[obj->attrib_count].sid_attr = sid_attr;
+        obj->attribs_arr_list[obj->attrib_count].count = shaderinfo_flag_to_numelems(sid_attr);
+        test_add_comp(obj->comp_id, obj_comp_idx, scale, obj->attribs_arr_list[obj->attrib_count].count, attrib_offset, "wpos3");
+        obj->attribs_arr_list[obj->attrib_count].offset = attrib_offset;
+        attrib_offset += obj->attribs_arr_list[obj->attrib_count].count;
+        obj->attrib_count++;
+    }
+    {
+        shader_create_input(obj->sid, "SCALE2", VEC2F, SID_SCALE2_IDI, IN_VSHADER | IS_ATTR | IS_TRANSFORM_SCALE);
+        sid_attr = SID_SCALE2;
+        obj->attribs_arr_list[obj->attrib_count].sid_attr = sid_attr;
+        obj->attribs_arr_list[obj->attrib_count].count = shaderinfo_flag_to_numelems(sid_attr);
+        obj->attribs_arr_list[obj->attrib_count].offset = attrib_offset;
+        test_add_comp(obj->comp_id, obj_comp_idx, scale, obj->attribs_arr_list[obj->attrib_count].count, attrib_offset, "scale2");
+        attrib_offset += obj->attribs_arr_list[obj->attrib_count].count;
+        obj->attrib_count++;
+    }
+    {
+        shader_create_input(obj->sid, "ROT2", VEC2F, SID_ROTAT2_IDI, IN_VSHADER | IS_ATTR | IS_TRANSFORM_ROT);
+        sid_attr = SID_ROTAT2;
+        obj->attribs_arr_list[obj->attrib_count].sid_attr = sid_attr;
+        obj->attribs_arr_list[obj->attrib_count].count = shaderinfo_flag_to_numelems(sid_attr);
+        obj->attribs_arr_list[obj->attrib_count].offset = attrib_offset;
+        test_add_comp(obj->comp_id, obj_comp_idx, scale, obj->attribs_arr_list[obj->attrib_count].count, attrib_offset, "rot2");
+        attrib_offset += obj->attribs_arr_list[obj->attrib_count].count;
+        obj->attrib_count++;
+    }
+    {
+        shader_create_input(obj->sid, "COL4", VEC4F, SID_COLOR4_IDI, IN_VSHADER | IS_ATTR | IS_OUT);
+        sid_attr = SID_COLOR4;
+        obj->attribs_arr_list[obj->attrib_count].sid_attr = sid_attr;
+        obj->attribs_arr_list[obj->attrib_count].count = shaderinfo_flag_to_numelems(sid_attr);
+        test_add_comp(obj->comp_id, obj_comp_idx, scale, obj->attribs_arr_list[obj->attrib_count].count, attrib_offset, "col4");
+        obj->attribs_arr_list[obj->attrib_count].offset = attrib_offset;
+        attrib_offset += obj->attribs_arr_list[obj->attrib_count].count;
+        obj->attrib_count++;
+    }
+
+    test_set_stride(obj->comp_id, attrib_offset);
+
+    shader_create_input(obj->sid, "PROJMAT4X4", MAT4X4F, SID_PROJMAT4X4_IDI, IN_VSHADER | IS_UNIF | IS_TRANSFORM_PROJ);
+
+    return obj;
+}
+
+struct object*
+object_create_pentagon(struct gfx_sid sid, float wpos[3], float scale[2], float rot[2], float color[4])
+{
+    struct object* obj = object_create(sid);
+    obj->num_faces = 1;
+    obj->verts_per_face = VERTICES_PER_PENTAGON;
+
+
+    obj->sid.attr = sid.attr | (SID_VPOSI2 | SID_SCALE2 | SID_COLOR3);
+    obj->sid.unif = sid.unif | SID_PROJMAT4X4;
+    obj->sid.out  = sid.out  | SID_COLOR3;
+    obj->sid.pass = sid.pass | SID_COLOR3;
+    obj->sid.oper = sid.oper | SID_NULL;
+
+    /* Create the necessary attribute descriptor and store the attributes data
+    * Do this for all attributes */
+    uint32 attrib_offset = 0;
+    sid_t sid_attr = 0x0;
+    obj->attribs_arr_list = (struct object_attrib*) malloc(18 * SIZE_F32);
+
+    obj->comp_id = test_find_match(obj->sid);
+    test_set_obj_vertex_count(obj->comp_id, obj->num_faces * obj->verts_per_face);
+    const uint32 obj_comp_idx = test_create_new_obj(obj->comp_id);
+
+    shader_create_input(obj->sid, "VPOS2", VEC2F, SID_VPOSI2_IDI, IN_VSHADER | IS_ATTR  | IS_TRANSFORM_VPOS);
+
+    {
+        shader_create_input(obj->sid, "WPOS3", VEC3F, SID_WPOSI3_IDI, IN_VSHADER | IS_ATTR | IS_TRANSFORM_WPOS);
+        sid_attr = SID_WPOSI3;
+        obj->attribs_arr_list[obj->attrib_count].sid_attr = sid_attr;
+        obj->attribs_arr_list[obj->attrib_count].count = shaderinfo_flag_to_numelems(sid_attr);
+        test_add_comp(obj->comp_id, obj_comp_idx, scale, obj->attribs_arr_list[obj->attrib_count].count, attrib_offset, "wpos3");
+        obj->attribs_arr_list[obj->attrib_count].offset = attrib_offset;
+        attrib_offset += obj->attribs_arr_list[obj->attrib_count].count;
+        obj->attrib_count++;
+    }
+    {
+        shader_create_input(obj->sid, "SCALE2", VEC2F, SID_SCALE2_IDI, IN_VSHADER | IS_ATTR | IS_TRANSFORM_SCALE);
+        sid_attr = SID_SCALE2;
+        obj->attribs_arr_list[obj->attrib_count].sid_attr = sid_attr;
+        obj->attribs_arr_list[obj->attrib_count].count = shaderinfo_flag_to_numelems(sid_attr);
+        obj->attribs_arr_list[obj->attrib_count].offset = attrib_offset;
+        test_add_comp(obj->comp_id, obj_comp_idx, scale, obj->attribs_arr_list[obj->attrib_count].count, attrib_offset, "scale2");
+        attrib_offset += obj->attribs_arr_list[obj->attrib_count].count;
+        obj->attrib_count++;
+    }
+    {
+        shader_create_input(obj->sid, "ROT2", VEC2F, SID_ROTAT2_IDI, IN_VSHADER | IS_ATTR | IS_TRANSFORM_ROT);
+        sid_attr = SID_ROTAT2;
+        obj->attribs_arr_list[obj->attrib_count].sid_attr = sid_attr;
+        obj->attribs_arr_list[obj->attrib_count].count = shaderinfo_flag_to_numelems(sid_attr);
+        obj->attribs_arr_list[obj->attrib_count].offset = attrib_offset;
+        test_add_comp(obj->comp_id, obj_comp_idx, scale, obj->attribs_arr_list[obj->attrib_count].count, attrib_offset, "rot2");
+        attrib_offset += obj->attribs_arr_list[obj->attrib_count].count;
+        obj->attrib_count++;
+    }
+    {
+        shader_create_input(obj->sid, "COL4", VEC4F, SID_COLOR4_IDI, IN_VSHADER | IS_ATTR | IS_OUT);
+        sid_attr = SID_COLOR4;
+        obj->attribs_arr_list[obj->attrib_count].sid_attr = sid_attr;
+        obj->attribs_arr_list[obj->attrib_count].count = shaderinfo_flag_to_numelems(sid_attr);
+        test_add_comp(obj->comp_id, obj_comp_idx, scale, obj->attribs_arr_list[obj->attrib_count].count, attrib_offset, "col4");
+        obj->attribs_arr_list[obj->attrib_count].offset = attrib_offset;
+        attrib_offset += obj->attribs_arr_list[obj->attrib_count].count;
+        obj->attrib_count++;
+    }
+
+    test_set_stride(obj->comp_id, attrib_offset);
+
+    shader_create_input(obj->sid, "PROJMAT4X4", MAT4X4F, SID_PROJMAT4X4_IDI, IN_VSHADER | IS_UNIF | IS_TRANSFORM_PROJ);
+
+    return obj;
+}
+
+struct object*
+object_create_octagon(struct gfx_sid sid, float wpos[3], float scale[2], float rot[2], float color[4])
+{
+    struct object* obj = object_create(sid);
+    obj->num_faces = 1;
+    obj->verts_per_face = VERTICES_PER_OCTAGON;
+
+
+    obj->sid.attr = sid.attr | (SID_VPOSI2 | SID_SCALE2 | SID_COLOR3);
+    obj->sid.unif = sid.unif | SID_PROJMAT4X4;
+    obj->sid.out  = sid.out  | SID_COLOR3;
+    obj->sid.pass = sid.pass | SID_COLOR3;
+    obj->sid.oper = sid.oper | SID_NULL;
+
+    /* Create the necessary attribute descriptor and store the attributes data
+    * Do this for all attributes */
+    uint32 attrib_offset = 0;
+    sid_t sid_attr = 0x0;
+    obj->attribs_arr_list = (struct object_attrib*) malloc(18 * SIZE_F32);
+
+    obj->comp_id = test_find_match(obj->sid);
+    test_set_obj_vertex_count(obj->comp_id, obj->num_faces * obj->verts_per_face);
+    const uint32 obj_comp_idx = test_create_new_obj(obj->comp_id);
+
+    shader_create_input(obj->sid, "VPOS2", VEC2F, SID_VPOSI2_IDI, IN_VSHADER | IS_ATTR  | IS_TRANSFORM_VPOS);
+
+    {
+        shader_create_input(obj->sid, "WPOS3", VEC3F, SID_WPOSI3_IDI, IN_VSHADER | IS_ATTR | IS_TRANSFORM_WPOS);
+        sid_attr = SID_WPOSI3;
+        obj->attribs_arr_list[obj->attrib_count].sid_attr = sid_attr;
+        obj->attribs_arr_list[obj->attrib_count].count = shaderinfo_flag_to_numelems(sid_attr);
+        test_add_comp(obj->comp_id, obj_comp_idx, scale, obj->attribs_arr_list[obj->attrib_count].count, attrib_offset, "wpos3");
+        obj->attribs_arr_list[obj->attrib_count].offset = attrib_offset;
+        attrib_offset += obj->attribs_arr_list[obj->attrib_count].count;
+        obj->attrib_count++;
+    }
+    {
+        shader_create_input(obj->sid, "SCALE2", VEC2F, SID_SCALE2_IDI, IN_VSHADER | IS_ATTR | IS_TRANSFORM_SCALE);
+        sid_attr = SID_SCALE2;
+        obj->attribs_arr_list[obj->attrib_count].sid_attr = sid_attr;
+        obj->attribs_arr_list[obj->attrib_count].count = shaderinfo_flag_to_numelems(sid_attr);
+        obj->attribs_arr_list[obj->attrib_count].offset = attrib_offset;
+        test_add_comp(obj->comp_id, obj_comp_idx, scale, obj->attribs_arr_list[obj->attrib_count].count, attrib_offset, "scale2");
+        attrib_offset += obj->attribs_arr_list[obj->attrib_count].count;
+        obj->attrib_count++;
+    }
+    {
+        shader_create_input(obj->sid, "ROT2", VEC2F, SID_ROTAT2_IDI, IN_VSHADER | IS_ATTR | IS_TRANSFORM_ROT);
+        sid_attr = SID_ROTAT2;
+        obj->attribs_arr_list[obj->attrib_count].sid_attr = sid_attr;
+        obj->attribs_arr_list[obj->attrib_count].count = shaderinfo_flag_to_numelems(sid_attr);
+        obj->attribs_arr_list[obj->attrib_count].offset = attrib_offset;
+        test_add_comp(obj->comp_id, obj_comp_idx, scale, obj->attribs_arr_list[obj->attrib_count].count, attrib_offset, "rot2");
+        attrib_offset += obj->attribs_arr_list[obj->attrib_count].count;
+        obj->attrib_count++;
+    }
+    {
+        shader_create_input(obj->sid, "COL4", VEC4F, SID_COLOR4_IDI, IN_VSHADER | IS_ATTR | IS_OUT);
+        sid_attr = SID_COLOR4;
+        obj->attribs_arr_list[obj->attrib_count].sid_attr = sid_attr;
+        obj->attribs_arr_list[obj->attrib_count].count = shaderinfo_flag_to_numelems(sid_attr);
+        test_add_comp(obj->comp_id, obj_comp_idx, scale, obj->attribs_arr_list[obj->attrib_count].count, attrib_offset, "col4");
+        obj->attribs_arr_list[obj->attrib_count].offset = attrib_offset;
+        attrib_offset += obj->attribs_arr_list[obj->attrib_count].count;
+        obj->attrib_count++;
+    }
+
+    test_set_stride(obj->comp_id, attrib_offset);
+
+    shader_create_input(obj->sid, "PROJMAT4X4", MAT4X4F, SID_PROJMAT4X4_IDI, IN_VSHADER | IS_UNIF | IS_TRANSFORM_PROJ);
+
+    return obj;
+}
+
+struct object*
+object_create_cube(struct gfx_sid sid, float wpos[3], float scale[2], float rot[2], float color[4])
+{
+    struct object* obj = object_create(sid);
+    obj->num_faces = FACES_PER_CUBE;
+    obj->verts_per_face = VERTICES_PER_QUAD;
+
+
+    obj->sid.attr = sid.attr | (SID_VPOSI3 | SID_SCALE2 | SID_COLOR3);
+    obj->sid.unif = sid.unif | SID_PROJMAT4X4;
+    obj->sid.out  = sid.out  | SID_COLOR3;
+    obj->sid.pass = sid.pass | SID_COLOR3;
+    obj->sid.oper = sid.oper | SID_NULL;
+
+    /* Create the necessary attribute descriptor and store the attribute data
+    * Do this for all attributes */
+    uint32 attrib_offset = 0;
+    sid_t sid_attr = 0x0;
+    // TODO: use calculated size
+    // TODO: LATER: use dynamic array
+    obj->attribs_arr_list = (struct object_attrib*) malloc(18 * SIZE_F32);
+
+    obj->comp_id = test_find_match(obj->sid);
+    test_set_obj_vertex_count(obj->comp_id, obj->num_faces * obj->verts_per_face);
+    const uint32 obj_comp_idx = test_create_new_obj(obj->comp_id);
+
+    const build_t build_idx = shader_create_input(obj->sid, "VPOS3", VEC3F, SID_VPOSI3_IDI, IN_VSHADER | IS_ATTR | IS_TRANSFORM_VPOS);
+
+    {
+        shader_create_input(obj->sid, "WPOS3", VEC3F, SID_WPOSI3_IDI, IN_VSHADER | IS_ATTR | IS_TRANSFORM_WPOS);
+        sid_attr = SID_WPOSI3;
+        obj->attribs_arr_list[obj->attrib_count].sid_attr = sid_attr;
+        obj->attribs_arr_list[obj->attrib_count].count = shaderinfo_flag_to_numelems(sid_attr);
+        test_add_comp(obj->comp_id, obj_comp_idx, scale, obj->attribs_arr_list[obj->attrib_count].count, attrib_offset, "wpos3");
+        obj->attribs_arr_list[obj->attrib_count].offset = attrib_offset;
+        attrib_offset += obj->attribs_arr_list[obj->attrib_count].count;
+        obj->attrib_count++;
+    }
+    {
+        shader_create_input(obj->sid, "SCALE2", VEC2F, SID_SCALE2_IDI, IN_VSHADER | IS_ATTR | IS_TRANSFORM_SCALE);
+        sid_attr = SID_SCALE2;
+        obj->attribs_arr_list[obj->attrib_count].sid_attr = sid_attr;
+        obj->attribs_arr_list[obj->attrib_count].count = shaderinfo_flag_to_numelems(sid_attr);
+        obj->attribs_arr_list[obj->attrib_count].offset = attrib_offset;
+        test_add_comp(obj->comp_id, obj_comp_idx, scale, obj->attribs_arr_list[obj->attrib_count].count, attrib_offset, "scale2");
+        attrib_offset += obj->attribs_arr_list[obj->attrib_count].count;
+        obj->attrib_count++;
+    }
+    {
+        shader_create_input(obj->sid, "ROT2", VEC2F, SID_ROTAT2_IDI, IN_VSHADER | IS_ATTR | IS_TRANSFORM_ROT);
+        sid_attr = SID_ROTAT2;
+        obj->attribs_arr_list[obj->attrib_count].sid_attr = sid_attr;
+        obj->attribs_arr_list[obj->attrib_count].count = shaderinfo_flag_to_numelems(sid_attr);
+        obj->attribs_arr_list[obj->attrib_count].offset = attrib_offset;
+        test_add_comp(obj->comp_id, obj_comp_idx, scale, obj->attribs_arr_list[obj->attrib_count].count, attrib_offset, "rot2");
+        attrib_offset += obj->attribs_arr_list[obj->attrib_count].count;
+        obj->attrib_count++;
+    }
+    {
+        shader_create_input(obj->sid, "COL4", VEC4F, SID_COLOR4_IDI, IN_VSHADER | IS_ATTR | IS_OUT);
+        sid_attr = SID_COLOR4;
+        obj->attribs_arr_list[obj->attrib_count].sid_attr = sid_attr;
+        obj->attribs_arr_list[obj->attrib_count].count = shaderinfo_flag_to_numelems(sid_attr);
+        test_add_comp(obj->comp_id, obj_comp_idx, scale, obj->attribs_arr_list[obj->attrib_count].count, attrib_offset, "col4");
+        obj->attribs_arr_list[obj->attrib_count].offset = attrib_offset;
+        attrib_offset += obj->attribs_arr_list[obj->attrib_count].count;
+    }
+
+    test_set_stride(obj->comp_id, attrib_offset);
+
+    shader_create_input(obj->sid, "PROJMAT4X4", MAT4X4F, SID_PROJMAT4X4_IDI, IN_VSHADER | IS_UNIF | IS_TRANSFORM_PROJ);
+
+    return obj;
+}
+
+struct object*
+object_create_octahedron(struct gfx_sid sid, float wpos[3], float scale[2], float rot[2], float color[4])
+{
+    struct object* obj = object_create(sid);
+    obj->num_faces = FACES_PER_OCTAHEDRON;
+    obj->verts_per_face = VERTICES_PER_TRI;
+
+
+    obj->sid.attr = sid.attr | (SID_VPOSI3 | SID_SCALE2 | SID_COLOR3);
+    obj->sid.unif = sid.unif | SID_PROJMAT4X4;
+    obj->sid.out  = sid.out  | SID_COLOR3;
+    obj->sid.pass = sid.pass | SID_COLOR3;
+    obj->sid.oper = sid.oper | SID_NULL;
+
+    /* Create the necessary attribute descriptor and store the attribute data
+    * Do this for all attributes */
+    uint32 attrib_offset = 0;
+    sid_t sid_attr = 0x0;
+    // TODO: use calculated size
+    // TODO: LATER: use dynamic array
+    obj->attribs_arr_list = (struct object_attrib*) malloc(18 * SIZE_F32);
+
+    obj->comp_id = test_find_match(obj->sid);
+    test_set_obj_vertex_count(obj->comp_id, obj->num_faces * obj->verts_per_face);
+    const uint32 obj_comp_idx = test_create_new_obj(obj->comp_id);
+
+    const build_t build_idx = shader_create_input(obj->sid, "VPOS3", VEC3F, SID_VPOSI3_IDI, IN_VSHADER | IS_ATTR | IS_TRANSFORM_VPOS);
+
+    {
+        shader_create_input(obj->sid, "WPOS3", VEC3F, SID_WPOSI3_IDI, IN_VSHADER | IS_ATTR | IS_TRANSFORM_WPOS);
+        sid_attr = SID_WPOSI3;
+        obj->attribs_arr_list[obj->attrib_count].sid_attr = sid_attr;
+        obj->attribs_arr_list[obj->attrib_count].count = shaderinfo_flag_to_numelems(sid_attr);
+        test_add_comp(obj->comp_id, obj_comp_idx, scale, obj->attribs_arr_list[obj->attrib_count].count, attrib_offset, "wpos3");
+        obj->attribs_arr_list[obj->attrib_count].offset = attrib_offset;
+        attrib_offset += obj->attribs_arr_list[obj->attrib_count].count;
+        obj->attrib_count++;
+    }
+    {
+        shader_create_input(obj->sid, "SCALE2", VEC2F, SID_SCALE2_IDI, IN_VSHADER | IS_ATTR | IS_TRANSFORM_SCALE);
+        sid_attr = SID_SCALE2;
+        obj->attribs_arr_list[obj->attrib_count].sid_attr = sid_attr;
+        obj->attribs_arr_list[obj->attrib_count].count = shaderinfo_flag_to_numelems(sid_attr);
+        obj->attribs_arr_list[obj->attrib_count].offset = attrib_offset;
+        test_add_comp(obj->comp_id, obj_comp_idx, scale, obj->attribs_arr_list[obj->attrib_count].count, attrib_offset, "scale2");
+        attrib_offset += obj->attribs_arr_list[obj->attrib_count].count;
+        obj->attrib_count++;
+    }
+    {
+        shader_create_input(obj->sid, "ROT2", VEC2F, SID_ROTAT2_IDI, IN_VSHADER | IS_ATTR | IS_TRANSFORM_ROT);
+        sid_attr = SID_ROTAT2;
+        obj->attribs_arr_list[obj->attrib_count].sid_attr = sid_attr;
+        obj->attribs_arr_list[obj->attrib_count].count = shaderinfo_flag_to_numelems(sid_attr);
+        obj->attribs_arr_list[obj->attrib_count].offset = attrib_offset;
+        test_add_comp(obj->comp_id, obj_comp_idx, scale, obj->attribs_arr_list[obj->attrib_count].count, attrib_offset, "rot2");
+        attrib_offset += obj->attribs_arr_list[obj->attrib_count].count;
+        obj->attrib_count++;
+    }
+    {
+        shader_create_input(obj->sid, "COL4", VEC4F, SID_COLOR4_IDI, IN_VSHADER | IS_ATTR | IS_OUT);
+        sid_attr = SID_COLOR4;
+        obj->attribs_arr_list[obj->attrib_count].sid_attr = sid_attr;
+        obj->attribs_arr_list[obj->attrib_count].count = shaderinfo_flag_to_numelems(sid_attr);
+        test_add_comp(obj->comp_id, obj_comp_idx, scale, obj->attribs_arr_list[obj->attrib_count].count, attrib_offset, "col4");
+        obj->attribs_arr_list[obj->attrib_count].offset = attrib_offset;
+        attrib_offset += obj->attribs_arr_list[obj->attrib_count].count;
+    }
+
+    test_set_stride(obj->comp_id, attrib_offset);
+
+    shader_create_input(obj->sid, "PROJMAT4X4", MAT4X4F, SID_PROJMAT4X4_IDI, IN_VSHADER | IS_UNIF | IS_TRANSFORM_PROJ);
+
+    return obj;
+}
+
+struct object*
+object_create_dodecahedron(struct gfx_sid sid, float wpos[3], float scale[2], float rot[2], float color[4])
+{
+    struct object* obj = object_create(sid);
+    obj->num_faces = FACES_PER_DODECAHEDRON;
+    obj->verts_per_face = VERTICES_PER_PENTAGON;
+
+
+    obj->sid.attr = sid.attr | (SID_VPOSI3 | SID_SCALE2 | SID_COLOR3);
+    obj->sid.unif = sid.unif | SID_PROJMAT4X4;
+    obj->sid.out  = sid.out  | SID_COLOR3;
+    obj->sid.pass = sid.pass | SID_COLOR3;
+    obj->sid.oper = sid.oper | SID_NULL;
+
+    /* Create the necessary attribute descriptor and store the attributes data
+    * Do this for all attributes */
+    uint32 attrib_offset = 0;
+    sid_t sid_attr = 0x0;
+    obj->attribs_arr_list = (struct object_attrib*) malloc(18 * SIZE_F32);
+
+    obj->comp_id = test_find_match(obj->sid);
+    test_set_obj_vertex_count(obj->comp_id, obj->num_faces * obj->verts_per_face);
+    const uint32 obj_comp_idx = test_create_new_obj(obj->comp_id);
+
+    shader_create_input(obj->sid, "VPOS3", VEC3F, SID_VPOSI3_IDI, IN_VSHADER | IS_ATTR  | IS_TRANSFORM_VPOS);
+
+    {
+        shader_create_input(obj->sid, "WPOS3", VEC3F, SID_WPOSI3_IDI, IN_VSHADER | IS_ATTR | IS_TRANSFORM_WPOS);
+        sid_attr = SID_WPOSI3;
+        obj->attribs_arr_list[obj->attrib_count].sid_attr = sid_attr;
+        obj->attribs_arr_list[obj->attrib_count].count = shaderinfo_flag_to_numelems(sid_attr);
+        test_add_comp(obj->comp_id, obj_comp_idx, scale, obj->attribs_arr_list[obj->attrib_count].count, attrib_offset, "wpos3");
+        obj->attribs_arr_list[obj->attrib_count].offset = attrib_offset;
+        attrib_offset += obj->attribs_arr_list[obj->attrib_count].count;
+        obj->attrib_count++;
+    }
+    {
+        shader_create_input(obj->sid, "SCALE2", VEC2F, SID_SCALE2_IDI, IN_VSHADER | IS_ATTR | IS_TRANSFORM_SCALE);
+        sid_attr = SID_SCALE2;
+        obj->attribs_arr_list[obj->attrib_count].sid_attr = sid_attr;
+        obj->attribs_arr_list[obj->attrib_count].count = shaderinfo_flag_to_numelems(sid_attr);
+        obj->attribs_arr_list[obj->attrib_count].offset = attrib_offset;
+        test_add_comp(obj->comp_id, obj_comp_idx, scale, obj->attribs_arr_list[obj->attrib_count].count, attrib_offset, "scale2");
+        attrib_offset += obj->attribs_arr_list[obj->attrib_count].count;
+        obj->attrib_count++;
+    }
+    {
+        shader_create_input(obj->sid, "ROT2", VEC2F, SID_ROTAT2_IDI, IN_VSHADER | IS_ATTR | IS_TRANSFORM_ROT);
+        sid_attr = SID_ROTAT2;
+        obj->attribs_arr_list[obj->attrib_count].sid_attr = sid_attr;
+        obj->attribs_arr_list[obj->attrib_count].count = shaderinfo_flag_to_numelems(sid_attr);
+        obj->attribs_arr_list[obj->attrib_count].offset = attrib_offset;
+        test_add_comp(obj->comp_id, obj_comp_idx, scale, obj->attribs_arr_list[obj->attrib_count].count, attrib_offset, "rot2");
+        attrib_offset += obj->attribs_arr_list[obj->attrib_count].count;
+        obj->attrib_count++;
+    }
+    {
+        shader_create_input(obj->sid, "COL4", VEC4F, SID_COLOR4_IDI, IN_VSHADER | IS_ATTR | IS_OUT);
+        sid_attr = SID_COLOR4;
+        obj->attribs_arr_list[obj->attrib_count].sid_attr = sid_attr;
+        obj->attribs_arr_list[obj->attrib_count].count = shaderinfo_flag_to_numelems(sid_attr);
+        test_add_comp(obj->comp_id, obj_comp_idx, scale, obj->attribs_arr_list[obj->attrib_count].count, attrib_offset, "col4");
+        obj->attribs_arr_list[obj->attrib_count].offset = attrib_offset;
+        attrib_offset += obj->attribs_arr_list[obj->attrib_count].count;
+        obj->attrib_count++;
+    }
+
+    test_set_stride(obj->comp_id, attrib_offset);
+
+    shader_create_input(obj->sid, "PROJMAT4X4", MAT4X4F, SID_PROJMAT4X4_IDI, IN_VSHADER | IS_UNIF | IS_TRANSFORM_PROJ);
+
+    return obj;
+}

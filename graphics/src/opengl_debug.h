@@ -7,151 +7,9 @@
 #include <glad/gl.h>
 #include "glfw3.h"
 #include "logger.h"
+#include "opengl.h"
+#include "gfx_buffers.h"
 
-
-// #define GL_CHECK()
-#define GL_CHECK() do { \
-GLenum err = glGetError(); \
-if (err != GL_NO_ERROR) { \
-print("OpenGL Error 0x%x at %s:%d\n", err, __FILE__, __LINE__); \
-} \
-} while(0)
-
-
-static void
-opengl_debug_shader(const GLuint shader)
-{
-    GLint compiled;
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
-    print("%sshader:  %s%u%s compiled successfully %s\n", GREEN, YELLOW, shader, GREEN, CLEAR);
-    if(!compiled) {
-        char log[512];
-        glGetShaderInfoLog(shader, 512, NULL, log);
-        print("%sERROR shader: %u info:%s\n", RED, shader, log, CLEAR);
-    }
-}
-
-static void
-opengl_debug_program(const GLuint program)
-{
-    GLint linked;
-    glGetProgramiv(program, GL_LINK_STATUS, &linked);
-    if(!linked) {
-        char log[512];
-        glGetProgramInfoLog(program, 512, NULL, log);
-        print("%sERROR Program: %u link error: %s %s\n", RED, program, log, CLEAR);
-    } else {
-        print("%sProgram: %s%u%s linked successfully %s\n", GREEN, YELLOW, program, GREEN, CLEAR);
-    }
-}
-
-static void
-opengl_debug_attributes_in(const uint32 count)
-{
-    // GLuint attrib;
-    // GLint64 offset;
-    // GLint stride;
-    //
-    GLint bound_vbo;
-    glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &bound_vbo);
-    print("bound vbo: %d\n", bound_vbo);
-
-    for(uint32 i = 0; i < count; i++) {
-        GLint enabled, stride, binding;
-        void* offset;
-
-        glGetVertexAttribiv(i, GL_VERTEX_ATTRIB_ARRAY_ENABLED, &enabled);
-        glGetVertexAttribiv(i, GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING, &binding);
-        glGetVertexAttribiv(i, GL_VERTEX_ATTRIB_ARRAY_STRIDE, &stride);
-        glGetVertexAttribPointerv(i, GL_VERTEX_ATTRIB_ARRAY_POINTER, &offset);
-
-        print("Attribute[%u]: enabled=%d, buffer=%d, stride=%d, offset=%u\n",
-              i, enabled, binding, stride, offset);
-    }
-
-}
-
-static void APIENTRY opengl_debug_callback(GLenum source,
-                                           GLenum type,
-                                           unsigned int id,
-                                           GLenum severity,
-                                           GLsizei length,
-                                           const char* message,
-                                           const void* userParam)
-{
-    // ignore non-significant error/warning codes
-    if(id == 131169 || id == 131185 || id == 131218 || id == 131204) return;
-
-
-    //Error code 	Description
-    GL_INVALID_ENUM; //GLenum argument out of range.
-    GL_INVALID_VALUE; //Numeric argument out of range.
-    GL_INVALID_OPERATION; //Operation illegal in current state.
-    GL_STACK_OVERFLOW; //Function would cause a stack overflow.
-    GL_STACK_UNDERFLOW; //Function would cause a stack underflow.
-    GL_OUT_OF_MEMORY; //Not enough memory left to execute function.
-
-
-    print("Error id:%d | msg:%s User param:%s\n ", id, message, (char*) userParam);
-
-    switch(source) {
-        case GL_DEBUG_SOURCE_API: print("%s", "Source: API");
-            break;
-        case GL_DEBUG_SOURCE_WINDOW_SYSTEM: print("%s", "Source: Window System");
-            break;
-        case GL_DEBUG_SOURCE_SHADER_COMPILER: print("%s", "Source: Shader Compiler");
-            break;
-        case GL_DEBUG_SOURCE_THIRD_PARTY: print("%s", "Source: Third Party");
-            break;
-        case GL_DEBUG_SOURCE_APPLICATION: print("%s", "Source: Application");
-            break;
-        case GL_DEBUG_SOURCE_OTHER: print("%s", "Source: Other");
-            break;
-    }
-
-    switch(type) {
-        case GL_DEBUG_TYPE_ERROR: print("%s", "Type: Error");
-            break;
-        case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: print("%s", "Type: Deprecated Behaviour");
-            break;
-        case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR: print("%s", "Type: Undefined Behaviour");
-            break;
-        case GL_DEBUG_TYPE_PORTABILITY: print("%s", "Type: Portability");
-            break;
-        case GL_DEBUG_TYPE_PERFORMANCE: print("%s", "Type: Performance");
-            break;
-        case GL_DEBUG_TYPE_MARKER: print("%s", "Type: Marker");
-            break;
-        case GL_DEBUG_TYPE_PUSH_GROUP: print("%s", "Type: Push Group");
-            break;
-        case GL_DEBUG_TYPE_POP_GROUP: print("%s", "Type: Pop Group");
-            break;
-        case GL_DEBUG_TYPE_OTHER: print("%s", "Type: Other");
-            break;
-    }
-
-    switch(severity) {
-        case GL_DEBUG_SEVERITY_HIGH: print("%s", "Severity: high");
-            break;
-        case GL_DEBUG_SEVERITY_MEDIUM: print("%s", "Severity: medium");
-            break;
-        case GL_DEBUG_SEVERITY_LOW: print("%s", "Severity: low");
-            break;
-        case GL_DEBUG_SEVERITY_NOTIFICATION: print("%s", "Severity: notification");
-            break;
-    }
-    print("\n");
-}
-
-
-static void
-opengl_debug_init()
-{
-    glEnable(GL_DEBUG_OUTPUT);
-    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-    glDebugMessageCallback(opengl_debug_callback, NULL);
-    glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
-}
 /* TODO:
  * Basic Attribute Queries (using glGetVertexAttribiv):
     GLint params[4];
@@ -256,4 +114,200 @@ opengl_debug_init()
  *
  */
 
+
+// #define GL_CHECK()
+#define GL_CHECK() do { \
+GLenum err = glGetError(); \
+if (err != GL_NO_ERROR) { \
+print("OpenGL Error 0x%x at %s:%d\n", err, __FILE__, __LINE__); \
+} \
+} while(0)
+
+
+static void
+opengl_debug_shader(const GLuint shader)
+{
+    GLint compiled;
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
+    print("%sshader:  %s%u%s compiled successfully %s\n", GREEN, YELLOW, shader, GREEN, CLEAR);
+    if(!compiled) {
+        char log[512];
+        glGetShaderInfoLog(shader, 512, NULL, log);
+        print("%sERROR shader: %u info:%s\n", RED, shader, log, CLEAR);
+    }
+}
+
+static void
+opengl_debug_program(const GLuint program)
+{
+    GLint linked;
+    glGetProgramiv(program, GL_LINK_STATUS, &linked);
+    if(!linked) {
+        char log[512];
+        glGetProgramInfoLog(program, 512, NULL, log);
+        print("%sERROR Program: %u link error: %s %s\n", RED, program, log, CLEAR);
+    } else {
+        print("%sProgram: %s%u%s linked successfully %s\n", GREEN, YELLOW, program, GREEN, CLEAR);
+    }
+}
+
+static void
+opengl_debug_attributes_in(const uint32 count)
+{
+    GLint bound_vbo;
+    glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &bound_vbo);
+    print("bound vbo: %d\n", bound_vbo);
+
+    for(uint32 i = 0; i < count; i++) {
+        GLint enabled, stride, binding;
+        void* offset;
+
+        glGetVertexAttribiv(i, GL_VERTEX_ATTRIB_ARRAY_ENABLED, &enabled);
+        glGetVertexAttribiv(i, GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING, &binding);
+        glGetVertexAttribiv(i, GL_VERTEX_ATTRIB_ARRAY_STRIDE, &stride);
+        glGetVertexAttribPointerv(i, GL_VERTEX_ATTRIB_ARRAY_POINTER, &offset);
+
+        print("Attribute[%u]: enabled=%d, buffer=%d, stride=%d, offset=%u\n",
+              i, enabled, binding, stride, offset);
+    }
+
+}
+
+static void APIENTRY opengl_debug_callback(GLenum source,
+                                           GLenum type,
+                                           unsigned int id,
+                                           GLenum severity,
+                                           GLsizei length,
+                                           const char* message,
+                                           const void* userParam)
+{
+    // ignore non-significant error/warning codes
+    if(id == 131169 || id == 131185 || id == 131218 || id == 131204) return;
+
+
+    //Error code 	Description
+    GL_INVALID_ENUM; //GLenum argument out of range.
+    GL_INVALID_VALUE; //Numeric argument out of range.
+    GL_INVALID_OPERATION; //Operation illegal in current state.
+    GL_STACK_OVERFLOW; //Function would cause a stack overflow.
+    GL_STACK_UNDERFLOW; //Function would cause a stack underflow.
+    GL_OUT_OF_MEMORY; //Not enough memory left to execute function.
+
+
+    print("Error id:%d | msg:%s User param:%s\n ", id, message, (char*) userParam);
+
+    switch(source) {
+        case GL_DEBUG_SOURCE_API: print("%s", "Source: API");
+            break;
+        case GL_DEBUG_SOURCE_WINDOW_SYSTEM: print("%s", "Source: Window System");
+            break;
+        case GL_DEBUG_SOURCE_SHADER_COMPILER: print("%s", "Source: Shader Compiler");
+            break;
+        case GL_DEBUG_SOURCE_THIRD_PARTY: print("%s", "Source: Third Party");
+            break;
+        case GL_DEBUG_SOURCE_APPLICATION: print("%s", "Source: Application");
+            break;
+        case GL_DEBUG_SOURCE_OTHER: print("%s", "Source: Other");
+            break;
+    }
+
+    switch(type) {
+        case GL_DEBUG_TYPE_ERROR: print("%s", "Type: Error");
+            break;
+        case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: print("%s", "Type: Deprecated Behaviour");
+            break;
+        case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR: print("%s", "Type: Undefined Behaviour");
+            break;
+        case GL_DEBUG_TYPE_PORTABILITY: print("%s", "Type: Portability");
+            break;
+        case GL_DEBUG_TYPE_PERFORMANCE: print("%s", "Type: Performance");
+            break;
+        case GL_DEBUG_TYPE_MARKER: print("%s", "Type: Marker");
+            break;
+        case GL_DEBUG_TYPE_PUSH_GROUP: print("%s", "Type: Push Group");
+            break;
+        case GL_DEBUG_TYPE_POP_GROUP: print("%s", "Type: Pop Group");
+            break;
+        case GL_DEBUG_TYPE_OTHER: print("%s", "Type: Other");
+            break;
+    }
+
+    switch(severity) {
+        case GL_DEBUG_SEVERITY_HIGH: print("%s", "Severity: high");
+            break;
+        case GL_DEBUG_SEVERITY_MEDIUM: print("%s", "Severity: medium");
+            break;
+        case GL_DEBUG_SEVERITY_LOW: print("%s", "Severity: low");
+            break;
+        case GL_DEBUG_SEVERITY_NOTIFICATION: print("%s", "Severity: notification");
+            break;
+    }
+    print("\n");
+}
+
+
+static void
+opengl_debug_init()
+{
+    glEnable(GL_DEBUG_OUTPUT);
+    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+    glDebugMessageCallback(opengl_debug_callback, NULL);
+    glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
+}
+
+static void debug_opengl(struct opengl_program* prog,
+                  struct vertex_array_object* va,
+                  struct vertex_buffer_object* vb,
+                  const uint32 total_vertex_count,
+                  const uint32 vshader_attribs_stride)
+
+{
+    print("\n%s--- OPENGL DEBUG ---%s\n", GREEN, CLEAR);
+
+
+    // After shader_attributes_enable, verify the state:
+    glBindVertexArray(va->vao); // Your VAO
+
+    int nrAttributes;
+    glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nrAttributes);
+    print("\nMax number of attributes: %d\n", nrAttributes);
+
+    GLint viewport[4];
+    glGetIntegerv(GL_VIEWPORT, viewport);
+    print("\nViewport: x=%d y=%d w=%d h=%d\n", viewport[0], viewport[1], viewport[2], viewport[3]);
+
+    print(""
+          "program: %u, progidx:%u\n"
+          "va: %u, vaoidx:%u\n"
+          "vb: %u, vboidx:%u\n"
+          "\n",
+          prog->program, prog->build_idx,
+          va->vao, va->idx,
+          vb->vbo, vb->idx
+    );
+
+    // After gfx_vertex_buffer_update_data, read back the data
+    glBindBuffer(GL_ARRAY_BUFFER, vb->vbo);
+    float* readback = (float*) glMapBuffer(GL_ARRAY_BUFFER, GL_READ_ONLY);
+    uint32 stride = shader_attrib_get_stride(prog->build_idx);
+    const uint32 vbdata_count = total_vertex_count * stride;
+    uint32 vcnt = 1;
+    if(TRUE && readback) {
+        print("VBO contents:");
+        const uint32 len = vbdata_count;
+        for(int i = 0; i < len; i++) {
+            float val = readback[i];
+            if(i % vshader_attribs_stride == 0) {
+                print("\n[%2u][%3u]: ", vcnt++, i);
+            }
+
+            if(val >= 0) print("%4.1f, ", i, val);
+            else print("%4.1f, ", i, val);
+        }
+        print("\n\n");
+        glUnmapBuffer(GL_ARRAY_BUFFER);
+    } else {
+        print("Failed to map buffer\n");
+    }
+}
 #endif //ENGINE_TEST_OPENGL_DEBUG_H

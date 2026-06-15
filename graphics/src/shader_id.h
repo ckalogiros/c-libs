@@ -6,7 +6,13 @@
 #include "my_types.h"
 
 
-typedef uint64 sid_t;
+
+#define SHADER_MAX_LOCATION_SIZE 4
+#define SHADER_DEVISOR_PER_VERTEX 0
+#define SHADER_DEVISOR_INSTANCED 1
+
+
+
 
 /***************************************************************************************************
  * ## SHADER STANDARD/STATIC VARIABLES {ATTRIBUTES, UNIFORMS}
@@ -37,7 +43,7 @@ typedef uint64 sid_t;
 #define SID_COLOR4 BIT_MASK_FROM_UINT(15)
 #define SID_PROJMAT4X4 BIT_MASK_FROM_UINT(16)
 
-enum SID_VAR_IDI {
+enum SID_ID {
     // SID_NULL_=0,
     SID_OPACIT_IDI = 0,
     SID_VPOSI2_IDI,
@@ -58,6 +64,10 @@ enum SID_VAR_IDI {
 
     SID_IDI_COUNT,
 };
+
+
+
+typedef uint64 sid_t;
 
 /// TODO: unite some flags into one
 struct gfx_sid {
@@ -82,13 +92,18 @@ sid_check_match(struct gfx_sid sid1, struct gfx_sid sid2)
 
 
 static bool
-sid_copy(struct gfx_sid* src, struct gfx_sid dst)
+sid_copy(struct gfx_sid* dst, struct gfx_sid src)
 {
-    src->attr = dst.attr;
-    src->unif = dst.unif;
-    src->out = dst.out;
-    src->pass = dst.pass;
-    src->oper = dst.oper;
+    dst->attr = src.attr;
+    dst->unif = src.unif;
+    dst->out  = src.out;
+    dst->pass = src.pass;
+    dst->oper = src.oper;
 }
+
+struct gfx {
+    // TODO: sid is same for shader build or object group, so move it to object_group_descriptor and use a getter function
+    struct gfx_sid sid;
+};
 
 #endif //GRAPHICS_TEST_SHADER_ID_H

@@ -32,7 +32,7 @@ main(void)
     // test_create_entities(256);
 
     { // Test: add all 3 components in 3 way. SEE:test_ecs_print_3_loops_test
-        const uint32 num = 128;
+        const uint32 num = 1024;
         test_ecs_print_3_loops_test();
         const uint32 avg1 =  test_components_seperate_add(num);
         const uint32 avg2 =  test_components_together_add(num);

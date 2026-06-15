@@ -22,4 +22,6 @@ bool window_should_close();
 void window_poll_events();
 bool window_swap_buffers();
 
+vec2f64 io_mouse_get_pos();
+
 #endif //LAYER_STACK_WINDOW_H

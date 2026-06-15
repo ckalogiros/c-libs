@@ -6,8 +6,8 @@
 #include "gfx_interface.h"
 
 struct render_queue {
-    progidx_t program;
-    progidx_t progidx;
+    build_t program;
+    build_t progidx;
     vbidx_t vao;
     vbidx_t vaidx;
     vbidx_t vbo;
@@ -17,13 +17,16 @@ struct render_queue {
     tbidx_t tbo;
     tbidx_t tbidx;
 
-    uint32 vertex_count;
+    uint32 draw_count;
 };
 
-struct render_queue* render_queue_get();
+struct render_queue* render_queue_get(const uint32 rqidx);
 
-struct render_queue* renderer_renderqueue_add(progidx_t program, progidx_t progidx, vbidx_t vao,
-                                              vbidx_t vaidx, vbidx_t vbo, vbidx_t vbidx, uint32 vertex_count);
+
+void render_queue_add_draw_count(const uint32 rqidx, const uint32 vertex_count);
+
+uint32 renderer_renderqueue_add(const build_t program, const build_t progidx, const vbidx_t vao,
+                                              const vbidx_t vaidx, const vbidx_t vbo, const vbidx_t vbidx);
 
 
 void run();

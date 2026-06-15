@@ -1,1 +1,1 @@
-CREATE  : |  id:      1 |  tsize:     6 |  capac:    16 slabs |  count:   0 |  tail:   -1 |  data:  00005e58 253b7d00  flist: 00005e58 253b8100
+CREATE  : |  id:      1 |  tsize:   856 |  capac:    64 slabs |  count:   0 |  tail:   -1 |  data:  00005882 ab01a840  flist: 00005882 ab02ac80

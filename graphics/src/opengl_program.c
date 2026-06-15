@@ -11,13 +11,20 @@
 struct opengl_program program_table[OPENGL_PROGRAM_TABLE_SIZE];
 uint32 programs_count = 0;
 
-static int32
+static build_t
 insert_program(GLint program)
 {
-    const int32 idx = programs_count;
+    const build_t idx = programs_count;
     program_table[idx].program = program;
+    program_table[idx].build_idx = idx;
     programs_count++;
     return idx;
+}
+struct opengl_program*
+shader_program_get(build_t progidx)
+{
+    struct opengl_program* prog = &program_table[progidx];
+    return prog;
 }
 
 void
@@ -25,7 +32,7 @@ opengl_program_init()
 {
     for(uint32 i = 0; i < OPENGL_PROGRAM_TABLE_SIZE; i++) {
         program_table[i].program = INT_NULL;
-        program_table[i].idx = INT_NULL;
+        program_table[i].build_idx = INT_NULL;
     }
 }
 
@@ -34,18 +41,18 @@ opengl_program_terminate()
 {
     for(uint32 i = 0; i < programs_count; i++) {
         program_table[i].program = INT_NULL;
-        program_table[i].idx = INT_NULL;
+        program_table[i].build_idx = INT_NULL;
     }
 
     // TODO: free allocation (when implemented)
 }
 
-struct shader_descriptor
-opengl_program_create(const struct gfx_sid sid, const char* fs)
+struct shader_descriptor*
+opengl_program_create(const struct gfx_sid sid, const build_t build_idx, const char* fs)
 {
-    struct shader_descriptor desc = shader_builder_build(sid);
+    struct shader_descriptor* desc = shader_builder_build(sid, build_idx);
     const GLuint vertex_shader = gl_create_shader(OPENGL_VERTEX_SHADER);
-    gl_shader_source(vertex_shader, 1, &(desc.vshader_code), NULL);
+    gl_shader_source(vertex_shader, 1, &(desc->vshader_code), NULL);
     gl_compile_shader(vertex_shader);
     opengl_debug_shader(vertex_shader);
 
@@ -61,8 +68,8 @@ opengl_program_create(const struct gfx_sid sid, const char* fs)
     opengl_debug_program(program);
 
 
-    const progidx_t program_idx = insert_program((GLint) program);
-    desc.progidx = program_idx;
+    const build_t program_idx = insert_program((GLint) program);
+    desc->build_idx = program_idx;
 
     // TODO: create uniform block
 
@@ -73,16 +80,16 @@ opengl_program_create(const struct gfx_sid sid, const char* fs)
 }
 
 void
-opengl_program_destroy(const int32 program_idx)
+opengl_program_destroy(const build_t build_idx)
 {
-    program_table[program_idx].program = INT_NULL;
-    program_table[program_idx].idx = INT_NULL;
-    /// reduce  count only if 'program_idx' is last elem in the table
-    if(program_idx == programs_count) programs_count--;
+    program_table[build_idx].program = INT_NULL;
+    program_table[build_idx].build_idx = INT_NULL;
+    /// reduce  count only if 'build_idx' is last elem in the table
+    if(build_idx == programs_count) programs_count--;
 }
 
 void
 opengl_program_find() {}
 
-struct opengl_program
-opengl_program_get_program_byidx(progidx_t idx) { return program_table[idx]; }
+struct opengl_program*
+opengl_program_get_program_byidx(const build_t build_idx) { return &program_table[build_idx]; }

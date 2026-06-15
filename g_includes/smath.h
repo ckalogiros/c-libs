@@ -6,6 +6,9 @@
 
 #include "my_types.h"
 
+#define PI 3.141592654
+#define PI_HALF 1.570796327
+
 #define is_power_of_two(x) ((x) != 0 && ((x) & ((x) - 1)) == 0)
 
 

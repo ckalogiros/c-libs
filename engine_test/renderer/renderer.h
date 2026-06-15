@@ -9,6 +9,10 @@
 
 
 
+#define SCREEN_RES_X 1000
+#define SCREEN_RES_Y 500
+
+
 GLuint renderer_create_vb(void* vertices, const uint32 size);
 void renderer_bind_vb(GLuint vbo);
 void renderer_update_vb(void* vertices, const uint32 bytesize);
@@ -24,7 +28,7 @@ void renderer_bind_texture();
 void renderer_update_texture();
 void renderer_destroy_texture();
 
-progidx_t renderer_create_shader();
+build_t renderer_create_shader();
 void renderer_destroy_shader();
 
 

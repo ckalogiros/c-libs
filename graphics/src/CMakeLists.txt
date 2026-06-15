@@ -5,14 +5,16 @@ register_module(
             ${CMAKE_CURRENT_LIST_DIR}/opengl_program.c
             ${CMAKE_CURRENT_LIST_DIR}/gfx_buffers.c
             ${CMAKE_CURRENT_LIST_DIR}/gfx_context.c
-        ${CMAKE_CURRENT_LIST_DIR}/shader_descriptor.c
+            ${CMAKE_CURRENT_LIST_DIR}/shader_descriptor.c
+            ${CMAKE_CURRENT_LIST_DIR}/vertex_buffer_fill.c
         headers
             ${CMAKE_CURRENT_LIST_DIR}/gfx_interface.h
             ${CMAKE_CURRENT_LIST_DIR}/shader_id.h
             ${CMAKE_CURRENT_LIST_DIR}/opengl.h
             ${CMAKE_CURRENT_LIST_DIR}/gfx_buffers.h
             ${CMAKE_CURRENT_LIST_DIR}/opengl_debug.h
-        ${CMAKE_CURRENT_LIST_DIR}/shader_descriptor.h
+            ${CMAKE_CURRENT_LIST_DIR}/shader_descriptor.h
+            ${CMAKE_CURRENT_LIST_DIR}/vertex_buffer_fill.h
         include_dirs
             ${CMAKE_CURRENT_LIST_DIR}
         compiler_macros

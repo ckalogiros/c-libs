@@ -22,7 +22,7 @@ typedef int64_t int64;
 
 typedef uint8 bool;
 
-typedef uint8 typesize_t;
+typedef uint16 typesize_t;
 
 
 #define F4 0xffff
@@ -144,6 +144,7 @@ default:      void)
 #define SIZE_I8  1
 
 /* vectors */
+typedef struct { double  x; double  y; } vec2f64;
 typedef struct { float  x; float  y; } vec2f;
 typedef struct { int64  x; int64  y; } vec2i64;
 typedef struct { uint64 x; uint64 y; } vec2u64;
