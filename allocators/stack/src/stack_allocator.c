@@ -106,10 +106,11 @@ stack_allocator_create_new_instance(const pageid_t num_pages)
  **************************************************************************************************/
 
 void*
-stack_allocator_alloc(const memid_t inst_id, const size_t size, const typesize_t type_size)
+stack_allocator_alloc(const memid_t inst_id, const size_t size, const typesize_t alignment)
 {
-    assert(IS_POWER_OF_2(type_size)); // alignment value must be power of 2
-    const uint32 aligned_size = ALIGN(size, type_size);
+    assert(IS_POWER_OF_2(alignment)); // alignment value must be power of 2
+    assert(stack_allocator_table);
+    const uint32 aligned_size = ALIGN(size, alignment);
     struct stack_allocator_instance* instance = &stack_allocator_table[inst_id];
 
     /* get stack pointer */
@@ -119,7 +120,7 @@ stack_allocator_alloc(const memid_t inst_id, const size_t size, const typesize_t
     if(instance->offsets_table_count > 0) {
 
         uint32 prev_count = instance->offsets_table_count-1;
-        const uint32 unaligned = align_pointer_to_type(sp_addr, type_size);
+        const uint32 unaligned = align_pointer_to_type(sp_addr, alignment);
         if(unaligned) {
 
             /* set table's previous offset to new alignement */
@@ -172,6 +173,14 @@ stack_allocator_release(const memid_t inst_id)
 }
 
 
+/* Get the size of the last stored element(the one to be popped() next)
+ * In case the caller does not "know" the size */
+memoffset_t stack_allocator_get_last_elem_size(const memid_t inst_id)
+{
+    struct stack_allocator_instance* instance = &stack_allocator_table[inst_id];
+    memoffset_t offset_size = *(memoffset_t*) (instance->offsets_table_start + (sizeof(memoffset_t) * (instance->offsets_table_count-1)));
+    return offset_size;
+}
 
 
 /***************************************************************************************************

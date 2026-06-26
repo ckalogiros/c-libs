@@ -10,7 +10,7 @@
 
 /* *********************************
  * memory table index */
-typedef uint16 memid_t;
+typedef int16 memid_t;
 
 /* *********************************
  * memory pages index */

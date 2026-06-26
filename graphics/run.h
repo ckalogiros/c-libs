@@ -5,6 +5,8 @@
 #define GRAPHICS_TEST_RUN_H
 #include "gfx_interface.h"
 
+struct timer;
+
 struct render_queue {
     build_t program;
     build_t progidx;
@@ -20,15 +22,21 @@ struct render_queue {
     uint32 draw_count;
 };
 
+struct command_render_queue_params {
+    uint32 rqidx;
+    uint32 comp_idx;
+    uint32 vertex_count;
+};
+
 struct render_queue* render_queue_get(const uint32 rqidx);
 
 
-void render_queue_add_draw_count(const uint32 rqidx, const uint32 vertex_count);
+void render_queue_add_draw_count(struct command_render_queue_params* params);
 
 uint32 renderer_renderqueue_add(const build_t program, const build_t progidx, const vbidx_t vao,
                                               const vbidx_t vaidx, const vbidx_t vbo, const vbidx_t vbidx);
 
 
-void run();
+void run(struct timer* loop_timer);
 
 #endif //GRAPHICS_TEST_RUN_H

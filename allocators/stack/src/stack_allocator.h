@@ -10,9 +10,11 @@
 
 memid_t stack_allocator_create_new_instance(const pageid_t num_pages);
 
-void* stack_allocator_alloc(const memid_t inst_id, const size_t size, const typesize_t type_size);
+void* stack_allocator_alloc(const memid_t inst_id, const size_t size, const typesize_t alignment);
 
 void* stack_allocator_release(const memid_t inst_id);
+
+memoffset_t stack_allocator_get_last_elem_size(const memid_t inst_id);
 
 /* TEST-DEBUG */
 struct stack_allocator_instance* debug_get_stack_allocator_table();

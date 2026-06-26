@@ -29,3 +29,15 @@ It needs: set_for_push and then add/copy a new descriptor object.
 
 ### resolve the "code_create_vector4()" for the default values
     be the last element(0.0 or 1.0) and the z coord be different value
+
+### add and remove objects
+    remove object from:
+        object from buffer
+        object's component from buffer ------------> decrement any counters etc, remove group component if last object
+        object's attrib data from vertex buffer --------> decrement data count etc
+        from renderqueue draw count
+
+### seperate vertex buffers for all geometric meshes(cannot go to the same VB)
+
+### TODO: (SET VERTEX BUGGER)-(SET VERTEX BUFFER REGION)
+    for copying data to the whole buffer and update specific region of a VB

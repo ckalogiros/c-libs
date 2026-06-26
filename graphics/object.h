@@ -9,28 +9,20 @@
 
 struct object_gfx {
     uint32 start;
-};
-struct object_attrib {
-    sid_t sid_attr;         // SID_WPOSI3, SID_SCALE2, etc.
-    uint32 offset;          // offset into object's data array
-    uint32 count;           // number of elements
+    uint32 count;
 };
 struct object {
+    // struct object_gfx gfx;
+    sididx_t sid_idx;
     uint32 id;
+    uint32 attrib_count;
     uint16 num_faces;
     uint16 comp_id;
-    uint32 attrib_count;
-    struct gfx_sid sid;
-    struct object_attrib* attribs_arr_list;  // array of present attributes only
-    // Optional: quick access pointers for CPU-side updates
-    void* attrib_data;         // mapped copy of GPU buffer range
     uint8 verts_per_face;
-
-    int gfx; /// TODO: struct gfx = {start, count, vbid, ...} OR index to array buffer
 };
 
 
-struct object* object_create(struct gfx_sid sid);
+struct object* object_create(const sididx_t sid_idx);
 
 struct object*
 object_create_triangle(struct gfx_sid sid, float wpos[3], float scale[2], float rot[2], float color[4]);

@@ -10,20 +10,44 @@
 #include "my_types.h"
 
 
-#define VERTEX_POS2 2
-#define VERTEX_POS3 3
-#define VERTICES_PER_TRI 3
-#define VERTICES_PER_QUAD (VERTICES_PER_TRI*2)
-#define VERTICES_PER_PENTAGON (VERTICES_PER_TRI*3)
-#define VERTICES_PER_OCTAGON (VERTICES_PER_TRI*6)
-#define VERTICES_PER_QUAD_INDEXED 4
-#define FACES_PER_CUBE (VERTICES_PER_TRI*2)
-#define FACES_PER_OCTAHEDRON 8
-#define FACES_PER_DODECAHEDRON 12
-#define FACES_PER_ICOSAHEDRON 20
+#define VERTEX_POS2 (2)
+#define VERTEX_POS3 (3)
+
+#define FACES_PER_CUBE          (6)
+#define FACES_PER_OCTAHEDRON    (8)
+#define FACES_PER_DODECAHEDRON  (12)
+#define FACES_PER_ICOSAHEDRON   (20)
+
+#define VERTICES_PER_TRI          (3)
+#define VERTICES_PER_QUAD         (2*VERTICES_PER_TRI)
+#define VERTICES_PER_PENTAGON     (3*VERTICES_PER_TRI)
+#define VERTICES_PER_OCTAGON      (6*VERTICES_PER_TRI)
+#define VERTICES_PER_QUAD_INDEXED (4)
+#define VERTICES_PER_CUBE         (FACES_PER_CUBE*VERTICES_PER_QUAD)
+#define VERTICES_PER_OCTAHEDRON   (FACES_PER_OCTAHEDRON*VERTICES_PER_TRI)
+#define VERTICES_PER_DODECAHEDRON (FACES_PER_DODECAHEDRON*VERTICES_PER_PENTAGON)
 
 
-static float quad_vertices[VERTICES_PER_QUAD * VERTEX_POS2] = {
+
+enum MESH_TYPE{
+    MESH_NULL = 0,
+    MESH_TRIANGLE,
+    MESH_RECTANGLE,
+    MESH_PENTAGON,
+    MESH_OCTAGON,
+    MESH_CUBE,
+    MESH_OCTAHEDRON,
+    MESH_DODECAHEDRON,
+    MESH_TYPE_COUNT,
+};
+
+
+static float triangle_vertices[VERTICES_PER_TRI*VERTEX_POS2] = {
+    -1, -1,
+     1, -1,
+     1,  1,
+};
+static float quad_vertices[VERTICES_PER_QUAD*VERTEX_POS2] = {
     -1, -1,
      1, -1,
      1,  1,
@@ -31,7 +55,7 @@ static float quad_vertices[VERTICES_PER_QUAD * VERTEX_POS2] = {
      1,  1,
     -1,  1
 };
-static float cube_vertices[FACES_PER_CUBE * VERTICES_PER_QUAD * VERTEX_POS3] = {
+static float cube_vertices[VERTICES_PER_CUBE*VERTEX_POS3] = {
     -1, -1, 1, /// FRONT
      1, -1, 1,
      1,  1, 1,
@@ -69,7 +93,7 @@ static float cube_vertices[FACES_PER_CUBE * VERTICES_PER_QUAD * VERTEX_POS3] = {
      1, -1, 1,
     -1, -1, 1
 };
-static float pentagon_vertices[] = {
+static float pentagon_vertices[VERTICES_PER_PENTAGON*VERTEX_POS2] = {
     0.0,        1.0,
    -0.95105652, 0.30901699,
    -0.58778525,-0.80901699,
@@ -82,7 +106,7 @@ static float pentagon_vertices[] = {
     0.58778525,-0.80901699,
     0.95105652, 0.30901699,
 };
-static float octagon_vertices[] = {
+static float octagon_vertices[VERTICES_PER_OCTAGON*VERTEX_POS2] = {
     0.0,        1.0,
    -0.70710678, 0.70710678,
    -1.0,        0.0,
@@ -109,39 +133,40 @@ static float octagon_vertices[] = {
 
 
 };
-static float octahedron_vertices[FACES_PER_OCTAHEDRON * VERTICES_PER_TRI * VERTEX_POS3] = {
-    1,  0,  0, /// Face 1 (right-top-front)
-    0,  0,  1,
-    0,  1,  0,
-    1,  0,  0, /// Face 2 (right-bottom-front)
-    0,  0,  1,
-    0, -1,  0,
-   -1,  0,  0, /// Face 3 (left-top-front)
-    0,  0,  1,
-    0,  1,  0,
-   -1,  0,  0, /// Face 4 (left-bottom-front)
-    0,  0,  1,
-    0, -1,  0,
-    1,  0,  0, /// Face 5 (right-top-back)
-    0,  1,  0,
-    0,  0, -1,
-    1,  0,  0, /// Face 6 (right-bottom-back)
-    0, -1,  0,
-    0,  0, -1,
-   -1,  0,  0, /// Face 7 (left-top-back)
-    0,  1,  0,
-    0,  0, -1,
-   -1,  0,  0, /// Face 8 (left-bottom-back)
-    0, -1,  0,
-    0,  0, -1,
+static float octahedron_vertices[VERTICES_PER_OCTAHEDRON*VERTEX_POS3] = {
+    /// octahedron's vertex to vertex distance is √(1² + 1² + 1²) = √(1 + 1 + 1) = √3
+    /// in order to have similar dimention with the cube
+    1.73,  0,  0, /// Face 1 (right-top-front)
+    0,  0,  1.73,
+    0,  1.73,  0,
+    1.73,  0,  0, /// Face 2 (right-bottom-front)
+    0,  0,  1.73,
+    0, -1.73,  0,
+   -1.73,  0,  0, /// Face 3 (left-top-front)
+    0,  0,  1.73,
+    0,  1.73,  0,
+   -1.73,  0,  0, /// Face 4 (left-bottom-front)
+    0,  0,  1.73,
+    0, -1.73,  0,
+    1.73,  0,  0, /// Face 5 (right-top-back)
+    0,  1.73,  0,
+    0,  0, -1.73,
+    1.73,  0,  0, /// Face 6 (right-bottom-back)
+    0, -1.73,  0,
+    0,  0, -1.73,
+   -1.73,  0,  0, /// Face 7 (left-top-back)
+    0,  1.73,  0,
+    0,  0, -1.73,
+   -1.73,  0,  0, /// Face 8 (left-bottom-back)
+    0, -1.73,  0,
+    0,  0, -1.73,
 };
 
 
 /* THREE.js */
-static float dodecahedron_vertices[FACES_PER_DODECAHEDRON * VERTICES_PER_PENTAGON * VERTEX_POS3];
+static float dodecahedron_vertices[VERTICES_PER_OCTAHEDRON * VERTEX_POS3];
 static void mesh_build_dodecahedron()
 {
-
     uint32 i = 0;
     float _0 = .3f;
     float vv = 1.f;
@@ -216,137 +241,7 @@ static void mesh_build_dodecahedron()
     }
 }
 
-/* BLENDER */
-// // static float dodecahedron_vertices[FACES_PER_DODECAHEDRON * VERTICES_PER_PENTAGON * VERTEX_POS3] = {
-// static float dodecahedron_vertices[] = {
-//     /*[0] [0]*/   0.616960,   0.572590, -0.571348,
-//     /*[1] [3]*/   0.616960,  -0.582110, -0.571348,
-//     /*[2] [6]*/   0.616960,   0.572590,  0.583353,
-//     /*[3] [9]*/   0.616960,  -0.582110,  0.583353,
-//     /*[4] [12]*/  -0.537741,  0.572590, -0.571348,
-//     /*[5] [15]*/  -0.537741, -0.582110, -0.571348,
-//     /*[6] [18]*/  -0.537741,  0.572590,  0.583353,
-//     /*[7] [21]*/  -0.537741, -0.582110,  0.583353,
-//     /*[8] [24]*/   0.396432, -0.004760, -0.928170,
-//     /*[9] [27]*/  -0.317212, -0.004760, -0.928170,
-//     /*[10][30]*/  0.396432,  -0.004760,  0.940175,
-//     /*[11][33]*/ -0.317212,  -0.004760,  0.940175,
-//     /*[12][36]*/  0.973782,  0.352062,   0.006002,
-//     /*[13][39]*/  0.973782, -0.361582,   0.006002,
-//     /*[14][42]*/ -0.894563,  0.352062,   0.006002,
-//     /*[15][45]*/ -0.894563, -0.361582,   0.006002,
-//     /*[16][48]*/  0.039610,  0.929412,  -0.350820,
-//     /*[17][51]*/  0.039610,  0.929412,   0.362824,
-//     /*[18][54]*/  0.039610, -0.938932,  -0.350820,
-//     /*[19][57]*/  0.039610, -0.938932,   0.362824,
-// };
-// static void create_dodecahedron(float* out)
-// {
-//     uint32 i = 0;
-//     float* in = &dodecahedron_vertices[0];
-//     {
-//         //1     9    5   17
-//         //9     10   5
-//         //1     13   2   9
-//         //13    14   2
-//         //1     17   3   13
-//         //17    18   3
-//         //9     2    6   10
-//         //2     19   6
-//         //13    3    4   14
-//         //3     11   4
-//         //17    5    7   18
-//         //5     15   7
-//         //10    6    15   5
-//         //6     16   15
-//         //7     12   3   18
-//         //12    11   3
-//         //4     20   2   14
-//         //20    19   2
-//         //8     16   19   20
-//         //16    6    19
-//         //8     12   15   16
-//         //12    7    15
-//         //8     20   11   12
-//         //20    4    11
-//     }
-//     {
-//         // [0]   1     9    5
-//         // [1]   1     5   17
-//         // [2]   9     10   5
-//         // [3]   1     13   2
-//         // [4]   1     2    9
-//         // [5]   13    14   2
-//         // [6]   1     17   3
-//         // [7]   1     3   13
-//         // [8]   17    18   3
-//         // [9]   9     2    6
-//         // [10]  9     6   10
-//         // [11]  2     19   6
-//         // [12]  13    3    4
-//         // [13]  13    4   14
-//         // [14]  3     11   4
-//         // [15]  17    5    7
-//         // [16]  17    7   18
-//         // [17]  5     15   7
-//         // [18]  10    6    15
-//         // [19]  10    15   5
-//         // [20]  6     16   15
-//         // [21]  7     12   3
-//         // [22]  7     3   18
-//         // [23]  12    11   3
-//         // [24]  4     20   2
-//         // [25]  4     2   14
-//         // [26]  20    19   2
-//         // [27]  8     16   19
-//         // [28]  8     19   20
-//         // [29]  16    6    19
-//         // [30]  8     12   15
-//         // [31]  8     15   16
-//         // [32]  12    7    15
-//         // [33]  8     20   11
-//         // [34]  8     11   12
-//         // [35]  20    4    11
-//     }
-//
-//     out[i++] = in[1-1];     out[i++] = in[9-1];    out[i++] = in[5-1];
-//     out[i++] = in[1-1];     out[i++] = in[5-1];    out[i++] = in[17-1];
-//     out[i++] = in[9-1];     out[i++] = in[10-1];   out[i++] = in[5-1];
-//     out[i++] = in[1-1];     out[i++] = in[13-1];   out[i++] = in[2-1];
-//     out[i++] = in[1-1];     out[i++] = in[2-1];    out[i++] = in[9-1];
-//     out[i++] = in[13-1];    out[i++] = in[14-1];   out[i++] = in[2-1];
-//     out[i++] = in[1-1];     out[i++] = in[17-1];   out[i++] = in[3-1];
-//     out[i++] = in[1-1];     out[i++] = in[3-1];    out[i++] = in[13-1];
-//     out[i++] = in[17-1];    out[i++] = in[18-1];   out[i++] = in[3-1];
-//     out[i++] = in[9-1];     out[i++] = in[2-1];    out[i++] = in[6-1];
-//     out[i++] = in[9-1];     out[i++] = in[6-1];    out[i++] = in[10-1];
-//     out[i++] = in[2-1];     out[i++] = in[19-1];   out[i++] = in[6-1];
-//     out[i++] = in[13-1];    out[i++] = in[3-1];    out[i++] = in[4-1];
-//     out[i++] = in[13-1];    out[i++] = in[4-1];    out[i++] = in[14-1];
-//     out[i++] = in[3-1];     out[i++] = in[11-1];   out[i++] = in[4-1];
-//     out[i++] = in[17-1];    out[i++] = in[5-1];    out[i++] = in[7-1];
-//     out[i++] = in[17-1];    out[i++] = in[7-1];    out[i++] = in[18-1];
-//     out[i++] = in[5-1];     out[i++] = in[15-1];   out[i++] = in[7-1];
-//     out[i++] = in[10-1];    out[i++] = in[6-1];    out[i++] = in[15-1];
-//     out[i++] = in[10-1];    out[i++] = in[15-1];   out[i++] = in[5-1];
-//     out[i++] = in[6-1];     out[i++] = in[16-1];   out[i++] = in[15-1];
-//     out[i++] = in[7-1];     out[i++] = in[12-1];   out[i++] = in[3-1];
-//     out[i++] = in[7-1];     out[i++] = in[3-1];    out[i++] = in[18-1];
-//     out[i++] = in[12-1];    out[i++] = in[11-1];   out[i++] = in[3-1];
-//     out[i++] = in[4-1];     out[i++] = in[20-1];   out[i++] = in[2-1];
-//     out[i++] = in[4-1];     out[i++] = in[2-1];    out[i++] = in[14-1];
-//     out[i++] = in[20-1];    out[i++] = in[19-1];   out[i++] = in[2-1];
-//     out[i++] = in[8-1];     out[i++] = in[16-1];   out[i++] = in[19-1];
-//     out[i++] = in[8-1];     out[i++] = in[19-1];   out[i++] = in[20-1];
-//     out[i++] = in[16-1];    out[i++] = in[6-1];    out[i++] = in[19-1];
-//     out[i++] = in[8-1];     out[i++] = in[12-1];   out[i++] = in[15-1];
-//     out[i++] = in[8-1];     out[i++] = in[15-1];   out[i++] = in[16-1];
-//     out[i++] = in[12-1];    out[i++] = in[7-1];    out[i++] = in[15-1];
-//     out[i++] = in[8-1];     out[i++] = in[20-1];   out[i++] = in[11-1];
-//     out[i++] = in[8-1];     out[i++] = in[11-1];   out[i++] = in[12-1];
-//     out[i++] = in[20-1];    out[i++] = in[4-1];    out[i++] = in[11-1];
-//
-// }
+
 
 
 static float blender_ico_shere_vertices_indexed[] = {
@@ -500,110 +395,36 @@ static int generate_dodecahedron_triangles(float* out_triangles) {
     }
     return offset;  /// Returns 108
 }
-/**************************************************************************************************/
 
-static inline float* mesh_create_tri(float* const b, const uint16 size)
+/**************************************************************************************************
+ * GETTERS
+ */
+
+static float* mesh_get_mesh_from_type(enum MESH_TYPE type)
 {
-    assert(size == VERTEX_POS3);
-    uint8 n = 0;
-    const float x = 1, y = 1, z = 0;
-
-    b[n++] = -x; b[n++] = -y;
-    b[n++] =  x; b[n++] = -y;
-    b[n++] =  x; b[n++] =  y;
-
-    return b;
+    switch(type) {
+        case MESH_TRIANGLE     : return triangle_vertices;
+        case MESH_RECTANGLE    : return quad_vertices;
+        case MESH_PENTAGON     : return pentagon_vertices;
+        case MESH_OCTAGON      : return octagon_vertices;
+        case MESH_CUBE         : return cube_vertices;
+        case MESH_OCTAHEDRON   : return octahedron_vertices;
+        case MESH_DODECAHEDRON : return dodecahedron_vertices;
+        default: assert(0 < 0);
+    }
 }
-
-static inline float* mesh_create_quad(float* const b, const uint16 size)
+static uint8 mesh_get_vpos_num_elems(enum MESH_TYPE type)
 {
-    assert(size == VERTICES_PER_QUAD * VERTEX_POS2);
-    uint8 n = 0;
-    const float x = 1, y = 1, z = 0;
-
-    b[n++] = -x; b[n++] = -y;
-    b[n++] =  x; b[n++] = -y;
-    b[n++] =  x; b[n++] =  y;
-
-    b[n++] = -x; b[n++] = -y;
-    b[n++] =  x; b[n++] =  y;
-    b[n++] = -x; b[n++] =  y;
-    return b;
-}
-
-static inline float* mesh_create_quad_indexed(float* const b, const uint16 size)
-{
-    assert(size == VERTICES_PER_QUAD_INDEXED * VERTEX_POS3);
-    uint8 n = 0;
-    const float x = 1, y = 1, z = 1;
-
-    b[n++] = -x; b[n++] = -y;
-    b[n++] =  x; b[n++] = -y;
-    b[n++] =  x; b[n++] =  y;
-
-    b[n++] = -x; b[n++] =  y;
-    return b;
-}
-
-static inline float* mesh_create_cube(float* const b, const uint16 size)
-{
-    assert(size == VERTICES_PER_QUAD * FACES_PER_CUBE * VERTEX_POS3);
-    uint8 n = 0;
-    const float x = 1, y = 1, z = 1;
-
-    b[n++] = -x; b[n++] = -y; b[n++] =  z; /// FRONT
-    b[n++] =  x; b[n++] = -y; b[n++] =  z;
-    b[n++] =  x; b[n++] =  y; b[n++] =  z;
-    b[n++] = -x; b[n++] = -y; b[n++] =  z;
-    b[n++] =  x; b[n++] =  y; b[n++] =  z;
-    b[n++] = -x; b[n++] =  y; b[n++] =  z;
-    b[n++] =  x; b[n++] = -y; b[n++] = -z; /// BACK
-    b[n++] = -x; b[n++] = -y; b[n++] = -z;
-    b[n++] = -x; b[n++] =  y; b[n++] = -z;
-    b[n++] =  x; b[n++] = -y; b[n++] = -z;
-    b[n++] = -x; b[n++] =  y; b[n++] = -z;
-    b[n++] =  x; b[n++] =  y; b[n++] = -z;
-    b[n++] = -x; b[n++] = -y; b[n++] = -z; /// LEFT
-    b[n++] = -x; b[n++] = -y; b[n++] =  z;
-    b[n++] = -x; b[n++] =  y; b[n++] =  z;
-    b[n++] = -x; b[n++] = -y; b[n++] = -z;
-    b[n++] = -x; b[n++] =  y; b[n++] =  z;
-    b[n++] = -x; b[n++] =  y; b[n++] = -z;
-    b[n++] =  x; b[n++] = -y; b[n++] =  z; /// RIGHT
-    b[n++] =  x; b[n++] = -y; b[n++] = -z;
-    b[n++] =  x; b[n++] =  y; b[n++] = -z;
-    b[n++] =  x; b[n++] = -y; b[n++] =  z;
-    b[n++] =  x; b[n++] =  y; b[n++] = -z;
-    b[n++] =  x; b[n++] =  y; b[n++] =  z;
-    b[n++] = -x; b[n++] =  y; b[n++] =  z; /// TOP
-    b[n++] =  x; b[n++] =  y; b[n++] =  z;
-    b[n++] =  x; b[n++] =  y; b[n++] = -z;
-    b[n++] = -x; b[n++] =  y; b[n++] =  z;
-    b[n++] =  x; b[n++] =  y; b[n++] = -z;
-    b[n++] = -x; b[n++] =  y; b[n++] = -z;
-    b[n++] = -x; b[n++] = -y; b[n++] = -z; /// BOTTOM
-    b[n++] =  x; b[n++] = -y; b[n++] = -z;
-    b[n++] =  x; b[n++] = -y; b[n++] =  z;
-    b[n++] = -x; b[n++] = -y; b[n++] = -z;
-    b[n++] =  x; b[n++] = -y; b[n++] =  z;
-    b[n++] = -x; b[n++] = -y; b[n++] =  z;
-    return b;
-}
-
-/* optimized: (8 vertices) least number of vertices(no texture or normal attributes) */
-static inline float* mesh_create_cube_indexed_optimized(float* const b, const uint16 size, const float x, const float y, const float z)
-{ /// TODO
-    assert(size == VERTICES_PER_QUAD * VERTEX_POS3);
-    uint8 n = 0;
-    return b;
-}
-
-/* semi_optimized: (24 vertices) least number of vertices with texture or normal attributes */
-static inline float* mesh_create_cube_indexed_semi_optimized(float* const b, const uint16 size, const float x, const float y, const float z)
-{ /// TODO
-    assert(size == VERTICES_PER_QUAD * VERTEX_POS3);
-    uint8 n = 0;
-    return b;
+    switch(type) {
+        case MESH_TRIANGLE     : return 2;
+        case MESH_RECTANGLE    : return 2;
+        case MESH_PENTAGON     : return 2;
+        case MESH_OCTAGON      : return 2;
+        case MESH_CUBE         : return 3;
+        case MESH_OCTAHEDRON   : return 3;
+        case MESH_DODECAHEDRON : return 3;
+        default: assert(0 < 0);
+    }
 }
 
 

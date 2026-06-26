@@ -54,10 +54,10 @@ void gl_attach_shader(GLuint program, GLuint shader) { glAttachShader(program, s
 void gl_detach_shader(GLuint program, GLuint shader) { glDetachShader(program, shader); }
 
 
-void gl_generate_framebuffers(GLsizei n, GLuint * framebuffers) { glGenFramebuffers(n, framebuffers); }
-void gl_delete_framebuffers(GLsizei n, const GLuint * framebuffers) { glDeleteFramebuffers(n, framebuffers); }
-void gl_generate_renderbuffers(GLsizei n, GLuint * renderbuffers) { glGenRenderbuffers(n, renderbuffers); }
-void gl_delete_renderbuffers(GLsizei n, const GLuint * renderbuffers) { glDeleteRenderbuffers(n, renderbuffers); }
+void gl_generate_framebuffers(GLsizei n, GLuint* framebuffers) { glGenFramebuffers(n, framebuffers); }
+void gl_delete_framebuffers(GLsizei n, const GLuint* framebuffers) { glDeleteFramebuffers(n, framebuffers); }
+void gl_generate_renderbuffers(GLsizei n, GLuint* renderbuffers) { glGenRenderbuffers(n, renderbuffers); }
+void gl_delete_renderbuffers(GLsizei n, const GLuint* renderbuffers) { glDeleteRenderbuffers(n, renderbuffers); }
 void gl_framebuffer_renderbuffer(GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer) { glFramebufferRenderbuffer(target, attachment, renderbuffertarget, renderbuffer); }
 void gl_framebuffer_texture(GLenum target, GLenum attachment, GLuint texture, GLint level) {glFramebufferTexture(target, attachment, texture, level);}
 void gl_framebuffer_texture_1D(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level) { glFramebufferTexture1D(target, attachment, textarget, texture, level);}
@@ -66,22 +66,22 @@ void gl_framebuffer_texture_3D(GLenum target, GLenum attachment, GLenum textarge
 void gl_framebuffer_texture_(GLenum target, GLenum attachment, GLuint texture, GLint level, GLint layer) { glFramebufferTextureLayer(target, attachment, texture, level, layer);}
 
 
-void gl_generate_samplers(GLsizei n, const GLuint * samplers) { glGenSamplers(n, samplers); }
-void gl_delete_samplers(GLsizei n, const GLuint * samplers) { glDeleteSamplers(n, samplers); }
-void gl_get_sampler_param_Ii32v(GLuint sampler, GLenum pname, GLint * params)  { glGetSamplerParameterIiv(sampler, pname, params); }
-void gl_get_sampler_param_Iu32v(GLuint sampler, GLenum pname, GLuint * params) { glGetSamplerParameterIuiv(sampler, pname, params); }
-void gl_get_sampler_param_f32v(GLuint sampler, GLenum pname, GLfloat * params) { glGetSamplerParameterfv(sampler, pname, params); }
-void gl_get_sampler_param_i32v(GLuint sampler, GLenum pname, GLint * params)   { glGetSamplerParameteriv(sampler, pname, params); }
-void gl_set_sampler_param_Ii32v(GLuint sampler, GLenum pname, const GLint * param)  { glSamplerParameterIiv(sampler, pname, param); }
-void gl_set_sampler_param_Iu32v(GLuint sampler, GLenum pname, const GLuint * param) { glSamplerParameterIuiv(sampler, pname, param); }
+void gl_generate_samplers(GLsizei n, GLuint* samplers) { glGenSamplers(n, samplers); }
+void gl_delete_samplers(GLsizei n, GLuint* samplers) { glDeleteSamplers(n, samplers); }
+void gl_get_sampler_param_Ii32v(GLuint sampler, GLenum pname, GLint* params)  { glGetSamplerParameterIiv(sampler, pname, params); }
+void gl_get_sampler_param_Iu32v(GLuint sampler, GLenum pname, GLuint* params) { glGetSamplerParameterIuiv(sampler, pname, params); }
+void gl_get_sampler_param_f32v(GLuint sampler, GLenum pname, GLfloat* params) { glGetSamplerParameterfv(sampler, pname, params); }
+void gl_get_sampler_param_i32v(GLuint sampler, GLenum pname, GLint* params)   { glGetSamplerParameteriv(sampler, pname, params); }
+void gl_set_sampler_param_Ii32v(GLuint sampler, GLenum pname, const GLint* param)  { glSamplerParameterIiv(sampler, pname, param); }
+void gl_set_sampler_param_Iu32v(GLuint sampler, GLenum pname, const GLuint* param) { glSamplerParameterIuiv(sampler, pname, param); }
 void gl_set_sampler_param_f32(GLuint sampler, GLenum pname, GLfloat param)          { glSamplerParameterf(sampler, pname, param); }
-void gl_set_sampler_param_f32v(GLuint sampler, GLenum pname, const GLfloat * param) { glSamplerParameterfv(sampler, pname, param); }
+void gl_set_sampler_param_f32v(GLuint sampler, GLenum pname, const GLfloat* param) { glSamplerParameterfv(sampler, pname, param); }
 void gl_set_sampler_param_i32(GLuint sampler, GLenum pname, GLint param)            { glSamplerParameteri(sampler, pname, param); }
-void gl_set_sampler_param_i32v(GLuint sampler, GLenum pname, const GLint * param)   { glSamplerParameteriv(sampler, pname, param); }
+void gl_set_sampler_param_i32v(GLuint sampler, GLenum pname, const GLint* param)   { glSamplerParameteriv(sampler, pname, param); }
 
 
-void gl_generate_textures(GLsizei n, GLuint * textures) { glGenTextures(n, textures); }
-void gl_delete_textures(GLsizei n, const GLuint * textures) { glDeleteTextures(n, textures); }
+void gl_generate_textures(GLsizei n, GLuint* textures) { glGenTextures(n, textures); }
+void gl_delete_textures(GLsizei n, const GLuint* textures) { glDeleteTextures(n, textures); }
 void gl_select_active_texture(GLenum texture) { glActiveTexture(texture); }
 void gl_bind_texture(GLenum target, GLuint texture) { glBindTexture(target, texture); }
 

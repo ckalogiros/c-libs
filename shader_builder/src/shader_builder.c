@@ -9,6 +9,7 @@
 #include "file_sys_interface.h"
 #include "logger.h"
 // #include "sparse_arr.h"
+#include "opengl_debug.h"
 #include "stringc.h"
 #include "string_format.h"
 
@@ -40,7 +41,7 @@ struct shader_in_variables_struct shader_vars_table[SHADER_ATTRIBUTES_ARRAY_COUN
 };
 uint32 shader_vars_table_count = SID_IDI_COUNT;
 
-build_t shader_create_input(const struct gfx_sid sid, const char* name, const enum TYPES_INDEXING type, enum SID_ID shader_var_id, const enum SHADER_INPUT_FLAGS which);
+
 
 sid_t
 shader_create_flag_id(const sid_t idx)
@@ -93,31 +94,31 @@ shader_builds_get_build(build_t idx)
 }
 
 build_t
-shader_builder_create_new_build(const struct gfx_sid sid)
+shader_builder_create_new_build(const sididx_t sid_idx)
 {
-    const build_t idx = shader_descriptor_create(sid);
+    const build_t idx = shader_descriptor_create(sid_idx);
     return idx;
 }
 
 build_t
-shader_build_exists(const struct gfx_sid sid)
+shader_build_exists(const sididx_t sid_idx)
 {
     const uint32 count = shader_descriptor_get_count();
     for(build_t i = 0; i < count; i++) {
         struct shader_descriptor* desc = shader_descriptor_get(i);
-        if(sid_check_match(desc->sid, sid)) { return i; }
+        if(sid_check_match(desc->sid_idx, sid_idx)) { return i; }
     }
     return INT_NULL;
 }
 build_t
-shader_build_is_set(const struct gfx_sid sid)
+shader_build_is_set(const sididx_t sid_idx)
 {
     /* Shader build  maybe created, but shader_builder_build() not yet called(not set)
      * In this function we check for both */
     const uint32 count = shader_descriptor_get_count();
     for(build_t i = 0; i < count; i++) {
         struct shader_descriptor* desc = shader_descriptor_get(i);
-        if(desc->is_set && sid_check_match(desc->sid, sid)) { return i; }
+        if(desc->is_set && sid_check_match(desc->sid_idx, sid_idx)) { return i; }
     }
     return INT_NULL;
 }
@@ -138,15 +139,15 @@ shader_builder_push_entry(const build_t idx, const struct shader_in_variables_st
 {
     struct shader_descriptor* desc = shader_descriptor_get(idx);
     const uint32 entry_idx = desc->entry_count;
-    desc->entry[entry_idx].flagname = entry->flagname;
-    desc->entry[entry_idx].codename = entry->codename;
-    desc->entry[entry_idx].elems = entry->elems;
-    desc->entry[entry_idx].flag = entry->flag;
-    desc->entry[entry_idx].type = entry->type;
-    desc->entry[entry_idx].typesize = entry->typesize;
-    desc->entry[entry_idx].which_renameme = which;
-    desc->entry[entry_idx].var_table_idx = entry->var_table_idx;
-    desc->entry[entry_idx].this_idx = entry_idx;
+    desc->entries[entry_idx].flagname = entry->flagname;
+    desc->entries[entry_idx].codename = entry->codename;
+    desc->entries[entry_idx].elems = entry->elems;
+    desc->entries[entry_idx].flag = entry->flag;
+    desc->entries[entry_idx].type = entry->type;
+    desc->entries[entry_idx].typesize = entry->typesize;
+    desc->entries[entry_idx].which_renameme = which;
+    desc->entries[entry_idx].var_table_idx = entry->var_table_idx;
+    desc->entries[entry_idx].this_idx = entry_idx;
     desc->added_entry_flags_renameme |=  entry->flag; /// this way we know what attributes have been created for this shader build descriptor
     desc->entry_count++; /// increment current build's entry count
     print("%s- shader add entry:%s, count:%u -%s\n", RED, entry->codename, desc->entry_count, CLEAR);
@@ -154,11 +155,11 @@ shader_builder_push_entry(const build_t idx, const struct shader_in_variables_st
 }
 
 build_t
-shader_create_input(const struct gfx_sid sid, const char* name, const enum TYPES_INDEXING type, enum SID_ID shader_var_id, const enum SHADER_INPUT_FLAGS which)
+shader_create_input(const sididx_t sid_idx, const char* name, const enum TYPES_INDEXING type, enum SID_ID shader_var_id, const enum SHADER_INPUT_FLAGS which)
 {
     /// 1. find or create shader build
-    build_t build_idx = shader_build_exists(sid);
-    if(build_idx == INT_NULL) build_idx = shader_builder_create_new_build(sid);
+    build_t build_idx = shader_build_exists(sid_idx);
+    if(build_idx == INT_NULL) build_idx = shader_builder_create_new_build(sid_idx);
 
     /// check if variable input exists, via "enum SID_VAR_IDI" index.
     struct shader_in_variables_struct* var = shader_var_get_var(shader_var_id);
@@ -354,7 +355,7 @@ void
 shader_builder_init(void)
 {
     /// initialize 4 pages(4096 bytes) for shader code
-    string_init_table(4);
+    string_init_table(8);
 
     for(uint32 i = 0; i < 1; i++) {
         // shader_descriptor_table->data[i].entry = ;
@@ -373,15 +374,14 @@ shader_builder_init(void)
 #define GENERIC_ATTR_LOC "GENERIC_ATTR_LOC"
 
 struct shader_descriptor*
-shader_builder_build(const struct gfx_sid sid, const build_t build_idx)
+shader_builder_build(const sididx_t sid_idx, const build_t build_idx)
 {
     print("\n\n%s- SHADER BUILDER -%s\n", YELLOW, CLEAR);
     /// Get the already builded shader program descriptor, where the attributes have been registered at an erlier stage(mesh creation)
-    // const build_t build_idx = 0;
     struct shader_descriptor* desc = shader_descriptor_get(build_idx);
 
     // initialize the uninitialized fields
-    desc->sid = sid;
+    desc->sid_idx = sid_idx;
     desc->vshader_attribs_idx = INT_NULL;
     desc->vshader_attribs_count = 0;
     desc->vshader_attrib_locations_count = 0;
@@ -421,9 +421,9 @@ shader_builder_build(const struct gfx_sid sid, const build_t build_idx)
         const char* name = NULL;
         uint32 in_var_idx = 0;
         for(; in_var_idx < SHADER_INPUT_ENTRIES_MAX_COUNT; in_var_idx++) {
-            struct shader_in_variables_struct entry = desc->entry[in_var_idx];
+            struct shader_in_variables_struct entry = desc->entries[in_var_idx];
 
-            if(desc->entry[in_var_idx].which_renameme & IS_ATTR) { // only if input variable is a vertex attribute
+            if(desc->entries[in_var_idx].which_renameme & IS_ATTR) { // only if input variable is a vertex attribute
 
                 num_elems = entry.elems;
                 type = entry.type;
@@ -506,13 +506,13 @@ shader_builder_build(const struct gfx_sid sid, const build_t build_idx)
      * code generation: attributes: out */
     string_append_cstr(&str, "/// attributes: out\n");
     for(uint32 i = 0; i < desc->entry_count; i++) {
-        if(desc->entry[i].which_renameme & IS_OUT) {
+        if(desc->entries[i].which_renameme & IS_OUT) {
             const char* format = "out %s out_%s;\n";
             char buf[64] = {0};
             char* ptr = &buf[0];
             string_format(&ptr, 64, format,
-                          shaderinfo_type_to_glsltype_string(desc->entry[i].type),
-                          desc->entry[i].codename);
+                          shaderinfo_type_to_glsltype_string(desc->entries[i].type),
+                          desc->entries[i].codename);
             string_append_cstr(&str, buf);
         }
     }
@@ -522,13 +522,13 @@ shader_builder_build(const struct gfx_sid sid, const build_t build_idx)
      * code generation: uniforms: in */
     string_append_cstr(&str, "/// uniforms: in\n");
     for(uint32 i = 0; i < desc->entry_count; i++) {
-        if(desc->entry[i].which_renameme & IS_UNIF) {
+        if(desc->entries[i].which_renameme & IS_UNIF) {
             const char* format = "uniform %s %s;\n";
             char buf[64] = {0};
             char* ptr = &buf[0];
             string_format(&ptr, 64, format,
-                          shaderinfo_type_to_glsltype_string(desc->entry[i].type),
-                          desc->entry[i].codename);
+                          shaderinfo_type_to_glsltype_string(desc->entries[i].type),
+                          desc->entries[i].codename);
             string_append_cstr(&str, buf);
         }
     }
@@ -554,7 +554,7 @@ shader_builder_build(const struct gfx_sid sid, const build_t build_idx)
             char* ptr = &buf[0];
             string_format(&ptr, 128,
                           "  float %s_%u = generic_%u.%c;\n",
-                          desc->entry[desc->v_layout[i].idx].codename,
+                          desc->entries[desc->v_layout[i].idx].codename,
                           dimention++, k, vec4[gen_loc_cnt++]
             );
             if(gen_loc_cnt >= SHADER_MAX_LOCATION_SIZE) {
@@ -581,14 +581,14 @@ shader_builder_build(const struct gfx_sid sid, const build_t build_idx)
      *      vpos = vec4(vpos.x + wpos_x,  vpos.y + wpos_y,  0.0, 0.0);
      * gl_position = vpos;
      */
-    struct shader_in_variables_struct oper1 = {.codename = "vpos", .elems = desc->entry[0].elems};
-    code_create_vector4(&str, desc->entry[0], "vpos", "1.0, ");
+    struct shader_in_variables_struct oper1 = {.codename = "vpos", .elems = desc->entries[0].elems};
+    code_create_vector4(&str, desc->entries[0], "vpos", "1.0, ");
     // string_append_cstr(&str, "vec4 vpos = vec4(vpos2_0, vpos2_1, 0.0, 1.0);\n");
 
     /// scale
     for(uint32 i = 0; i < desc->entry_count; i++) {
-        if(desc->entry[i].flag & SID_SCALE2) {
-            code_operate_vector(&str, oper1, desc->entry[i], "*", 0.0, 1.0);
+        if(desc->entries[i].flag & SID_SCALE2) {
+            code_operate_vector(&str, oper1, desc->entries[i], "*", 0.0, 1.0);
         }
     }
 
@@ -598,12 +598,12 @@ shader_builder_build(const struct gfx_sid sid, const build_t build_idx)
                        "0.0, rot2_0, -rot2_1, 0.0, "
                        "0.0, rot2_1, rot2_0, 0.0, "
                        "0.0, 0.0, 0.0, 1.0) * vpos;\n");
-    string_append_cstr(&str,
-                       "       vpos = mat4("
-                       "rot2_0, 0.0,-rot2_1, 0.0, "
-                       "0.0,    1.0, 0.0, 0.0, "
-                       "rot2_1, 0.0, rot2_0, 0.0, "
-                       "0.0,    0.0, 0.0, 1.0) * vpos;\n");
+    // string_append_cstr(&str,
+    //                    "       vpos = mat4("
+    //                    "rot2_0, 0.0,-rot2_1, 0.0, "
+    //                    "0.0,    1.0, 0.0, 0.0, "
+    //                    "rot2_1, 0.0, rot2_0, 0.0, "
+    //                    "0.0,    0.0, 0.0, 1.0) * vpos;\n");
     string_append_cstr(&str,
                        "       vpos = mat4("
                        "rot2_0, -rot2_1, 0.0, 0.0, "
@@ -612,11 +612,10 @@ shader_builder_build(const struct gfx_sid sid, const build_t build_idx)
                        "0.0,     0.0,    0.0, 1.0) * vpos;\n");
 
 
-
     /// translation
     for(uint32 i = 0; i < desc->entry_count; i++) {
-        if(desc->entry[i].flag & SID_WPOSI3) {
-            code_operate_vector(&str, oper1, desc->entry[i], "+", 1.0, 0.0);
+        if(desc->entries[i].flag & SID_WPOSI3) {
+            code_operate_vector(&str, oper1, desc->entries[i], "+", 1.0, 0.0);
         }
     }
 
@@ -638,22 +637,22 @@ shader_builder_build(const struct gfx_sid sid, const build_t build_idx)
      * code generation: outputs: assignment */
     string_append_cstr(&str, "\n  /// outputs assignment\n");
     for(uint32 i = 0; i < desc->entry_count; i++) {
-        if(desc->entry[i].which_renameme & IS_OUT) {
-            const char* type_c = shaderinfo_type_to_glsltype_string(desc->entry[i].type);
-            const char* name = desc->entry[i].codename;
+        if(desc->entries[i].which_renameme & IS_OUT) {
+            const char* type_c = shaderinfo_type_to_glsltype_string(desc->entries[i].type);
+            const char* name = desc->entries[i].codename;
             char buf[64] = {0};
             char* ptr = &buf[0];
             string_format(&ptr, 64, "  out_%s = %s(",
                           name, type_c, name, name, name, name);
             string_append_cstr(&str, buf);
 
-            const uint32 num_elems = shaderinfo_type_to_numelems(desc->entry[i].type);
+            const uint32 num_elems = shaderinfo_type_to_numelems(desc->entries[i].type);
             // for(uint32 dim = 0; dim < SHADER_MAX_LOCATION_SIZE; dim++) {
             for(uint32 dim = 0; dim < num_elems; dim++) {
                 char buf2[32] = {0};
                 char* ptr2 = &buf2[0];
-                if(dim < desc->entry[i].elems) {
-                    string_format(&ptr2, 32, "%s_%u, ", desc->entry[i].codename, dim);
+                if(dim < desc->entries[i].elems) {
+                    string_format(&ptr2, 32, "%s_%u, ", desc->entries[i].codename, dim);
                     string_append_cstr(&str, buf2);
                 } else string_append_cstr(&str, "0.0, ");
             }
@@ -689,163 +688,6 @@ shader_builder_destroy(void)
     string_destroy_table();
 }
 
-const char*
-shaderinfo_id_to_flagname(const enum SID_ID type)
-{
-    switch(type) {
-        // case SID_NULL_:   return "";
-        case SID_OPACIT_IDI: return "OPACIT";
-        case SID_VPOSI2_IDI: return "VPOSI2";
-        case SID_WPOSI2_IDI: return "WPOSI2";
-        case SID_SCALE2_IDI: return "SCALE2";
-        case SID_ROTAT2_IDI: return "ROTAT2";
-        case SID_PIVOT2_IDI: return "PIVOT2";
-        case SID_UVCOO2_IDI: return "UVCOO2";
-        case SID_VPOSI3_IDI: return "VPOSI3";
-        case SID_WPOSI3_IDI: return "WPOSI3";
-        case SID_SCALE3_IDI: return "SCALE3";
-        case SID_ROTAT3_IDI: return "ROTAT3";
-        case SID_PIVOT3_IDI: return "PIVOT3";
-        case SID_COLOR3_IDI: return "COLOR3";
-        case SID_COLOR4_IDI: return "NORMA3";
-        case SID_PROJMAT4X4_IDI: return "PROJMAT4X4";
-        default: return "NONE";
-    }
-}
-sid_t
-shaderinfo_id_to_flag(const enum SID_ID type)
-{
-    switch(type) {
-        // case SID_NULL_:   return "";
-        case SID_OPACIT_IDI: return SID_OPACIT;
-        case SID_VPOSI2_IDI: return SID_VPOSI2;
-        case SID_WPOSI2_IDI: return SID_WPOSI2;
-        case SID_SCALE2_IDI: return SID_SCALE2;
-        case SID_ROTAT2_IDI: return SID_ROTAT2;
-        case SID_PIVOT2_IDI: return SID_PIVOT2;
-        case SID_UVCOO2_IDI: return SID_UVCOO2;
-        case SID_VPOSI3_IDI: return SID_VPOSI3;
-        case SID_WPOSI3_IDI: return SID_WPOSI3;
-        case SID_SCALE3_IDI: return SID_SCALE3;
-        case SID_ROTAT3_IDI: return SID_ROTAT3;
-        case SID_PIVOT3_IDI: return SID_PIVOT3;
-        case SID_COLOR3_IDI: return SID_COLOR3;
-        case SID_NORMA3_IDI: return SID_NORMA3;
-        case SID_COLOR4_IDI: return SID_COLOR4;
-        case SID_PROJMAT4X4_IDI: return SID_PROJMAT4X4;
-        default: return SID_NULL;
-    }
-}
-
-enum SID_ID
-shaderinfo_flag_to_id(const sid_t sid_flag)
-{
-    if(sid_flag & SID_OPACIT) return SID_OPACIT_IDI;
-    if(sid_flag & SID_VPOSI2) return SID_VPOSI2_IDI;
-    if(sid_flag & SID_WPOSI2) return SID_WPOSI2_IDI;
-    if(sid_flag & SID_SCALE2) return SID_SCALE2_IDI;
-    if(sid_flag & SID_ROTAT2) return SID_ROTAT2_IDI;
-    if(sid_flag & SID_PIVOT2) return SID_PIVOT2_IDI;
-    if(sid_flag & SID_UVCOO2) return SID_UVCOO2_IDI;
-    if(sid_flag & SID_VPOSI3) return SID_VPOSI3_IDI;
-    if(sid_flag & SID_WPOSI3) return SID_WPOSI3_IDI;
-    if(sid_flag & SID_SCALE3) return SID_SCALE3_IDI;
-    if(sid_flag & SID_ROTAT3) return SID_ROTAT3_IDI;
-    if(sid_flag & SID_PIVOT3) return SID_PIVOT3_IDI;
-    if(sid_flag & SID_COLOR3) return SID_COLOR3_IDI;
-    if(sid_flag & SID_NORMA3) return SID_NORMA3_IDI;
-    if(sid_flag & SID_COLOR4) return SID_COLOR4_IDI;
-    if(sid_flag & SID_PROJMAT4X4) return SID_PROJMAT4X4_IDI;
-    assert(1);
-    return INT_NULL;
-    // else                     return INT_NULL;
-}
-uint8
-shaderinfo_flag_to_numelems(const sid_t sid_flag)
-{
-    if(sid_flag & SID_OPACIT) return 1;
-    if(sid_flag & SID_VPOSI2) return 2;
-    if(sid_flag & SID_WPOSI2) return 2;
-    if(sid_flag & SID_SCALE2) return 2;
-    if(sid_flag & SID_ROTAT2) return 2;
-    if(sid_flag & SID_PIVOT2) return 2;
-    if(sid_flag & SID_UVCOO2) return 2;
-    if(sid_flag & SID_VPOSI3) return 3;
-    if(sid_flag & SID_WPOSI3) return 3;
-    if(sid_flag & SID_SCALE3) return 3;
-    if(sid_flag & SID_ROTAT3) return 3;
-    if(sid_flag & SID_PIVOT3) return 3;
-    if(sid_flag & SID_COLOR3) return 3;
-    if(sid_flag & SID_NORMA3) return 3;
-    if(sid_flag & SID_COLOR4) return 4;
-    if(sid_flag & SID_PROJMAT4X4) return 16;
-    assert(1);
-}
-
-const char*
-shaderinfo_type_to_glsltype_string(const enum TYPES_INDEXING type)
-{
-    switch(type) {
-        case FLOAT: return "float";
-        case INT64: return "INT64";
-        case UINT64: return "UINT64";
-        case UINT32: return "int";
-        case INT32: return "uint";
-        case UINT16: return "uint16";
-        case INT16: return "int16";
-        case INT8: return "int8";
-        case UINT8: return "uint8";
-        case VEC2F: return "vec2";
-        case VEC3F: return "vec3";
-        case VEC4F: return "vec4";
-        case MAT2X2F: return "mat2";
-        case MAT3X3F: return "mat3";
-        case MAT4X4F: return "mat4";
-        default: return "NONE";
-    }
-}
-
-uint8
-shaderinfo_type_to_numelems(const enum TYPES_INDEXING type)
-{
-    switch(type) {
-        case FLOAT: return 1;
-        case INT64: return 1;
-        case UINT64: return 1;
-        case UINT32: return 1;
-        case UINT16: return 1;
-        case INT8: return 1;
-        case UINT8: return 1;
-        case VEC2F: return 2;
-        case VEC3F: return 3;
-        case VEC4F: return 4;
-        case MAT2X2F: return 2 * 2;
-        case MAT3X3F: return 3 * 3;
-        case MAT4X4F: return 4 * 4;
-        default: assert(1);
-    }
-}
-
-uint8
-shaderinfo_type_to_typesize(const enum TYPES_INDEXING type)
-{
-    switch(type) {
-        case FLOAT: return SIZE_F32;
-        case INT64: return SIZE_I64;
-        case UINT64: return SIZE_I64;
-        case UINT32: return SIZE_I32;
-        case UINT16: return SIZE_I16;
-        case INT8: return SIZE_I8;
-        case UINT8: return SIZE_I8;
-        case VEC2F: return SIZE_F32;
-        case VEC3F: return SIZE_F32;
-        case VEC4F: return SIZE_F32;
-        case MAT2X2F: return SIZE_F32;
-        case MAT3X3F: return SIZE_F32;
-        case MAT4X4F: return SIZE_F32;
-        default: assert(1);
-    }
-}
 
 /* DEBUG-PRINT */
 void
@@ -877,7 +719,7 @@ void
 shader_desc_table_print_build_entry(const build_t idx, const uint8 entryidx)
 {
     struct shader_descriptor* build = shader_descriptor_get(idx);
-    struct shader_in_variables_struct entry = build->entry[entryidx];
+    struct shader_in_variables_struct entry = build->entries[entryidx];
     print(
         "entry: %u\n"
         // "flagname:%s, "
@@ -914,11 +756,11 @@ temp_print_builds(void)
             print("%s  entry:%u %s", ry, j, CLEAR);
             print("  %6s, %5s, typesize:%u, elems:%u, flags:%llu\n"
                   "",
-                  desc->entry[j].codename,
-                  shaderinfo_type_to_glsltype_string(desc->entry[j].type),
-                  desc->entry[j].typesize,
-                  desc->entry[j].elems,
-                  desc->entry[j].which_renameme
+                  desc->entries[j].codename,
+                  shaderinfo_type_to_glsltype_string(desc->entries[j].type),
+                  desc->entries[j].typesize,
+                  desc->entries[j].elems,
+                  desc->entries[j].which_renameme
             );
         }
     }

@@ -4,6 +4,7 @@
 #ifndef ENGINE_TEST_OPENGL_DEBUG_H
 #define ENGINE_TEST_OPENGL_DEBUG_H
 
+#include <stdlib.h>
 #include <glad/gl.h>
 #include "glfw3.h"
 #include "logger.h"
@@ -194,55 +195,55 @@ static void APIENTRY opengl_debug_callback(GLenum source,
     GL_OUT_OF_MEMORY; //Not enough memory left to execute function.
 
 
-    print("Error id:%d | msg:%s User param:%s\n ", id, message, (char*) userParam);
+    print("%sError id:%d | msg:%s User param:%s \n", RED, id, message, (char*) userParam);
 
     switch(source) {
-        case GL_DEBUG_SOURCE_API: print("%s", "Source: API");
+        case GL_DEBUG_SOURCE_API: print("%s", "Source: API\n");
             break;
-        case GL_DEBUG_SOURCE_WINDOW_SYSTEM: print("%s", "Source: Window System");
+        case GL_DEBUG_SOURCE_WINDOW_SYSTEM: print("%s", "Source: Window System\n");
             break;
-        case GL_DEBUG_SOURCE_SHADER_COMPILER: print("%s", "Source: Shader Compiler");
+        case GL_DEBUG_SOURCE_SHADER_COMPILER: print("%s", "Source: Shader Compiler\n");
             break;
-        case GL_DEBUG_SOURCE_THIRD_PARTY: print("%s", "Source: Third Party");
+        case GL_DEBUG_SOURCE_THIRD_PARTY: print("%s", "Source: Third Party\n");
             break;
-        case GL_DEBUG_SOURCE_APPLICATION: print("%s", "Source: Application");
+        case GL_DEBUG_SOURCE_APPLICATION: print("%s", "Source: Application\n");
             break;
-        case GL_DEBUG_SOURCE_OTHER: print("%s", "Source: Other");
+        case GL_DEBUG_SOURCE_OTHER: print("%s", "Source: Other\n");
             break;
     }
 
     switch(type) {
-        case GL_DEBUG_TYPE_ERROR: print("%s", "Type: Error");
+        case GL_DEBUG_TYPE_ERROR: print("%s", "Type: Error\n");
             break;
-        case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: print("%s", "Type: Deprecated Behaviour");
+        case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: print("%s", "Type: Deprecated Behaviour\n");
             break;
-        case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR: print("%s", "Type: Undefined Behaviour");
+        case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR: print("%s", "Type: Undefined Behaviour\n");
             break;
-        case GL_DEBUG_TYPE_PORTABILITY: print("%s", "Type: Portability");
+        case GL_DEBUG_TYPE_PORTABILITY: print("%s", "Type: Portability\n");
             break;
-        case GL_DEBUG_TYPE_PERFORMANCE: print("%s", "Type: Performance");
+        case GL_DEBUG_TYPE_PERFORMANCE: print("%s", "Type: Performance\n");
             break;
-        case GL_DEBUG_TYPE_MARKER: print("%s", "Type: Marker");
+        case GL_DEBUG_TYPE_MARKER: print("%s", "Type: Marker\n");
             break;
-        case GL_DEBUG_TYPE_PUSH_GROUP: print("%s", "Type: Push Group");
+        case GL_DEBUG_TYPE_PUSH_GROUP: print("%s", "Type: Push Group\n");
             break;
-        case GL_DEBUG_TYPE_POP_GROUP: print("%s", "Type: Pop Group");
+        case GL_DEBUG_TYPE_POP_GROUP: print("%s", "Type: Pop Group\n");
             break;
-        case GL_DEBUG_TYPE_OTHER: print("%s", "Type: Other");
+        case GL_DEBUG_TYPE_OTHER: print("%s", "Type: Other\n");
             break;
     }
 
     switch(severity) {
-        case GL_DEBUG_SEVERITY_HIGH: print("%s", "Severity: high");
+        case GL_DEBUG_SEVERITY_HIGH: print("%s", "Severity: high\n");
             break;
-        case GL_DEBUG_SEVERITY_MEDIUM: print("%s", "Severity: medium");
+        case GL_DEBUG_SEVERITY_MEDIUM: print("%s", "Severity: medium\n");
             break;
-        case GL_DEBUG_SEVERITY_LOW: print("%s", "Severity: low");
+        case GL_DEBUG_SEVERITY_LOW: print("%s", "Severity: low\n");
             break;
-        case GL_DEBUG_SEVERITY_NOTIFICATION: print("%s", "Severity: notification");
+        case GL_DEBUG_SEVERITY_NOTIFICATION: print("%s", "Severity: notification\n");
             break;
     }
-    print("\n");
+    print("\n%s", CLEAR);
 }
 
 
@@ -264,17 +265,20 @@ static void debug_opengl(struct opengl_program* prog,
 {
     print("\n%s--- OPENGL DEBUG ---%s\n", GREEN, CLEAR);
 
-
     // After shader_attributes_enable, verify the state:
     glBindVertexArray(va->vao); // Your VAO
+    GL_CHECK();
+
 
     int nrAttributes;
     glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nrAttributes);
     print("\nMax number of attributes: %d\n", nrAttributes);
+    GL_CHECK();
 
     GLint viewport[4];
     glGetIntegerv(GL_VIEWPORT, viewport);
     print("\nViewport: x=%d y=%d w=%d h=%d\n", viewport[0], viewport[1], viewport[2], viewport[3]);
+    GL_CHECK();
 
     print(""
           "program: %u, progidx:%u\n"
@@ -288,9 +292,19 @@ static void debug_opengl(struct opengl_program* prog,
 
     // After gfx_vertex_buffer_update_data, read back the data
     glBindBuffer(GL_ARRAY_BUFFER, vb->vbo);
-    float* readback = (float*) glMapBuffer(GL_ARRAY_BUFFER, GL_READ_ONLY);
     uint32 stride = shader_attrib_get_stride(prog->build_idx);
     const uint32 vbdata_count = total_vertex_count * stride;
+    GL_CHECK();
+
+    // float* readback = (float*) glMapBuffer(GL_ARRAY_BUFFER, GL_READ_ONLY);
+    float* readback = (float*) glMapBuffer(GL_ARRAY_BUFFER, GL_MAP_READ_BIT | GL_MAP_WRITE_BIT);
+    // float* readback = (float*) malloc(vbdata_count * sizeof(float));
+    // glGetBufferSubData(GL_ARRAY_BUFFER, 0, vbdata_count * sizeof(float), readback);
+    GL_CHECK();
+
+
+
+
     uint32 vcnt = 1;
     if(TRUE && readback) {
         print("VBO contents:");
@@ -306,6 +320,8 @@ static void debug_opengl(struct opengl_program* prog,
         }
         print("\n\n");
         glUnmapBuffer(GL_ARRAY_BUFFER);
+    GL_CHECK();
+
     } else {
         print("Failed to map buffer\n");
     }

@@ -21,6 +21,10 @@
 #define br2 (FG_RGB(200,50, 255))
 #define br3 (FG_RGB(240, 50, 100))
 
+#define COLOR_ARRAY_COUNT 9
+static char* color_array[COLOR_ARRAY_COUNT] =
+    { RED, ry, YELLOW, GREEN, CYAN, BLUE, br1, br2, br3 };
+#define COLOR_ARRAY_GET(col_idx) (color_array[(col_idx)])
 
 
 /***************************************************************************************************

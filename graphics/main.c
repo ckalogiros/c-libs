@@ -5,12 +5,14 @@
 #include "camera.h"
 #include "gfx_buffers.h"
 // #include "linmath.h"
+#include "command.h"
 #include "mem_man_interface.h"
 #include "my_macros.h"
 #include "mesh.h"
 #include "object.h"
 #include "opengl.h"
 #include "opengl_debug.h"
+#include "precision_timer.h"
 #include "run.h"
 #include "scene.h"
 #include "shader_builder.h"
@@ -78,448 +80,224 @@ static const char* fragment_shader_text = "\
 
 
 
-build_t
-gfx_program_exists(const struct gfx_sid sid)
-{
-    build_t build_idx = shader_build_is_set(sid);
-    return build_idx;
-}
 
-struct shader_descriptor*
-gfx_create_shader_program(const struct gfx_sid sid, const build_t build_idx)
+
+
+/**************************************************************************************************
+*
+* The difference of using multiple VAOs
+* 1. The shader program can "dismiss" any unused attribute input, if it is not used
+* 2. The attribute devisor can be different. Same shader for instanced geometry VBOs
+* 3. VBO seperation
+*
+* SAME FOR EBO/IBO
+*
+* AND we only need to bind VAO in the main loop.
+* We only need to bind VBO for any vb update
+*
+* Prerequisites for creating NEW VAO
+* 1. different attribute devisor
+* 2. different SID flag
+*
+* CORRECT ORDER
+*
+* create shader program
+*
+* create VAO
+* bind VAO
+*
+* create VBO
+* bind VBO
+*
+* enable attributes (vao and vbo must be bound before)
+*
+* add to renderqueue
+*
+* vb set data and update data(once)
+*
+*
+***************************************************************************************************/
+struct cmd_gfx_params {
+    float* mesh_data;
+    struct camera camera;
+    sididx_t sid_idx;
+    uint16 comp_idx;
+    build_t build_idx;
+    desc_t desc_idx;
+    uint8  vpos_num_elems;
+};
+build_t command_create_shader_program(struct cmd_gfx_params* params)
 {
-    struct shader_descriptor* desc = opengl_program_create(sid, build_idx, fragment_shader_text);
+    build_t build_idx = gfx_program_exists(params->sid_idx);
+    if(build_idx == INT_NULL) { // If shader program does not exist, create new program.
+        /// TODO: Maybe create program returns the build_idx and not the decriptor object
+        // gfx_create_shader_program(params->sid_idx, params->build_idx);
+        opengl_program_create(params->sid_idx, params->build_idx, fragment_shader_text);
+        GL_CHECK();
+    }
+}
+void command_set_camera(struct cmd_gfx_params* params)
+{
+    struct opengl_program* prog = shader_program_get(params->build_idx);
+    gl_use_program(prog->program);
+    GLint mvp_location = gl_get_uniform_location(prog->program, "projection_matrix");
+    struct camera camera = params->camera;
+    glUniformMatrix4fv(mvp_location, 1, camera.is_column_major, (float*)camera.projection_matrix.projection_matrix);
+    GL_CHECK();
+    gl_use_program(0x0);
+}
+void command_create_vao(struct cmd_gfx_params* params)
+{
+    struct object_components_descriptor* comp_desc =  test_get_comp_desc(params->comp_idx);
+    struct shader_descriptor* desc = shader_descriptor_get(params->desc_idx);
+    const uint32 stride = desc->vshader_attribs_stride;
+    struct opengl_program* prog = shader_program_get(params->desc_idx);
+    gl_use_program(prog->program);
+
+
+    const bool attrib_devisor = 0; /// TODO: attrib devisor should exist in object OR object component OR shader descriptor???
+    bool is_new_vao = FALSE;
+    vaidx_t vaoidx = gfx_vertex_array_find_match(desc->sid_idx, attrib_devisor);
+    if(vaoidx == INT_NULL) {
+        vaoidx = gfx_vertex_array_create(desc->build_idx);
+        is_new_vao = TRUE;
+    }
+
+    desc->vaoidx = vaoidx;
+    struct vertex_array_object* va = gfx_vertex_array_get_byidx(vaoidx);
+    gl_bind_vertex_array(va->vao);
     GL_CHECK();
 
 
-    return desc;
-}
-
-
-struct shader_descriptor*
-gfx_generate_context(const struct gfx_sid sid, const build_t build_idx, struct camera camera)
-{
-    struct shader_descriptor* desc = NULL;
-    build_t progidx = INT_NULL;
     vbidx_t vbidx = INT_NULL;
+    struct vertex_buffer_object* vb = NULL;
+    if(is_new_vao){
+        // vbidx = gfx_vertex_buffer_create(desc->build_idx, total_vertex_count*stride*SIZE_F32+1, stride);
+        vbidx = gfx_vertex_buffer_create(desc->build_idx, 4048*stride*SIZE_F32+1, stride);
+        // vbidx = gfx_vertex_buffer_create(desc->build_idx, 3*stride*SIZE_F32+1, stride);
 
-
-    /**********************************************************************************************/
-    /* program */
-    /* TODO
-     * 1. check if same program exists
-     * 2. if not, push a new build in the descriptor table
-     */
-    // // Check if program already exists
-    progidx = gfx_program_exists(sid);
-    if(progidx == INT_NULL) { // If shader program does not exist, create new program.
-
-
-
-        desc = gfx_create_shader_program(sid, build_idx);
-        const uint32 stride = desc->vshader_attribs_stride;
-        progidx = desc->build_idx;
-        GL_CHECK();
-        struct opengl_program* prog = shader_program_get(progidx);
-        gl_use_program(prog->program);
-
-
-        vaidx_t vaoidx = gfx_vertex_array_create();
-        desc->vaoidx = vaoidx;
-        struct vertex_array_object* va = gfx_vertex_array_get_byidx(desc->vaoidx);
-        gl_bind_vertex_array(va->vao);
-
-
-        vbidx = gfx_vertex_buffer_create(sid, 20*stride*SIZE_F32, stride);
-        struct vertex_buffer_object* vb = vertex_buffer_get_vbo(vbidx);
+        vb = vertex_buffer_get_vbo(vbidx);
         gl_bind_buffer(OPENGL_ARRAY_BUFFER, vb->vbo);
+        GL_CHECK();
 
         shader_attributes_enable(desc->vshader_attrib_locations_count, desc->vshader_attribs_stride, desc->last_loc_num_elems);
         opengl_debug_attributes_in(desc->vshader_attrib_locations_count);
-
-        // uint32 total_vertex_count = test_obj_comp_desc_get_total_vertex_count(vbidx);
-        renderer_renderqueue_add(prog->program, desc->build_idx, va->vao, va->idx, vb->vbo, vb->idx);
-
-        GLint mvp_location = gl_get_uniform_location(prog->program, "projection_matrix");
-        glUniformMatrix4fv(mvp_location, 1, camera.is_column_major, (float*)camera.projection_matrix.projection_matrix);
-
-        gl_bind_vertex_array(0x0);
-        gl_use_program(0x0);
-
-
-
-        // Scene_set_projection_matrix(sceneidx);
-        // Scene_set_screen_res_uniform();
-    } else {
-        desc = shader_descriptor_get(progidx);
-        // struct opengl_program* prog = shader_program_get(progidx);
-        // struct vertex_array_object* va = gfx_vertex_array_get_byidx(desc->vaoidx);
-        // struct vertex_buffer_object* vb = vertex_buffer_get_vbo(vbidx);
-        // renderer_renderqueue_add(prog->program, desc->build_idx, va->vao, va->idx, vb->vbo, vb->idx);
+        GL_CHECK();
+        comp_desc->rqidx = renderer_renderqueue_add(prog->program, desc->build_idx, va->vao, va->idx, vb->vbo, vb->idx);
+    }else {
+        vbidx = gfx_vertex_buffer_find_match(comp_desc->sid_idx);
+        vb = vertex_buffer_get_vbo(vbidx);
     }
+    assert(vbidx != INT_NULL);
 
 
-    /**********************************************************************************************/
-    /* vertex array object */
-    /// set up vertex attrib pointers
-    // gl_enable_attrib_array();
-    // gl_enable_attrib_pointer();
+    /// SET COMMAND: VB_SET_DATE
+    struct vb_cmd_params para = { .vbidx = vb->idx, .vpos = params->mesh_data, .vpos_num_elems = params->vpos_num_elems };
+    void* p = &para;
+    cmd_add_command((void*)gfx_vertex_buffer_set_data, p, sizeof(struct vb_cmd_params));
+
+    // SET COMMAND: VB_SET_DATA
+    cmd_add_command((void*) gfx_vertex_buffer_update_data, p, sizeof(struct vb_cmd_params));
+
+    gl_use_program(0x0);
+    gl_bind_vertex_array(0x0);
+    gl_bind_buffer(OPENGL_ARRAY_BUFFER, 0x0);
 
 
-    /**********************************************************************************************/
-    /* vertex buffer object*/
-    /* Check for any vbidx match, from already created vbs, in the mesh tree structure */
-    /* If no vbidx found from the mesh tree, search the vb pool if any apropriate vb exists.
-     * If none found, create a new one */
-    // vbidx = gfx_vertex_buffer_find_match(sid);
-    // if(vbidx == INT_NULL) {
-    //     vbidx = gfx_vertex_buffer_create(sid, 1024);
-    // }
-
-
-    /**********************************************************************************************/
-    /* index array object */
-
-
-    // struct vertex_array_object va = gfx_vertex_array_get_byidx(vaoidx);
-    // gl_bind_vertex_array(va->vao);
-    // GL_CHECK();
-    // assert(va->vao>0);
-    //
-    // progidx_t program = opengl_program_get_byidx(progidx);
-    // vbidx_t vbo = vertex_buffer_get_vbo(vbidx);
-    // renderer_renderqueue_add(program, progidx, vao, 0, vbo, vbidx);
-
-    // OpenGlDebugContext();
-
-    return desc;
 }
-
-
-
-struct object* test_create_triangles(const uint32 num_objects, struct camera camera, float wpos[3], float scale[2], float rot[2], float color[4])
+struct object* test_create_triangles(const uint32 num_objects, float wpos[3], float scale[2], float rot[2], float color[4])
+// struct object* test_create_triangles(const uint32 num_objects, float wpos[3], float scale[2], float rot[2], float color[4], enum MESH_TYPE mesh_type, struct camera* camera)
 {
-    // wpos[0]=0; wpos[1]=0; wpos[2]=-4; scale[0]=1; scale[1]=1;
-    // struct object tri = object_create_triangle((struct gfx_sid){0, 0, 0, 0, 0}, wpos, scale, rot, color);
+    wpos[2]=-14; scale[0]=1; scale[1]=1;
     struct object* tri;
     for(uint32 i = 0; i < num_objects; i++) {
-        // wpos[0]=(i*3.f)-8.0f; wpos[1]=3; wpos[2]=-14; scale[0]=1; scale[1]=1;
-        wpos[0]=(i*3.f)-8.0f; wpos[2]=-14; scale[0]=1; scale[1]=1;
+        // wpos[0]=(i*3.f)-5.0f; wpos[2]=-14; scale[0]=1; scale[1]=1;
+        wpos[0] += (i*3.f);
         tri = object_create_triangle((struct gfx_sid){0, 0, 0, 0, 0}, wpos, scale, rot, color);
     }
-    // HERE: create an object buffer table for all objects
-
-    struct shader_descriptor* desc = gfx_generate_context(tri->sid, test_get_build_idx(tri->comp_id), camera);
-
-//     // uint32 num_objects = test_obj_comp_desc_get_total_object_count(tri->comp_id);
-//     uint32 obj_vertex_count = test_get_obj_vertex_count(tri->comp_id);
-//     uint32 total_vertex_count = test_get_total_vertex_count(tri->comp_id);
-//
-// // HERE: we always send the total object count and vertices from the components group
-//     uint8 num_vpos = shaderinfo_flag_to_numelems(SID_VPOSI2);
-//     tri->attrib_data = gfx_vertex_buffer_set_data(tri->comp_id, obj_vertex_count, num_objects, num_vpos, tri->num_faces*tri->verts_per_face*num_vpos, quad_vertices);
-//
-//     uint32 rqidx = 0;
-//     render_queue_add_draw_count(rqidx, total_vertex_count);
 
     return tri;
 }
 
-void test_create_quads(struct camera camera, float wpos[3], float scale[2], float rot[2], float color[4])
+// struct object* test_create_quads(const uint32 num_objects, float wpos[3], float scale[2], float rot[2], float color[4], struct camera* camera)
+struct object* test_create_quads(const uint32 num_objects, float wpos[3], float scale[2], float rot[2], float color[4])
 {
-    wpos[0]=6; wpos[1]=0; wpos[2]=-4; scale[0]=1; scale[1]=1;
-    struct object* quad = object_create_rectangle((struct gfx_sid){0, 0, 0, 0, 0}, wpos, scale, rot, color);
+    struct object* quad;
 
-    // struct object* quad;
-    // for(uint32 i = 0; i < 6; i++) {
-    //     wpos[0]=(i*3.f)-8.0f; wpos[1]=3; wpos[2]=-14; scale[0]=1; scale[1]=1;
-    //     quad = object_create_rectangle((struct gfx_sid){0, 0, 0, 0, 0}, wpos, scale, rot, color);
-    // }
-    //
-
-
-    struct shader_descriptor* desc = gfx_generate_context(quad->sid, test_get_build_idx(quad->comp_id), camera);
-    vaidx_t vaoidx = gfx_vertex_array_create();
-    desc->vaoidx = vaoidx;
-
-    uint32 num_objects = test_obj_comp_desc_get_total_object_count(quad->comp_id);
-    uint32 obj_vertex_count = test_get_obj_vertex_count(quad->comp_id);
-
-    const uint32 stride = desc->vshader_attribs_stride;
-    const vbidx_t vbidx = gfx_vertex_buffer_create(quad->sid, num_objects*obj_vertex_count*stride*SIZE_F32, stride);
-    struct vertex_buffer_object* vb = vertex_buffer_get_vbo(vbidx);
-    uint8 num_vpos = shaderinfo_flag_to_numelems(SID_VPOSI2);
-    quad->attrib_data = gfx_vertex_buffer_set_data(quad->comp_id, obj_vertex_count, num_objects, num_vpos, quad->num_faces*quad->verts_per_face*num_vpos, quad_vertices);
-
-    gl_bind_buffer(OPENGL_ARRAY_BUFFER, vb->vbo);
-    shader_attributes_enable(desc->vshader_attrib_locations_count, desc->vshader_attribs_stride, desc->last_loc_num_elems);
-    opengl_debug_attributes_in(desc->vshader_attrib_locations_count);
-
-    struct opengl_program* prog = opengl_program_get_program_byidx(desc->build_idx);
-    struct vertex_array_object* va = gfx_vertex_array_get_byidx(desc->vaoidx);
-    uint32 total_vertex_count = test_obj_comp_desc_get_total_vertex_count(quad->comp_id);
-    renderer_renderqueue_add(prog->program, desc->build_idx, va->vao, va->idx, vb->vbo, vb->idx);
-
-    gfx_vertex_buffer_update_data(vb->idx);
-
-    gl_use_program(prog->program);
-    gl_bind_vertex_array(va->vao);
-    GLint mvp_location = gl_get_uniform_location(prog->program, "projection_matrix");
-    glUniformMatrix4fv(mvp_location, 1, camera.is_column_major, (float*)camera.projection_matrix.projection_matrix);
-
-    debug_opengl(prog, va, vb, total_vertex_count, desc->vshader_attribs_stride);
-    temp_print_builds();
-
-    gl_bind_vertex_array(0x0);
-    gl_use_program(0x0);
-}
-
-void test_create_pentagon(struct camera camera, float wpos[3], float scale[2], float rot[2], float color[4])
-{
-    wpos[0]=0; wpos[1]=0; wpos[2]=-4; scale[0]=1; scale[1]=1;
-    struct object* rect = object_create_pentagon((struct gfx_sid){0, 0, SID_VPOSI2, SID_VPOSI2, 0}, wpos, scale, rot, color);
-
-
-    struct shader_descriptor* desc = gfx_generate_context(rect->sid, test_get_build_idx(rect->comp_id), camera);
-    vaidx_t vaoidx = gfx_vertex_array_create();
-    desc->vaoidx = vaoidx;
-
-    uint32 num_objects = test_obj_comp_desc_get_total_object_count(rect->comp_id);
-    uint32 obj_vertex_count = test_get_obj_vertex_count(rect->comp_id);
-
-    const uint32 stride = desc->vshader_attribs_stride;
-    const vbidx_t vbidx = gfx_vertex_buffer_create(rect->sid, num_objects*obj_vertex_count*stride*SIZE_F32, stride);
-    struct vertex_buffer_object* vb = vertex_buffer_get_vbo(vbidx);
-    uint8 num_vpos = shaderinfo_flag_to_numelems(SID_VPOSI2);
-    rect->attrib_data = gfx_vertex_buffer_set_data(rect->comp_id, obj_vertex_count, num_objects, num_vpos, rect->num_faces*rect->verts_per_face*num_vpos, pentagon_vertices);
-
-    gl_bind_buffer(OPENGL_ARRAY_BUFFER, vb->vbo);
-    shader_attributes_enable(desc->vshader_attrib_locations_count, desc->vshader_attribs_stride, desc->last_loc_num_elems);
-    opengl_debug_attributes_in(desc->vshader_attrib_locations_count);
-
-    struct opengl_program* prog = opengl_program_get_program_byidx(desc->build_idx);
-    struct vertex_array_object* va = gfx_vertex_array_get_byidx(desc->vaoidx);
-    uint32 total_vertex_count = test_obj_comp_desc_get_total_vertex_count(rect->comp_id);
-    renderer_renderqueue_add(prog->program, desc->build_idx, va->vao, va->idx, vb->vbo, vb->idx);
-
-    gfx_vertex_buffer_update_data(vb->idx);
-
-    gl_use_program(prog->program);
-    gl_bind_vertex_array(va->vao);
-    GLint mvp_location = gl_get_uniform_location(prog->program, "projection_matrix");
-    glUniformMatrix4fv(mvp_location, 1, camera.is_column_major, (float*)camera.projection_matrix.projection_matrix);
-
-    debug_opengl(prog, va, vb, total_vertex_count, desc->vshader_attribs_stride);
-    temp_print_builds();
-
-    gl_bind_vertex_array(0x0);
-    gl_use_program(0x0);
-}
-
-void test_create_octagon(struct camera camera, float wpos[3], float scale[2], float rot[2], float color[4])
-{
-    wpos[0]=0; wpos[1]=0; wpos[2]=-4; scale[0]=1; scale[1]=1;
-    struct object* rect = object_create_octagon((struct gfx_sid){0, 0, 0, 0, 0}, wpos, scale, rot, color);
-
-
-    struct shader_descriptor* desc = gfx_generate_context(rect->sid, test_get_build_idx(rect->comp_id), camera);
-    vaidx_t vaoidx = gfx_vertex_array_create();
-    desc->vaoidx = vaoidx;
-
-    uint32 num_objects = test_obj_comp_desc_get_total_object_count(rect->comp_id);
-    uint32 obj_vertex_count = test_get_obj_vertex_count(rect->comp_id);
-
-    const uint32 stride = desc->vshader_attribs_stride;
-    const vbidx_t vbidx = gfx_vertex_buffer_create(rect->sid, num_objects*obj_vertex_count*stride*SIZE_F32, stride);
-    struct vertex_buffer_object* vb = vertex_buffer_get_vbo(vbidx);
-    uint8 num_vpos = shaderinfo_flag_to_numelems(SID_VPOSI2);
-    rect->attrib_data = gfx_vertex_buffer_set_data(rect->comp_id, obj_vertex_count, num_objects, num_vpos, rect->num_faces*rect->verts_per_face*num_vpos, octagon_vertices);
-
-    gl_bind_buffer(OPENGL_ARRAY_BUFFER, vb->vbo);
-    shader_attributes_enable(desc->vshader_attrib_locations_count, desc->vshader_attribs_stride, desc->last_loc_num_elems);
-    opengl_debug_attributes_in(desc->vshader_attrib_locations_count);
-
-    struct opengl_program* prog = opengl_program_get_program_byidx(desc->build_idx);
-    struct vertex_array_object* va = gfx_vertex_array_get_byidx(desc->vaoidx);
-    uint32 total_vertex_count = test_obj_comp_desc_get_total_vertex_count(rect->comp_id);
-    renderer_renderqueue_add(prog->program, desc->build_idx, va->vao, va->idx, vb->vbo, vb->idx);
-
-    gfx_vertex_buffer_update_data(vb->idx);
-
-    gl_use_program(prog->program);
-    gl_bind_vertex_array(va->vao);
-    GLint mvp_location = gl_get_uniform_location(prog->program, "projection_matrix");
-    glUniformMatrix4fv(mvp_location, 1, camera.is_column_major, (float*)camera.projection_matrix.projection_matrix);
-
-    debug_opengl(prog, va, vb, total_vertex_count, desc->vshader_attribs_stride);
-    temp_print_builds();
-
-    gl_bind_vertex_array(0x0);
-    gl_use_program(0x0);
-}
-
-void test_create_cube(struct camera camera, float wpos[3], float scale[2], float rot[2], float color[4])
-{
-    wpos[0]=0; wpos[1]=0; wpos[2]=-4; scale[0]=1; scale[1]=1; color[1]=.2; color[2]=.9;
-    struct object* cube = object_create_cube((struct gfx_sid){0, 0, 0, 0, 0}, wpos, scale, rot, color);
-    //
-    // wpos[0] = 0; color[0]=.7;color[1]=.7;color[2]=.2;
-    // struct object* obj2 = object_create_cube(cube->sid, wpos, scale, rot, color);
-    // wpos[0] = 10; color[0]=.7;color[1]=.4;color[2]=.2;
-    // struct object* obj3 = object_create_cube(cube->sid, wpos, scale, rot, color);
-    // wpos[0] = -10; wpos[1] = 0; color[0]=.2;color[1]=.7;color[2]=.2;
-    // struct object* obj4 = object_create_cube(cube->sid, wpos, scale, rot, color);
-    // wpos[0] = 0; wpos[1] = 0; color[0]=.2;color[1]=.7;color[2]=.7;
-    // struct object* obj5 = object_create_cube(cube->sid, wpos, scale, rot, color);
-    // wpos[0] = 10; wpos[1] = 0; color[0]=.2;color[1]=.4;color[2]=.9;
-    // struct object* obj6 = object_create_cube(cube->sid, wpos, scale, rot, color);
-
-    struct shader_descriptor* desc = gfx_generate_context(cube->sid, test_get_build_idx(cube->comp_id), camera);
-    vaidx_t vaoidx = gfx_vertex_array_create();
-    desc->vaoidx = vaoidx;
-
-
-    uint32 num_objects = test_obj_comp_desc_get_total_object_count(cube->comp_id);
-    uint32 obj_vertex_count = test_get_obj_vertex_count(cube->comp_id);
-
-    const uint32 stride = desc->vshader_attribs_stride;
-    const vbidx_t vbidx = gfx_vertex_buffer_create(cube->sid, num_objects*obj_vertex_count*stride*SIZE_F32, stride);
-    struct vertex_buffer_object* vb = vertex_buffer_get_vbo(vbidx);
-    uint8 num_vpos = shaderinfo_flag_to_numelems(SID_VPOSI3);
-    cube->attrib_data = gfx_vertex_buffer_set_data(cube->comp_id, obj_vertex_count, num_objects, num_vpos, cube->num_faces*cube->verts_per_face*num_vpos, cube_vertices);
-
-    gl_bind_buffer(OPENGL_ARRAY_BUFFER, vb->vbo);
-    shader_attributes_enable(desc->vshader_attrib_locations_count, desc->vshader_attribs_stride, desc->last_loc_num_elems);
-    opengl_debug_attributes_in(desc->vshader_attrib_locations_count);
-
-    struct opengl_program* prog = opengl_program_get_program_byidx(desc->build_idx);
-    struct vertex_array_object* va = gfx_vertex_array_get_byidx(desc->vaoidx);
-    uint32 total_vertex_count = test_obj_comp_desc_get_total_vertex_count(cube->comp_id);
-    renderer_renderqueue_add(prog->program, desc->build_idx, va->vao, va->idx, vb->vbo, vb->idx);
-
-    gfx_vertex_buffer_update_data(vb->idx);
-
-    gl_use_program(prog->program);
-    gl_bind_vertex_array(va->vao);
-    GLint mvp_location = gl_get_uniform_location(prog->program, "projection_matrix");
-    glUniformMatrix4fv(mvp_location, 1, camera.is_column_major, (float*)camera.projection_matrix.projection_matrix);
-
-    debug_opengl(prog, va, vb, total_vertex_count, desc->vshader_attribs_stride);
-    temp_print_builds();
-
-    gl_bind_vertex_array(0x0);
-    gl_use_program(0x0);
-}
-
-void test_create_octahedron(struct camera camera, float wpos[3], float scale[2], float rot[2], float color[4])
-{
-        wpos[0]=0; wpos[1]=0; wpos[2]=-4; scale[0]=1; scale[1]=1; color[0]=.7; color[1]=.2; color[2]=.9;
-        struct object* octa = object_create_octahedron((struct gfx_sid){0, 0, 0, 0, 0}, wpos, scale, rot, color);
-        //
-        // wpos[0] = 0; color[0]=.7;color[1]=.7;color[2]=.2;
-        // struct object obj2 = object_create_cube(cube->sid, wpos, scale, rot, color);
-        // wpos[0] = 10; color[0]=.7;color[1]=.4;color[2]=.2;
-        // struct object obj3 = object_create_cube(cube->sid, wpos, scale, rot, color);
-        // wpos[0] = -10; wpos[1] = 0; color[0]=.2;color[1]=.7;color[2]=.2;
-        // struct object obj4 = object_create_cube(cube->sid, wpos, scale, rot, color);
-        // wpos[0] = 0; wpos[1] = 0; color[0]=.2;color[1]=.7;color[2]=.7;
-        // struct object obj5 = object_create_cube(cube->sid, wpos, scale, rot, color);
-        // wpos[0] = 10; wpos[1] = 0; color[0]=.2;color[1]=.4;color[2]=.9;
-        // struct object obj6 = object_create_cube(cube->sid, wpos, scale, rot, color);
-
-        struct shader_descriptor* desc = gfx_generate_context(octa->sid, test_get_build_idx(octa->comp_id), camera);
-        vaidx_t vaoidx = gfx_vertex_array_create();
-        desc->vaoidx = vaoidx;
-
-
-        uint32 num_objects = test_obj_comp_desc_get_total_object_count(octa->comp_id);
-        uint32 obj_vertex_count = test_get_obj_vertex_count(octa->comp_id);
-
-        const uint32 stride = desc->vshader_attribs_stride;
-        const vbidx_t vbidx = gfx_vertex_buffer_create(octa->sid, num_objects*obj_vertex_count*stride*SIZE_F32, stride);
-        struct vertex_buffer_object* vb = vertex_buffer_get_vbo(vbidx);
-        uint8 num_vpos = shaderinfo_flag_to_numelems(SID_VPOSI3);
-        octa->attrib_data = gfx_vertex_buffer_set_data(octa->comp_id, obj_vertex_count, num_objects, num_vpos, octa->num_faces*octa->verts_per_face*num_vpos, octahedron_vertices);
-        // cube->attrib_data = gfx_vertex_buffer_set_data(cube->comp_id, obj_vertex_count, num_objects, num_vpos, FACES_PER_OCTAHEDRON * VERTICES_PER_TRI * VERTEX_POS3*num_vpos, octahedron_vertices);
-
-        gl_bind_buffer(OPENGL_ARRAY_BUFFER, vb->vbo);
-        shader_attributes_enable(desc->vshader_attrib_locations_count, desc->vshader_attribs_stride, desc->last_loc_num_elems);
-        opengl_debug_attributes_in(desc->vshader_attrib_locations_count);
-
-        struct opengl_program* prog = opengl_program_get_program_byidx(desc->build_idx);
-        struct vertex_array_object* va = gfx_vertex_array_get_byidx(desc->vaoidx);
-        uint32 total_vertex_count = test_obj_comp_desc_get_total_vertex_count(octa->comp_id);
-        renderer_renderqueue_add(prog->program, desc->build_idx, va->vao, va->idx, vb->vbo, vb->idx);
-
-        gfx_vertex_buffer_update_data(vb->idx);
-
-        gl_use_program(prog->program);
-        gl_bind_vertex_array(va->vao);
-        GLint mvp_location = gl_get_uniform_location(prog->program, "projection_matrix");
-        glUniformMatrix4fv(mvp_location, 1, camera.is_column_major, (float*)camera.projection_matrix.projection_matrix);
-
-        debug_opengl(prog, va, vb, total_vertex_count, desc->vshader_attribs_stride);
-        temp_print_builds();
-
-        gl_bind_vertex_array(0x0);
-        gl_use_program(0x0);
-}
-
-void test_create_dodecahedron(struct camera camera, float wpos[3], float scale[2], float rot[2], float color[4])
-{
-    wpos[0]=0; wpos[1]=0; wpos[2]=-4; scale[0]=1; scale[1]=1;
-    struct object* rect = object_create_dodecahedron((struct gfx_sid){0, 0, 0, 0, 0}, wpos, scale, rot, color);
-
-
-    struct opengl_program* prog = NULL;
-    struct vertex_buffer_object* vb = NULL;
-    
-    struct shader_descriptor* desc = gfx_generate_context(rect->sid, test_get_build_idx(rect->comp_id), camera);
-    
-    
-    
-    if(desc->is_set) {
-        
-    } else {
-        
+    for(uint32 i = 0; i < num_objects; i++) {
+        wpos[0]=(i*3.f)-5.0f; wpos[2]=-14; scale[0]=1; scale[1]=1;
+        quad = object_create_rectangle((struct gfx_sid){0, 0, 0, 0, 0}, wpos, scale, rot, color);
     }
-    
-    vaidx_t vaoidx = gfx_vertex_array_create();
-    desc->vaoidx = vaoidx;
 
-    uint32 num_objects = test_obj_comp_desc_get_total_object_count(rect->comp_id);
-    uint32 obj_vertex_count = test_get_obj_vertex_count(rect->comp_id);
+    return quad;
 
-    const uint32 stride = desc->vshader_attribs_stride;
-    const vbidx_t vbidx = gfx_vertex_buffer_create(rect->sid, num_objects*obj_vertex_count*stride*SIZE_F32, stride);
-    vb = vertex_buffer_get_vbo(vbidx);
-    uint8 num_vpos = shaderinfo_flag_to_numelems(SID_VPOSI3);
-    mesh_build_dodecahedron();
-    rect->attrib_data = gfx_vertex_buffer_set_data(rect->comp_id, obj_vertex_count, num_objects, num_vpos, rect->num_faces*rect->verts_per_face*num_vpos, dodecahedron_vertices);
-
-    gl_bind_buffer(OPENGL_ARRAY_BUFFER, vb->vbo);
-    shader_attributes_enable(desc->vshader_attrib_locations_count, desc->vshader_attribs_stride, desc->last_loc_num_elems);
-    opengl_debug_attributes_in(desc->vshader_attrib_locations_count);
-
-    prog = opengl_program_get_program_byidx(desc->build_idx);
-    struct vertex_array_object* va = gfx_vertex_array_get_byidx(desc->vaoidx);
-    uint32 total_vertex_count = test_obj_comp_desc_get_total_vertex_count(rect->comp_id);
-    renderer_renderqueue_add(prog->program, desc->build_idx, va->vao, va->idx, vb->vbo, vb->idx);
-
-    gfx_vertex_buffer_update_data(vb->idx);
-
-    gl_use_program(prog->program);
-    gl_bind_vertex_array(va->vao);
-    GLint mvp_location = gl_get_uniform_location(prog->program, "projection_matrix");
-    glUniformMatrix4fv(mvp_location, 1, camera.is_column_major, (float*)camera.projection_matrix.projection_matrix);
-
-    debug_opengl(prog, va, vb, total_vertex_count, desc->vshader_attribs_stride);
-    temp_print_builds();
-
-    gl_bind_vertex_array(0x0);
-    gl_use_program(0x0);
 }
 
+struct object* test_create_pentagon(const uint32 num_objects, float wpos[3], float scale[2], float rot[2], float color[4])
+{
+    wpos[0]=0; wpos[1]=0; wpos[2]=-4; wpos[2]=-14; scale[0]=1; scale[1]=1;
+    struct object* obj = object_create_pentagon((struct gfx_sid){0, 0, 0, 0, 0}, wpos, scale, rot, color);
+
+    return obj;
+}
+
+struct object* test_create_octagon(const uint32 num_objects, float wpos[3], float scale[2], float rot[2], float color[4])
+{
+    wpos[2]=-14; scale[0]=1; scale[1]=1;
+    struct object* obj = object_create_octagon((struct gfx_sid){0, 0, 0, 0, 0}, wpos, scale, rot, color);
+
+    return obj;
+}
+
+struct object* test_create_cube(const uint32 num_objects, float wpos[3], float scale[2], float rot[2], float color[4])
+{
+    wpos[2]=-14; scale[0]=1; scale[1]=1; color[1]=.2; color[2]=.9;
+    struct object* obj = object_create_cube((struct gfx_sid){0, 0, 0, 0, 0}, wpos, scale, rot, color);
+
+    return obj;
+}
+
+struct object* test_create_octahedron(const uint32 num_objects, float wpos[3], float scale[2], float rot[2], float color[4])
+{
+    wpos[2]=-14;  scale[0]=1; scale[1]=1; color[0]=.6; color[1]=.2; color[2]=.9;
+    struct object* obj = object_create_octahedron((struct gfx_sid){0, 0, 0, 0, 0}, wpos, scale, rot, color);
+
+    return obj;
+}
+
+struct object* test_create_dodecahedron(const uint32 num_objects, float wpos[3], float scale[2], float rot[2], float color[4])
+{
+    wpos[0]=0; wpos[1]=0; wpos[2]=-4; scale[0]=1; scale[1]=1;
+    struct object* obj = object_create_dodecahedron((struct gfx_sid){0, 0, 0, 0, 0}, wpos, scale, rot, color);
+
+    return obj;
+}
+
+
+void test_create_object(const uint16 comp_idx, const uint32 num_objects, const uint32 num_vertices, enum MESH_TYPE mesh_type, struct camera* camera)
+{
+    struct object_components_descriptor* comp_desc =  test_get_comp_desc(comp_idx);
+
+    struct cmd_gfx_params gfx_params = {
+        .sid_idx = comp_desc->sid_idx,
+        .comp_idx = comp_idx,
+        .build_idx = comp_desc->build_idx,
+        .desc_idx = INT_NULL,
+        .vpos_num_elems = mesh_get_vpos_num_elems(mesh_type),
+        .camera = *camera,
+        .mesh_data = mesh_get_mesh_from_type(mesh_type),
+    };
+
+    cmd_add_command((void*)command_create_shader_program, &gfx_params, sizeof(struct cmd_gfx_params));
+
+    gfx_params.desc_idx =  test_get_comp_desc(comp_idx)->build_idx;
+    cmd_add_command((void*)command_create_vao, &gfx_params, sizeof(struct cmd_gfx_params));
+    cmd_add_command((void*)command_set_camera, &gfx_params, sizeof(struct cmd_gfx_params));
+
+    struct command_render_queue_params rq_params = {.comp_idx = comp_idx, .vertex_count = num_objects*num_vertices};
+    cmd_add_command((void*) render_queue_add_draw_count, &rq_params, sizeof(struct command_render_queue_params));
+
+}
 
 int
 main(void)
@@ -528,6 +306,8 @@ main(void)
     sparse_arr_init_table(64);
     shader_descriptor_init();
     shader_builder_init();
+    timer_init_table();
+
 
     scene_init();
 
@@ -581,59 +361,62 @@ main(void)
     opengl_debug_init();
 
 
-    float wpos[3] = {0, 0,-40}, rot[2] = {cos(0.0),sin(.0)}, scale[2] = {4,4}, color[4] = {.2,.5,.9,1};
+    float wpos[3] = {-3, 3,-40}, rot[2] = {cos(0.0),sin(.0)}, scale[2] = {4,4}, color[4] = {.2,.5,.9,1};
 
-    /// render triangles
-    wpos[1] = 3;
-    struct object* tri = test_create_triangles(3, camera, wpos, scale, rot, color);
-    wpos[1] = 0;
-    test_create_triangles(3, camera, wpos, scale, rot, color);
+    struct object* tri = test_create_triangles(1, wpos, scale, rot, color);
+    test_create_object(tri->comp_id, 1, VERTICES_PER_TRI, MESH_TRIANGLE, &camera);
 
-    /// render quads
-    // test_create_quads(camera, wpos, scale, rot, color);
+    // wpos[0] = 3;
+    // struct object* quad = test_create_quads(1, wpos, scale, rot, color);
+    // test_create_object(quad->comp_id, 1, VERTICES_PER_QUAD, MESH_RECTANGLE, &camera);
 
-    /// render pentagons
-    // test_create_pentagon(camera, wpos, scale, rot, color);
+    wpos[0] = 0;
+    struct object* penta = test_create_pentagon(1, wpos, scale, rot, color);
+    test_create_object(penta->comp_id, 1, VERTICES_PER_PENTAGON, MESH_PENTAGON, &camera);
 
-    /// render octagons
-    // test_create_octagon(camera, wpos, scale, rot, color);
+    // wpos[0] = 0;
+    // struct object* octa = test_create_octagon(1, wpos, scale, rot, color);
+    // test_create_object(octa->comp_id, 1, VERTICES_PER_OCTAGON, MESH_OCTAGON, &camera);
 
-    /// render cubes
-    // test_create_cube(camera, wpos, scale, rot, color);
+    // wpos[0] = -3;
+    // struct object* cube = test_create_cube(1, wpos, scale, rot, color);
+    // test_create_object(cube->comp_id, 1, VERTICES_PER_CUBE, MESH_CUBE, &camera);
 
-    /// render octahedrons
-    // test_create_octahedron(camera, wpos, scale, rot, color);
+    // wpos[0] = 0;
+    // struct object* octahedron = test_create_octahedron(1, wpos, scale, rot, color);
+    // test_create_object(octahedron->comp_id, 1, VERTICES_PER_OCTAHEDRON, MESH_OCTAHEDRON, &camera);
 
-    /// render octahedrons
-    // test_create_dodecahedron(camera, wpos, scale, rot, color);
-
-    uint32 num_objects = test_obj_comp_desc_get_total_object_count(tri->comp_id);
-    uint32 obj_vertex_count = test_get_obj_vertex_count(tri->comp_id);
-    uint32 total_vertex_count = test_get_total_vertex_count(tri->comp_id);
-    //
-    // // HERE: we always send the total object count and vertices from the components group
-    uint8 num_vpos = shaderinfo_flag_to_numelems(SID_VPOSI2);
-    tri->attrib_data = gfx_vertex_buffer_set_data(tri->comp_id, obj_vertex_count, num_objects, num_vpos, tri->num_faces*tri->verts_per_face*num_vpos, quad_vertices);
-
-    uint32 rqidx = 0;
-    render_queue_add_draw_count(rqidx, total_vertex_count);
+    // wpos[0] = 0;
+    // mesh_build_dodecahedron();
+    // struct object* dodecahedron = test_create_dodecahedron(1, wpos, scale, rot, color);
+    // test_create_object(dodecahedron->comp_id, 1, VERTICES_PER_DODECAHEDRON, MESH_DODECAHEDRON, &camera);
 
 
-    struct opengl_program* prog = shader_program_get(0);
-    struct vertex_array_object* va = gfx_vertex_array_get_byidx(0);
-    struct vertex_buffer_object* vb = vertex_buffer_get_vbo(0);
-    gl_bind_buffer(GL_ARRAY_BUFFER, vb->vbo);
-    gfx_vertex_buffer_update_data(vb->idx);
-    struct shader_descriptor* desc = shader_descriptor_get(0);
+    /// DEBUG OPENGL
+    {
+    // GL_CHECK();
+    //     struct shader_descriptor* desc = shader_descriptor_get(0);
+    //     uint32 total_vertex_count = test_get_total_vertex_count(0);
+    //     struct opengl_program* prog = shader_program_get(0);
+    //     struct vertex_array_object* va = gfx_vertex_array_get_byidx(0);
+    //     struct vertex_buffer_object* vb = vertex_buffer_get_vbo(0);
+    //     debug_opengl(prog, va, vb, total_vertex_count, desc->vshader_attribs_stride);
+    // GL_CHECK();
+    }
 
-    debug_opengl(prog, va, vb, total_vertex_count, desc->vshader_attribs_stride);
-    // // debug_opengl(prog, va, vb, total_vertex_count, desc->vshader_attribs_stride);
+
     temp_print_builds();
-
     obj_comp_group_print();
 
-    run();
+    struct timer* loop_timer = timer_create_perf_timer();
 
+
+    /* RUN APP */
+    run(loop_timer);
+
+
+
+    /* CLOSE APP */
     sparse_arr_destroy_table();
     shader_builder_destroy();
     memman_terminate();

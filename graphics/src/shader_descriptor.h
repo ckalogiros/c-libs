@@ -33,7 +33,7 @@ struct vertex_layout {
     uint8 size;
     uint8 type;
     int8 loc_offset; // attributes's offset of shader's location
-    int8 offset; // attributes's offset from the start
+    int8 offset;     // attributes's offset from the start
     vlayout_t idx;
     uint8 attr_idx;
 };
@@ -93,8 +93,9 @@ struct shader_descriptor {
     vaidx_t vaoidx; // TODO: Maybe many VAO's for a shader program(???)
     bool is_set; // A build maybe created but not set(shader_builder_build())
 
-    struct gfx_sid sid;
-    struct shader_in_variables_struct entry[SHADER_INPUT_ENTRIES_MAX_COUNT];
+    // struct gfx_sid sid;
+    sididx_t sid_idx;
+    struct shader_in_variables_struct entries[SHADER_INPUT_ENTRIES_MAX_COUNT];
     struct vertex_layout v_layout[SHADER_INPUT_ENTRIES_MAX_COUNT];
     struct vertex_attribute_ids vertex_attribute_ids; // TODO: use sparse array for dynamicaly sized buffer
 
@@ -112,7 +113,7 @@ uint32 shader_descriptor_get_count(void);
 
 void shader_descriptor_init(void);
 
-build_t shader_descriptor_create(struct gfx_sid sid);
+build_t shader_descriptor_create(const sididx_t sid_idx);
 
 void shader_descriptor_create_vertex_layout(const desc_t desc_idx, struct vertex_layout attribs_desc);
 
@@ -125,6 +126,8 @@ uint8 shader_attrib_id_get(const desc_t desc_idx, const enum SID_ID idx);
 uint8 shader_attrib_get_offset(const desc_t desc_idx, const enum SID_ID idx);
 
 uint8 shader_attrib_get_stride(const desc_t desc_idx);
+
+sididx_t shader_dscriptor_get_sid(const desc_t desc_idx);
 
 
 uint32 shader_descriptor_vertex_layout_set(const desc_t desc_idx, struct vertex_layout attribs_desc[], const uint32 count);

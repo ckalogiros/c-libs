@@ -9,7 +9,7 @@
 
 
 typedef int8 build_t; // shader build/shader program
-typedef int8 desc_t;  // descriptor of shader build/shader program
+typedef build_t desc_t;  // descriptor of shader build/shader program
 typedef int8 vlayout_t;
 typedef int8 vaidx_t;
 typedef int8 vbidx_t;
@@ -17,6 +17,41 @@ typedef int8 ibidx_t;
 typedef int8 tbidx_t;
 
 
-uint32 gfx_vertex_buffer_find_match(const struct gfx_sid sid);
+struct gfx_sid gfx_get_sid(const sididx_t sid_idx);
+sididx_t gfx_create_sid(struct gfx_sid sid);
+// void gfx_set_sid(struct gfx_sid sid);
+
+static bool
+sid_check_match(const sididx_t sid_idx1, const sididx_t sid_idx2)
+{
+    struct gfx_sid sid1 = gfx_get_sid(sid_idx1);
+    struct gfx_sid sid2 = gfx_get_sid(sid_idx2);
+    if(sid1.attr == sid2.attr &&
+       sid1.unif == sid2.unif &&
+       sid1.pass == sid2.pass) {
+        return TRUE;
+       }
+
+    return FALSE;
+}
+
+//
+// static bool
+// sid_copy(const sididx_t dst_sid_idx1, const sididx_t dst_sid_idx2)
+// {
+//     struct gfx_sid dst = gfx_get_sid(dst_sid_idx1);
+//     struct gfx_sid src = gfx_get_sid(src_sid_idx2);
+//     dst->attr = src.attr;
+//     dst->unif = src.unif;
+//     dst->out  = src.out;
+//     dst->pass = src.pass;
+//     dst->oper = src.oper;
+// }
+
+
+
+vaidx_t gfx_vertex_array_find_match(const sididx_t sid_idx, const bool attrib_devisor);
+
+vbidx_t gfx_vertex_buffer_find_match(const sididx_t sid_idx);
 
 #endif //GRAPHICS_TEST_GFX_INTERFACE_H

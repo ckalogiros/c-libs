@@ -19,10 +19,12 @@ register_module(
             ${CMAKE_CURRENT_LIST_DIR}/run.c
             ${CMAKE_CURRENT_LIST_DIR}/test.c
             ${CMAKE_CURRENT_LIST_DIR}/object.c
+            ${CMAKE_CURRENT_LIST_DIR}/command.c
         headers
             ${CMAKE_CURRENT_LIST_DIR}/run.h
             ${CMAKE_CURRENT_LIST_DIR}/mesh.h
             ${CMAKE_CURRENT_LIST_DIR}/object.h
+            ${CMAKE_CURRENT_LIST_DIR}/command.h
             ${CMAKE_CURRENT_LIST_DIR}/test.h
         include_dirs
             ${CMAKE_CURRENT_LIST_DIR}
@@ -30,6 +32,8 @@ register_module(
         ENABLE_DEBUG=1
         VERSION_MAJOR=0
 )
+
+#sdsdsd
 
 
 
@@ -44,6 +48,7 @@ include_project(${root_path}/memory/src/mem_log)
 include_project(${root_path}/allocators/slab_array/src)
 include_project(${root_path}/allocators/slab_array/log)
 include_project(${root_path}/allocators/stack/src)
+include_project(${root_path}/allocators/queue/src)
 include_project(${root_path}/containers/sparse_array/src)
 include_project(${root_path}/containers/sparse_array/log)
 include_project(${root_path}/containers/string/src)

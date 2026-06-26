@@ -9,7 +9,7 @@
 
 
 
-#define SCREEN_RES_X 1000
+#define SCREEN_RES_X 600
 #define SCREEN_RES_Y 500
 
 

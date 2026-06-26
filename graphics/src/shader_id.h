@@ -3,15 +3,13 @@
  */
 #ifndef GRAPHICS_TEST_SHADER_ID_H
 #define GRAPHICS_TEST_SHADER_ID_H
+#include <assert.h>
 #include "my_types.h"
-
 
 
 #define SHADER_MAX_LOCATION_SIZE 4
 #define SHADER_DEVISOR_PER_VERTEX 0
 #define SHADER_DEVISOR_INSTANCED 1
-
-
 
 
 /***************************************************************************************************
@@ -42,6 +40,7 @@
 #define SID_NORMA3 BIT_MASK_FROM_UINT(14)
 #define SID_COLOR4 BIT_MASK_FROM_UINT(15)
 #define SID_PROJMAT4X4 BIT_MASK_FROM_UINT(16)
+#define SID_DIF BIT_MASK_FROM_UINT(17)
 
 enum SID_ID {
     // SID_NULL_=0,
@@ -66,8 +65,8 @@ enum SID_ID {
 };
 
 
-
 typedef uint64 sid_t;
+typedef uint16 sididx_t;
 
 /// TODO: unite some flags into one
 struct gfx_sid {
@@ -78,32 +77,238 @@ struct gfx_sid {
     sid_t oper;
 };
 
-static bool
-sid_check_match(struct gfx_sid sid1, struct gfx_sid sid2)
+//
+// static bool
+// sid_check_match(const sididx_t sid_idx1, const sididx_t sid_idx2)
+// {
+//     struct gfx_sid sid1 = gfx_get_sid(sid_idx1);
+//     struct gfx_sid sid2 = gfx_get_sid(sid_idx2);
+//     if(sid1.attr == sid2.attr &&
+//        sid1.unif == sid2.unif &&
+//        sid1.pass == sid2.pass) {
+//         return TRUE;
+//     }
+//
+//     return FALSE;
+// }
+//
+//
+// static bool
+// sid_copy(struct gfx_sid* dst, struct gfx_sid src)
+// {
+//     dst->attr = src.attr;
+//     dst->unif = src.unif;
+//     dst->out  = src.out;
+//     dst->pass = src.pass;
+//     dst->oper = src.oper;
+// }
+
+
+static const char*
+shaderinfo_flag_to_flagname(const sid_t sid_flag)
 {
-    if(sid1.attr == sid2.attr &&
-       sid1.unif == sid2.unif &&
-       sid1.pass == sid2.pass) {
-        return TRUE;
+    if(sid_flag & SID_OPACIT) return "OPACIT";
+    if(sid_flag & SID_VPOSI2) return "VPOSI2";
+    if(sid_flag & SID_WPOSI2) return "WPOSI2";
+    if(sid_flag & SID_SCALE2) return "SCALE2";
+    if(sid_flag & SID_ROTAT2) return "ROTAT2";
+    if(sid_flag & SID_PIVOT2) return "PIVOT2";
+    if(sid_flag & SID_UVCOO2) return "UVCOO2";
+    if(sid_flag & SID_VPOSI3) return "VPOSI3";
+    if(sid_flag & SID_WPOSI3) return "WPOSI3";
+    if(sid_flag & SID_SCALE3) return "SCALE3";
+    if(sid_flag & SID_ROTAT3) return "ROTAT3";
+    if(sid_flag & SID_PIVOT3) return "PIVOT3";
+    if(sid_flag & SID_COLOR3) return "COLOR3";
+    if(sid_flag & SID_NORMA3) return "NORMA3";
+    if(sid_flag & SID_COLOR4) return "COLOR4";
+    if(sid_flag & SID_PROJMAT4X4) return "PROJMAT4X4";
+    return "NULL";
+}
+
+
+static const char*
+shaderinfo_id_to_flagname(const enum SID_ID type)
+{
+    switch(type) {
+        // case SID_NULL_:   return "";
+        case SID_OPACIT_IDI: return "OPACIT";
+        case SID_VPOSI2_IDI: return "VPOSI2";
+        case SID_WPOSI2_IDI: return "WPOSI2";
+        case SID_SCALE2_IDI: return "SCALE2";
+        case SID_ROTAT2_IDI: return "ROTAT2";
+        case SID_PIVOT2_IDI: return "PIVOT2";
+        case SID_UVCOO2_IDI: return "UVCOO2";
+        case SID_VPOSI3_IDI: return "VPOSI3";
+        case SID_WPOSI3_IDI: return "WPOSI3";
+        case SID_SCALE3_IDI: return "SCALE3";
+        case SID_ROTAT3_IDI: return "ROTAT3";
+        case SID_PIVOT3_IDI: return "PIVOT3";
+        case SID_COLOR3_IDI: return "COLOR3";
+        case SID_COLOR4_IDI: return "NORMA3";
+        case SID_PROJMAT4X4_IDI: return "PROJMAT4X4";
+        default: return "NONE";
+    }
+}
+
+static sid_t
+shaderinfo_id_to_flag(const enum SID_ID type)
+{
+    switch(type) {
+        // case SID_NULL_:   return "";
+        case SID_OPACIT_IDI: return SID_OPACIT;
+        case SID_VPOSI2_IDI: return SID_VPOSI2;
+        case SID_WPOSI2_IDI: return SID_WPOSI2;
+        case SID_SCALE2_IDI: return SID_SCALE2;
+        case SID_ROTAT2_IDI: return SID_ROTAT2;
+        case SID_PIVOT2_IDI: return SID_PIVOT2;
+        case SID_UVCOO2_IDI: return SID_UVCOO2;
+        case SID_VPOSI3_IDI: return SID_VPOSI3;
+        case SID_WPOSI3_IDI: return SID_WPOSI3;
+        case SID_SCALE3_IDI: return SID_SCALE3;
+        case SID_ROTAT3_IDI: return SID_ROTAT3;
+        case SID_PIVOT3_IDI: return SID_PIVOT3;
+        case SID_COLOR3_IDI: return SID_COLOR3;
+        case SID_NORMA3_IDI: return SID_NORMA3;
+        case SID_COLOR4_IDI: return SID_COLOR4;
+        case SID_PROJMAT4X4_IDI: return SID_PROJMAT4X4;
+        default: return SID_NULL;
+    }
+}
+
+static enum SID_ID
+shaderinfo_flag_to_id(const sid_t sid_flag)
+{
+    if(sid_flag & SID_OPACIT) return SID_OPACIT_IDI;
+    if(sid_flag & SID_VPOSI2) return SID_VPOSI2_IDI;
+    if(sid_flag & SID_WPOSI2) return SID_WPOSI2_IDI;
+    if(sid_flag & SID_SCALE2) return SID_SCALE2_IDI;
+    if(sid_flag & SID_ROTAT2) return SID_ROTAT2_IDI;
+    if(sid_flag & SID_PIVOT2) return SID_PIVOT2_IDI;
+    if(sid_flag & SID_UVCOO2) return SID_UVCOO2_IDI;
+    if(sid_flag & SID_VPOSI3) return SID_VPOSI3_IDI;
+    if(sid_flag & SID_WPOSI3) return SID_WPOSI3_IDI;
+    if(sid_flag & SID_SCALE3) return SID_SCALE3_IDI;
+    if(sid_flag & SID_ROTAT3) return SID_ROTAT3_IDI;
+    if(sid_flag & SID_PIVOT3) return SID_PIVOT3_IDI;
+    if(sid_flag & SID_COLOR3) return SID_COLOR3_IDI;
+    if(sid_flag & SID_NORMA3) return SID_NORMA3_IDI;
+    if(sid_flag & SID_COLOR4) return SID_COLOR4_IDI;
+    if(sid_flag & SID_PROJMAT4X4) return SID_PROJMAT4X4_IDI;
+    assert(1);
+    return INT_NULL;
+}
+
+static uint8
+shaderinfo_flag_to_numelems(const sid_t sid_flag)
+{
+    if(sid_flag & SID_OPACIT) return 1;
+    if(sid_flag & SID_VPOSI2) return 2;
+    if(sid_flag & SID_WPOSI2) return 2;
+    if(sid_flag & SID_SCALE2) return 2;
+    if(sid_flag & SID_ROTAT2) return 2;
+    if(sid_flag & SID_PIVOT2) return 2;
+    if(sid_flag & SID_UVCOO2) return 2;
+    if(sid_flag & SID_VPOSI3) return 3;
+    if(sid_flag & SID_WPOSI3) return 3;
+    if(sid_flag & SID_SCALE3) return 3;
+    if(sid_flag & SID_ROTAT3) return 3;
+    if(sid_flag & SID_PIVOT3) return 3;
+    if(sid_flag & SID_COLOR3) return 3;
+    if(sid_flag & SID_NORMA3) return 3;
+    if(sid_flag & SID_COLOR4) return 4;
+    if(sid_flag & SID_PROJMAT4X4) return 16;
+    assert(sid_flag > 0);
+}
+
+static uint8
+shaderinfo_id_to_numelems(const enum SID_ID type)
+{
+    switch(type) {
+        case SID_OPACIT_IDI: return 1;
+        case SID_VPOSI2_IDI: return 2;
+        case SID_WPOSI2_IDI: return 2;
+        case SID_SCALE2_IDI: return 2;
+        case SID_ROTAT2_IDI: return 2;
+        case SID_PIVOT2_IDI: return 2;
+        case SID_UVCOO2_IDI: return 2;
+        case SID_VPOSI3_IDI: return 3;
+        case SID_WPOSI3_IDI: return 3;
+        case SID_SCALE3_IDI: return 3;
+        case SID_ROTAT3_IDI: return 3;
+        case SID_PIVOT3_IDI: return 3;
+        case SID_COLOR3_IDI: return 3;
+        case SID_NORMA3_IDI: return 3;
+        case SID_COLOR4_IDI: return 4;
+        case SID_PROJMAT4X4_IDI: return 16;
+        default: assert(0 > 0);
     }
 
-    return FALSE;
 }
 
-
-static bool
-sid_copy(struct gfx_sid* dst, struct gfx_sid src)
+static const char*
+shaderinfo_type_to_glsltype_string(const enum TYPES_INDEXING type)
 {
-    dst->attr = src.attr;
-    dst->unif = src.unif;
-    dst->out  = src.out;
-    dst->pass = src.pass;
-    dst->oper = src.oper;
+    switch(type) {
+        case FLOAT:   return "float";
+        case INT64:   return "INT64";
+        case UINT64:  return "UINT64";
+        case UINT32:  return "int";
+        case INT32:   return "uint";
+        case UINT16:  return "uint16";
+        case INT16:   return "int16";
+        case INT8:    return "int8";
+        case UINT8:   return "uint8";
+        case VEC2F:   return "vec2";
+        case VEC3F:   return "vec3";
+        case VEC4F:   return "vec4";
+        case MAT2X2F: return "mat2";
+        case MAT3X3F: return "mat3";
+        case MAT4X4F: return "mat4";
+        default:      return "NONE";
+    }
 }
 
-struct gfx {
-    // TODO: sid is same for shader build or object group, so move it to object_group_descriptor and use a getter function
-    struct gfx_sid sid;
-};
+static uint8
+shaderinfo_type_to_numelems(const enum TYPES_INDEXING type)
+{
+    switch(type) {
+        case FLOAT:   return 1;
+        case INT64:   return 1;
+        case UINT64:  return 1;
+        case UINT32:  return 1;
+        case UINT16:  return 1;
+        case INT8:    return 1;
+        case UINT8:   return 1;
+        case VEC2F:   return 2;
+        case VEC3F:   return 3;
+        case VEC4F:   return 4;
+        case MAT2X2F: return 2 * 2;
+        case MAT3X3F: return 3 * 3;
+        case MAT4X4F: return 4 * 4;
+        default: assert(0 > 0);
+    }
+}
+
+static uint8
+shaderinfo_type_to_typesize(const enum TYPES_INDEXING type)
+{
+    switch(type) {
+        case FLOAT:   return SIZE_F32;
+        case INT64:   return SIZE_I64;
+        case UINT64:  return SIZE_I64;
+        case UINT32:  return SIZE_I32;
+        case UINT16:  return SIZE_I16;
+        case INT8:    return SIZE_I8;
+        case UINT8:   return SIZE_I8;
+        case VEC2F:   return SIZE_F32;
+        case VEC3F:   return SIZE_F32;
+        case VEC4F:   return SIZE_F32;
+        case MAT2X2F: return SIZE_F32;
+        case MAT3X3F: return SIZE_F32;
+        case MAT4X4F: return SIZE_F32;
+        default: assert(1);
+    }
+}
 
 #endif //GRAPHICS_TEST_SHADER_ID_H

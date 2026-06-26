@@ -6,6 +6,7 @@
 
 #include <assert.h>
 
+#include "command.h"
 #include "gfx_buffers.h"
 #include "logger.h"
 #include "mesh.h"
@@ -20,56 +21,38 @@
  * component col4   :4 elems, offset:5
  */
 
-#define MAX_COMPONENTS 32
 
-struct attribs_descriptor {
-    uint8 offset;
-    uint8 elems_count;
-};
-struct object_components_descriptor {
-    struct gfx_sid sid;
-    uint32 obj_count;
-    uint32 obj_vertex_count;   /// vertices of an object
-    uint32 total_vertex_count; /// vertices of all objects of a group
-    build_t build_idx;  ///
-    vaidx_t vaidx;      ///
-    vbidx_t vbidx;      ///
-    ibidx_t ibidx;      ///
-    tbidx_t tbidx;      ///
-    uint8 stride;       /// the size in elements of object's components
-    uint8 num_components; // the number of different components
-    struct attribs_descriptor attr_dsc[MAX_COMPONENTS];
-};
-struct object_components_group {
-    uint32 group_id;
-    struct object_components_descriptor comp_desc;
-    float data[1024]; // the actual components in contiguous float values
-};
 
 struct object_components_group object_components_buffer[32];
 uint32 index_count = 0;
 
 
-uint32 test_find_match(struct gfx_sid sid)
+uint32 test_component_group_find_match(const sididx_t sid_idx)
 {
     const uint32 count = index_count;
     for(build_t i = 0; i < count; i++) {
         struct object_components_descriptor comp_desc = object_components_buffer[i].comp_desc;
-        if(sid_check_match(comp_desc.sid, sid)) { return i; }
+        if(sid_check_match(comp_desc.sid_idx, sid_idx)) { return i; }
     }
 
-    uint32 group_id = test_create_new_buffer(sid);
+    uint32 group_id = test_create_new_components_buffer(sid_idx);
 
     return group_id;
 }
 
-uint32 test_create_new_buffer(struct gfx_sid sid)
+uint32 test_create_new_components_buffer(const sididx_t sid_idx)
 {
     uint32 idx = index_count;
     index_count++;
 
     object_components_buffer[idx].comp_desc.build_idx = idx;
-    object_components_buffer[idx].comp_desc.sid = sid;
+    // const sididx_t sid_idx = gfx_create_sid(sid);
+    object_components_buffer[idx].comp_desc.sid_idx = sid_idx;
+
+    /// ADD COMMAND: create vertex buffer
+    // struct vb_cmd_params params = { .vbidx = INT_NULL, .vpos = NULL, .vpos_flag = 0x0, };
+    // void* p = &params;
+    // cmd_add_command((void*)gfx_vertex_buffer_create, p, sizeof(struct vb_cmd_params));
 
     return idx;
 }
@@ -78,22 +61,23 @@ uint32 test_create_new_obj(const vbidx_t group_id)
     struct object_components_group* group = &object_components_buffer[group_id];
     const uint32 obj_comp_idx = group->comp_desc.obj_count;
     group->comp_desc.obj_count++;
-    group->comp_desc.total_vertex_count = group->comp_desc.obj_count * group->comp_desc.obj_vertex_count;
+    group->comp_desc.total_vertex_count = group->comp_desc.obj_count * group->comp_desc.obj_vertex_count; // TODO: should total vertices be calculated objects count * object vertices OR add each object vertices to total???
 
     return obj_comp_idx;
 }
 
 
-struct object_components_group* test_create_new_component(const vbidx_t group_id)
+struct object_components_group* test_get_component(const vbidx_t group_id)
 {
     struct object_components_group* group = &object_components_buffer[group_id];
     return group;
 }
 
-void test_add_comp(const vbidx_t group_id, const uint32 obj_idx, float* src, uint32 elems_count, uint32 offset, const char* debug_info)
+// HERE: The object for the first time a group is created must provide the desriptor for that group ONCE
+void test_add_comp(const vbidx_t group_id, const uint32 obj_idx, float* src, const uint32 elems_count, const uint32 offset, const sid_t comp_flag)
 {
-    print("%s- ADD COMPONENT: %s -%s\n",  YELLOW, debug_info, CLEAR);
-    struct object_components_group* group = test_create_new_component(group_id);
+    print("%s- ADD COMPONENT: %s -%s\n",  YELLOW, shaderinfo_flag_to_flagname(comp_flag), CLEAR);
+    struct object_components_group* group = test_get_component(group_id);
     const uint32 start = obj_idx * group->comp_desc.stride;
     float* buffer = &group->data[start];
     uint32 bidx = offset;
@@ -103,22 +87,26 @@ void test_add_comp(const vbidx_t group_id, const uint32 obj_idx, float* src, uin
     }
     print("\n");
 
-    const uint32 comp_idx = group->comp_desc.num_components;
-    assert(comp_idx < MAX_COMPONENTS);
-    // TODO: HERE offset and elems count is a description for the whole group, not for each object
-    group->comp_desc.attr_dsc[comp_idx].elems_count = elems_count;
-    group->comp_desc.attr_dsc[comp_idx].offset = offset;
-    group->comp_desc.num_components++;
+    /// add attribute's description (ONCE per attribute per group)
+    if((group->comp_desc.added_components_flag & comp_flag) == 0x0) {
+        const uint32 comp_idx = group->comp_desc.num_components;
+        assert(comp_idx < MAX_COMPONENTS);
+        group->comp_desc.added_components_flag |= comp_flag;
+        group->comp_desc.attr_dsc[comp_idx].elems_count = elems_count;
+        group->comp_desc.attr_dsc[comp_idx].offset = offset;
+        group->comp_desc.num_components++;
+    }
+
 
 }
 
 
 /* GETTERS-SETTERS */
-void test_set_build_idx(const vbidx_t group_id, build_t build_idx)
-{
-    struct object_components_group* group = &object_components_buffer[group_id];
-    group->comp_desc.build_idx = build_idx;
-}
+// void test_set_build_idx(const vbidx_t group_id, build_t build_idx)
+// {
+//     struct object_components_group* group = &object_components_buffer[group_id];
+//     group->comp_desc.build_idx = build_idx;
+// }
 void test_set_stride(const vbidx_t group_id, uint32 stride)
 {
     struct object_components_group* group = &object_components_buffer[group_id];
@@ -130,6 +118,10 @@ void test_set_obj_vertex_count(const vbidx_t group_id, uint32 obj_vertex_count)
     group->comp_desc.obj_vertex_count = obj_vertex_count;
 }
 
+struct object_components_descriptor* test_get_comp_desc(const vbidx_t group_id)
+{
+    return &object_components_buffer[group_id].comp_desc;
+}
 build_t test_get_build_idx(const vbidx_t group_id)
 {
     return object_components_buffer[group_id].comp_desc.build_idx;
@@ -166,16 +158,18 @@ void obj_comp_group_print()
     print("\n%s- OBJECT COMPONENTS GROUP -%s",  YELLOW, CLEAR);
     for(uint32 group_id = 0; group_id < index_count; group_id++) {
 
-        struct object_components_group* group = test_create_new_component(group_id);
+        struct object_components_group* group = test_get_component(group_id);
 
 
         print(
               "\n%s  obj_count:%u, "
               "  obj_vertex_count:%u, "
-              "  total_vertex_count:%u %s\n", CYAN,
+              "  total_vertex_count:%u, "
+              "  rqidx:%u %s", CYAN,
             group->comp_desc.obj_count,
             group->comp_desc.obj_vertex_count,
             group->comp_desc.total_vertex_count,
+            group->comp_desc.rqidx,
             CLEAR
             );
 
@@ -194,6 +188,7 @@ void obj_comp_group_print()
 
             offset += elems_count;
         }
+        print("\n");
     }
     print("\n\n");
 }
