@@ -11,7 +11,7 @@ align_pointer_to_type(const void* ptr, const typesize_t type_size)
 {
     assert(ptr);
 
-    const char* aligned = (char*)ALIGN(((uint64)ptr), type_size);
+    const char* aligned = (char*)ALIGN_SIZE(((uint64)ptr), type_size);
     if(aligned !=  ptr) { /* set(align) prev size to current type_size in the offsets table */
         const uint64 unaligned = (uint64)(aligned - (uint64)ptr);
         return unaligned;

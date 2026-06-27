@@ -13,6 +13,7 @@ set(root_path ${CLION_ROOT_DIR})
 
 # 2. add project's sub-directories
 add_subdirectory(src)
+add_subdirectory(fdebug)
 include(${cmake_utils})
 register_module(
         sources
@@ -49,6 +50,7 @@ include_project(${root_path}/allocators/slab_array/src)
 include_project(${root_path}/allocators/slab_array/log)
 include_project(${root_path}/allocators/stack/src)
 include_project(${root_path}/allocators/queue/src)
+include_project(${root_path}/allocators/arena/src)
 include_project(${root_path}/containers/sparse_array/src)
 include_project(${root_path}/containers/sparse_array/log)
 include_project(${root_path}/containers/string/src)

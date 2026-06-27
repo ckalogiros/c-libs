@@ -55,7 +55,7 @@ void
 slab_allocator_init(void)
 {
     if(!slab_allocator_table) {
-        const uint32 minsize = ALIGN(sizeof(struct slab_allocator_instance) * SLAB_ALLOCATOR_INSTANCE_INITIAL_COUNT, 64);
+        const uint32 minsize = ALIGN_SIZE(sizeof(struct slab_allocator_instance) * SLAB_ALLOCATOR_INSTANCE_INITIAL_COUNT, 64);
         slab_allocator_table = aligned_alloc(64, minsize);
 
     }
@@ -162,7 +162,7 @@ slab_allocator_create_mcache(const salltable_t inst_id, const slab_elems_t num_e
         /* if users "reserve_num_pages" is not sufficient size, create new size according to the calculated "slab_size"  */
         inst->reserve_num_pages =
             (inst->reserve_num_pages*PAGE_SIZE < slab_size) ?
-            ALIGN(slab_size, PAGE_SIZE)/ PAGE_SIZE: inst->reserve_num_pages;
+            ALIGN_SIZE(slab_size, PAGE_SIZE)/ PAGE_SIZE: inst->reserve_num_pages;
         pool_id = slab_allocator_instance_create_new_pool(inst_id, inst->reserve_num_pages, slab_size, name);
     }
 
@@ -250,7 +250,7 @@ mcache_extend_allocation(struct slab_allocator_mcache* const mcache, const uint3
     // TODO: HERE: IMPORTANT!: check alignment here OR at caller if the type is known
     /* check if the start of the new allocated address is in contiguity with last_slab_end */
     const uint32 typesize = mcache->slab_size / mcache->slabs_capacity;
-    const void* next_paged_aligned_address = (void*) ALIGN((uintptr_t)mcache->last_slab_end, (uintptr_t)mcache->type_size);
+    const void* next_paged_aligned_address = (void*) ALIGN_SIZE((uintptr_t)mcache->last_slab_end, (uintptr_t)mcache->type_size);
     const bool mem_is_contiguous = (next_paged_aligned_address == mcache->last_slab_end) ? TRUE : FALSE;
     if(!mem_is_contiguous)
         ptr = address;

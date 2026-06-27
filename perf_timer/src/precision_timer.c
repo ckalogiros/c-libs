@@ -84,7 +84,7 @@ timer_init_table(void)
         return;
     }
 
-    const uint32 minsize = ALIGN(sizeof(struct timer) * TIMER_TABLE_MIN_CAPACITY, TIMER_ALIGNMENT);
+    const uint32 minsize = ALIGN_SIZE(sizeof(struct timer) * TIMER_TABLE_MIN_CAPACITY, TIMER_ALIGNMENT);
     timer_table = aligned_alloc(TIMER_ALIGNMENT, minsize);
 
     /* initialize table, with empty timer objects */

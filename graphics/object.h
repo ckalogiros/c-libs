@@ -18,7 +18,7 @@ struct object {
     uint32 attrib_count;
     uint16 num_faces;
     uint16 comp_id;
-    uint8 verts_per_face;
+    uint8  verts_per_face;
 };
 
 

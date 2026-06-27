@@ -146,8 +146,8 @@ sparse_arr_init_table(const pageid_t num_pages)
 
 
     /* DEBUG-FPRINT */
-    fs_buffer = fs_create("buffer/buffer.txt");
-    fs_register_created_buffers = fs_create("buffer/register_created_buffers.txt");
+    fs_buffer = fs_create("Debug/buffer/buffer.txt");
+    fs_register_created_buffers = fs_create("Debug/buffer/register_created_buffers.txt");
 }
 
 void

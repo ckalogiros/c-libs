@@ -146,7 +146,7 @@ queue_allocator_alloc(const memid_t inst_id, const size_t size, const typesize_t
 {
     // assert(IS_POWER_OF_2(alignment)); // alignment value must be power of 2
     assert(queue_allocator_table);
-    const uint32 aligned_size = ALIGN(size, alignment);
+    const uint32 aligned_size = ALIGN_SIZE(size, alignment);
     struct queue_allocator_instance* instance = &queue_allocator_table[inst_id];
 
     /* get front pointer */

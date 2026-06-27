@@ -4,7 +4,7 @@
 #ifndef FILE_SYS_FILE_SYS_INTERFACE_H
 #define FILE_SYS_FILE_SYS_INTERFACE_H
 
-#define HOME_DIR "/home/ckalo/data/projects/clion/Debug/"
+#define HOME_DIR "/home/ckalo/data/projects/clion/"
 // #define HOME_DIR "/media/ckalo2/data/projects/clion/Debug/"
 #include "my_types.h"
 
@@ -20,9 +20,13 @@ void fs_write(const char* filename, const char* data);
 
 void fs_close(struct fs_t*, const char* caller_function);
 
+void fs_change_filename(struct fs_t* fs, const char* new_filename);
+
 void fs_read(const char* filename);
 
 void fs_append(struct fs_t* fs, const char* format, ...);
+
+void fs_reset(struct fs_t* fs);
 
 void fs_append_mem(struct fs_t* fs, const char* ptr, const uint64 size, const char* msg);
 

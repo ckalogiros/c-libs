@@ -110,7 +110,7 @@ stack_allocator_alloc(const memid_t inst_id, const size_t size, const typesize_t
 {
     assert(IS_POWER_OF_2(alignment)); // alignment value must be power of 2
     assert(stack_allocator_table);
-    const uint32 aligned_size = ALIGN(size, alignment);
+    const uint32 aligned_size = ALIGN_SIZE(size, alignment);
     struct stack_allocator_instance* instance = &stack_allocator_table[inst_id];
 
     /* get stack pointer */

@@ -41,3 +41,5 @@ It needs: set_for_push and then add/copy a new descriptor object.
 
 ### TODO: (SET VERTEX BUGGER)-(SET VERTEX BUFFER REGION)
     for copying data to the whole buffer and update specific region of a VB
+
+### TODO: PASS INDEXED/!INDEXED GEOMETRY to OBJECT/SHAPE CREATION (object.c)

@@ -5,6 +5,11 @@
 #define GRAPHICS_TEST_COMMAND_H
 #include "my_types.h"
 
+#define CMD_CREATE_SHADER_PROGRAM BIT_MASK_FROM_UINT(1)
+#define CMD_CREATE_VAO            BIT_MASK_FROM_UINT(2)
+#define CMD_SET_CAMERA_PROJ       BIT_MASK_FROM_UINT(3)
+#define CMD_ADD_RQ_DRAW_COUNT     BIT_MASK_FROM_UINT(4)
+
 struct command {
     void (*fn)(void*);
     void* params;

@@ -57,10 +57,12 @@
 #define ROUND_UP(val, limit) (((val) + (limit) - 1) & ~((limit) - 1))
 #define ROUND_DOWN(val, limit) (((val) & ~((limit) - 1)))
 
-#define ALIGN(size, alignment) (((size) + (alignment) - 1) & ~((alignment) - 1))
+#define ALIGN_SIZE(size, alignment) (((size) + (alignment) - 1) & ~((alignment) - 1))
+
+#define ALIGN_ADDR(address, alignment) ((void*)(((uintptr_t)(addr) + (alignment) - 1) & ~((uintptr_t)(alignment) - 1)))
 
 #define IS_POWER_OF_2(val) ((val) && (!((val) & ((val) - 1))))
 
-#define HACK_LIT_STR_TO_NUM(str, type) (*(type*)(str))
+#define HACK_LITERAL_STR_TO_NUM(str, type) (*(type*)(str))
 
 #endif // MY_MACROS_H

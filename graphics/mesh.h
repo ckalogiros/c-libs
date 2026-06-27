@@ -5,7 +5,6 @@
 #define GRAPHICS_TEST_MESH_H
 #include <assert.h>
 #include <math.h>
-
 #include "logger.h"
 #include "my_types.h"
 
@@ -47,14 +46,28 @@ static float triangle_vertices[VERTICES_PER_TRI*VERTEX_POS2] = {
      1, -1,
      1,  1,
 };
+// [4][12]: -1.0, -1.0,
+// [4][13]:  1.0,  1.0,
+// [4][14]: -1.0,  1.0,
+// [4][15]: -1.0, -1.0,
+// [4][16]:  1.0, -1.0,
+// [4][17]:  1.0,  1.0,
 static float quad_vertices[VERTICES_PER_QUAD*VERTEX_POS2] = {
-    -1, -1,
-     1, -1,
-     1,  1,
-    -1, -1,
-     1,  1,
-    -1,  1
+    -.91, -.91,
+     .92, -.92,
+     .93,  .931,
+    -.94, -.94,
+     .95,  .95,
+    -.96,  .96
 };
+// static float quad_vertices[VERTICES_PER_QUAD*VERTEX_POS2] = {
+//     -1, -1,
+//      1, -1,
+//      1,  1,
+//     -1, -1,
+//      1,  1,
+//     -1,  1
+// };
 static float cube_vertices[VERTICES_PER_CUBE*VERTEX_POS3] = {
     -1, -1, 1, /// FRONT
      1, -1, 1,

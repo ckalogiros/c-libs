@@ -10,7 +10,7 @@ int
 main(void)
 {
     // struct fs_t* fs = fs_create(TO_STRING(HOME_DIR/file_sys/debug.txt));
-    struct fs_t* fs = fs_create("/file_sys/debug.txt");
+    struct fs_t* fs = fs_create("file_sys/debug.txt");
 
     char buf1[LEN1] = "This is a test buffer";
     fs_append(fs, "buffer1:%x\n");
@@ -18,7 +18,8 @@ main(void)
 
     char buf2[LEN1] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
     fs_append(fs, "buffer2:%x\n");
-    fs_append_mem(fs, buf2, LEN1, "");
+    fs_append(fs, HOME_DIR);
+    fs_append_mem(fs, buf2, LEN1, "BUFFER2");
 
     return 0;
 }

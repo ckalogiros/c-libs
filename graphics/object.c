@@ -1,5 +1,9 @@
 /*
  * Created by ckalo on 6/11/26.
+ *
+ *
+ * TODO: PASS INDEXED/!INDEXED GEOMETRY to SHAPE CREATION
+ *
  */
 
 #include "object.h"
@@ -44,8 +48,8 @@ object_create(const sididx_t sid_idx)
 struct object*
 object_create_triangle(struct gfx_sid sid, float wpos[3], float scale[2], float rot[2], float color[4])
 {
-    // sid.attr |= SID_VPOSI2 | SID_SCALE2 | SID_COLOR4;
-    sid.attr |= SID_VPOSI2 | SID_SCALE2 | SID_COLOR4 | SID_DIF;
+    // sid.attr |= SID_VPOSI2 | SID_SCALE2 | SID_COLOR4 | SID_DIF;
+    sid.attr |= SID_VPOSI2 | SID_SCALE2 | SID_COLOR4;
     sid.unif |= SID_PROJMAT4X4;
     sid.out  |= SID_COLOR4;
     sid.pass |= SID_COLOR4;
@@ -62,12 +66,14 @@ object_create_triangle(struct gfx_sid sid, float wpos[3], float scale[2], float 
     uint32 attrib_offset = 0;
     sid_t sid_attr = 0x0;
 
-    obj->comp_id = test_component_group_find_match(sid_idx);
+    uint32 comp_group_id = test_component_group_find_match(sid_idx);
+    obj->comp_id = comp_group_id;
     test_set_obj_vertex_count(obj->comp_id, obj->num_faces * obj->verts_per_face);
-    const uint32 obj_comp_idx = test_create_new_obj(obj->comp_id);
+    const uint32 obj_comp_idx = test_create_new_obj(obj->comp_id, obj->num_faces * obj->verts_per_face, MESH_TRIANGLE);
 
 
-    shader_create_input(sid_idx, "VPOS2", VEC2F, SID_VPOSI2_IDI, IN_VSHADER | IS_ATTR  | IS_TRANSFORM_VPOS);
+    const build_t build_idx = shader_create_input(sid_idx, "VPOS2", VEC2F, SID_VPOSI2_IDI, IN_VSHADER | IS_ATTR  | IS_TRANSFORM_VPOS);
+    test_set_build_idx(comp_group_id, build_idx);
 
     {
         shader_create_input(sid_idx, "WPOS3", VEC3F, SID_WPOSI3_IDI, IN_VSHADER | IS_ATTR | IS_TRANSFORM_WPOS);
@@ -133,12 +139,13 @@ object_create_rectangle(struct gfx_sid sid, float wpos[3], float scale[2], float
     uint32 attrib_offset = 0;
     sid_t sid_attr = 0x0; /// attribute flag
 
-
-    obj->comp_id = test_component_group_find_match(sid_idx);
+    uint32 comp_group_id = test_component_group_find_match(sid_idx);
+    obj->comp_id = comp_group_id;
     test_set_obj_vertex_count(obj->comp_id, obj->num_faces * obj->verts_per_face);
-    const uint32 obj_comp_idx = test_create_new_obj(obj->comp_id);
+    const uint32 obj_comp_idx = test_create_new_obj(obj->comp_id, obj->num_faces * obj->verts_per_face, MESH_RECTANGLE);
 
-    shader_create_input(sid_idx, "VPOS2", VEC2F, SID_VPOSI2_IDI, IN_VSHADER | IS_ATTR  | IS_TRANSFORM_VPOS);
+    const build_t build_idx = shader_create_input(sid_idx, "VPOS2", VEC2F, SID_VPOSI2_IDI, IN_VSHADER | IS_ATTR  | IS_TRANSFORM_VPOS);
+    test_set_build_idx(comp_group_id, build_idx);
 
     {
         shader_create_input(sid_idx, "WPOS3", VEC3F, SID_WPOSI3_IDI, IN_VSHADER | IS_ATTR | IS_TRANSFORM_WPOS);
@@ -185,14 +192,13 @@ object_create_rectangle(struct gfx_sid sid, float wpos[3], float scale[2], float
     return obj;
 }
 
-
 struct object*
 object_create_pentagon(struct gfx_sid sid, float wpos[3], float scale[2], float rot[2], float color[4])
 {
-    sid.attr |= SID_VPOSI2 | SID_SCALE2 | SID_COLOR3;
+    sid.attr |= SID_VPOSI2 | SID_SCALE2 | SID_COLOR4;
     sid.unif |= SID_PROJMAT4X4;
-    sid.out  |= SID_COLOR3;
-    sid.pass |= SID_COLOR3;
+    sid.out  |= SID_COLOR4;
+    sid.pass |= SID_COLOR4;
     sid.oper |= SID_NULL;
 
     const sididx_t sid_idx = gfx_create_sid(sid);
@@ -207,12 +213,13 @@ object_create_pentagon(struct gfx_sid sid, float wpos[3], float scale[2], float 
     uint32 attrib_offset = 0;
     sid_t sid_attr = 0x0; /// attribute flag
 
-    obj->comp_id = test_component_group_find_match(sid_idx);
+    uint32 comp_group_id = test_component_group_find_match(sid_idx);
+    obj->comp_id = comp_group_id;
     test_set_obj_vertex_count(obj->comp_id, obj->num_faces * obj->verts_per_face);
-    const uint32 obj_comp_idx = test_create_new_obj(obj->comp_id);
+    const uint32 obj_comp_idx = test_create_new_obj(obj->comp_id, obj->num_faces * obj->verts_per_face, MESH_PENTAGON);
 
-
-    shader_create_input(sid_idx, "VPOS2", VEC2F, SID_VPOSI2_IDI, IN_VSHADER | IS_ATTR  | IS_TRANSFORM_VPOS);
+    const build_t build_idx = shader_create_input(sid_idx, "VPOS2", VEC2F, SID_VPOSI2_IDI, IN_VSHADER | IS_ATTR  | IS_TRANSFORM_VPOS);
+    test_set_build_idx(comp_group_id, build_idx);
 
     {
         shader_create_input(sid_idx, "WPOS3", VEC3F, SID_WPOSI3_IDI, IN_VSHADER | IS_ATTR | IS_TRANSFORM_WPOS);
@@ -262,10 +269,10 @@ object_create_pentagon(struct gfx_sid sid, float wpos[3], float scale[2], float 
 struct object*
 object_create_octagon(struct gfx_sid sid, float wpos[3], float scale[2], float rot[2], float color[4])
 {
-    sid.attr = sid.attr | (SID_VPOSI2 | SID_SCALE2 | SID_COLOR3);
+    sid.attr = sid.attr | SID_VPOSI2 | SID_SCALE2 | SID_COLOR4;
     sid.unif = sid.unif | SID_PROJMAT4X4;
-    sid.out  = sid.out  | SID_COLOR3;
-    sid.pass = sid.pass | SID_COLOR3;
+    sid.out  = sid.out  | SID_COLOR4;
+    sid.pass = sid.pass | SID_COLOR4;
     sid.oper = sid.oper | SID_NULL;
 
     const sididx_t sid_idx = gfx_create_sid(sid);
@@ -279,12 +286,13 @@ object_create_octagon(struct gfx_sid sid, float wpos[3], float scale[2], float r
     uint32 attrib_offset = 0;
     sid_t sid_attr = 0x0;
 
-    obj->comp_id = test_component_group_find_match(sid_idx);
+    uint32 comp_group_id = test_component_group_find_match(sid_idx);
+    obj->comp_id = comp_group_id;
     test_set_obj_vertex_count(obj->comp_id, obj->num_faces * obj->verts_per_face);
-    const uint32 obj_comp_idx = test_create_new_obj(obj->comp_id);
+    const uint32 obj_comp_idx = test_create_new_obj(obj->comp_id, obj->num_faces * obj->verts_per_face, MESH_OCTAGON);
 
-
-    shader_create_input(sid_idx, "VPOS2", VEC2F, SID_VPOSI2_IDI, IN_VSHADER | IS_ATTR  | IS_TRANSFORM_VPOS);
+    const build_t build_idx = shader_create_input(sid_idx, "VPOS2", VEC2F, SID_VPOSI2_IDI, IN_VSHADER | IS_ATTR  | IS_TRANSFORM_VPOS);
+    test_set_build_idx(comp_group_id, build_idx);
 
     {
         shader_create_input(sid_idx, "WPOS3", VEC3F, SID_WPOSI3_IDI, IN_VSHADER | IS_ATTR | IS_TRANSFORM_WPOS);
@@ -334,10 +342,10 @@ object_create_octagon(struct gfx_sid sid, float wpos[3], float scale[2], float r
 struct object*
 object_create_cube(struct gfx_sid sid, float wpos[3], float scale[2], float rot[2], float color[4])
 {
-    sid.attr |= (SID_VPOSI3 | SID_SCALE2 | SID_COLOR3);
+    sid.attr |= SID_VPOSI3 | SID_SCALE2 | SID_COLOR4;
     sid.unif |= SID_PROJMAT4X4;
-    sid.out  |= SID_COLOR3;
-    sid.pass |= SID_COLOR3;
+    sid.out  |= SID_COLOR4;
+    sid.pass |= SID_COLOR4;
     sid.oper |= SID_NULL;
 
     const sididx_t sid_idx = gfx_create_sid(sid);
@@ -351,11 +359,13 @@ object_create_cube(struct gfx_sid sid, float wpos[3], float scale[2], float rot[
     uint32 attrib_offset = 0;
     sid_t sid_attr = 0x0;
 
-    obj->comp_id = test_component_group_find_match(sid_idx);
+    uint32 comp_group_id = test_component_group_find_match(sid_idx);
+    obj->comp_id = comp_group_id;
     test_set_obj_vertex_count(obj->comp_id, obj->num_faces * obj->verts_per_face);
-    const uint32 obj_comp_idx = test_create_new_obj(obj->comp_id);
+    const uint32 obj_comp_idx = test_create_new_obj(obj->comp_id, obj->num_faces * obj->verts_per_face, MESH_CUBE);
 
-    shader_create_input(sid_idx, "VPOS3", VEC3F, SID_VPOSI3_IDI, IN_VSHADER | IS_ATTR | IS_TRANSFORM_VPOS);
+    const build_t build_idx = shader_create_input(sid_idx, "VPOS3", VEC3F, SID_VPOSI3_IDI, IN_VSHADER | IS_ATTR | IS_TRANSFORM_VPOS);
+    test_set_build_idx(comp_group_id, build_idx);
 
     {
         shader_create_input(sid_idx, "WPOS3", VEC3F, SID_WPOSI3_IDI, IN_VSHADER | IS_ATTR | IS_TRANSFORM_WPOS);
@@ -405,10 +415,10 @@ object_create_cube(struct gfx_sid sid, float wpos[3], float scale[2], float rot[
 struct object*
 object_create_octahedron(struct gfx_sid sid, float wpos[3], float scale[2], float rot[2], float color[4])
 {
-    sid.attr |= SID_VPOSI3 | SID_SCALE2 | SID_COLOR3;
+    sid.attr |= SID_VPOSI3 | SID_SCALE2 | SID_COLOR4;
     sid.unif |= SID_PROJMAT4X4;
-    sid.out  |= SID_COLOR3;
-    sid.pass |= SID_COLOR3;
+    sid.out  |= SID_COLOR4;
+    sid.pass |= SID_COLOR4;
     sid.oper |= SID_NULL;
 
     const sididx_t sid_idx = gfx_create_sid(sid);
@@ -422,11 +432,13 @@ object_create_octahedron(struct gfx_sid sid, float wpos[3], float scale[2], floa
     uint32 attrib_offset = 0;
     sid_t sid_attr = 0x0;
 
-    obj->comp_id = test_component_group_find_match(sid_idx);
+    uint32 comp_group_id = test_component_group_find_match(sid_idx);
+    obj->comp_id = comp_group_id;
     test_set_obj_vertex_count(obj->comp_id, obj->num_faces * obj->verts_per_face);
-    const uint32 obj_comp_idx = test_create_new_obj(obj->comp_id);
+    const uint32 obj_comp_idx = test_create_new_obj(obj->comp_id, obj->num_faces * obj->verts_per_face, MESH_OCTAHEDRON);
 
-    shader_create_input(sid_idx, "VPOS3", VEC3F, SID_VPOSI3_IDI, IN_VSHADER | IS_ATTR | IS_TRANSFORM_VPOS);
+    const build_t build_idx = shader_create_input(sid_idx, "VPOS3", VEC3F, SID_VPOSI3_IDI, IN_VSHADER | IS_ATTR | IS_TRANSFORM_VPOS);
+    test_set_build_idx(comp_group_id, build_idx);
 
     {
         shader_create_input(sid_idx, "WPOS3", VEC3F, SID_WPOSI3_IDI, IN_VSHADER | IS_ATTR | IS_TRANSFORM_WPOS);
@@ -476,10 +488,10 @@ object_create_octahedron(struct gfx_sid sid, float wpos[3], float scale[2], floa
 struct object*
 object_create_dodecahedron(struct gfx_sid sid, float wpos[3], float scale[2], float rot[2], float color[4])
 {
-    sid.attr |= SID_VPOSI3 | SID_SCALE2 | SID_COLOR3;
+    sid.attr |= SID_VPOSI3 | SID_SCALE2 | SID_COLOR4;
     sid.unif |= SID_PROJMAT4X4;
-    sid.out  |= SID_COLOR3;
-    sid.pass |= SID_COLOR3;
+    sid.out  |= SID_COLOR4;
+    sid.pass |= SID_COLOR4;
     sid.oper |= SID_NULL;
 
     const sididx_t sid_idx = gfx_create_sid(sid);
@@ -494,11 +506,13 @@ object_create_dodecahedron(struct gfx_sid sid, float wpos[3], float scale[2], fl
     uint32 attrib_offset = 0;
     sid_t sid_attr = 0x0;
 
-    obj->comp_id = test_component_group_find_match(sid_idx);
+    uint32 comp_group_id = test_component_group_find_match(sid_idx);
+    obj->comp_id = comp_group_id;
     test_set_obj_vertex_count(obj->comp_id, obj->num_faces * obj->verts_per_face);
-    const uint32 obj_comp_idx = test_create_new_obj(obj->comp_id);
+    const uint32 obj_comp_idx = test_create_new_obj(obj->comp_id, obj->num_faces * obj->verts_per_face, MESH_DODECAHEDRON);
 
-    shader_create_input(sid_idx, "VPOS3", VEC3F, SID_VPOSI3_IDI, IN_VSHADER | IS_ATTR | IS_TRANSFORM_VPOS);
+    const build_t build_idx = shader_create_input(sid_idx, "VPOS3", VEC3F, SID_VPOSI3_IDI, IN_VSHADER | IS_ATTR | IS_TRANSFORM_VPOS);;
+    test_set_build_idx(comp_group_id, build_idx);
 
     {
         shader_create_input(sid_idx, "WPOS3", VEC3F, SID_WPOSI3_IDI, IN_VSHADER | IS_ATTR | IS_TRANSFORM_WPOS);

@@ -59,7 +59,7 @@ fs_init_table()
 
     is_initialized = TRUE;
 
-    // file_sys_debug_init();
+    file_sys_debug_init();
 }
 
 struct fs_t*
@@ -104,6 +104,13 @@ fs_close(struct fs_t* fs, const char* caller_function)
     fs->flags = 0x0;
     fs->file = NULL;
     dprint("%sfile closed successfully%s\nresult:%u\n", GREEN, res, CLEAR);
+}
+
+void
+fs_change_filename(struct fs_t* fs, const char* new_filename)
+{
+    strcpy(fs->filename, HOME_DIR);
+    strcat(fs->filename, new_filename);
 }
 
 void
@@ -190,6 +197,18 @@ fs_append(struct fs_t* fs, const char* format, ...)
     if(is_opened) {
         fs_close(fs, "fs_append()");
     }
+}
+
+void /// open a file in "w" mode to reset it
+fs_reset(struct fs_t* fs)
+{
+    bool was_opened = fs->flags & IS_OPEN;
+    fs->file = fs_open(fs, "w");
+    FS_CHECK_NULL_FILE(fs->file, fs->filename);
+
+
+    // close the file only if it was not opened before this function call
+    if(!was_opened) fs_close(fs, "fs_append()");
 }
 
 void

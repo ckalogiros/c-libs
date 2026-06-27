@@ -9,8 +9,8 @@
 
 
 
-#define SCREEN_RES_X 600
-#define SCREEN_RES_Y 500
+#define SCREEN_RES_X 800
+#define SCREEN_RES_Y 800
 
 
 GLuint renderer_create_vb(void* vertices, const uint32 size);

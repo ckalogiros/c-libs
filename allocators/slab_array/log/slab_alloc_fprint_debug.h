@@ -112,8 +112,8 @@ static struct fs_t* fs_register_created_mcaches = NULL;
 static void sslall_fprint_init()
 {
     /* DEBUG-FPRINT */
-    fs_flist = fs_create("allocators/slab/slab_flist.txt");
-    fs_register_created_mcaches = fs_create("allocators/slab/register_created_slab_mcaches.txt");
+    fs_flist = fs_create("Debug/allocators/slab/slab_flist.txt");
+    fs_register_created_mcaches = fs_create("Debug/allocators/slab/register_created_slab_mcaches.txt");
     fs_append(fs_register_created_mcaches, "OPERATIONS: "
               "Create-Allocate-Release operations "
               "of slab allocator mcaches\n"

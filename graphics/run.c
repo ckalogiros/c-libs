@@ -28,7 +28,7 @@ render_queue_get_count() { return render_queue_count; }
 void
 render_queue_add_draw_count(struct command_render_queue_params* params)
 {
-    struct object_components_descriptor* comp_desc =  test_get_comp_desc(params->comp_idx);
+    struct comp_per_group_descriptor* comp_desc =  test_get_comp_desc(params->comp_idx);
     struct render_queue* rq = &render_queue[comp_desc->rqidx];
     rq->draw_count += params->vertex_count;
     print("%s- Renderqueue draw count-\n  rqidx:%u, add:%u, total:%u%s\n", br2, comp_desc->rqidx, params->vertex_count, rq->draw_count, CLEAR);
@@ -103,6 +103,7 @@ draw()
     vec2f64 mouse_pos = io_mouse_get_pos();
 
     for(uint32 i = 0; i < render_queue_count; i++) {
+    // for(uint32 i = 1; i < 2; i++) {
 
         vec2f anglvel = {.x = cos((float)mouse_pos.x*.01), .y = sin((float)mouse_pos.x*.01)};
         // vec2f anglvel = {.x = cos(t), .y = sin(t)};

@@ -119,65 +119,117 @@ static float gfx_color_array[COLORS_COUNT] = {
 };
 
 
-/// TODO: (SET VERTEX BUGGER)-(SET VERTEX BUFFER REGION)
+/// TODO: (SET VERTEX BUFFER)-(SET VERTEX BUFFER REGION)
 /// TODO: eventualy this function will be implemented for "per vertex" and "per instance" attributes
 float* gfx_vertex_buffer_set_data(struct vb_cmd_params* params)
 {
     struct vertex_buffer_object* vb = &vertex_buffer_table[params->vbidx];
 
-    struct object_components_descriptor* obj_desc = test_get_comp_desc(params->vbidx);
-    // uint8 num_vpos = shaderinfo_flag_to_numelems(params->vpos_num_elems);
-    uint16 vpos_count = obj_desc->obj_vertex_count * params->vpos_num_elems;
-    float* obj_attr_data = test_get_obj_attribs_data(params->vbidx);
-    uint32 cnt1 = 0;
+    struct comp_per_group_descriptor* comp_desc = test_get_comp_desc(params->vbidx);
+    float* obj_attr_data = test_get_obj_attribs_data(params->comp_idx);
+    uint32 cnt1 = 0, vcnt = 0;
 
-    uint32 stride = vb->stride - params->vpos_num_elems; // stride becomes minus the vertex position's number of elements
+    uint32 stride = vb->stride-params->vpos_num_elems; // stride becomes minus the vertex position's number of elements
+    uint32 comp_offset = 0; // the next object's components/attributes in the "obj_attr_data"
 
-    print("\n\n%s- ADD OBJ TO VB -",  YELLOW);
-    for(uint32 objid = 0; objid < obj_desc->obj_count; objid++)
-    {
-        for(uint32 vertid = 0; vertid < obj_desc->obj_vertex_count; vertid++)
-        {
-            if(vb->count % (stride + params->vpos_num_elems) == 0) {
-                print("\n[%2u][%3u]: ", vertid+1, vb->count);
-            }
+    print("\n\n%s- ADD OBJ TO VB -\n vb:%u\n",  YELLOW, params->vbidx);
 
-            for(uint8 j = 0; j < params->vpos_num_elems; j++) {
+    for(uint32 i = 0; i < comp_desc->per_obj_desc_counter; i++) {
+
+        enum MESH_TYPE mesh_type = comp_desc->per_obj_desc[i].mesh_type;
+        float* vpos = mesh_get_mesh_from_type(mesh_type);
+        uint16 vpos_count = comp_desc->per_obj_desc[i].vertex_count * params->vpos_num_elems;
+        cnt1 = 0;
+
+        for(uint32 j = 0; j < comp_desc->per_obj_desc[i].vertex_count; j++) {
+
+            print("\n[%2u][%2u]: ", i, vcnt++);
+
+            for(uint8 k = 0; k < params->vpos_num_elems; k++) {
                 if(cnt1 >= vpos_count) cnt1 = 0;
-                vb->data[vb->count++] = params->vpos[cnt1++];
-                print("%4.1f, ", vb->data[vb->count-1]);
-
+                vb->data[vb->count++] = vpos[cnt1++];
+                print("%5.2f, ", vb->data[vb->count-1]);
             }
 
-            uint32 compid = objid * stride;
-            uint32 attribs_count = (objid+1)*stride;
-            for(; compid < attribs_count; compid++) {
+            for(uint32 k = comp_offset; k < comp_offset+stride; k++) {
 
-                // temporary: set color per vertex
-                if(compid >= attribs_count-4) {
-                    vb->data[vb->count++] = gfx_color_array[color_cnt++]; compid++;print("%4.1f, ", vb->count-1, vb->data[vb->count-1]);
-                    vb->data[vb->count++] = gfx_color_array[color_cnt++]; compid++;print("%4.1f, ", vb->count-1, vb->data[vb->count-1]);
-                    vb->data[vb->count++] = gfx_color_array[color_cnt++]; compid++;print("%4.1f, ", vb->count-1, vb->data[vb->count-1]);
-                    vb->data[vb->count++] = gfx_color_array[color_cnt++]; compid;  print("%4.1f, ", vb->count-1, vb->data[vb->count-1]);
+                if(k >= comp_offset+stride-4) {
+                    vb->data[vb->count++] = gfx_color_array[color_cnt++];print("%4.1f, ", vb->count-1, vb->data[vb->count-1]);
                     if(color_cnt >= COLORS_COUNT) color_cnt = 0;
                 }
                 else {
-                    vb->data[vb->count++] = obj_attr_data[compid];
+                    vb->data[vb->count++] = obj_attr_data[k];
                     print("%4.1f, ", vb->count-1, vb->data[vb->count-1]);
                 }
-
-                // set color per object
-                // vb->data[vb->count++] = obj_attr_data[compid];
-                // print("%4.1f, ", vb->count-1, vb->data[vb->count-1]);
-
             }
         }
+
+        comp_offset += stride; // go to the next objects start of component's data
     }
     print("%s\n\n", CLEAR);
 
     return vb->data;
 
 }
+/*SAVE*/
+//
+// float* gfx_vertex_buffer_set_data(struct vb_cmd_params* params)
+// {
+//     struct vertex_buffer_object* vb = &vertex_buffer_table[params->vbidx];
+//
+//     struct object_components_descriptor* obj_desc = test_get_comp_desc(params->vbidx);
+//     // uint8 num_vpos = shaderinfo_flag_to_numelems(params->vpos_num_elems);
+//     uint16 vpos_count = obj_desc->obj_vertex_count * params->vpos_num_elems;
+//     float* obj_attr_data = test_get_obj_attribs_data(params->vbidx);
+//     uint32 cnt1 = 0;
+//
+//     uint32 stride = vb->stride - params->vpos_num_elems; // stride becomes minus the vertex position's number of elements
+//
+//     print("\n\n%s- ADD OBJ TO VB -",  YELLOW);
+//     for(uint32 objid = 0; objid < obj_desc->obj_count; objid++)
+//     {
+//         for(uint32 vertid = 0; vertid < obj_desc->obj_vertex_count; vertid++)
+//         {
+//             if(vb->count % (stride + params->vpos_num_elems) == 0) {
+//                 print("\n[%2u][%3u]: ", vertid+1, vb->count);
+//             }
+//
+//             for(uint8 j = 0; j < params->vpos_num_elems; j++) {
+//                 if(cnt1 >= vpos_count) cnt1 = 0;
+//                 vb->data[vb->count++] = params->vpos[cnt1++];
+//                 print("%4.1f, ", vb->data[vb->count-1]);
+//
+//             }
+//
+//             uint32 compid = objid * stride;
+//             uint32 attribs_count = (objid+1)*stride;
+//             for(; compid < attribs_count; compid++) {
+//
+//                 // temporary: set color per vertex
+//                 if(compid >= attribs_count-4) {
+//                     vb->data[vb->count++] = gfx_color_array[color_cnt++]; compid++;print("%4.1f, ", vb->count-1, vb->data[vb->count-1]);
+//                     vb->data[vb->count++] = gfx_color_array[color_cnt++]; compid++;print("%4.1f, ", vb->count-1, vb->data[vb->count-1]);
+//                     vb->data[vb->count++] = gfx_color_array[color_cnt++]; compid++;print("%4.1f, ", vb->count-1, vb->data[vb->count-1]);
+//                     vb->data[vb->count++] = gfx_color_array[color_cnt++]; compid;  print("%4.1f, ", vb->count-1, vb->data[vb->count-1]);
+//                     if(color_cnt >= COLORS_COUNT) color_cnt = 0;
+//                 }
+//                 else {
+//                     vb->data[vb->count++] = obj_attr_data[compid];
+//                     print("%4.1f, ", vb->count-1, vb->data[vb->count-1]);
+//                 }
+//
+//                 // set color per object
+//                 // vb->data[vb->count++] = obj_attr_data[compid];
+//                 // print("%4.1f, ", vb->count-1, vb->data[vb->count-1]);
+//
+//             }
+//         }
+//     }
+//     print("%s\n\n", CLEAR);
+//
+//     return vb->data;
+//
+// }
 
 void gfx_vertex_buffer_set_rotation(const build_t build_idx, const vbidx_t vbidx, vec2f anglvel)
 {
