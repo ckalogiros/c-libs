@@ -2,6 +2,7 @@
  * Created by ckalo on 4/7/26.
  */
 
+#include "fdebug_test.h"
 #include "opengl.h"
 #include "opengl_debug.h"
 #include "shader_builder.h"
@@ -86,6 +87,8 @@ opengl_program_create(const sididx_t sid_idx, const build_t build_idx, const cha
     gl_delete_shader(vertex_shader);
     gl_delete_shader(fragment_shader);
     GL_CHECK();
+
+    engine_fdebug_flush_arena(ENGINE_FDEBUG_FILE_VSHADER);
 
     return desc;
 }

@@ -3,15 +3,12 @@
  */
 
 #include "string_format.h"
-
 #include <assert.h>
-
 #include "ascii_characters.h"
-#include <stdarg.h>
-#include <stdio.h>
-#include <string.h>
 #include "logger.h"
-#include <stdlib.h>
+#include <string.h>
+
+#include "fdebug_test.h"
 
 
 /* stigma
@@ -110,6 +107,103 @@ is_alphabet(char c)
     return 0;
 }
 
+uint8 calculate_num_digits(uint64 number)
+{
+    // Case the number is 0
+    if (number == 0) return 1;
+
+    uint64 numdigits = 0;
+
+    // Find how many digits are in val
+    while (number)
+    {
+        number /= 10;
+        numdigits++;
+    }
+
+    return numdigits;
+}
+
+
+uint32 floating_point_format(char** const buf, double num, char* formated, bool is_formated, uint32 k)
+{
+    /*
+        * Format	Output for -1.2345	Description
+        %f	        -1.234500	        Default 6 decimal places
+        %.2f	    -1.23	            2 decimal places
+        %4.2f	    -1.23	            Min width 4, 2 decimals
+        %8.2f	    -1.23	            Right-aligned, width 8
+        %-8.2f	    -1.23 	            Left-aligned, width 8
+        %+f	        -1.234500	        Always show sign
+        %e	        -1.234500e+00	    Scientific notation
+        %g	        -1.2345	Shortest    representation
+
+        so, in the format we have:
+        1. no format
+        2. left format: number
+        3. right format: a , with following number
+     */
+
+    struct float_number f = str_conv_double_to_int_parts(num);
+    char ipstr[8] = {0};
+    char fpstr[8] = {0};
+    uint32 ilen = str_conv_int32_to_str(ipstr, f.int_part);
+    uint32 flen = str_conv_uint32_to_str(fpstr, f.fract_part);
+    uint16 ii = 0, fi = 0, j = 0;
+    uint8 n = 0;
+
+    /// integer part format
+    if( is_formated && is_numeric(formated[j]) ) { /// check integer part format
+        n = (int)formated[j++] - ASCII_0; /// get the number from char
+        if(ilen > n) n = 0;
+        else n-=ilen;
+        while(n > 0) {
+            (*buf)[k++] = ' ';
+            n--;
+        }
+        /// TODO: implement case: format value > 9 (e.x. %44.2f, we need to consume both numbers before the '.')
+    }
+
+    /// integer part value
+    while(ilen > 0) {
+        (*buf)[k++] = ipstr[ii++];
+        ilen--;
+    }
+
+
+    (*buf)[k++] = '.'; /// add floating point '.'
+
+    // fract part format
+    n = flen;
+    if( is_formated && formated[j] == '.' ) {
+        n = formated[++j] - ASCII_0;
+    }
+    /// fractional part value
+    while(n > 0) {
+        (*buf)[k++] = fpstr[fi++];
+        n--;
+    }
+    k-=1;
+
+    return k;
+
+}
+
+uint32 add_leading_spaces(char** buf, uint32 k, uint32 count, char snum)
+{
+    uint32 n = (int)snum - ASCII_0; /// char to integer
+
+    if(count > n) return k; /// no leading spaces
+    else n -= count; /// how many leading spaces
+
+    while(n > 0) {
+        (*buf)[k++] = ' ';
+        n--;
+    }
+    /// TODO: implement case: format value > 9 (e.x. %44.2f, we need to consume both numbers before the '.')
+    return k;
+}
+
 uint32
 string_format(char** const buf, const uint32 size, const char* format, ...)
 {
@@ -118,60 +212,59 @@ string_format(char** const buf, const uint32 size, const char* format, ...)
     va_list args;
     va_start(args, format);
 
+
     i = 0, k = 0;
     while(format[i]) {
 
         char c = format[i];
 
+        char formated[8] = {0};
+        bool is_formated = FALSE;
+
         if(c == '%') {
             c = format[++i];
+
+            if(c < ASCII_A) {      /// accumulate format of type: %num OR %num.num
+                uint8 j = 0;
+                while(format[i] < ASCII_A)
+                    formated[j++] = format[i++];
+                is_formated = TRUE;
+                c = format[i];
+            }
             switch(c) {
                 case 'u': {
                     uint64 num = va_arg(args, uint64);
-                    uint32 len = str_conv_unt32_to_str(&(*buf)[k], num);
+                    uint8 digits = calculate_num_digits((uint64)num);
+                    if(is_formated) k = add_leading_spaces(buf, k, digits, formated[0]);
+                    uint32 len = str_conv_uint32_to_str(&(*buf)[k], num);
                     k += len; assert(k < size);
                     break;
                 }
                 case 'd': {
                     int64 num = va_arg(args, int64);
+                    uint8 digits = calculate_num_digits((uint64)num);
+                    if(is_formated) k = add_leading_spaces(buf, k, digits, formated[0]);
                     uint32 len = str_conv_int32_to_str(&(*buf)[k], num);
                     k += len; assert(k < size);
                     break;
                 }
-                case 'x': { break; }
-                case 'f': {
-                    // long double num = (long double)va_arg(args, long double);
-                    double num = (double) va_arg(args, double);
-                    uint32 len = snprintf(buf[k], 7, "%.3f", num);
-                    k += len;
-                    break;
+                case 'x': {
+                    assert(0 > 0);
                 }
-                case '.': { /// for notation: "%.2f, %02f, etc". TODO: implement for integers too.
+                case 'f': {
                     double num = (double) va_arg(args, double);
-
-                    char a[16] = {'\0'}; uint32 m = i-1, n = 0;
-                    a[n++] = format[m++];
-                    while(format[m] != '%' && format[m] != ',' && format[m] != '\0') {
-                        a[n++] = format[m];
-                        m++;
-                    }
-
-                    /// we do not use "snprintf" cause it returns len=4 when it optimizes a "1.00" to a truncated "1.0"
-                    uint32 len = sprintf(buf[k], a, num);
-                    k += len;
-                    /// IMPORTANT COMMENT!!!
-                    /// n-1: because we want i to point at ',' in "%.2f,"
-                    /// and a second n-1: because later in the loop we increment i again (i++)
-                    i += n-2;
+                    k = floating_point_format(buf, num, formated, is_formated, k);
                     break;
                 }
                 case 'c': {
+                    if(is_formated) k = add_leading_spaces(buf, k, 1, formated[0]);
                     (*buf)[k++] = (char) va_arg(args, int);
                     assert(k < size);
                     break;
                 }
                 case 's': {
                     const char* str = va_arg(args, const char*);
+                    if(is_formated) k = add_leading_spaces(buf, k, strlen(str), formated[0]);
                     if(str != NULL) {
                         uint32 j = 0;
                         while(str[j]) (*buf)[k++] = str[j++];
@@ -179,6 +272,7 @@ string_format(char** const buf, const uint32 size, const char* format, ...)
                     }
                     break;
                 }
+                default: { assert(0 > 0); }
             }
         } else {
             (*buf)[k++] = c;
@@ -193,6 +287,86 @@ string_format(char** const buf, const uint32 size, const char* format, ...)
     return k;
 }
 
+uint32
+string_format_va_list_call(char** const buf, const uint32 size, const char* format, va_list args)
+{
+    uint32 i, k;
+
+    i = 0, k = 0;
+    while(format[i]) {
+
+        char c = format[i];
+
+        char formated[8] = {0};
+        bool is_formated = FALSE;
+
+        if(c == '%') {
+            c = format[++i];
+
+            if(c < ASCII_A) {      /// accumulate format of type: %num OR %num.num
+                uint8 j = 0;
+                while(format[i] < ASCII_A)
+                    formated[j++] = format[i++];
+                is_formated = TRUE;
+                c = format[i];
+            }
+            switch(c) {
+                case 'u': {
+                    uint64 num = va_arg(args, uint64);
+                    uint8 digits = calculate_num_digits((uint64)num);
+                    if(is_formated) k = add_leading_spaces(buf, k, digits, formated[0]);
+                    uint32 len = str_conv_uint32_to_str(&(*buf)[k], num);
+                    k += len; assert(k < size);
+                    break;
+                }
+                case 'd': {
+                    int64 num = va_arg(args, int64);
+                    uint8 digits = calculate_num_digits((uint64)num);
+                    if(is_formated) k = add_leading_spaces(buf, k, digits, formated[0]);
+                    uint32 len = str_conv_int32_to_str(&(*buf)[k], num);
+                    k += len; assert(k < size);
+                    break;
+                }
+                case 'x': {
+                    assert(0 > 0);
+                }
+                case 'f': {
+                    double num = (double) va_arg(args, double);
+                    k = floating_point_format(buf, num, formated, is_formated, k);
+                    break;
+                }
+                case 'c': {
+                    if(is_formated) k = add_leading_spaces(buf, k, 1, formated[0]);
+                    (*buf)[k++] = (char) va_arg(args, int);
+                    assert(k < size);
+                    break;
+                }
+                case 's': {
+                    const char* str = va_arg(args, const char*);
+                    if(is_formated) k = add_leading_spaces(buf, k, strlen(str), formated[0]);
+                    if(str != NULL) {
+                        uint32 j = 0;
+                        while(str[j]) (*buf)[k++] = str[j++];
+                        assert(k < size);
+                    }
+                    break;
+                }
+                default: { assert(0 > 0); }
+            }
+        } else {
+            (*buf)[k++] = c;
+            assert(k < size);
+        }
+
+        i++;
+    }
+
+    assert(k < size);
+
+    return k;
+}
+
+/* returns: the index of the last pushed character */
 uint32 string_buffer_push(char** const buf, const uint32 size, const char* str)
 {
     uint32 i = 0, k = 0;
@@ -234,3 +408,68 @@ uint32 string_buffer_push(char** const buf, const uint32 size, const char* str)
 24 	CAN 	50 	2 		76 	L 		102 f
 25 	EM 		51 	3 		77 	M 		103 g
 */
+
+/* TEST-DEBUG */
+void string_format_test()
+{
+#   define TEMP_BUF_LEN 16
+
+    print("- Test formated: float -\n", ry, CLEAR);
+    {
+        char buf[TEMP_BUF_LEN] = {0}; char* ptr = &buf[0];
+        char* str = "%f";
+        uint32 size = string_format(&ptr, TEMP_BUF_LEN, "%f", 10.981f);  print("%s:%s\n", str, buf);
+    }
+    {
+        char buf[TEMP_BUF_LEN] = {0}; char* ptr = &buf[0];
+        char* str = "%4f";
+        uint32 size = string_format(&ptr, TEMP_BUF_LEN, "%4f", 10.981f); print("%s:%s\n", str, buf);
+    }
+    {
+        char buf[TEMP_BUF_LEN] = {0}; char* ptr = &buf[0];
+        char* str = "%.4f";
+        uint32 size = string_format(&ptr, TEMP_BUF_LEN, "%.4f", 10.981f); print("%s:%s\n", str, buf);
+    }
+    {
+        char buf[TEMP_BUF_LEN] = {0}; char* ptr = &buf[0];
+        char* str = "%4.4f";
+        uint32 size = string_format(&ptr, TEMP_BUF_LEN, "%4.4f", 10.981f); print("%s:%s\n", str, buf);
+    }
+
+    print("- Test formated: integers -\n", ry, CLEAR);
+    {
+        char buf[TEMP_BUF_LEN] = {0}; char* ptr = &buf[0];
+        char* str = "%u";
+        uint32 size = string_format(&ptr, TEMP_BUF_LEN, "%u", 981);  print("%s:%s\n", str, buf);
+    }
+    {
+        char buf[TEMP_BUF_LEN] = {0}; char* ptr = &buf[0];
+        char* str = "%4u";
+        uint32 size = string_format(&ptr, TEMP_BUF_LEN, "%4u", 981);  print("%s:|%s|\n", str, buf); print("%s:|    |\n", str);
+    }
+
+    print("- Test formated: character -\n", ry, CLEAR);
+    {
+        char buf[TEMP_BUF_LEN] = {0}; char* ptr = &buf[0];
+        char* str = "%c";
+        uint32 size = string_format(&ptr, TEMP_BUF_LEN, "%c", 'A');  print("%s:%s\n", str, buf);
+    }
+    {
+        char buf[TEMP_BUF_LEN] = {0}; char* ptr = &buf[0];
+        char* str = "%4c";
+        uint32 size = string_format(&ptr, TEMP_BUF_LEN, "%4c", 'A');  print("%s:|%s|\n", str, buf); print("%s:|    |\n", str);
+    }
+
+    print("- Test formated: string -\n", ry, CLEAR);
+    {
+        char buf[TEMP_BUF_LEN] = {0}; char* ptr = &buf[0];
+        char* str = "%s";
+        uint32 size = string_format(&ptr, TEMP_BUF_LEN, "%s", "abcd");  print("%s:%s\n", str, buf);
+    }
+    {
+        char buf[TEMP_BUF_LEN] = {0}; char* ptr = &buf[0];
+        char* str = "%6s";
+        uint32 size = string_format(&ptr, TEMP_BUF_LEN, "%6s", "abcd");  print("%s:|%s|\n", str, buf); print("%s:|      |\n", str);
+    }
+#   undef TEMP_BUF_LEN
+}

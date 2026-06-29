@@ -5,15 +5,11 @@
 #include "shader_builder.h"
 #include "my_macros.h"
 #include "shader_descriptor.h"
-#include <stdlib.h>
 #include "file_sys_interface.h"
 #include "logger.h"
-// #include "sparse_arr.h"
 #include <string.h>
-
 #include "fdebug_test.h"
 #include "opengl_debug.h"
-#include "stringc.h"
 #include "string_format.h"
 
 
@@ -25,24 +21,24 @@
  **************************************************************************************************/
 #define SHADER_ATTRIBUTES_ARRAY_COUNT 64
 struct shader_in_variables_struct shader_vars_table[SHADER_ATTRIBUTES_ARRAY_COUNT] = {
-    {.flagname = TO_STRING(SID_OPACIT), .flag = SID_OPACIT, .typesize = SIZE_F32, .elems = 1, .var_table_idx = SID_OPACIT_IDI, .type = FLOAT, .codename = "opacity",},
-    {.flagname = TO_STRING(SID_VPOSI2), .flag = SID_VPOSI2, .typesize = SIZE_F32, .elems = 2, .var_table_idx = SID_VPOSI2_IDI, .type = VEC2F, .codename = "vpos2",},
-    {.flagname = TO_STRING(SID_WPOSI2), .flag = SID_WPOSI2, .typesize = SIZE_F32, .elems = 2, .var_table_idx = SID_WPOSI2_IDI, .type = VEC2F, .codename = "wpos2",},
-    {.flagname = TO_STRING(SID_SCALE2), .flag = SID_SCALE2, .typesize = SIZE_F32, .elems = 2, .var_table_idx = SID_SCALE2_IDI, .type = VEC2F, .codename = "scale2",},
-    {.flagname = TO_STRING(SID_ROTAT2), .flag = SID_ROTAT2, .typesize = SIZE_F32, .elems = 2, .var_table_idx = SID_ROTAT2_IDI, .type = VEC2F, .codename = "rot2",},
-    {.flagname = TO_STRING(SID_PIVOT2), .flag = SID_PIVOT2, .typesize = SIZE_F32, .elems = 2, .var_table_idx = SID_PIVOT2_IDI, .type = VEC2F, .codename = "pivot2",},
-    {.flagname = TO_STRING(SID_UVCOO2), .flag = SID_UVCOO2, .typesize = SIZE_F32, .elems = 2, .var_table_idx = SID_UVCOO2_IDI, .type = VEC2F, .codename = "uv2",},
-    {.flagname = TO_STRING(SID_VPOSI3), .flag = SID_VPOSI3, .typesize = SIZE_F32, .elems = 3, .var_table_idx = SID_VPOSI3_IDI, .type = VEC3F, .codename = "vpos3",},
-    {.flagname = TO_STRING(SID_WPOSI3), .flag = SID_WPOSI3, .typesize = SIZE_F32, .elems = 3, .var_table_idx = SID_WPOSI3_IDI, .type = VEC3F, .codename = "wpos3",},
-    {.flagname = TO_STRING(SID_SCALE3), .flag = SID_SCALE3, .typesize = SIZE_F32, .elems = 3, .var_table_idx = SID_SCALE3_IDI, .type = VEC3F, .codename = "scale3",},
-    {.flagname = TO_STRING(SID_ROTAT3), .flag = SID_ROTAT3, .typesize = SIZE_F32, .elems = 3, .var_table_idx = SID_ROTAT3_IDI, .type = VEC3F, .codename = "rot3",},
-    {.flagname = TO_STRING(SID_PIVOT3), .flag = SID_PIVOT3, .typesize = SIZE_F32, .elems = 3, .var_table_idx = SID_PIVOT3_IDI, .type = VEC3F, .codename = "pivot3",},
-    {.flagname = TO_STRING(SID_COLOR3), .flag = SID_COLOR3, .typesize = SIZE_F32, .elems = 3, .var_table_idx = SID_COLOR3_IDI, .type = VEC3F, .codename = "color3",},
-    {.flagname = TO_STRING(SID_NORMA3), .flag = SID_NORMA3, .typesize = SIZE_F32, .elems = 3, .var_table_idx = SID_NORMA3_IDI, .type = VEC3F, .codename = "normal3",},
-    {.flagname = TO_STRING(SID_COLOR4), .flag = SID_COLOR4, .typesize = SIZE_F32, .elems = 4, .var_table_idx = SID_COLOR4_IDI, .type = VEC4F, .codename = "color4",},
-    {.flagname = TO_STRING(SID_PROJMAT4X4), .flag = SID_PROJMAT4X4, .typesize = SIZE_F32, .elems = 4 * 4, .var_table_idx = SID_PROJMAT4X4_IDI, .type = MAT4X4F, .codename = "projection_matrix",},
+    {.flagname = TO_STRING(SID_OPACIT), .flag = SID_OPACIT, .typesize = SIZE_F32, .elems = 1, .var_table_idx = SID_OPACIT_ID, .type = FLOAT, .codename = "opacity",},
+    {.flagname = TO_STRING(SID_VPOSI2), .flag = SID_VPOSI2, .typesize = SIZE_F32, .elems = 2, .var_table_idx = SID_VPOSI2_ID, .type = VEC2F, .codename = "vpos2",},
+    {.flagname = TO_STRING(SID_WPOSI2), .flag = SID_WPOSI2, .typesize = SIZE_F32, .elems = 2, .var_table_idx = SID_WPOSI2_ID, .type = VEC2F, .codename = "wpos2",},
+    {.flagname = TO_STRING(SID_SCALE2), .flag = SID_SCALE2, .typesize = SIZE_F32, .elems = 2, .var_table_idx = SID_SCALE2_ID, .type = VEC2F, .codename = "scale2",},
+    {.flagname = TO_STRING(SID_ROTAT2), .flag = SID_ROTAT2, .typesize = SIZE_F32, .elems = 2, .var_table_idx = SID_ROTAT2_ID, .type = VEC2F, .codename = "rot2",},
+    {.flagname = TO_STRING(SID_PIVOT2), .flag = SID_PIVOT2, .typesize = SIZE_F32, .elems = 2, .var_table_idx = SID_PIVOT2_ID, .type = VEC2F, .codename = "pivot2",},
+    {.flagname = TO_STRING(SID_UVCOO2), .flag = SID_UVCOO2, .typesize = SIZE_F32, .elems = 2, .var_table_idx = SID_UVCOO2_ID, .type = VEC2F, .codename = "uv2",},
+    {.flagname = TO_STRING(SID_VPOSI3), .flag = SID_VPOSI3, .typesize = SIZE_F32, .elems = 3, .var_table_idx = SID_VPOSI3_ID, .type = VEC3F, .codename = "vpos3",},
+    {.flagname = TO_STRING(SID_WPOSI3), .flag = SID_WPOSI3, .typesize = SIZE_F32, .elems = 3, .var_table_idx = SID_WPOSI3_ID, .type = VEC3F, .codename = "wpos3",},
+    {.flagname = TO_STRING(SID_SCALE3), .flag = SID_SCALE3, .typesize = SIZE_F32, .elems = 3, .var_table_idx = SID_SCALE3_ID, .type = VEC3F, .codename = "scale3",},
+    {.flagname = TO_STRING(SID_ROTAT3), .flag = SID_ROTAT3, .typesize = SIZE_F32, .elems = 3, .var_table_idx = SID_ROTAT3_ID, .type = VEC3F, .codename = "rot3",},
+    {.flagname = TO_STRING(SID_PIVOT3), .flag = SID_PIVOT3, .typesize = SIZE_F32, .elems = 3, .var_table_idx = SID_PIVOT3_ID, .type = VEC3F, .codename = "pivot3",},
+    {.flagname = TO_STRING(SID_COLOR3), .flag = SID_COLOR3, .typesize = SIZE_F32, .elems = 3, .var_table_idx = SID_COLOR3_ID, .type = VEC3F, .codename = "color3",},
+    {.flagname = TO_STRING(SID_NORMA3), .flag = SID_NORMA3, .typesize = SIZE_F32, .elems = 3, .var_table_idx = SID_NORMA3_ID, .type = VEC3F, .codename = "normal3",},
+    {.flagname = TO_STRING(SID_COLOR4), .flag = SID_COLOR4, .typesize = SIZE_F32, .elems = 4, .var_table_idx = SID_COLOR4_ID, .type = VEC4F, .codename = "color4",},
+    {.flagname = TO_STRING(SID_PROJMAT4X4), .flag = SID_PROJMAT4X4, .typesize = SIZE_F32, .elems = 4 * 4, .var_table_idx = SID_PROJMAT4X4_ID, .type = MAT4X4F, .codename = "projection_matrix",},
 };
-uint32 shader_vars_table_count = SID_IDI_COUNT;
+uint32 shader_vars_table_count = SID_ID_COUNT;
 
 
 
@@ -165,7 +161,7 @@ shader_create_input(const sididx_t sid_idx, const char* name, const enum TYPES_I
     build_t build_idx = shader_build_exists(sid_idx);
     if(build_idx == INT_NULL) build_idx = shader_builder_create_new_build(sid_idx);
 
-    /// check if variable input exists, via "enum SID_VAR_IDI" index.
+    /// check if variable input exists, via "enum SID_VAR_ID" index.
     struct shader_in_variables_struct* var = shader_var_get_var(shader_var_id);
     /// if not, create new variable input
     if(!var) var = shader_create_new_var(shader_var_id, name, type);
@@ -174,7 +170,6 @@ shader_create_input(const sididx_t sid_idx, const char* name, const enum TYPES_I
     sid_t sid_flag = shaderinfo_id_to_flag(shader_var_id);
     if(var->var_table_idx >= shader_vars_table_count) /// case new entry has not been created
         shader_builder_push_entry(build_idx, var, which);
-
 
 
     else if(!shader_build_entry_exists(build_idx, sid_flag))
@@ -186,22 +181,16 @@ shader_create_input(const sididx_t sid_idx, const char* name, const enum TYPES_I
 
 
 /***************************************************************************************************
- * shader generic locations
+ * automate shader vectors creation
  **************************************************************************************************/
-// struct vertex_layout
-// create_location(const uint8 loc, const uint8 size, const uint8 type, const uint8 offset)
-// {
-//     return (struct vertex_layout){.loc = loc, .size = size, .type = type, .loc_offset = offset};
-// }
 
 void
-code_create_vector4(string_t** str, struct shader_in_variables_struct vec, const char* vecname, const char* defval)
+code_create_vector4(struct shader_in_variables_struct vec, const char* vecname, const char* defval)
 {
     char buf[128] = {0};
     char* ptr = &buf[0];
     uint32 size = string_format(&ptr, 128, "  vec4 %s = vec4(", vecname);
-    string_append_cstr(str, buf);
-    engine_fdebug_append_string(ENGINE_FDEBUG_FILE_TEST, buf, size);
+    engine_fdebug_append_string(ENGINE_FDEBUG_FILE_VSHADER, buf, size);
 
 
     for(uint32 dimention = 0; dimention < SHADER_MAX_LOCATION_SIZE; dimention++) {
@@ -209,54 +198,45 @@ code_create_vector4(string_t** str, struct shader_in_variables_struct vec, const
             char buf2[32] = {0};
             char* ptr2 = &buf2[0];
             size = string_format(&ptr2, 32, "%s_%u", vec.codename, dimention);
-            string_append_cstr(str, buf2);
-            engine_fdebug_append_string(ENGINE_FDEBUG_FILE_TEST, buf2, size);
+            engine_fdebug_append_string(ENGINE_FDEBUG_FILE_VSHADER, buf2, size);
 
         } else {
-            string_append_cstr(str, defval);
-            engine_fdebug_append_string(ENGINE_FDEBUG_FILE_TEST, defval, strlen(defval));
+            engine_fdebug_append_string(ENGINE_FDEBUG_FILE_VSHADER, defval, strlen(defval));
         }
         if(dimention+1 < SHADER_MAX_LOCATION_SIZE) { // add ',' commas except the last vector element
-            string_append_cstr(str, ", ");
-            engine_fdebug_append_string(ENGINE_FDEBUG_FILE_TEST, ", ", strlen(", "));
+            engine_fdebug_append_string(ENGINE_FDEBUG_FILE_VSHADER, ", ", strlen(", "));
         }
     }
 
-    // (*str)->len -= 2; /// REMOVE the last space and ','
-    string_append_cstr(str, ");\n");
-    engine_fdebug_append_string(ENGINE_FDEBUG_FILE_TEST, ");\n", strlen(");\n"));
+    engine_fdebug_append_string(ENGINE_FDEBUG_FILE_VSHADER, ");\n", strlen(");\n"));
 
 }
 
 void
-code_create_vector(string_t** str, const char* codename, const char* vname, const enum TYPES_INDEXING vtype, const uint32 velems)
+code_create_vector(const char* codename, const char* vname, const enum TYPES_INDEXING vtype, const uint32 velems)
 {
     // const char vec4[4] = {'x', 'y', 'z', 'w'};
     const char* type = shaderinfo_type_to_glsltype_string(vtype);
     char buf[128] = {0};
     char* ptr = &buf[0];
     string_format(&ptr, 128, "  %s %s = %s(", type, vname, type);
-    string_append_cstr(str, buf);
 
     for(uint32 dimention = 0; dimention < velems; dimention++) {
+
         char buf2[32] = {0};
         char* ptr2 = &buf2[0];
         string_format(&ptr2, 32, "%s_%c", codename, dimention);
-        string_append_cstr(str, buf2);
+
         if(dimention+1 < velems) { // add ',' commas except the last vector element
-            string_append_cstr(str, ", ");
-            engine_fdebug_append_string(ENGINE_FDEBUG_FILE_TEST, ", ", strlen(", "));
+            engine_fdebug_append_string(ENGINE_FDEBUG_FILE_VSHADER, ", ", strlen(", "));
         }
     }
 
-
-    // (*str)->len -= 2; /// REMOVE the last space and ','
-    string_append_cstr(str, ");\n");
-    engine_fdebug_append_string(ENGINE_FDEBUG_FILE_TEST, ");\n", strlen(");\n"));
+    engine_fdebug_append_string(ENGINE_FDEBUG_FILE_VSHADER, ");\n", strlen(");\n"));
 }
 
 void
-code_create_matrix(string_t** str, const char* codename, const char* vname, const enum TYPES_INDEXING vtype)
+code_create_matrix(const char* codename, const char* vname, const enum TYPES_INDEXING vtype)
 {
     assert("IMPLEMENT ME");
     /*
@@ -284,18 +264,18 @@ code_create_matrix(string_t** str, const char* codename, const char* vname, cons
     uint32 size = string_format(&ptr, 128,
                   "  mat%c %s = mat%c(%s_x, %s_y, -%s_y, %s_x);\n",
                   rot_dim, vname, rot_dim, codename, codename, codename, codename);
-    string_append_cstr(str, buf);
-    engine_fdebug_append_string(ENGINE_FDEBUG_FILE_TEST, buf, size);
+    // string_append_cstr(str, buf);
+    engine_fdebug_append_string(ENGINE_FDEBUG_FILE_VSHADER, buf, size);
 
 }
 
 void
-code_operate_vector(string_t** str, struct shader_in_variables_struct oper1, struct shader_in_variables_struct oper2, const char* operator, const float defval1, const float defval2)
+code_operate_vector(struct shader_in_variables_struct oper1, struct shader_in_variables_struct oper2, const char* operator, const float defval1, const float defval2)
 {
     const char vec4[4] = {'x', 'y', 'z', 'w'};
     char buf[256] = {0};
     char* ptr = &buf[0];
-    const uint32 buffer_len = 128;
+    const uint32 buffer_len = 256;
     uint32 len = string_format(&ptr, buffer_len, "  %s = vec4(", oper1.codename);
 
     for(uint32 dimention = 0; dimention < SHADER_MAX_LOCATION_SIZE; dimention++) {
@@ -322,16 +302,17 @@ code_operate_vector(string_t** str, struct shader_in_variables_struct oper1, str
             len += string_format(&ptr, buffer_len, ", ");
         }
     }
+    print("%s\n", buf);
 
-    string_append_cstr(str, buf);
-    engine_fdebug_append_string(ENGINE_FDEBUG_FILE_TEST, buf, len);
-    // (*str)->len -= 2; /// REMOVE the last space and ','
-    string_append_cstr(str, ");\n");
-    engine_fdebug_append_string(ENGINE_FDEBUG_FILE_TEST, ");\n", strlen(");\n"));
+    ptr = &buf[len];
+    len += string_format(&ptr, buffer_len, ");\n");
+    engine_fdebug_append_string(ENGINE_FDEBUG_FILE_VSHADER, buf, len);
+    // engine_fdebug_append_string(ENGINE_FDEBUG_FILE_VSHADER, ENGINE_FDEBUG_FILE_TEST, ");\n", strlen(");\n"));
+    print("%s\n", buf);
 }
 
 void
-code_operate_mat2x2(string_t** str, struct shader_in_variables_struct oper1, struct shader_in_variables_struct oper2)
+code_operate_mat2x2(struct shader_in_variables_struct oper1, struct shader_in_variables_struct oper2)
 {
     assert("IMPLEMENT ME");
     // const char vec4[4] = {'x', 'y', 'z', 'w'};
@@ -370,10 +351,10 @@ code_operate_mat2x2(string_t** str, struct shader_in_variables_struct oper1, str
         len += string_buffer_push(&ptr, 128, "1.0, ");
     }
 
-    string_append_cstr(str, buf);
-    (*str)->len -= 2; /// REMOVE the last space and coma ', '
-    // Close the vec4 constructor
-    string_append_cstr(str, ");\n");
+    // string_append_cstr(str, buf);
+    // (*str)->len -= 2; /// REMOVE the last space and coma ', '
+    // // Close the vec4 constructor
+    // string_append_cstr(str, ");\n");
 }
 
 
@@ -384,16 +365,11 @@ void
 shader_builder_init(void)
 {
     /// initialize 4 pages(4096 bytes) for shader code
-    string_init_table(8);
+    // string_init_table(8);
 
     for(uint32 i = 0; i < 1; i++) {
-        // shader_descriptor_table->data[i].entry = ;
         struct shader_descriptor* desc = shader_descriptor_get(i);
         desc->entry_count = 0;
-        // shader_descriptor_table->data[i].sid = (struct gfx_sid){0x0, 0x0, 0x0, 0x0, 0x0};
-        // for(uint32 j = 0; j < 1; j++) {
-        //     shader_descriptor_table->data[i].entry[j].
-        // }
     }
 }
 
@@ -421,15 +397,13 @@ shader_builder_build(const sididx_t sid_idx, const build_t build_idx)
     desc->last_loc_num_elems = 0;
     desc->is_set = TRUE;
 
-    string_t* str = string_create_empty(2048);
+    // string_t* str = string_create_empty(2048);
     uint32 s = 0; /// size for fdebug_append_string()
 
-    string_append_cstr(&str, SHADERBUILDERGLSL_VERSION);
-    engine_fdebug_append_string(ENGINE_FDEBUG_FILE_TEST, SHADERBUILDERGLSL_VERSION, strlen(SHADERBUILDERGLSL_VERSION));
+    engine_fdebug_append_string(ENGINE_FDEBUG_FILE_VSHADER, SHADERBUILDERGLSL_VERSION, strlen(SHADERBUILDERGLSL_VERSION));
 
     /// code generation: attributes: in
-    string_append_cstr(&str, "/// attributes: in\n");
-    engine_fdebug_append_string(ENGINE_FDEBUG_FILE_TEST, "/// attributes: in\n", strlen("/// attributes: in\n"));
+    engine_fdebug_append_string(ENGINE_FDEBUG_FILE_VSHADER, "/// attributes: in\n", strlen("/// attributes: in\n"));
 
 
     uint8 loc_offset = 0; /// the start offset of each attribute at the generic locations
@@ -463,16 +437,15 @@ shader_builder_build(const sididx_t sid_idx, const build_t build_idx)
                 name = entry.codename;
 
                 /// Record the start position offset for this attribute
-                // struct vertex_layout loc = (struct vertex_layout){.loc = loc_cnt, .size = num_elems, .type = type, .offset = total_offset, .idx = in_var_idx};
                 struct vertex_layout loc = (struct vertex_layout){.loc = loc_cnt, .size = num_elems, .type = type, .loc_offset = loc_offset, .offset = total_offset, .idx = in_var_idx};
                 shader_descriptor_create_vertex_layout(build_idx, loc); // store by attributes, not by locations
                 print("   loc:%u elems:%u offset:%u {%s}\n", loc.loc, loc.size, loc.loc_offset, name);
 
                 enum SID_ID attribute_id = shaderinfo_flag_to_id(entry.flag);
-                /// store key-value pair of: shader attribute index location with its id (enum SID_VAR_IDI). E.x.
-                ///   attrib:vpos: index=0(1st attribute), enum SID_VAR_IDI attribute id=SID_VPOSI2_IDI
-                ///   attrib:vpos: index=1(2nd attribute), enum SID_VAR_IDI attribute id=SID_VSCALE2_IDI
-                ///   attrib:vpos: index=2(3rd attribute), enum SID_VAR_IDI attribute id=SID_VSCALE2_IDI
+                /// store key-value pair of: shader attribute index location with its id (enum SID_VAR_ID). E.x.
+                ///   attrib:vpos: index=0(1st attribute), enum SID_VAR_ID attribute id=SID_VPOSI2_ID
+                ///   attrib:vpos: index=1(2nd attribute), enum SID_VAR_ID attribute id=SID_VSCALE2_ID
+                ///   attrib:vpos: index=2(3rd attribute), enum SID_VAR_ID attribute id=SID_VSCALE2_ID
                 shader_descriptor_set_attribute_ids(build_idx, attribute_id, desc->vlayout_count-1);
 
 
@@ -481,8 +454,7 @@ shader_builder_build(const sididx_t sid_idx, const build_t build_idx)
                     char buf[64] = {0};
                     char* ptr = &buf[0];
                     uint32 size = string_format(&ptr, 64, "layout (location = %u) in vec4 generic_%u;\n", loc.loc, loc.loc);
-                    string_append_cstr(&str, buf);
-                    engine_fdebug_append_string(ENGINE_FDEBUG_FILE_TEST, buf, size);
+                    engine_fdebug_append_string(ENGINE_FDEBUG_FILE_VSHADER, buf, size);
 
                     prev_loc_idx = loc_cnt;
                     desc->vshader_attrib_locations_count++;
@@ -511,15 +483,12 @@ shader_builder_build(const sididx_t sid_idx, const build_t build_idx)
                             char buf[64] = {0};
                             char* ptr = &buf[0];
                             uint32 size = string_format(&ptr, 64, "layout (location = %u) in vec4 generic_%u;\n", loc.loc, loc.loc);
-                            string_append_cstr(&str, buf);
-                            engine_fdebug_append_string(ENGINE_FDEBUG_FILE_TEST, buf, size);
+                            engine_fdebug_append_string(ENGINE_FDEBUG_FILE_VSHADER, buf, size);
                             prev_loc_idx = loc_cnt;
                             desc->vshader_attrib_locations_count++;
                         }
                     }
                 }
-
-                // attr_desc_cnt++; /// increment vertex_layout counter
             }
         }
         /// create the last generic location, if last attribute's elements span to the next location
@@ -531,18 +500,15 @@ shader_builder_build(const sididx_t sid_idx, const build_t build_idx)
             char buf[64] = {0};
             char* ptr = &buf[0];
             uint32 size = string_format(&ptr, 64, "layout (location = %u) in vec4 generic_%u;\n", loc.loc, loc.loc);
-            string_append_cstr(&str, buf);
-            engine_fdebug_append_string(ENGINE_FDEBUG_FILE_TEST, buf, size);
+            engine_fdebug_append_string(ENGINE_FDEBUG_FILE_VSHADER, buf, size);
             desc->vshader_attrib_locations_count++;
         } else if(desc->last_loc_num_elems == 0) { desc->last_loc_num_elems = SHADER_MAX_LOCATION_SIZE; }
 
-        string_append_cstr(&str, "\n");
-        engine_fdebug_append_string(ENGINE_FDEBUG_FILE_TEST, "\n", 1);
+        engine_fdebug_append_string(ENGINE_FDEBUG_FILE_VSHADER, "\n", 1);
     }
 
     /***********************************************************************************************
      * code generation: attributes: out */
-    string_append_cstr(&str, "/// attributes: out\n");
     for(uint32 i = 0; i < desc->entry_count; i++) {
         if(desc->entries[i].which_renameme & IS_OUT) {
             const char* format = "out %s out_%s;\n";
@@ -551,16 +517,13 @@ shader_builder_build(const sididx_t sid_idx, const build_t build_idx)
             uint32 size = string_format(&ptr, 64, format,
                           shaderinfo_type_to_glsltype_string(desc->entries[i].type),
                           desc->entries[i].codename);
-            string_append_cstr(&str, buf);
-            engine_fdebug_append_string(ENGINE_FDEBUG_FILE_TEST, buf, size);
+            engine_fdebug_append_string(ENGINE_FDEBUG_FILE_VSHADER, buf, size);
         }
     }
-    string_append_cstr(&str, "\n");
-    engine_fdebug_append_string(ENGINE_FDEBUG_FILE_TEST, "\n", 1);
+    engine_fdebug_append_string(ENGINE_FDEBUG_FILE_VSHADER, "\n", 1);
 
     /***********************************************************************************************
      * code generation: uniforms: in */
-    string_append_cstr(&str, "/// uniforms: in\n");
     for(uint32 i = 0; i < desc->entry_count; i++) {
         if(desc->entries[i].which_renameme & IS_UNIF) {
             const char* format = "uniform %s %s;\n";
@@ -569,23 +532,18 @@ shader_builder_build(const sididx_t sid_idx, const build_t build_idx)
             uint32 size = string_format(&ptr, 64, format,
                           shaderinfo_type_to_glsltype_string(desc->entries[i].type),
                           desc->entries[i].codename);
-            string_append_cstr(&str, buf);
-            engine_fdebug_append_string(ENGINE_FDEBUG_FILE_TEST, buf, size);
+            engine_fdebug_append_string(ENGINE_FDEBUG_FILE_VSHADER, buf, size);
         }
     }
-    string_append_cstr(&str, "\n");
-    engine_fdebug_append_string(ENGINE_FDEBUG_FILE_TEST, "\n", 1);
+    engine_fdebug_append_string(ENGINE_FDEBUG_FILE_VSHADER, "\n", 1);
 
     /***********************************************************************************************
      * code generation: main() */
-    string_append_cstr(&str, SHADERBUILDERGLSL_VS_MAIN);
-    engine_fdebug_append_string(ENGINE_FDEBUG_FILE_TEST, SHADERBUILDERGLSL_VS_MAIN, strlen(SHADERBUILDERGLSL_VS_MAIN));
-    string_append_cstr(&str, "{\n");
-    engine_fdebug_append_string(ENGINE_FDEBUG_FILE_TEST, "{\n", 2);
+    engine_fdebug_append_string(ENGINE_FDEBUG_FILE_VSHADER, SHADERBUILDERGLSL_VS_MAIN, strlen(SHADERBUILDERGLSL_VS_MAIN));
+    engine_fdebug_append_string(ENGINE_FDEBUG_FILE_VSHADER, "{\n", 2);
 
     /***********************************************************************************************
      * code generation: attributes: reassemble generic attributes to variables */
-    string_append_cstr(&str, "\n  /// reassemble generic attributes\n");
     const char vec4[4] = {'x', 'y', 'z', 'w'};
     uint32 gen_loc_cnt = 0;
     uint8 dimention = 0;
@@ -605,20 +563,17 @@ shader_builder_build(const sididx_t sid_idx, const build_t build_idx)
                 gen_loc_cnt = 0;
                 k++;
             }
-            string_append_cstr(&str, buf);
-            engine_fdebug_append_string(ENGINE_FDEBUG_FILE_TEST, buf, size);
+            engine_fdebug_append_string(ENGINE_FDEBUG_FILE_VSHADER, buf, size);
         }
         desc->vshader_attribs_stride += desc->v_layout[i].size;
         dimention = 0;
     }
-    string_append_cstr(&str, "\n");
-    engine_fdebug_append_string(ENGINE_FDEBUG_FILE_TEST, "\n", 1);
+    engine_fdebug_append_string(ENGINE_FDEBUG_FILE_VSHADER, "\n", 1);
 
 
     /***********************************************************************************************
      * code generation: vertex transform */
-    string_append_cstr(&str, "\n  /// calculate transform\n");
-    engine_fdebug_append_string(ENGINE_FDEBUG_FILE_TEST, "\n  /// calculate transform\n", strlen("\n  /// calculate transform\n"));
+    engine_fdebug_append_string(ENGINE_FDEBUG_FILE_VSHADER, "\n  /// calculate transform\n", strlen("\n  /// calculate transform\n"));
 
 
 
@@ -630,24 +585,24 @@ shader_builder_build(const sididx_t sid_idx, const build_t build_idx)
      * gl_position = vpos;
      */
     struct shader_in_variables_struct oper1 = {.codename = "vpos", .elems = desc->entries[0].elems};
-    code_create_vector4(&str, desc->entries[0], "vpos", "1.0");
-    // string_append_cstr(&str, "vec4 vpos = vec4(vpos2_0, vpos2_1, 0.0, 1.0);\n");
+    code_create_vector4(desc->entries[0], "vpos", "1.0");
 
-    /// scale
+    /// SCALE
     for(uint32 i = 0; i < desc->entry_count; i++) {
         if(desc->entries[i].flag & SID_SCALE2) {
-            code_operate_vector(&str, oper1, desc->entries[i], "*", 0.0, 1.0);
+            code_operate_vector(oper1, desc->entries[i], "*", 0.0, 1.0);
         }
     }
 
-    // const char* rot_x =
-    //                    "  vpos = mat4(\n"
-    //                    "      1.0, 0.0,     0.0,    0.0, \n"
-    //                    "      0.0, rot2_0, -rot2_1, 0.0, \n"
-    //                    "      0.0, rot2_1,  rot2_0, 0.0, \n"
-    //                    "      0.0, 0.0,     0.0,    1.0) * vpos;\n";
-    // string_append_cstr(&str, rot_x);
-    // engine_fdebug_append_string(ENGINE_FDEBUG_FILE_NAMES_TEST, rot_x, strlen(rot_x));
+    /// TODO: rotations must be conditional
+    /// ROTATE
+    const char* rot_x =
+                       "  vpos = mat4(\n"
+                       "      1.0, 0.0,     0.0,    0.0, \n"
+                       "      0.0, rot2_0, -rot2_1, 0.0, \n"
+                       "      0.0, rot2_1,  rot2_0, 0.0, \n"
+                       "      0.0, 0.0,     0.0,    1.0) * vpos;\n";
+    engine_fdebug_append_string(ENGINE_FDEBUG_FILE_VSHADER, rot_x, strlen(rot_x));
     //
     // const char* rot_y =
     //                    "  vpos = mat4(\n"
@@ -655,8 +610,7 @@ shader_builder_build(const sididx_t sid_idx, const build_t build_idx)
     //                    "      0.0,    1.0, 0.0,    0.0, \n"
     //                    "      rot2_1, 0.0, rot2_0, 0.0, \n"
     //                    "      0.0,    0.0, 0.0,    1.0) * vpos;\n";
-    // string_append_cstr(&str, rot_y);
-    // engine_fdebug_append_string(ENGINE_FDEBUG_FILE_NAMES_TEST, rot_y, strlen(rot_y));
+    // engine_fdebug_append_string(ENGINE_FDEBUG_FILE_VSHADER, rot_y, strlen(rot_y));
 
     const char* rot_z =
                        "  vpos = mat4(\n"
@@ -664,38 +618,25 @@ shader_builder_build(const sididx_t sid_idx, const build_t build_idx)
                        "      rot2_1,  rot2_0, 0.0, 0.0, \n"
                        "      0.0,     0.0,    1.0, 0.0, \n"
                        "      0.0,     0.0,    0.0, 1.0) * vpos;\n";
-    string_append_cstr(&str, rot_z);
-    engine_fdebug_append_string(ENGINE_FDEBUG_FILE_TEST, rot_z, strlen(rot_z));
+    engine_fdebug_append_string(ENGINE_FDEBUG_FILE_VSHADER, rot_z, strlen(rot_z));
 
 
-    /// translation
+    /// TRANSLATE
     for(uint32 i = 0; i < desc->entry_count; i++) {
         if(desc->entries[i].flag & SID_WPOSI3) {
-            code_operate_vector(&str, oper1, desc->entries[i], "+", 1.0, 0.0);
+            code_operate_vector(oper1, desc->entries[i], "+", 1.0, 0.0);
             ///  WHY? does "vpos = vec4(vpos.x+wpos3_0, vpos.y+wpos3_1, ###1.0###+wpos3_2, 1.0+0.0);"
             ///  ###1.0### should be 0.0, and get added to wpos3_2
         }
     }
 
-    string_append_cstr(&str, "  gl_Position = projection_matrix*vpos;\n");
-    engine_fdebug_append_string(ENGINE_FDEBUG_FILE_TEST, "  gl_Position = projection_matrix*vpos;\n", strlen("  gl_Position = projection_matrix*vpos;\n"));
-    // string_append_cstr(&str, "  gl_Position = projection_matrix*rotx*vpos;\n");
-    // string_append_cstr(&str, "  gl_Position = projection_matrix*rotx*roty*vpos;\n");
-    // string_append_cstr(&str, "  gl_Position = projection_matrix*rotz*rotx*roty*vpos;\n");
-    // string_append_cstr(&str, "  gl_Position = projection_matrix*rotz*roty*vpos;\n");
-    // string_append_cstr(&str, "  gl_Position = projection_matrix*roty*vpos;\n");
-    // string_append_cstr(&str, "  gl_Position = roty*vpos;\n");
-    // string_append_cstr(&str, "  gl_Position = rotz*rotx*vpos;\n");
-    // string_append_cstr(&str, "  gl_Position = rotx * rotz * vpos;\n");
-    // string_append_cstr(&str, "  gl_Position = rotz * roty * rotx * vpos;\n");
-    // string_append_cstr(&str, "  gl_Position = rotx*rotz* vpos;\n");
-    // string_append_cstr(&str, "  gl_Position = rotz*roty*rotx* vpos;\n");
+    engine_fdebug_append_string(ENGINE_FDEBUG_FILE_VSHADER, "  gl_Position = projection_matrix * vpos;\n", strlen("  gl_Position = projection_matrix * vpos;\n"));
+
 
 
     /***********************************************************************************************
      * code generation: outputs: assignment */
-    string_append_cstr(&str, "\n  /// outputs assignment\n");
-    engine_fdebug_append_string(ENGINE_FDEBUG_FILE_TEST, "\n  /// outputs assignment\n", strlen("\n  /// outputs assignment\n"));
+    engine_fdebug_append_string(ENGINE_FDEBUG_FILE_VSHADER, "\n  /// outputs assignment\n", strlen("\n  /// outputs assignment\n"));
 
     for(uint32 i = 0; i < desc->entry_count; i++) {
         if(desc->entries[i].which_renameme & IS_OUT) {
@@ -705,49 +646,35 @@ shader_builder_build(const sididx_t sid_idx, const build_t build_idx)
             char* ptr = &buf[0];
             uint32 size = string_format(&ptr, 64, "  out_%s = %s(",
                           name, type_c, name, name, name, name);
-            string_append_cstr(&str, buf);
-            engine_fdebug_append_string(ENGINE_FDEBUG_FILE_TEST, buf, size);
+            engine_fdebug_append_string(ENGINE_FDEBUG_FILE_VSHADER, buf, size);
 
 
             const uint32 num_elems = shaderinfo_type_to_numelems(desc->entries[i].type);
             for(uint32 dim = 0; dim < num_elems; dim++) {
+
                 char buf2[32] = {0};
                 char* ptr2 = &buf2[0];
-                // if(dim < desc->entries[i].elems) {
-                //     uint32 size = string_format(&ptr2, 32, "%s_%u, ", desc->entries[i].codename, dim);
-                //     string_append_cstr(&str, buf2);
-                //     engine_fdebug_append_string(ENGINE_FDEBUG_FILE_TEST, buf2, size);
-                // } else {
-                //     string_append_cstr(&str, "0.0, ");
-                //     engine_fdebug_append_string(ENGINE_FDEBUG_FILE_TEST, "0.0, ", strlen("0.0, "));
-                // }
+
                 if(dim < desc->entries[i].elems) {
                     uint32 size = string_format(&ptr2, 32, "%s_%u", desc->entries[i].codename, dim);
-                    string_append_cstr(&str, buf2);
-                    engine_fdebug_append_string(ENGINE_FDEBUG_FILE_TEST, buf2, size);
+                    engine_fdebug_append_string(ENGINE_FDEBUG_FILE_VSHADER, buf2, size);
                 } else {
-                    string_append_cstr(&str, "0.0");
-                    engine_fdebug_append_string(ENGINE_FDEBUG_FILE_TEST, "0.0", strlen("0.0"));
+                    engine_fdebug_append_string(ENGINE_FDEBUG_FILE_VSHADER, "0.0", strlen("0.0"));
                 }
                 if(dim+1 < num_elems) { // at the last vector element, do not insert a ',' comma
-                    string_append_cstr(&str, ", ");
-                    engine_fdebug_append_string(ENGINE_FDEBUG_FILE_TEST, ", ", strlen(", "));
+                    engine_fdebug_append_string(ENGINE_FDEBUG_FILE_VSHADER, ", ", strlen(", "));
                 }
             }
-            // str->len -= 2; /// REMOVE the last space and ','
-            string_append_cstr(&str, ");\n");
-            engine_fdebug_append_string(ENGINE_FDEBUG_FILE_TEST, ");\n", strlen(");\n"));
+            engine_fdebug_append_string(ENGINE_FDEBUG_FILE_VSHADER, ");\n", strlen(");\n"));
 
         }
     }
 
     /* temporarily create vertex position out */
-    string_append_cstr(&str, "  vec2 out_vpos = gl_Position.xy;\n");
-    engine_fdebug_append_string(ENGINE_FDEBUG_FILE_TEST, "  vec2 out_vpos = gl_Position.xy;\n", strlen("  vec2 out_vpos = gl_Position.xy;\n"));
+    engine_fdebug_append_string(ENGINE_FDEBUG_FILE_VSHADER, "  vec2 out_vpos = gl_Position.xy;\n", strlen("  vec2 out_vpos = gl_Position.xy;\n"));
 
 
-    string_append_cstr(&str, "}\n");
-    engine_fdebug_append_string(ENGINE_FDEBUG_FILE_TEST, "}\n", strlen("}\n"));
+    engine_fdebug_append_string(ENGINE_FDEBUG_FILE_VSHADER, "}\n", strlen("}\n"));
 
     /// debug-print
     print("%s--- attribute ids ---%s\n", ry, CLEAR);
@@ -755,20 +682,15 @@ shader_builder_build(const sididx_t sid_idx, const build_t build_idx)
         shader_descriptor_print_attribute_ids(build_idx, i);
     }
 
-
+    /// copy string code to descriptor pointer
     desc->vshader_attribs_idx = shader_descriptor_vertex_layout_set(build_idx, v_layout, desc->vshader_attribs_count);
-    /// TODO: IMPORTANT! copy shader code to a new string_t with the minimum required size(power of 2 if slaballocator is used)
-    desc->vshader_code = engine_fdebug_get_string_from_arena_alloc();
-    // desc->vshader_code = str->data;
-    desc->vshader_code_size = str->len;
+    desc->vshader_code = engine_fdebug_get_string_from_arena_alloc(ENGINE_FDEBUG_FILE_VSHADER);
+    desc->vshader_code_size = strlen(desc->vshader_code);
 
-    print("%s%s%s", ry, desc->vshader_code, CLEAR);
+    // print("%s%s%s", ry, desc->vshader_code, CLEAR);
+    /// fprint vshader code to file for debug
+    engine_fdebug_append_to_file_from_arena(ENGINE_FDEBUG_FILE_VSHADER);
 
-    engine_fdebug_write_to_file(ENGINE_FDEBUG_FILE_VSHADER);
-
-
-    // engine_fdebug_append(file type:enum, source:string);
-    // engine_fdebug_append(ENGINE_FDEBUG_FILE_NAMES_TEST, str->data);
 
     return desc;
 }
@@ -776,7 +698,7 @@ shader_builder_build(const sididx_t sid_idx, const build_t build_idx)
 void
 shader_builder_destroy(void)
 {
-    string_destroy_table();
+    // string_destroy_table();
 }
 
 

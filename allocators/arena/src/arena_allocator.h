@@ -16,10 +16,11 @@ void* arena_allocator_release(const memid_t inst_id);
 
 memoffset_t arena_allocator_get_last_elem_size(const memid_t inst_id);
 
+uint32 arena_allocator_get_instance_size(const memid_t inst_id);
+
 /* TEST-DEBUG */
-struct arena_allocator_instance* debug_get_arena_allocator_table();
-struct arena_allocator_instance* debug_get_arena_allocator_instance(const memid_t inst_id);
-void* debug_get_arena_allocator_instance_start_address(const memid_t inst_id);
-uint32 debug_get_arena_allocator_init_table_size();
-uint32 debug_get_arena_allocator_init_instance_num_pages();
+struct arena_allocator_instance* debug_arena_allocator_instance_get_table();
+struct arena_allocator_instance* debug_arena_allocator_get_instance(const memid_t inst_id);
+void* debug_arena_allocator_get_instance_data(const memid_t inst_id);
+uint32 debug_arena_allocator_get_table_size();
 #endif //ALLOCATORS_STACK_ALLOCATOR_H

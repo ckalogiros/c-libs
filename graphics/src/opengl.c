@@ -25,7 +25,9 @@ void gl_enable_vertex_attrib_array(GLuint index) { glEnableVertexAttribArray(ind
 void gl_disable_vertex_attrib_array(GLuint index) { glDisableVertexAttribArray(index); }
 
 
-void gl_draw_arrays(GLenum mode, GLint start_index, GLsizei vert_n) { glDrawArrays(mode, start_index, vert_n); }
+void gl_draw_arrays(GLenum mode, GLint start_index, GLsizei num_vertices) { glDrawArrays(mode, start_index, num_vertices); }
+
+void gl_draw_elements(GLenum mode, GLsizei count, GLenum type, const void* indices) { glDrawElements(mode, count, type, indices); }
 
 
 void gl_viewport(GLuint width, GLuint height) { glViewport(0, 0, width, height); }

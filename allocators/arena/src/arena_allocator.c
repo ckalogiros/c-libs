@@ -11,7 +11,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
-#include "ascii_characters.h"
+// #include "ascii_characters.h"
 #include "logger.h"
 #include "mem_man_interface.h"
 #include "my_macros.h"
@@ -118,18 +118,23 @@ arena_allocator_release(const memid_t inst_id)
 {
     struct arena_allocator_instance* instance = &arena_allocator_table[inst_id];
 
-    // void* free_address = (char*) instance->data.start + instance->stack_ptr_offset;
     void* free_address = (char*) instance->data.start;
 
     instance->data.used_size = 0;
     instance->data.start = instance->data.start;
     instance->stack_ptr_offset = 0;
-
+    memset(free_address, 0x0, instance->data.size);
 
     /* debug-mark released memory with value */
     // memset(free_address, 0xCD, instance->data.size);
 
     return (void*) free_address;
+}
+
+
+uint32 arena_allocator_get_instance_size(const memid_t inst_id)
+{
+    return arena_allocator_table[inst_id].data.size;
 }
 
 
@@ -139,19 +144,17 @@ arena_allocator_release(const memid_t inst_id)
  **************************************************************************************************/
 
 struct arena_allocator_instance*
-debug_get_arena_allocator_table()
+debug_arena_allocator_instance_get_table()
 {return arena_allocator_table;}
 
 struct arena_allocator_instance*
-debug_get_arena_allocator_instance(const memid_t inst_id)
+debug_arena_allocator_get_instance(const memid_t inst_id)
 {return &arena_allocator_table[inst_id];}
 
 void*
-debug_get_arena_allocator_instance_start_address(const memid_t inst_id)
+debug_arena_allocator_get_instance_data(const memid_t inst_id)
 {return arena_allocator_table[inst_id].data.start;}
 
-uint32 debug_get_arena_allocator_init_table_size()
+uint32 debug_arena_allocator_get_table_size()
 {return ARENA_ALLOCATOR_INSTANCE_INITIAL_TABLE_SIZE;}
 
-uint32 debug_get_arena_allocator_init_instance_num_pages()
-{return ARENA_ALLOCATOR_INSTANCE_INITIAL_NUM_PAGES*PAGE_SIZE;}

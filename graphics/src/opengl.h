@@ -36,7 +36,9 @@ void gl_enable_vertex_attrib_array(GLuint index);
 
 void gl_disable_vertex_attrib_array(GLuint index);
 
-void gl_draw_arrays(GLenum mode, GLint start_index, GLsizei vert_n);
+void gl_draw_arrays(GLenum mode, GLint start_index, GLsizei num_vertices);
+
+void gl_draw_elements(GLenum mode, GLsizei count, GLenum type, const void* indices);
 
 
 void gl_viewport(GLuint width, GLuint height);

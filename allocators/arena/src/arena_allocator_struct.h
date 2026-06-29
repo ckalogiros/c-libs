@@ -16,10 +16,7 @@ struct arena_allocator_data {
 };
 
 struct arena_allocator_instance {
-    // void* offsets_table_start; // memory address
     memid_t instance_id; // memory manager's table index
-    // memoffset_t offsets_table_size; // allocated memory block size
-    // memoffset_t offsets_table_count; // num allocations
     memoffset_t stack_ptr_offset;
 
     struct arena_allocator_data data;

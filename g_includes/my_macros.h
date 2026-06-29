@@ -65,4 +65,15 @@
 
 #define HACK_LITERAL_STR_TO_NUM(str, type) (*(type*)(str))
 
+
+/**
+ * String Literals
+ */
+#define STR_SPACE_2 "  "
+#define STR_SPACE_3 "   "
+#define STR_SPACE_4 "    "
+#define STR_SPACE_5 "     "
+#define STR_SPACE_6 "      "
+#define STR_SPACE_7 "       "
+
 #endif // MY_MACROS_H

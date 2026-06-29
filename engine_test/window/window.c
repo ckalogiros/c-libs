@@ -149,7 +149,7 @@ window_create()
 
     glfwSwapInterval(0);
 
-    glfwSetWindowPos(window, 2000, 200);
+    glfwSetWindowPos(window, 2000, 400);
 
     io_key_set_callback(window, io_key_callback);
 

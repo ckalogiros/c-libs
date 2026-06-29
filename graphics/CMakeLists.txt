@@ -18,6 +18,7 @@ include(${cmake_utils})
 register_module(
         sources
             ${CMAKE_CURRENT_LIST_DIR}/run.c
+            ${CMAKE_CURRENT_LIST_DIR}/mesh.c
             ${CMAKE_CURRENT_LIST_DIR}/test.c
             ${CMAKE_CURRENT_LIST_DIR}/object.c
             ${CMAKE_CURRENT_LIST_DIR}/command.c

@@ -115,9 +115,9 @@ draw()
         // vec3f wpos = {.x = cos(t)*.0001, .y = 0, .z=0};
         // vec3f wpos = {.x = cos(t)*.0, .y = 0, .z=0};
         // vec3f wpos = {.x = 0, .y = 0, .z=mouse_pos.y};
-        vec3f wpos = {.x = 100, .y = 100, .z=mouse_pos.y*.03};
-
-        vec2f scale = {.x = (cos(t*10)+1.4)*1., .y = (cos(t*10)+1.4)*1.};
+        // vec3f wpos = {.x = 100, .y = 100, .z=mouse_pos.y*.03};
+        //
+        // vec2f scale = {.x = (cos(t*10)+1.4)*1., .y = (cos(t*10)+1.4)*1.};
 
 
         struct render_queue rq = render_queue[i];
@@ -171,12 +171,12 @@ run(struct timer* loop_timer)
         gl_clear_color(color);
 
         cmd_run();
-        // perf_timer_start(loop_timer);
 
+        // perf_timer_start(loop_timer);
         draw();
         // perf_timer_stop(loop_timer);
-        window_swap_buffers();
 
+        window_swap_buffers();
 
         // uint32 fps = perf_timer_get_fps(loop_timer);
         // print("%u\n", fps);

@@ -5,9 +5,12 @@
 #include "test.h"
 
 #include <assert.h>
+
+#include "fdebug_test.h"
 #include "gfx_buffers.h"
 #include "logger.h"
 #include "mesh.h"
+#include "my_macros.h"
 
 /* This group mirrors the vertex buffers,
  * for each one vertex buffer there is one group.
@@ -42,6 +45,9 @@ uint32 test_create_new_components_buffer(const sididx_t sid_idx)
 {
     uint32 idx = index_count;
     index_count++;
+
+    engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_GENERIC, "-- CREATE NEW COMPONENTS BUFFER, idx: %u\n", idx);
+
 
     /// init struct comp_per_group_descriptor
     struct comp_per_group_descriptor* comp_desc = &object_components_buffer[idx].comp_desc;
@@ -90,7 +96,6 @@ uint32 test_create_new_obj(const vbidx_t group_id, const uint16 obj_vertex_count
     return obj_comp_idx;
 }
 
-
 struct components_group* test_get_component(const vbidx_t group_id)
 {
     struct components_group* group = &object_components_buffer[group_id];
@@ -100,7 +105,7 @@ struct components_group* test_get_component(const vbidx_t group_id)
 // HERE: The object for the first time a group is created must provide the desriptor for that group ONCE
 void test_add_comp(const vbidx_t group_id, const uint32 obj_idx, float* src, const uint32 elems_count, const uint32 offset, const sid_t comp_flag)
 {
-    print("%s- ADD COMPONENT: %s -%s\n",  YELLOW, shaderinfo_flag_to_flagname(comp_flag), CLEAR);
+    engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_GENERIC, " { %s }:[", shaderinfo_flag_to_flagname(comp_flag));
     struct components_group* group = test_get_component(group_id);
     const uint32 start = obj_idx * group->comp_desc.stride;
     float* buffer = &group->data[start];
@@ -108,8 +113,10 @@ void test_add_comp(const vbidx_t group_id, const uint32 obj_idx, float* src, con
     for(uint32 i = 0; i < elems_count; i++) {
         buffer[bidx++] = src[i];
         print("  %2.2f, ", buffer[bidx-1]);
+        engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_GENERIC, "%2.2f,", buffer[bidx-1]);
     }
     print("\n");
+    // engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_GENERIC, "\n");
 
     /// the "per_attr_desc" stores each unique component description (ONCE per component per group).
     /// this function is called for every object, but we need not to keep duplicates of component descriptions
@@ -122,7 +129,7 @@ void test_add_comp(const vbidx_t group_id, const uint32 obj_idx, float* src, con
         group->comp_desc.components_count++;
     }
 
-
+    engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_GENERIC, "]");
 }
 
 
@@ -137,7 +144,7 @@ build_t test_set_build_idx(const vbidx_t group_id, const build_t build_idx)
 {
     object_components_buffer[group_id].comp_desc.build_idx = build_idx;
 }
-void test_set_obj_vertex_count(const vbidx_t group_id, uint32 obj_vertex_count)
+void test_set_obj_vertex_count(const vbidx_t group_id, const uint32 obj_vertex_count)
 {
     struct components_group* group = &object_components_buffer[group_id];
     group->comp_desc.obj_vertex_count = obj_vertex_count;
@@ -205,15 +212,7 @@ void obj_comp_group_print()
                 group->comp_desc.per_attr_desc[comp_idx].attr_offset,
                 group->comp_desc.per_attr_desc[comp_idx].attr_count
                 );
-
-            // uint32 elems_count = group->comp_desc.per_attr_desc[comp_idx].attr_count;
-            // for(uint32 idx = offset; idx < offset+elems_count; idx++) {
-            //     print("%s  %.2f, %s", ry, group->data[idx], CLEAR);
-            // }
-            //
-            // offset += elems_count;
         }
-        // print("\n");
     }
     print("\n\n");
 }

@@ -53,14 +53,11 @@ struct components_group {
     float data[COMP_MAX_OBJECTS*COMP_MAX_ATTRIBUTES*64*SIZE_F32]; // the actual components/attributes of all objects in contiguous float buffer
 };
 
-
-
 uint32 test_create_new_components_buffer(const sididx_t sid_idx);
 uint32 test_component_group_find_match(const sididx_t sid_idx);
 uint32 test_create_new_obj(const vbidx_t group_id, const uint16 obj_vertex_count, enum MESH_TYPE mesh_type);
 void test_add_comp(const vbidx_t group_id, const uint32 obj_idx, float* src, uint32 elems_count, uint32 offset, const sid_t comp_flag);
 
-// void test_set_build_idx(const vbidx_t group_id, build_t build_idx);
 void test_set_stride(const vbidx_t group_id, uint32 stride);
 build_t test_set_build_idx(const vbidx_t group_id, const build_t build_idx);
 void test_set_obj_vertex_count(const vbidx_t group_id, uint32 obj_vertex_count);
@@ -73,7 +70,6 @@ uint32 test_get_total_vertex_count(const vbidx_t group_id);
 float* test_get_obj_attribs_data(const vbidx_t group_id);
 uint32 test_obj_comp_desc_get_total_vertex_count(const vbidx_t group_id);
 uint32 test_obj_comp_desc_get_total_object_count(const vbidx_t group_id);
-
 
 /* DEBUG-PRINT */
 void obj_comp_group_print();

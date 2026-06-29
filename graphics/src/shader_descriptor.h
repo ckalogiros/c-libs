@@ -10,17 +10,17 @@
 
 
 enum SHADER_INPUT_FLAGS {
-    IS_ATTR = BIT_MASK_FROM_UINT(1), /// is input an attribute?
-    IS_UNIF = BIT_MASK_FROM_UINT(2), /// is input a uniform?
-    IS_OUT = BIT_MASK_FROM_UINT(3),
-    IS_ASSIGN = BIT_MASK_FROM_UINT(4),
+    IS_ATTR    = BIT_MASK_FROM_UINT(1), /// is input an attribute?
+    IS_UNIF    = BIT_MASK_FROM_UINT(2), /// is input a uniform?
+    IS_OUT     = BIT_MASK_FROM_UINT(3),
+    IS_ASSIGN  = BIT_MASK_FROM_UINT(4),
     IN_VSHADER = BIT_MASK_FROM_UINT(5), /// does input belong to vertex shader?
     IN_FSHADER = BIT_MASK_FROM_UINT(6), /// does input belong to vertex shader?
-    IS_TRANSFORM_VPOS = BIT_MASK_FROM_UINT(7),
-    IS_TRANSFORM_WPOS = BIT_MASK_FROM_UINT(8),
+    IS_TRANSFORM_VPOS  = BIT_MASK_FROM_UINT(7),
+    IS_TRANSFORM_WPOS  = BIT_MASK_FROM_UINT(8),
     IS_TRANSFORM_SCALE = BIT_MASK_FROM_UINT(9),
-    IS_TRANSFORM_ROT = BIT_MASK_FROM_UINT(10),
-    IS_TRANSFORM_PROJ = BIT_MASK_FROM_UINT(11),
+    IS_TRANSFORM_ROT   = BIT_MASK_FROM_UINT(10),
+    IS_TRANSFORM_PROJ  = BIT_MASK_FROM_UINT(11),
 };
 
 
@@ -45,8 +45,8 @@ struct uniform_layout {
 };
 
 struct vertex_attribute_ids {
-    /* INPUT: enum SID_VAR_IDI */
-    uint8 ids[SID_IDI_COUNT];
+    /* INPUT: enum SID_VAR_ID */
+    uint8 ids[SID_ID_COUNT];
     uint8 count;
 };
 
@@ -63,8 +63,8 @@ struct shader_in_variables_struct {
     uint8 elems;
     uint8 this_idx; // the index position in the shader_vars_table buffer
     uint8 var_table_idx;
-    /// TODO: maybe unnecessary, cause enum SID_VAR_IDI does not guarantee same index in vertex_attribute_ids
-    enum SID_ID shader_var_id; // the enum SID_VAR_IDI index of current shader variable input
+    /// TODO: maybe unnecessary, cause enum SID_VAR_ID does not guarantee same index in vertex_attribute_ids
+    enum SID_ID shader_var_id; // the enum SID_VAR_ID index of current shader variable input
 };
 
 /***************************************************************************************************
@@ -79,26 +79,23 @@ struct shader_descriptor {
     /// and compare each entry's flag field for matching.
     /// When all attributes of a shader build have been created,
     /// the "added_entry_flags_renameme" should be equal to "sid.attr".
-    sid_t added_entry_flags_renameme;
-
-    int16 vshader_attribs_idx;
-    uint16 vshader_code_size;
-    uint8 vshader_attribs_count;
-    uint8 vshader_attribs_stride;
-    uint8 vshader_attrib_locations_count;
-    uint8 last_loc_num_elems;
-    uint32 entry_count;
-    uint32 vlayout_count;
+    sid_t   added_entry_flags_renameme;
+    int16   vshader_attribs_idx;
+    uint16  vshader_code_size;
+    uint8   vshader_attribs_count;
+    uint8   vshader_attribs_stride;
+    uint8   vshader_attrib_locations_count;
+    uint8   last_loc_num_elems;
+    uint32  entry_count;
+    uint32  vlayout_count;
     build_t build_idx;
     vaidx_t vaoidx; // TODO: Maybe many VAO's for a shader program(???)
-    bool is_set; // A build maybe created but not set(shader_builder_build())
-
-    // struct gfx_sid sid;
+    bool    is_set; // A build maybe created but not set(shader_builder_build())
     sididx_t sid_idx;
+
     struct shader_in_variables_struct entries[SHADER_INPUT_ENTRIES_MAX_COUNT];
     struct vertex_layout v_layout[SHADER_INPUT_ENTRIES_MAX_COUNT];
     struct vertex_attribute_ids vertex_attribute_ids; // TODO: use sparse array for dynamicaly sized buffer
-
 
     const char* vshader_code;
 
@@ -108,8 +105,6 @@ struct shader_descriptor {
 struct shader_descriptor* shader_descriptor_get(const desc_t desc_idx);
 
 uint32 shader_descriptor_get_count(void);
-
-// void shader_descriptor_increment_count(void);
 
 void shader_descriptor_init(void);
 

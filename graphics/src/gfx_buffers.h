@@ -30,11 +30,10 @@ void gfx_vertex_array_delete(void);
  * command buffer parameter structs
  **************************************************************************************************/
 struct vb_cmd_params {
-    float* vpos;
     /// TODO: flags:{ FORCED_NEW | FORCED_USED | ANY }
     uint16 comp_idx;
     vbidx_t vbidx;
-    uint8 vpos_num_elems; // TODO: pass SID_VPOS_IDI instead which is smaller value
+    uint8 vpos_num_elems; // TODO: pass SID_VPOS_ID instead which is smaller value
 };
 
 
@@ -59,7 +58,7 @@ struct vertex_buffer_object* vertex_buffer_get_vbo(vbidx_t vbidx);
 
 uint32 vertex_buffer_get_vertex_count(vbidx_t vbidx);
 
-uint32 gfx_vertex_buffer_create(const build_t build_idx, const uint32 data_size, const uint32 stride);
+uint32 gfx_vertex_buffer_create(const uint32 data_size, const uint32 stride);
 
 void gfx_vertex_buffer_delete();
 

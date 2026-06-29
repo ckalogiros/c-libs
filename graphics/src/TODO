@@ -1,17 +1,3 @@
-#!
-1. The "test_add_obj_attribs_to_vb()" must be moved to vertex buffer .c file
-2. add the vertex count to the "object_attribs_buffer[]" in test.c, so that the vertex buffer relies on test.c implementation for setting up the vertex buffer
-
-
-###
-we have: shader_builds_table that has a vertex_layout[] buffer
-we have: shader_descriptor that is used as a return value of a shader build.
-we have: vertex layout to describe an attribute input
-we need: a vertex_attribute_ids to access O(1) a specific attribute(color) in a vertex_layout[] buffer
-
-###
-The use of: idx, id and idi, needs to be consistent accross code
-
 ###
 shader descriptor is a sparse array type.
 It needs: set_for_push and then add/copy a new descriptor object.
@@ -43,3 +29,5 @@ It needs: set_for_push and then add/copy a new descriptor object.
     for copying data to the whole buffer and update specific region of a VB
 
 ### TODO: PASS INDEXED/!INDEXED GEOMETRY to OBJECT/SHAPE CREATION (object.c)
+
+### TODO: vertex buffer should use memory from memory allocator
