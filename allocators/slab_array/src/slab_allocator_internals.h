@@ -16,7 +16,7 @@ uint16 slab_allocator_instance_create_new_pool(const salltable_t inst_id, const 
     const slab_size_t slab_size, const char* name);
 
 struct slab_allocator_mcache* slab_allocator_create_mcache(const salltable_t inst_id,
-    const slab_elems_t num_elems, const uint8 type_size, const char* name);
+    const slab_elems_t num_elems, const uint16 type_size, const char* name);
 
 struct slab_allocator_mcache* mcache_extend_allocation(struct slab_allocator_mcache* const mcache, const uint32 left_over_mem);
 
@@ -38,7 +38,7 @@ struct slab_allocator_mcache* mcache_find_size(const salltable_t inst_id, const 
 
 
 /* DEBUG */
-void* mcache_flist_peek_next_free_slab(const salltable_t inst_id, slab_elems_t num_elems, const uint8 type_size);
+void* mcache_flist_peek_next_free_slab(const salltable_t inst_id, slab_elems_t num_elems, const uint16 type_size);
 
 
 

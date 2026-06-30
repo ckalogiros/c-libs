@@ -11,15 +11,30 @@
 #include "fdebug_test.h"
 #include "mesh.h"
 #include "shader_builder.h"
+#include "sparse_arr_internals.h"
+#include "sparse_arr_struct.h"
 #include "test.h"
 
+
+sparse_arr_t* object_table = NULL;
+
+
+#define obj_get(obj_id) (&((struct object*) object_table->data)[obj_id])
+
+void
+object_table_init(void)
+{
+    object_table = sparse_arr_constructor_gentype(80, sizeof(struct object));
+}
 
 
 /// TODO: Use dynamic array for removing and reusing objects in the table
 #define OBJECTS_TABLE_MAX_COUNT 128
-struct object object_table[OBJECTS_TABLE_MAX_COUNT];
+// struct object object_table[OBJECTS_TABLE_MAX_COUNT];
 uint32 object_table_count = 0;
 static uint32 object_id = 0;
+
+
 
 
 struct object*
@@ -33,12 +48,17 @@ object_create(const sididx_t sid_idx)
         .comp_id   = 0,
         .verts_per_face = 0,
     };
-    
-    uint32 idx = object_table_count;
-    object_table_count++;
-    object_table[idx] = obj;
-    
-    return &object_table[idx];
+
+    const desc_t obj_idx = sparse_arr_set_for_push(object_table);
+    struct object* object = obj_get(obj_idx);
+    *object = obj;
+
+    return object;
+}
+
+void object_destroy(const uint32 obj_id)
+{
+    sparse_arr_free_elem(object_table, obj_id);
 }
 
 /*
@@ -49,7 +69,6 @@ object_create(const sididx_t sid_idx)
 struct object*
 object_create_triangle(struct gfx_sid sid, float wpos[3], float scale[2], float rot[2], float color[4])
 {
-    // sid.attr |= SID_VPOSI2 | SID_SCALE2 | SID_COLOR4 | SID_DIF;
     sid.attr |= SID_VPOSI2 | SID_SCALE2 | SID_COLOR4;
     sid.unif |= SID_PROJMAT4X4;
     sid.out  |= SID_COLOR4;

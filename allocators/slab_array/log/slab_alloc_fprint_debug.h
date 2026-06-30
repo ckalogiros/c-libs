@@ -12,7 +12,7 @@
 
 // #define DEBUG_FPRINT_MCACHE
 // #define DEBUG_FPRINT_MCACHES_IN_FILES
-#if DEBUG_FPRINT_MCACHE
+#ifdef DEBUG_FPRINT_MCACHE
 #   define fs_register_mcache_create(fs, mcache)\
         fs_append(fs,\
         "%8s: | "          \

@@ -31,3 +31,5 @@ It needs: set_for_push and then add/copy a new descriptor object.
 ### TODO: PASS INDEXED/!INDEXED GEOMETRY to OBJECT/SHAPE CREATION (object.c)
 
 ### TODO: vertex buffer should use memory from memory allocator
+
+### objects buffer should be implemented with sparse array, so inserting and deleting objects sparsly , is feasible

@@ -9,10 +9,8 @@
 #include "logger.h"
 #include <stdlib.h>
 #include <string.h>
-#include "file_sys_interface.h"
 #include "my_macros.h"
 #include "mem_man_internals.h"
-#include "slab_allocator_log.h"
 #include "slab_allocator_struct.h"
 #include "slab_alloc_fprint_debug.h"
 
@@ -150,7 +148,7 @@ slab_allocator_instance_create_new_pool(const salltable_t inst_id, const pageid_
 
 struct slab_allocator_mcache*
 slab_allocator_create_mcache(const salltable_t inst_id, const slab_elems_t num_elems,
-    const uint8 type_size, const char* name)
+    const uint16 type_size, const char* name)
 {
     // TODO: check null
     const slab_size_t slab_size = num_elems * type_size;
@@ -451,7 +449,7 @@ mcache_find_size(const salltable_t inst_id, const slab_size_t slab_size)
 
 /* DEBUG */
 void*
-mcache_flist_peek_next_free_slab(const salltable_t inst_id, const slab_elems_t num_elems, const uint8 type_size)
+mcache_flist_peek_next_free_slab(const salltable_t inst_id, const slab_elems_t num_elems, const uint16 type_size)
 {
     const slab_size_t slab_size = num_elems * type_size;
 

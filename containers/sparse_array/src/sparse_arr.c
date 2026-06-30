@@ -4,6 +4,8 @@
 
 #include "sparse_arr.h"
 
+#include <string.h>
+
 #include "bits.h"
 #include "sparse_arr_internals.h"
 #include "sys_utils.h"
@@ -115,6 +117,9 @@ sparse_arr_free_elem(sparse_arr_t* const buffer, const bufidx_t index)
         // do not decrement tail if tail < index
         if(index == buffer->tail) buffer->tail--;
     }
+
+    memset(&buffer->data[index*buffer->typesize], 0xAB, buffer->typesize);
+    // memset_64bit(buffer->data, 0xAB, buffer->typesize);
 }
 
 void // sets all elems as free. buffer data remain untouched

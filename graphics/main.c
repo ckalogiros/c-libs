@@ -316,6 +316,7 @@ main(void)
     shader_descriptor_init();
     shader_builder_init();
     timer_init_table();
+    object_table_init();
 
     /* DEBUG-FPRINT */
     engine_fdebug_init();
@@ -378,36 +379,47 @@ main(void)
 
 
     float wpos[3] = {-5, 3,-14}, rot[2] = {cos(0.0),sin(0.0)}, scale[2] = {4,4}, color[4] = {.2,.5,.9,1};
-    uint16 num_meshes = 2;
+    uint16 num_meshes = 1;
 
     wpos[0] = -4; wpos[1] = 4;
     struct object* tri = test_create_triangles(num_meshes, wpos, scale, rot, color);
     test_create_object(tri->comp_id, num_meshes, tri->verts_per_face, MESH_TRIANGLE, &camera);
+    struct object* tri2 = test_create_triangles(num_meshes, wpos, scale, rot, color);
+    test_create_object(tri2->comp_id, num_meshes, tri->verts_per_face, MESH_TRIANGLE, &camera);
 
-    wpos[0] = -4; wpos[1] = 2;
-    struct object* quad = test_create_quads(num_meshes, wpos, scale, rot, color);
-    test_create_object(quad->comp_id, num_meshes, quad->verts_per_face, MESH_RECTANGLE, &camera);
+    object_destroy(tri2->id);
 
-    wpos[0] = -4; wpos[1] = 0;
-    struct object* penta = test_create_pentagon(num_meshes, wpos, scale, rot, color);
-    test_create_object(penta->comp_id, num_meshes, VERTICES_PER_PENTAGON, MESH_PENTAGON, &camera);
+    struct object* tri3 = test_create_triangles(num_meshes, wpos, scale, rot, color);
+    test_create_object(tri3->comp_id, num_meshes, tri->verts_per_face, MESH_TRIANGLE, &camera);
 
-    wpos[0] = -4; wpos[1] = -2;
-    struct object* octa = test_create_octagon(num_meshes, wpos, scale, rot, color);
-    test_create_object(octa->comp_id, num_meshes, VERTICES_PER_OCTAGON, MESH_OCTAGON, &camera);
+    // object_destroy(tri->id);
+    // object_destroy(tri3->id);
+    // //  TODO fprint the objects table memory
 
-    // wpos[0] = 4; wpos[1] = 4;
-    // struct object* cube = test_create_cube(1, wpos, scale, rot, color);
-    // test_create_object(cube->comp_id, 1, VERTICES_PER_CUBE, MESH_CUBE, &camera);
+    // wpos[0] = -4; wpos[1] = 2;
+    // struct object* quad = test_create_quads(num_meshes, wpos, scale, rot, color);
+    // test_create_object(quad->comp_id, num_meshes, quad->verts_per_face, MESH_RECTANGLE, &camera);
     //
-    // wpos[0] = 4; wpos[1] = 0;
-    // struct object* octahedron = test_create_octahedron(1, wpos, scale, rot, color);
-    // test_create_object(octahedron->comp_id, 1, VERTICES_PER_OCTAHEDRON, MESH_OCTAHEDRON, &camera);
+    // wpos[0] = -4; wpos[1] = 0;
+    // struct object* penta = test_create_pentagon(num_meshes, wpos, scale, rot, color);
+    // test_create_object(penta->comp_id, num_meshes, VERTICES_PER_PENTAGON, MESH_PENTAGON, &camera);
     //
-    // wpos[0] = 4; wpos[1] = -4;
-    // mesh_build_dodecahedron();
-    // struct object* dodecahedron = test_create_dodecahedron(1, wpos, scale, rot, color);
-    // test_create_object(dodecahedron->comp_id, 1, VERTICES_PER_DODECAHEDRON, MESH_DODECAHEDRON, &camera);
+    // wpos[0] = -4; wpos[1] = -2;
+    // struct object* octa = test_create_octagon(num_meshes, wpos, scale, rot, color);
+    // test_create_object(octa->comp_id, num_meshes, VERTICES_PER_OCTAGON, MESH_OCTAGON, &camera);
+
+    wpos[0] = 4; wpos[1] = 4;
+    struct object* cube = test_create_cube(1, wpos, scale, rot, color);
+    test_create_object(cube->comp_id, 1, VERTICES_PER_CUBE, MESH_CUBE, &camera);
+
+    wpos[0] = 4; wpos[1] = 0;
+    struct object* octahedron = test_create_octahedron(1, wpos, scale, rot, color);
+    test_create_object(octahedron->comp_id, 1, VERTICES_PER_OCTAHEDRON, MESH_OCTAHEDRON, &camera);
+
+    wpos[0] = 4; wpos[1] = -4;
+    mesh_build_dodecahedron();
+    struct object* dodecahedron = test_create_dodecahedron(1, wpos, scale, rot, color);
+    test_create_object(dodecahedron->comp_id, 1, VERTICES_PER_DODECAHEDRON, MESH_DODECAHEDRON, &camera);
 
     /// DEBUG OPENGL
     {

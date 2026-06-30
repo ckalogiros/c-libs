@@ -240,7 +240,8 @@ sparse_arr_constructor_gentype(const bufidx_t capacity, const typesize_t typesiz
     buffer->tail = INT_NULL;
     buffer->id = sparse_arr_get_id();
     buffer->typesize = typesize;
-
+    // 0x00005555566287c0
+    // 0x0000555556628840
     /* init buffer data */
     sparse_arr_memset(buffer, 0xcd);
 

@@ -12,17 +12,19 @@ struct object_gfx {
     uint32 count;
 };
 struct object {
-    // struct object_gfx gfx;
-    sididx_t sid_idx;
     uint32 id;
     uint32 attrib_count;
+    sididx_t sid_idx;
     uint16 num_faces;
     uint16 comp_id;
     uint8  verts_per_face;
 };
 
+void object_table_init(void);
 
 struct object* object_create(const sididx_t sid_idx);
+
+void object_destroy(const uint32 obj_id);
 
 struct object*
 object_create_triangle(struct gfx_sid sid, float wpos[3], float scale[2], float rot[2], float color[4]);
