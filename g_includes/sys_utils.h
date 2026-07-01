@@ -47,17 +47,6 @@ extern void exit(int __status) __THROW __attribute__ ((__noreturn__));
  * end of copy-cat from stdlib.h
  */
 
-void my_exit(const char* msg, const char* file, const uint32 line);
-
-
-
-static inline uint64 make_uint64_from_char8(const char start_char[8]) {
-    uint64 result = 0;
-    for (int i = 0; i < 8; i++) {
-        result = (result << 8) | (uint8)start_char[i];
-    }
-    return result;
-}
 
 
 /*
@@ -149,12 +138,22 @@ static inline uint64 make_uint64_from_char8(const char start_char[8]) {
 #define DIGITS7 0xF4240
 #define DIGITS8 0x989680
 
+
+
+
+
+void my_exit(const char* msg, const char* file, const uint32 line);
+
 void   memset_64bit(const char* src, const uint64 val, const uint64 size);
+
 uint32 reverse_bytes_uint32(uint32 value);
 uint64 reverse_bytes_uint64(uint64 value);
 
 uint16 copy_bytes_uint16(uint16 from, uint16 to);
 uint32 copy_bytes_uint32(uint32 from, uint32 to);
 uint64 copy_bytes_uint64(uint64 from, uint64 to);
+
+uint64 make_uint64_from_string_max_8chars(const char string[8], const uint8 num_chars);
+
 
 #endif //SYS_UTILS_H

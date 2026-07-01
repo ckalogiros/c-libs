@@ -12,6 +12,7 @@
 #include "slab_allocator.h"
 #include "file_sys_interface.h"
 #include "slab_allocator_internals.h"
+#include "string_format.h"
 #include "str_utils.h"
 
 
@@ -209,9 +210,13 @@ sparse_arr_constructor_uint32(const bufidx_t capacity)
     return buffer;
 }
 
+
 sparse_arr_t*
 sparse_arr_constructor_gentype(const bufidx_t capacity, const typesize_t typesize)
 {
+    // uint64 s = max_value_from_type(typesize);
+    // assert(s < MAX_UINT32);
+
     if(!sparse_arr_table) {
         // sparse_arr_init_table();
         sparse_arr_print_error(SPARSE_ARR_TABLE_INIT_FROM_CREATE_FUN);

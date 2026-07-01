@@ -3,28 +3,42 @@
  */
 #ifndef GRAPHICS_TEST_OBJECT_H
 #define GRAPHICS_TEST_OBJECT_H
-#include "gfx_interface.h"
+
 #include "my_types.h"
+#include "engine.h"
 #include "shader_id.h"
+#include "mesh.h"
+
+
 
 struct object_gfx {
     uint32 start;
     uint32 count;
 };
 struct object {
-    uint32 id;
+    enum MESH_TYPE mesh_type; /// used by "gfx_vertex_buffer_set_data()" to get the object's correct vpos mesh
+    objid_t id;
     uint32 attrib_count;
-    sididx_t sid_idx;
+    uint32 vb_start;          /// the start index of an object, in the vertex buffer
     uint16 num_faces;
     uint16 comp_id;
+    uint16 vertex_count;      /// number of object's vertices
+    sididx_t sid_idx;
     uint8  verts_per_face;
+
 };
 
 void object_table_init(void);
 
-struct object* object_create(const sididx_t sid_idx);
+struct object* object_create(const sididx_t sid_idx, enum MESH_TYPE mesh_type);
 
-void object_destroy(const uint32 obj_id);
+void object_destroy(const objid_t obj_id);
+
+struct object* object_get(const objid_t obj_id);
+
+uint16 object_get_vertex_count(const objid_t obj_id);
+
+enum MESH_TYPE object_get_vertex_mesh_type(const objid_t obj_id);
 
 struct object*
 object_create_triangle(struct gfx_sid sid, float wpos[3], float scale[2], float rot[2], float color[4]);

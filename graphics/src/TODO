@@ -33,3 +33,15 @@ It needs: set_for_push and then add/copy a new descriptor object.
 ### TODO: vertex buffer should use memory from memory allocator
 
 ### objects buffer should be implemented with sparse array, so inserting and deleting objects sparsly , is feasible
+
+### Implement Groups
+    1. group of objects, storing obj ids, for the object component descriptor
+
+    groups are sparse arrays
+    groups table sparse array???
+
+### implement bits.c with all bit operations functions
+
+### The "struct   comp_per_object_descriptor per_obj_desc[COMP_MAX_OBJECTS]" must be replaces by a sparse array buffer
+
+### IMIDIATELY: str_utils.c and string_format.h both have int to string conversions

@@ -6,9 +6,8 @@
 #include <assert.h>
 #include "ascii_characters.h"
 #include "logger.h"
+#include "str_utils.h"
 #include <string.h>
-
-#include "fdebug_test.h"
 
 
 /* stigma
@@ -73,59 +72,38 @@ _____    _____
 89 	Y    121 y
 90 	Z    122 z
 */
+/*
+0 	NUL 	26 	SUB 	52 	4 		78 	N 		104 	h
+1 	SOH 	27 	ESC 	53 	5 		79 	O 		105 	i
+2 	STX 	28 	FS 		54 	6 		80 	P 		106 	j
+3 	ETX 	29 	GS 		55 	7 		81 	Q 		107 	k
+4 	EOT 	30 	RS 		56 	8 		82 	R 		108 	l
+5 	ENQ 	31 	US 		57 	9 		83 	S 		109 	m
+6 	ACK 	32 			58 	: 		84 	T 		110 	n
+7 	BEL 	33 	! 		59 	; 		85 	U 		111 	o
+8 	BS 		34 	" 		60 	< 		86 	V 		112 	p
+9 	HT 		35 	# 		61 	= 		87 	W 		113 	q
+10 	LF 		36 	$ 		62 	> 		88 	X 		114 	r
+11 	VT 		37 	% 		63 	? 		89 	Y 		115 	s
+12 	FF 		38 	& 		64 	@ 		90 	Z 		116 	t
+13 	CR 		39 	' 		65 	A 		91 	[ 		117 	u
+14 	SO 		40 	( 		66 	B 		92 	\ 		118 	v
+15 	SI 		41 	) 		67 	C 		93 	] 		119 	w
+16 	DLE 	42 	* 		68 	D 		94 	^ 		120 	x
+17 	DC1 	43 	+ 		69 	E 		95 	_ 		121 	y
+18 	DC2 	44 	, 		70 	F 		96 	` 		122 	z
+19 	DC3 	45 	- 		71 	G 		97 	a 		123 	{
+20 	DC4 	46 	. 		72 	H 		98 	b 		124 	|
+21 	NAK 	47 	/ 		73 	I 		99 	c 		125 	}
+22 	SYN 	48 	0 		74 	J 		100 d 		126 	~
+23 	ETB 	49 	1 		75 	K 		101 e 		127 	DEL
+24 	CAN 	50 	2 		76 	L 		102 f
+25 	EM 		51 	3 		77 	M 		103 g
+*/
 
-#define alphabet_lower 97
-#define alphabet_upper 65
-#define alphabet_len 26
-#define numeric 48
-#define numeric_len 10
-
-
-uint8
-is_newline(const char c1, const char c2)
-{
-    if(c1 == '\\' && c2 == 'n')
-        return c2;
-    return 0;
-}
-
-uint8
-is_numeric(char c)
-{
-    if(c >= numeric && c < numeric + numeric_len)
-        return c;
-    return 0;
-}
-
-uint8
-is_alphabet(char c)
-{
-    if(c >= ASCII_A && c < ASCII_Z)
-        return c;
-    if(c >= ASCII_a && c < ASCII_z)
-        return c;
-    return 0;
-}
-
-uint8 calculate_num_digits(uint64 number)
-{
-    // Case the number is 0
-    if (number == 0) return 1;
-
-    uint64 numdigits = 0;
-
-    // Find how many digits are in val
-    while (number)
-    {
-        number /= 10;
-        numdigits++;
-    }
-
-    return numdigits;
-}
-
-
-uint32 floating_point_format(char** const buf, double num, char* formated, bool is_formated, uint32 k)
+/* add to a string buffer, the int and fract parts of a floating point value */
+uint32
+floating_point_format(char** const buf, double num, char* formated, bool is_formated, uint32 k)
 {
     /*
         * Format	Output for -1.2345	Description
@@ -189,7 +167,8 @@ uint32 floating_point_format(char** const buf, double num, char* formated, bool 
 
 }
 
-uint32 add_leading_spaces(char** buf, uint32 k, uint32 count, char snum)
+uint32 /* helper: add space characters to a string buffer */
+add_leading_spaces(char** buf, uint32 k, uint32 count, char snum)
 {
     uint32 n = (int)snum - ASCII_0; /// char to integer
 
@@ -204,6 +183,7 @@ uint32 add_leading_spaces(char** buf, uint32 k, uint32 count, char snum)
     return k;
 }
 
+/* add to a string buffer, the formated input from variable arguments */
 uint32
 string_format(char** const buf, const uint32 size, const char* format, ...)
 {
@@ -287,6 +267,7 @@ string_format(char** const buf, const uint32 size, const char* format, ...)
     return k;
 }
 
+/* add to a string buffer, the formated input from va_list arguments */
 uint32
 string_format_va_list_call(char** const buf, const uint32 size, const char* format, va_list args)
 {
@@ -366,8 +347,9 @@ string_format_va_list_call(char** const buf, const uint32 size, const char* form
     return k;
 }
 
-/* returns: the index of the last pushed character */
-uint32 string_buffer_push(char** const buf, const uint32 size, const char* str)
+/* push characters to a string buffer. @return: the index of the last pushed character */
+uint32
+string_buffer_push(char** const buf, const uint32 size, const char* str)
 {
     uint32 i = 0, k = 0;
     while(str[i]) {
@@ -380,34 +362,7 @@ uint32 string_buffer_push(char** const buf, const uint32 size, const char* str)
     return k;
 }
 
-/*
-0 	NUL 	26 	SUB 	52 	4 		78 	N 		104 	h
-1 	SOH 	27 	ESC 	53 	5 		79 	O 		105 	i
-2 	STX 	28 	FS 		54 	6 		80 	P 		106 	j
-3 	ETX 	29 	GS 		55 	7 		81 	Q 		107 	k
-4 	EOT 	30 	RS 		56 	8 		82 	R 		108 	l
-5 	ENQ 	31 	US 		57 	9 		83 	S 		109 	m
-6 	ACK 	32 			58 	: 		84 	T 		110 	n
-7 	BEL 	33 	! 		59 	; 		85 	U 		111 	o
-8 	BS 		34 	" 		60 	< 		86 	V 		112 	p
-9 	HT 		35 	# 		61 	= 		87 	W 		113 	q
-10 	LF 		36 	$ 		62 	> 		88 	X 		114 	r
-11 	VT 		37 	% 		63 	? 		89 	Y 		115 	s
-12 	FF 		38 	& 		64 	@ 		90 	Z 		116 	t
-13 	CR 		39 	' 		65 	A 		91 	[ 		117 	u
-14 	SO 		40 	( 		66 	B 		92 	\ 		118 	v
-15 	SI 		41 	) 		67 	C 		93 	] 		119 	w
-16 	DLE 	42 	* 		68 	D 		94 	^ 		120 	x
-17 	DC1 	43 	+ 		69 	E 		95 	_ 		121 	y
-18 	DC2 	44 	, 		70 	F 		96 	` 		122 	z
-19 	DC3 	45 	- 		71 	G 		97 	a 		123 	{
-20 	DC4 	46 	. 		72 	H 		98 	b 		124 	|
-21 	NAK 	47 	/ 		73 	I 		99 	c 		125 	}
-22 	SYN 	48 	0 		74 	J 		100 d 		126 	~
-23 	ETB 	49 	1 		75 	K 		101 e 		127 	DEL
-24 	CAN 	50 	2 		76 	L 		102 f
-25 	EM 		51 	3 		77 	M 		103 g
-*/
+
 
 /* TEST-DEBUG */
 void string_format_test()

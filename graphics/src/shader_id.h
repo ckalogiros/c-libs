@@ -66,7 +66,7 @@ enum SID_ID {
 
 
 typedef uint64 sid_t;
-typedef uint16 sididx_t;
+typedef int16  sididx_t;
 
 /// TODO: unite some flags into one
 struct gfx_sid {

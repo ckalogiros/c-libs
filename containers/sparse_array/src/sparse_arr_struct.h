@@ -8,24 +8,24 @@
 
 
 enum SPARSE_ARR_ERROR_CODE {
-    NO_SPARSE_ARR_TABLE_INIT = BIT_MASK_FROM_UINT(1),
-    SPARSE_ARR_INDEX_GREATER_THAN_TAIL = BIT_MASK_FROM_UINT(2),
-    SPARSE_ARR_INDEX_GREATER_THAN_CAPACITY = BIT_MASK_FROM_UINT(3),
-    SPARSE_ARR_TAIL_GREATER_THAN_CAPACITY = BIT_MASK_FROM_UINT(4),
-    SPARSE_ARR_CAPACITY_LESS_THAN_1 = BIT_MASK_FROM_UINT(5),
-    SPARSE_ARR_TABLE_ALREADY_INIT = BIT_MASK_FROM_UINT(6),
-    SPARSE_ARR_TABLE_INIT_FROM_CREATE_FUN = BIT_MASK_FROM_UINT(7),
+    NO_SPARSE_ARR_TABLE_INIT                = BIT_MASK_FROM_UINT(1),
+    SPARSE_ARR_INDEX_GREATER_THAN_TAIL      = BIT_MASK_FROM_UINT(2),
+    SPARSE_ARR_INDEX_GREATER_THAN_CAPACITY  = BIT_MASK_FROM_UINT(3),
+    SPARSE_ARR_TAIL_GREATER_THAN_CAPACITY   = BIT_MASK_FROM_UINT(4),
+    SPARSE_ARR_CAPACITY_LESS_THAN_1         = BIT_MASK_FROM_UINT(5),
+    SPARSE_ARR_TABLE_ALREADY_INIT           = BIT_MASK_FROM_UINT(6),
+    SPARSE_ARR_TABLE_INIT_FROM_CREATE_FUN   = BIT_MASK_FROM_UINT(7),
 };
 
 typedef struct sparse_arr_t {
-    void* data; // buffer start (allocations of type allocations_t)
-    uint64* free_list; // pointer to the start of the free elems list
-    uint16 free_list_capacity; // total free list uint64's (Ex. buf size=128 => flist=2 uin64)
-    bufidx_t capacity; // total buffer  elements count
-    bufidx_t count; // used elements count
-    int16 tail; // last element's index
-    bufidx_t id; // self reference index
-    typesize_t typesize; // last element's index
+    void*    data;               // buffer start (allocations of type allocations_t)
+    uint64*  free_list;          // pointer to the start of the free elems list
+    uint16   free_list_capacity; // total free list uint64's (Ex. buf size=128 => flist=2 uin64)
+    bufidx_t capacity;           // total buffer  elements count
+    bufidx_t count;              // used elements count
+    int16    tail;               // last element's index
+    bufidx_t id;                 // self reference index
+    typesize_t typesize;         // last element's index
 } sparse_arr_t;
 
 /*

@@ -101,7 +101,6 @@ void engine_fdebug_flush_arena(enum ENGINE_FDEBUG_FILE_NAMES type)
 {
     memid_t instance_id = fdebug_get_instance_id(type);
     arena_allocator_release(instance_id);
-    // is_arena_inuse = FALSE;
 }
 
 /***************************************************************************************************

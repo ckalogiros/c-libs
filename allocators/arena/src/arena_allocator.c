@@ -16,6 +16,9 @@
 #include "mem_man_interface.h"
 #include "my_macros.h"
 #include "alignment.h"
+#include "str_utils.h"
+#include "string_format.h"
+#include "sys_utils.h"
 
 enum ARENA_ALLOCATOR {
     ARENA_ALLOCATOR_INSTANCE_INITIAL_TABLE_SIZE = 64,
@@ -47,8 +50,12 @@ arena_allocator_create_new_instance(const pageid_t num_pages)
     void* const data_address = memman_get_mem_start_by_memid(data_memid);
 
     /* FOR DEBUG */
-    memset(data_address, 'Q', num_pages * PAGE_SIZE);
-
+    assert(data_memid < 100); /// char c[8] cannot store values > 2 characters
+    char c[8] = {'A','R','E','N','A'};
+    str_conv_int32_to_str(&c[5], data_memid);
+    uint64 s = make_uint64_from_string_max_8chars(c, 8);
+    memset_64bit(data_address, s, num_pages * PAGE_SIZE);
+    // memset(data_address, 'Q', num_pages * PAGE_SIZE);
     struct arena_allocator_instance inst = {
 
         .stack_ptr_offset = 0, /* points to offsets table [0]*/

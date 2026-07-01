@@ -8,6 +8,7 @@
 #include "file_sys_interface.h"
 #include "str_utils.h"
 #include "debug_defines.h"
+#include "string_format.h"
 
 
 // #define DEBUG_FPRINT_MCACHE

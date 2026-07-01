@@ -15,7 +15,7 @@ typedef unsigned short int uint16;
 typedef unsigned int uint32;
 typedef unsigned long long int uint64;
 
-typedef int8_t int8;
+typedef int8_t  int8;
 typedef int16_t int16;
 typedef int32_t int32;
 typedef int64_t int64;
@@ -39,10 +39,14 @@ typedef uint16 typesize_t;
 
 #define BYTE_SIZE 8
 
-#define MAX_UINT8  0xff
-#define MAX_UINT16 0xffff
-#define MAX_UINT32 0xffffffff
-#define MAX_UINT64 0xffffffffffffffff
+#define MAX_INT8   INT8_MAX
+#define MAX_INT16  INT16_MAX
+#define MAX_INT32  INT32_MAX
+#define MAX_INT64  INT64_MAX
+#define MAX_UINT8  UINT8_MAX
+#define MAX_UINT16 UINT16_MAX
+#define MAX_UINT32 UINT32_MAX
+#define MAX_UINT64 UINT64_MAX
 
 #define BIT_MASK_FROM_UINT(n) (1ULL << (n))
 
@@ -104,7 +108,7 @@ default : UINT64_C(1))
 
 #define types_get_bytesize_from_type(T) \
 _Generic((T),                           \
-uint8: 1,                               \
+uint8:  1,                              \
 uint16: 2,                              \
 uint32: 4,                              \
 uint64: 8,                              \
@@ -122,7 +126,7 @@ default:      void* )
 #define types_get_bitsize_from_val(v) (sizeof(v) * (8))
 
 // Create a macro that expands to the type name
-#define TYPES_FROM_SIZE(size)   \
+#define type_from_size_in_char(size)   \
 _Generic(((char(*)[size])NULL), \
 char(*)[1]:   uint8_t,          \
 char(*)[2]:   uint16_t,         \
@@ -130,6 +134,18 @@ char(*)[4]:   uint32_t,         \
 char(*)[8]:   uint64_t,         \
 default:      void)
 
+/* force the type size to value 1 */
+#define max_value_from_type(T) \
+_Generic((T),                  \
+int8    : MAX_INT8,            \
+int16   : MAX_INT16,           \
+int32   : MAX_INT32,           \
+int64   : MAX_INT64,           \
+uint8   : MAX_UINT8,           \
+uint16  : MAX_UINT16,          \
+uint32  : MAX_UINT32,          \
+uint64  : MAX_UINT64,          \
+default : 0)
 
 
 /***************************************************************************************************

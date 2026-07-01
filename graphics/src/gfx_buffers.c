@@ -10,10 +10,11 @@
 
 #include "fdebug_test.h"
 #include "mesh.h"
+#include "object.h"
 #include "opengl.h"
 #include "opengl_debug.h"
 #include "shader_builder.h"
-#include "test.h"
+#include "object_components.h"
 
 
 /***************************************************************************************************
@@ -117,8 +118,8 @@ float* gfx_vertex_buffer_set_data(struct vb_cmd_params* params)
 
     struct vertex_buffer_object* vb = &vertex_buffer_table[params->vbidx];
 
-    struct comp_per_group_descriptor* comp_desc = test_get_comp_desc(params->vbidx);
-    float* obj_attr_data = test_get_obj_attribs_data(params->comp_idx);
+    struct comp_per_group_descriptor* comp_desc = obj_component_get_comp_desc(params->vbidx);
+    float* obj_attr_data = obj_component_get_obj_attribs_data(params->comp_idx);
     uint32 cnt1 = 0, vcnt = 0;
 
     uint32 stride = vb->stride-params->vpos_num_elems; // stride becomes minus the vertex position's number of elements
@@ -128,8 +129,8 @@ float* gfx_vertex_buffer_set_data(struct vb_cmd_params* params)
     engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_VERTEX_BUFFER, "\n\n- ADD OBJ TO VB vb:%u -", params->vbidx);
 
     for(uint32 i = 0; i < comp_desc->per_obj_desc_counter; i++) {
-
         enum MESH_TYPE mesh_type = comp_desc->per_obj_desc[i].mesh_type;
+        // enum MESH_TYPE mesh_type = object_get_vertex_mesh_type(i+1);
         float* vpos = mesh_get_mesh_from_type(mesh_type);
         uint16 vpos_count = comp_desc->per_obj_desc[i].vertex_count * params->vpos_num_elems;
         cnt1 = 0;

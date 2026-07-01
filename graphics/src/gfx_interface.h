@@ -18,23 +18,12 @@ typedef int8 tbidx_t;
 
 
 struct gfx_sid gfx_get_sid(const sididx_t sid_idx);
+
 sididx_t gfx_create_sid(struct gfx_sid sid);
-// void gfx_set_sid(struct gfx_sid sid);
 
-static bool
-sid_check_match(const sididx_t sid_idx1, const sididx_t sid_idx2)
-{
-    struct gfx_sid sid1 = gfx_get_sid(sid_idx1);
-    struct gfx_sid sid2 = gfx_get_sid(sid_idx2);
-    if(sid1.attr == sid2.attr &&
-       sid1.unif == sid2.unif &&
-       sid1.pass == sid2.pass) {
-        return TRUE;
-       }
+sididx_t gfx_sid_find_match(struct gfx_sid sid);
 
-    return FALSE;
-}
-
+bool sid_check_match(const sididx_t sid_idx1, const sididx_t sid_idx2);
 //
 // static bool
 // sid_copy(const sididx_t dst_sid_idx1, const sididx_t dst_sid_idx2)

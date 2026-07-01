@@ -2,12 +2,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "my_macros.h"
+#include "str_utils.h"
 #include "camera.h"
 #include "gfx_buffers.h"
 #include "command.h"
 #include "fdebug_test.h"
 #include "mem_man_interface.h"
-#include "my_macros.h"
 #include "mesh.h"
 #include "object.h"
 #include "opengl.h"
@@ -18,7 +19,7 @@
 #include "shader_builder.h"
 #include "sparse_arr_internals.h"
 #include "string_format.h"
-#include "test.h"
+#include "object_components.h"
 
 
 #   define COLOR_RED     1.0f, 0.3f, 0.3f, 1.0f
@@ -149,7 +150,7 @@ void command_set_camera(struct cmd_gfx_params* params)
 }
 void command_create_vao(struct cmd_gfx_params* params)
 {
-    struct comp_per_group_descriptor* comp_desc =  test_get_comp_desc(params->comp_idx);
+    struct comp_per_group_descriptor* comp_desc =  obj_component_get_comp_desc(params->comp_idx);
     struct shader_descriptor* desc = shader_descriptor_get(params->desc_idx);
     const uint32 stride = desc->vshader_attribs_stride;
     struct opengl_program* prog = shader_program_get(params->desc_idx);
@@ -274,7 +275,7 @@ struct object* test_create_dodecahedron(const uint32 num_objects, float wpos[3],
 
 void test_create_object(const uint16 comp_idx, const uint32 num_objects, const uint32 num_vertices, enum MESH_TYPE mesh_type, struct camera* camera)
 {
-    struct comp_per_group_descriptor* comp_desc =  test_get_comp_desc(comp_idx);
+    struct comp_per_group_descriptor* comp_desc =  obj_component_get_comp_desc(comp_idx);
 
     struct cmd_gfx_params gfx_params = {
         .sid_idx = comp_desc->sid_idx,
@@ -288,7 +289,7 @@ void test_create_object(const uint16 comp_idx, const uint32 num_objects, const u
     if((comp_desc->commands_flag & CMD_CREATE_SHADER_PROGRAM)==0) {
         cmd_add_command((void*)command_create_shader_program, &gfx_params, sizeof(struct cmd_gfx_params));
         comp_desc->commands_flag |= CMD_CREATE_SHADER_PROGRAM;
-        gfx_params.desc_idx =  test_get_comp_desc(comp_idx)->build_idx;
+        gfx_params.desc_idx =  obj_component_get_comp_desc(comp_idx)->build_idx;
     }
 
 
@@ -312,11 +313,12 @@ int
 main(void)
 {
     memman_init();
-    sparse_arr_init_table(64);
+    sparse_arr_init_table(128);
     shader_descriptor_init();
     shader_builder_init();
     timer_init_table();
     object_table_init();
+    obj_component_table_init();
 
     /* DEBUG-FPRINT */
     engine_fdebug_init();
@@ -384,13 +386,13 @@ main(void)
     wpos[0] = -4; wpos[1] = 4;
     struct object* tri = test_create_triangles(num_meshes, wpos, scale, rot, color);
     test_create_object(tri->comp_id, num_meshes, tri->verts_per_face, MESH_TRIANGLE, &camera);
-    struct object* tri2 = test_create_triangles(num_meshes, wpos, scale, rot, color);
-    test_create_object(tri2->comp_id, num_meshes, tri->verts_per_face, MESH_TRIANGLE, &camera);
-
-    object_destroy(tri2->id);
-
-    struct object* tri3 = test_create_triangles(num_meshes, wpos, scale, rot, color);
-    test_create_object(tri3->comp_id, num_meshes, tri->verts_per_face, MESH_TRIANGLE, &camera);
+    // struct object* tri2 = test_create_triangles(num_meshes, wpos, scale, rot, color);
+    // test_create_object(tri2->comp_id, num_meshes, tri->verts_per_face, MESH_TRIANGLE, &camera);
+    //
+    // object_destroy(tri2->id);
+    //
+    // struct object* tri3 = test_create_triangles(num_meshes, wpos, scale, rot, color);
+    // test_create_object(tri3->comp_id, num_meshes, tri->verts_per_face, MESH_TRIANGLE, &camera);
 
     // object_destroy(tri->id);
     // object_destroy(tri3->id);
@@ -402,24 +404,24 @@ main(void)
     //
     // wpos[0] = -4; wpos[1] = 0;
     // struct object* penta = test_create_pentagon(num_meshes, wpos, scale, rot, color);
-    // test_create_object(penta->comp_id, num_meshes, VERTICES_PER_PENTAGON, MESH_PENTAGON, &camera);
+    // test_create_object(penta->comp_id, num_meshes, penta->verts_per_face, MESH_PENTAGON, &camera);
     //
     // wpos[0] = -4; wpos[1] = -2;
     // struct object* octa = test_create_octagon(num_meshes, wpos, scale, rot, color);
-    // test_create_object(octa->comp_id, num_meshes, VERTICES_PER_OCTAGON, MESH_OCTAGON, &camera);
-
-    wpos[0] = 4; wpos[1] = 4;
-    struct object* cube = test_create_cube(1, wpos, scale, rot, color);
-    test_create_object(cube->comp_id, 1, VERTICES_PER_CUBE, MESH_CUBE, &camera);
-
-    wpos[0] = 4; wpos[1] = 0;
-    struct object* octahedron = test_create_octahedron(1, wpos, scale, rot, color);
-    test_create_object(octahedron->comp_id, 1, VERTICES_PER_OCTAHEDRON, MESH_OCTAHEDRON, &camera);
-
-    wpos[0] = 4; wpos[1] = -4;
-    mesh_build_dodecahedron();
-    struct object* dodecahedron = test_create_dodecahedron(1, wpos, scale, rot, color);
-    test_create_object(dodecahedron->comp_id, 1, VERTICES_PER_DODECAHEDRON, MESH_DODECAHEDRON, &camera);
+    // test_create_object(octa->comp_id, num_meshes, octa->verts_per_face, MESH_OCTAGON, &camera);
+    //
+    // wpos[0] = 4; wpos[1] = 4;
+    // struct object* cube = test_create_cube(1, wpos, scale, rot, color);
+    // test_create_object(cube->comp_id, 1, VERTICES_PER_CUBE, MESH_CUBE, &camera);
+    //
+    // wpos[0] = 4; wpos[1] = 0;
+    // struct object* octahedron = test_create_octahedron(1, wpos, scale, rot, color);
+    // test_create_object(octahedron->comp_id, 1, VERTICES_PER_OCTAHEDRON, MESH_OCTAHEDRON, &camera);
+    //
+    // wpos[0] = 4; wpos[1] = -4;
+    // mesh_build_dodecahedron();
+    // struct object* dodecahedron = test_create_dodecahedron(1, wpos, scale, rot, color);
+    // test_create_object(dodecahedron->comp_id, 1, VERTICES_PER_DODECAHEDRON, MESH_DODECAHEDRON, &camera);
 
     /// DEBUG OPENGL
     {
@@ -435,7 +437,7 @@ main(void)
 
 
     temp_print_builds();
-    obj_comp_group_print();
+    obj_component_group_print();
 
     struct timer* loop_timer = timer_create_perf_timer();
 

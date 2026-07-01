@@ -208,10 +208,8 @@ uint64 reverse_bytes_uint64(uint64 value)
 
 uint16 copy_bytes_uint16(uint16 from, uint16 to)
 { // TODO:IMPLEMENT
-    to |= (from & MASK_WORD4);
-    to |= (from & MASK_WORD3) | (to & MASK_WORD3) << 8;
-    to |= (from & MASK_WORD2) | (to & MASK_WORD2) << 16;
-    // to |= (from & MASK_WORD1) | (to & MASK_WORD1) << 24;
+    to |= (from & MASK_WORD1);
+    to |= (from & MASK_WORD2) << 8;
     return to;
 }
 uint32 copy_bytes_uint32(uint32 from, uint32 to)
@@ -229,6 +227,24 @@ uint64 copy_bytes_uint64(uint64 from, uint64 to)
     to |= (from & MASK_WORD2) | (to & MASK_WORD2) << 16;
     to |= (from & MASK_WORD1) | (to & MASK_WORD1) << 24;
     return to;
+}
+
+
+uint64 make_uint64_from_string_max_8chars(const char string[8], const uint8 num_chars) {
+    uint64 result = 0;
+    // if(num_chars <= 2) {
+    //     result |= ((uint64)(uint8)string[0]) << 0;
+    //     result |= ((uint64)(uint8)string[1]) << 8;
+    // }
+    // if(num_chars <= 2) result = copy_bytes_uint16(result, *(uint16*)string);
+
+    uint16  mask = 0;
+    uint64 raw64 = *(const uint64_t*)string;
+    for (int i = 0; i < num_chars; i++) {
+        result |= ((raw64 >> mask) & 0xFF) << mask;
+        mask += BYTE_SIZE;
+    }
+    return result;
 }
 
 /**************************************************************************************************/
