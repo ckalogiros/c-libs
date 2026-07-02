@@ -1,3 +1,4 @@
 - DEBUG FPRINT: INITIALIZED -
 -- CREATE NEW COMPONENTS BUFFER, idx: 0
---- CREATE OBJ: TRIANGLE    , id:0  comp_id:0  num_faces: 1  verts_per_face:  3   attrib_count:0 |  { WPOSI3 }:[-4.0, 4.0,-14.0,] { SCALE2 }:[ 1.0, 1.0,] { ROTAT2 }:[ 1.0, 0.0,] { COLOR4 }:[ 0.2, 0.5, 0.8, 1.0,]
+--- CREATE OBJ: RECTANGLE   , id:0  comp_id:0  num_faces: 1  verts_per_face:  6   attrib_count:0 |  { WPOSI3 }:[-4.0, 2.0,-14.0,] { SCALE2 }:[ 1.0, 1.0,] { ROTAT2 }:[ 1.0, 0.0,] { COLOR4 }:[ 0.2, 0.5, 0.8, 1.0,]
+--- CREATE OBJ: RECTANGLE   , id:1  comp_id:0  num_faces: 1  verts_per_face:  6   attrib_count:0 |  { WPOSI3 }:[-1.0, 2.0,-14.0,] { SCALE2 }:[ 1.0, 1.0,] { ROTAT2 }:[ 1.0, 0.0,] { COLOR4 }:[ 0.2, 0.5, 0.8, 1.0,]

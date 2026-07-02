@@ -2,8 +2,6 @@
 shader descriptor is a sparse array type.
 It needs: set_for_push and then add/copy a new descriptor object.
 
-
-
 ### indexed geometry
 
 ### instance geometry
@@ -23,9 +21,8 @@ It needs: set_for_push and then add/copy a new descriptor object.
         object's attrib data from vertex buffer --------> decrement data count etc
         from renderqueue draw count
 
-### seperate vertex buffers for all geometric meshes(cannot go to the same VB)
 
-### TODO: (SET VERTEX BUGGER)-(SET VERTEX BUFFER REGION)
+### TODO: (SET VERTEX BUFFER)-(SET VERTEX BUFFER REGION)
     for copying data to the whole buffer and update specific region of a VB
 
 ### TODO: PASS INDEXED/!INDEXED GEOMETRY to OBJECT/SHAPE CREATION (object.c)
@@ -34,14 +31,14 @@ It needs: set_for_push and then add/copy a new descriptor object.
 
 ### objects buffer should be implemented with sparse array, so inserting and deleting objects sparsly , is feasible
 
-### Implement Groups
-    1. group of objects, storing obj ids, for the object component descriptor
-
-    groups are sparse arrays
-    groups table sparse array???
-
 ### implement bits.c with all bit operations functions
 
-### The "struct   comp_per_object_descriptor per_obj_desc[COMP_MAX_OBJECTS]" must be replaces by a sparse array buffer
+### put the "per_attr_desc", of the memory allocated for the attribs description of a group component.
+    directly at the meemory of the float* attribs_data_inst_id
+    attributes data buffer: arena allocator
+    [[per_attr_desc][float*attribs_data]]
 
-### IMIDIATELY: str_utils.c and string_format.h both have int to string conversions
+
+### vertex buffer add function should implement vb realloc to extend the vertex buffer memory
+
+### vertex buffer set data should use mem copy to copy from components attribs buffer as many times as the vertex count

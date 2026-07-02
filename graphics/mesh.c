@@ -4,13 +4,15 @@
 
 #include "mesh.h"
 
+#include "my_macros.h"
+
 
 float triangle_vertices[VERTICES_PER_TRI*VERTEX_POS2] = {
     -1,  1,
     -1, -1,
      1, -1,
 };
-float quad_vertices[VERTICES_PER_QUAD*VERTEX_POS2] = {
+float rectangle_vertices[VERTICES_PER_QUAD*VERTEX_POS2] = {
     -1,  1,
     -1, -1,
      1, -1,
@@ -187,7 +189,6 @@ void create_blender_ico_sphere(float* out)
 #define PHI 1.618033988749895f
 #define INV_PHI 0.618033988749895f
 
-// typedef struct { float x, y, z; } Vec3;
 
 /// Generate 20 vertices of a regular dodecahedron (circumradius = 1)
 void generate_dodecahedron_vertices(float vertices[20]) {
@@ -411,6 +412,19 @@ void mesh_build_dodecahedron()
 
 
 /**************************************************************************************************
+ * VERTEX INDICES
+ */
+vind_t triangle_indices[] = {
+    0, 1, 2
+};
+vind_t rectangle_indices[] = {
+    0, 1, 2,
+    0, 2, 3
+};
+
+
+
+/**************************************************************************************************
  * GETTERS
  */
 
@@ -421,12 +435,38 @@ float* mesh_get_mesh_from_type(enum MESH_TYPE type)
 
     switch(type) {
         case MESH_TRIANGLE     : return triangle_vertices;
-        case MESH_RECTANGLE    : return quad_vertices;
+        case MESH_RECTANGLE    : return rectangle_vertices;
         case MESH_PENTAGON     : return pentagon_vertices;
         case MESH_OCTAGON      : return octagon_vertices;
         case MESH_CUBE         : return cube_vertices;
         case MESH_OCTAHEDRON   : return octahedron_vertices;
         case MESH_DODECAHEDRON : return dodecahedron_vertices;
+        default: assert(0 < 0);
+    }
+}
+vind_t* mesh_get_mesh_indices_from_type(enum MESH_TYPE type)
+{
+    switch(type) {
+        case MESH_TRIANGLE     : return triangle_indices;
+        case MESH_RECTANGLE    : return rectangle_indices;
+        // case MESH_PENTAGON     : return pentagon_vertices;
+        // case MESH_OCTAGON      : return octagon_vertices;
+        // case MESH_CUBE         : return cube_vertices;
+        // case MESH_OCTAHEDRON   : return octahedron_vertices;
+        // case MESH_DODECAHEDRON : return dodecahedron_vertices;
+        default: assert(0 < 0);
+    }
+}
+vind_t mesh_get_mesh_indices_count_from_type(enum MESH_TYPE type)
+{
+    switch(type) {
+        case MESH_TRIANGLE     : return ARRAY_LENGTH(triangle_indices);
+        case MESH_RECTANGLE    : return ARRAY_LENGTH(rectangle_indices);
+        // case MESH_PENTAGON     : return pentagon_vertices;
+        // case MESH_OCTAGON      : return octagon_vertices;
+        // case MESH_CUBE         : return cube_vertices;
+        // case MESH_OCTAHEDRON   : return octahedron_vertices;
+        // case MESH_DODECAHEDRON : return dodecahedron_vertices;
         default: assert(0 < 0);
     }
 }

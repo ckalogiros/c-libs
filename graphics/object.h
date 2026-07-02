@@ -19,7 +19,8 @@ struct object {
     enum MESH_TYPE mesh_type; /// used by "gfx_vertex_buffer_set_data()" to get the object's correct vpos mesh
     objid_t id;
     uint32 attrib_count;
-    uint32 vb_start;          /// the start index of an object, in the vertex buffer
+    uint16 vb_start;          /// the start index of an object, in the vertex buffer
+    uint16 ib_start;          /// the start index of an object, in the vertex buffer
     uint16 num_faces;
     uint16 comp_id;
     uint16 vertex_count;      /// number of object's vertices
@@ -37,6 +38,8 @@ void object_destroy(const objid_t obj_id);
 struct object* object_get(const objid_t obj_id);
 
 uint16 object_get_vertex_count(const objid_t obj_id);
+
+void object_σet_vertex_count(const objid_t obj_id);
 
 enum MESH_TYPE object_get_vertex_mesh_type(const objid_t obj_id);
 

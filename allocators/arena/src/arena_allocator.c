@@ -36,7 +36,7 @@ static uint32 table_count = 0;
 memid_t
 arena_allocator_create_new_instance(const pageid_t num_pages)
 {
-    const uint32 struct_type_size = sizeof(struct arena_allocator_instance);
+    // const uint32 struct_type_size = sizeof(struct arena_allocator_instance);
     const size_t mem_address_alignment = 1024;
 
     /* case first time stack allocator instance creation */
@@ -136,6 +136,12 @@ arena_allocator_release(const memid_t inst_id)
     // memset(free_address, 0xCD, instance->data.size);
 
     return (void*) free_address;
+}
+
+void
+arena_allocator_destroy(const memid_t inst_id)
+{
+    memman_deallocate_block(inst_id);
 }
 
 

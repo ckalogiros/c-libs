@@ -26,7 +26,7 @@ sparse_arr_t* object_table = NULL;
 void
 object_table_init(void)
 {
-    object_table = sparse_arr_constructor_gentype(80, sizeof(struct object));
+    object_table = sparse_arr_create_gentype(80, sizeof(struct object));
 }
 
 struct object*
@@ -62,18 +62,25 @@ void object_destroy(const objid_t obj_id)
 struct object*
 object_get(const objid_t obj_id)
 {
-    assert(obj_id > 0);
-    const desc_t obj_idx = sparse_arr_set_for_push(object_table);
-    struct object* object = obj_get(obj_idx);
+    assert(obj_id >= 0);
+    // const desc_t obj_idx = sparse_arr_set_for_push(object_table);
+    struct object* object = obj_get(obj_id);
     return object;
 }
 uint16
 object_get_vertex_count(const objid_t obj_id)
 {
-    assert(obj_id > 0);
-    const desc_t obj_idx = sparse_arr_set_for_push(object_table);
-    struct object* object = obj_get(obj_idx);
+    assert(obj_id >= 0);
+    struct object* object = obj_get(obj_id);
     return object->vertex_count;
+}
+void
+object_set_vertex_count(const objid_t obj_id, const uint16 vertex_count)
+{
+    assert(obj_id >= 0);
+    struct object* object = obj_get(obj_id);
+    object->vertex_count = vertex_count;
+    print("%s obj id:%d, vertex count:%u %s\n", RED, obj_id, vertex_count, CLEAR);
 }
 enum MESH_TYPE
 object_get_vertex_mesh_type(const objid_t obj_id)
@@ -115,8 +122,8 @@ object_create_triangle(struct gfx_sid sid, float wpos[3], float scale[2], float 
     obj->verts_per_face = VERTICES_PER_TRI;
     obj->comp_id = comp_group_id;
 
-    obj_component_set_obj_vertex_count(obj->comp_id, obj->num_faces * obj->verts_per_face);
-    const uint32 obj_comp_idx = obj_component_create_new_obj(obj->comp_id, obj->num_faces * obj->verts_per_face, MESH_TRIANGLE);
+    object_set_vertex_count(obj->id, obj->num_faces * obj->verts_per_face);
+    const uint32 obj_comp_idx = obj_component_create_new_obj(obj->comp_id, obj->id, obj->num_faces * obj->verts_per_face, MESH_TRIANGLE);
 
     const build_t build_idx = shader_create_input(sid_idx, "VPOS2", VEC2F, SID_VPOSI2_ID, IN_VSHADER | IS_ATTR  | IS_TRANSFORM_VPOS);
     obj_component_set_build_idx(comp_group_id, build_idx);
@@ -204,8 +211,8 @@ object_create_rectangle(struct gfx_sid sid, float wpos[3], float scale[2], float
     obj->comp_id = comp_group_id;
 
 
-    obj_component_set_obj_vertex_count(obj->comp_id, obj->num_faces * obj->verts_per_face);
-    const uint32 obj_comp_idx = obj_component_create_new_obj(obj->comp_id, obj->num_faces * obj->verts_per_face, MESH_RECTANGLE);
+    object_set_vertex_count(obj->id, obj->num_faces * obj->verts_per_face);
+    const uint32 obj_comp_idx = obj_component_create_new_obj(obj->comp_id, obj->id, obj->num_faces * obj->verts_per_face, MESH_RECTANGLE);
 
     const build_t build_idx = shader_create_input(sid_idx, "VPOS2", VEC2F, SID_VPOSI2_ID, IN_VSHADER | IS_ATTR  | IS_TRANSFORM_VPOS);
     obj_component_set_build_idx(comp_group_id, build_idx);
@@ -294,8 +301,8 @@ object_create_pentagon(struct gfx_sid sid, float wpos[3], float scale[2], float 
     obj->comp_id = comp_group_id;
 
 
-    obj_component_set_obj_vertex_count(obj->comp_id, obj->num_faces * obj->verts_per_face);
-    const uint32 obj_comp_idx = obj_component_create_new_obj(obj->comp_id, obj->num_faces * obj->verts_per_face, MESH_PENTAGON);
+    object_set_vertex_count(obj->id, obj->num_faces * obj->verts_per_face);
+    const uint32 obj_comp_idx = obj_component_create_new_obj(obj->comp_id, obj->id, obj->num_faces * obj->verts_per_face, MESH_PENTAGON);
 
     const build_t build_idx = shader_create_input(sid_idx, "VPOS2", VEC2F, SID_VPOSI2_ID, IN_VSHADER | IS_ATTR  | IS_TRANSFORM_VPOS);
     obj_component_set_build_idx(comp_group_id, build_idx);
@@ -382,8 +389,8 @@ object_create_octagon(struct gfx_sid sid, float wpos[3], float scale[2], float r
     obj->verts_per_face = VERTICES_PER_OCTAGON;
     obj->comp_id = comp_group_id;
 
-    obj_component_set_obj_vertex_count(obj->comp_id, obj->num_faces * obj->verts_per_face);
-    const uint32 obj_comp_idx = obj_component_create_new_obj(obj->comp_id, obj->num_faces * obj->verts_per_face, MESH_OCTAGON);
+    object_set_vertex_count(obj->id, obj->num_faces * obj->verts_per_face);
+    const uint32 obj_comp_idx = obj_component_create_new_obj(obj->comp_id, obj->id, obj->num_faces * obj->verts_per_face, MESH_OCTAGON);
 
     const build_t build_idx = shader_create_input(sid_idx, "VPOS2", VEC2F, SID_VPOSI2_ID, IN_VSHADER | IS_ATTR  | IS_TRANSFORM_VPOS);
     obj_component_set_build_idx(comp_group_id, build_idx);
@@ -472,8 +479,9 @@ object_create_cube(struct gfx_sid sid, float wpos[3], float scale[2], float rot[
     obj->comp_id = comp_group_id;
 
 
-    obj_component_set_obj_vertex_count(obj->comp_id, obj->num_faces * obj->verts_per_face);
-    const uint32 obj_comp_idx = obj_component_create_new_obj(obj->comp_id, obj->num_faces * obj->verts_per_face, MESH_CUBE);
+    object_set_vertex_count(obj->id, obj->num_faces * obj->verts_per_face);
+    object_set_vertex_count(obj->id, obj->num_faces * obj->verts_per_face);
+    const uint32 obj_comp_idx = obj_component_create_new_obj(obj->comp_id, obj->id, obj->num_faces * obj->verts_per_face, MESH_CUBE);
 
     const build_t build_idx = shader_create_input(sid_idx, "VPOS3", VEC3F, SID_VPOSI3_ID, IN_VSHADER | IS_ATTR | IS_TRANSFORM_VPOS);
     obj_component_set_build_idx(comp_group_id, build_idx);
@@ -561,8 +569,8 @@ object_create_octahedron(struct gfx_sid sid, float wpos[3], float scale[2], floa
     obj->comp_id = comp_group_id;
 
 
-    obj_component_set_obj_vertex_count(obj->comp_id, obj->num_faces * obj->verts_per_face);
-    const uint32 obj_comp_idx = obj_component_create_new_obj(obj->comp_id, obj->num_faces * obj->verts_per_face, MESH_OCTAHEDRON);
+    object_set_vertex_count(obj->id, obj->num_faces * obj->verts_per_face);
+    const uint32 obj_comp_idx = obj_component_create_new_obj(obj->comp_id, obj->id, obj->num_faces * obj->verts_per_face, MESH_OCTAHEDRON);
 
     const build_t build_idx = shader_create_input(sid_idx, "VPOS3", VEC3F, SID_VPOSI3_ID, IN_VSHADER | IS_ATTR | IS_TRANSFORM_VPOS);
     obj_component_set_build_idx(comp_group_id, build_idx);
@@ -650,8 +658,8 @@ object_create_dodecahedron(struct gfx_sid sid, float wpos[3], float scale[2], fl
     obj->comp_id = comp_group_id;
 
 
-    obj_component_set_obj_vertex_count(obj->comp_id, obj->num_faces * obj->verts_per_face);
-    const uint32 obj_comp_idx = obj_component_create_new_obj(obj->comp_id, obj->num_faces * obj->verts_per_face, MESH_DODECAHEDRON);
+    object_set_vertex_count(obj->id, obj->num_faces * obj->verts_per_face);
+    const uint32 obj_comp_idx = obj_component_create_new_obj(obj->comp_id, obj->id, obj->num_faces * obj->verts_per_face, MESH_DODECAHEDRON);
 
     const build_t build_idx = shader_create_input(sid_idx, "VPOS3", VEC3F, SID_VPOSI3_ID, IN_VSHADER | IS_ATTR | IS_TRANSFORM_VPOS);;
     obj_component_set_build_idx(comp_group_id, build_idx);

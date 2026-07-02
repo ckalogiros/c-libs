@@ -10,7 +10,7 @@
 #include "sys_utils.h"
 #include <stdlib.h>
 #include <string.h>
-#include "char_buf.h"
+// #include "char_buf.h"
 #include "file_sys_interface.h"
 #include "logger.h"
 #include "my_macros.h"
@@ -126,11 +126,9 @@ mem_allocate_block(const uint16 num_pages, const uint32 alignment, const char* n
     assert(MEMORY_POISON_SIZE <= MAX_UINT64);
 
     const uint32 page_size = PAGE_SIZE;
-    // const uint32 poison_data_size = alignment;
     const uint32 poison_data_size = PAGE_SIZE;
 
     const uint32 total_size = (num_pages * page_size) + poison_data_size;
-    // const uint32 total_size = (num_pages * page_size);
 
     assert(is_power_of_two(alignment)); /* alignment must be power of 2 */
     assert(alignment<total_size);

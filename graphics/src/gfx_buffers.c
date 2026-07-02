@@ -8,8 +8,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "arena_allocator.h"
 #include "fdebug_test.h"
 #include "mesh.h"
+#include "my_macros.h"
 #include "object.h"
 #include "opengl.h"
 #include "opengl_debug.h"
@@ -54,7 +56,7 @@ uint32 vertex_buffer_table_count = 0;
 uint32 vertex_buffer_get_table_count(void){ return vertex_buffer_table_count; }
 struct vertex_buffer_object* vertex_buffer_get_vbo(vbidx_t vbidx){ return &vertex_buffer_table[vbidx]; }
 
-uint32 vertex_buffer_get_vertex_count(vbidx_t vbidx){ return vertex_buffer_table[vbidx].count; }
+uint32 vertex_buffer_get_vertex_count(const vbidx_t vbidx){ return vertex_buffer_table[vbidx].count; }
 
 uint32 gfx_vertex_buffer_create(const uint32 data_size, const uint32 stride)
 {
@@ -67,17 +69,19 @@ uint32 gfx_vertex_buffer_create(const uint32 data_size, const uint32 stride)
     struct vertex_buffer_object* vb = &vertex_buffer_table[vbidx];
     vb->idx = vbidx;
     vb->vbo = vbo;
-    vb->data = aligned_alloc(1024, data_size);
-    memset(vb->data, 0xCD, data_size);
+    // vb->data = aligned_alloc(1024, data_size);
+    memid_t vb_inst_id = arena_allocator_create_new_instance(ROUND_UP(data_size, PAGE_SIZE)/PAGE_SIZE);
+    vb->data = arena_allocator_alloc(vb_inst_id, data_size, sizeof(float));
+    memset(vb->data, 0xBCD, data_size);
     vb->size = data_size;
     vb->count = 0;
     vb->stride = stride;
 
     return vbidx;
 }
-void gfx_vertex_buffer_delete(uint32 n, vbidx_t* buffer){ gl_delete_buffers(n, (GLint*)buffer); }
-void gfx_vertex_buffer_push_data(const vbidx_t vbidx, void* data){}
-void gfx_vertex_buffer_update_data(struct vb_cmd_params* params)
+void   gfx_vertex_buffer_delete(const uint32 n, vbidx_t* buffer){ gl_delete_buffers(n, (GLint*)buffer); }
+void   gfx_vertex_buffer_push_data(const vbidx_t vbidx, void* data){}
+void   gfx_vertex_buffer_update_data(struct vb_cmd_params* params)
 {
     const vbidx_t vbo = vertex_buffer_table[params->vbidx].vbo;
     void* const data = vertex_buffer_table[params->vbidx].data;
@@ -102,14 +106,9 @@ uint32 color_cnt = 0;
 static float gfx_color_array[COLORS_COUNT] = {
     /// Basic colors
     0.1, 0.5, 1.0, 1.0,   /// BLUE
-    0.9, 0.5, 0.1, 1.0,   ///
-    0.6, 0.1, 0.8, 1.0,   ///
+    0.9, 0.5, 0.1, 1.0,   /// ORANGE
+    0.6, 0.1, 0.8, 1.0,   /// PURPLE
 };
-
-void HHH(enum ENGINE_FDEBUG_FILE_NAMES type, const char* format, ...)
-{
-
-}
 
 /// TODO: (SET VERTEX BUFFER)-(SET VERTEX BUFFER REGION)
 /// TODO: eventualy this function will be implemented for "per vertex" and "per instance" attributes
@@ -118,24 +117,33 @@ float* gfx_vertex_buffer_set_data(struct vb_cmd_params* params)
 
     struct vertex_buffer_object* vb = &vertex_buffer_table[params->vbidx];
 
-    struct comp_per_group_descriptor* comp_desc = obj_component_get_comp_desc(params->vbidx);
+    sparse_arr_t* obj_group_ids = obj_component_get_obj_group(params->comp_idx);
     float* obj_attr_data = obj_component_get_obj_attribs_data(params->comp_idx);
+
     uint32 cnt1 = 0, vcnt = 0;
 
-    uint32 stride = vb->stride-params->vpos_num_elems; // stride becomes minus the vertex position's number of elements
+    uint32 comp_stride = vb->stride-params->vpos_num_elems; // components stride is the vb attrib stride minus the vertex position's number of elements
     uint32 comp_offset = 0; // the next object's components/attributes in the "obj_attr_data"
 
     print("\n\n%s- ADD OBJ TO VB vb:%u -",  YELLOW, params->vbidx);
     engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_VERTEX_BUFFER, "\n\n- ADD OBJ TO VB vb:%u -", params->vbidx);
 
-    for(uint32 i = 0; i < comp_desc->per_obj_desc_counter; i++) {
-        enum MESH_TYPE mesh_type = comp_desc->per_obj_desc[i].mesh_type;
-        // enum MESH_TYPE mesh_type = object_get_vertex_mesh_type(i+1);
+    for(uint32 i = 0; i < obj_group_ids->tail+1; i++) {
+
+        struct object* obj = object_get(((objid_t*)obj_group_ids->data)[i]);
+        obj->vertex_count;
+        obj->mesh_type;
+        obj->vb_start = vb->count;
+        obj->verts_per_face;
+
+        print("\n%s id:%d, vcount:%u %s\n", YELLOW, obj->id, obj->vertex_count, CLEAR);
+
+        enum MESH_TYPE mesh_type = obj->mesh_type;
         float* vpos = mesh_get_mesh_from_type(mesh_type);
-        uint16 vpos_count = comp_desc->per_obj_desc[i].vertex_count * params->vpos_num_elems;
+        uint16 vpos_count = obj->vertex_count * params->vpos_num_elems;
         cnt1 = 0;
 
-        for(uint32 j = 0; j < comp_desc->per_obj_desc[i].vertex_count; j++) {
+        for(uint32 j = 0; j < obj->vertex_count; j++) {
 
             print("\n[%2u][%2u]: ", i, vcnt++);
             engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_VERTEX_BUFFER, "\n[%2u][%3u]: ", i, vcnt-1);
@@ -148,9 +156,9 @@ float* gfx_vertex_buffer_set_data(struct vb_cmd_params* params)
 
             }
 
-            for(uint32 k = comp_offset; k < comp_offset+stride; k++) {
+            for(uint32 k = comp_offset; k < comp_offset+comp_stride; k++) {
 
-                if(k >= comp_offset+stride-4) {
+                if(k >= comp_offset+comp_stride-4) {
                     vb->data[vb->count++] = gfx_color_array[color_cnt++];
                     print("%4.1f, ", vb->data[vb->count-1]);
                     engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_VERTEX_BUFFER, "%2.2f, ", vb->data[vb->count-1]);
@@ -164,7 +172,7 @@ float* gfx_vertex_buffer_set_data(struct vb_cmd_params* params)
             }
         }
 
-        comp_offset += stride; // go to the next objects start of component's data
+        comp_offset += comp_stride; // go to the next objects start of component's data
     }
     print("%s\n\n", CLEAR);
 
@@ -239,18 +247,104 @@ void gfx_vertex_buffer_set_scale(const build_t build_idx, const vbidx_t vbidx, v
 /***************************************************************************************************
  * vertex index buffer object
  **************************************************************************************************/
-struct vertex_index_buffer_object* vertex_index_buffer_get_table(void){}
-uint32 vertex_index_buffer_get_table_count(void){}
-struct vertex_index_buffer_object vertex_index_buffer_get_vbo(vbidx_t vbidx){}
+struct vertex_index_buffer_object vertex_index_buffer_table[4];
+uint32 index_buffer_table_count = 0;
 
-uint32 vertex_index_buffer_get_vertex_count(vbidx_t vbidx){}
+struct vertex_index_buffer_object* vertex_index_buffer_get_table(void);
 
-uint32 gfx_vertex_index_buffer_create(const struct gfx_sid sid, const uint32 size, const uint32 data_count, const uint32 stride){}
-void gfx_vertex_index_buffer_delete(){}
-void gfx_vertex_index_buffer_push_data(const vbidx_t vbidx, void* data){}
-void gfx_vertex_index_buffer_update_data(const vbidx_t vbidx){}
+uint32 vertex_index_buffer_get_table_count(void){ return index_buffer_table_count; }
 
-void gfx_vertex_index_buffer_set_data(const vbidx_t vbidx, void* data){}
+struct vertex_index_buffer_object* vertex_index_buffer_get_ibo(const ibidx_t ibidx){ return &vertex_index_buffer_table[ibidx]; }
+
+uint32 vertex_index_buffer_get_vertex_count(ibidx_t ibidx){ return vertex_index_buffer_table[ibidx].count; }
+
+uint32 gfx_vertex_index_buffer_create(const uint32 data_size)
+{
+    GLuint ibo;
+    gl_gen_buffers(1, &ibo);
+
+    const ibidx_t ibidx = index_buffer_table_count;
+    index_buffer_table_count++;
+
+    struct vertex_index_buffer_object* ib = &vertex_index_buffer_table[ibidx];
+    ib->idx = ibidx;
+    ib->ibo = ibo;
+    // ib->data = aligned_alloc(1024, data_size);
+    memid_t ib_inst_id = arena_allocator_create_new_instance(ROUND_UP(data_size, PAGE_SIZE)/PAGE_SIZE);
+    ib->data = arena_allocator_alloc(ib_inst_id, data_size, sizeof(float));
+    memset(ib->data, 0xBCD, data_size);
+    ib->size = data_size;
+    ib->count = 0;
+
+    return ibidx;
+}
+void   gfx_vertex_index_buffer_delete(uint32 n, ibidx_t* buffer){ gl_delete_buffers(n, (GLint*)buffer); }
+void   gfx_vertex_index_buffer_push_data(const ibidx_t ibidx, void* data){}
+void   gfx_vertex_index_buffer_update_data(struct ib_cmd_params* params)
+{
+    const ibidx_t ibo = vertex_index_buffer_table[params->ibidx].ibo;
+    void* const data = vertex_index_buffer_table[params->ibidx].data;
+    const uint32 data_size = vertex_index_buffer_table[params->ibidx].count;
+    /// check if vertex buffer is large enough
+    assert(data_size*SIZE_F32 <= vertex_index_buffer_table[params->ibidx].size);
+
+    GL_CHECK();
+    gl_bind_buffer(OPENGL_ELEMENT_ARRAY_BUFFER, ibo);
+    GL_CHECK();
+
+    gl_buffer_data(OPENGL_ELEMENT_ARRAY_BUFFER, data_size*SIZE_F32, data, OPENGL_STATIC_DRAW);
+    GL_CHECK();
+
+}
+uint32* gfx_vertex_index_buffer_set_data(struct ib_cmd_params* params)
+{
+
+    struct vertex_index_buffer_object* ib = &vertex_index_buffer_table[params->ibidx];
+
+    sparse_arr_t* obj_group_ids = obj_component_get_obj_group(params->comp_idx);
+    uint32 cnt1 = 0, cnt = 0;
+    uint32 ind_offset = 0;
 
 
+    print("\n\n%s- ADD OBJ TO IB ib:%u -",  YELLOW, params->ibidx);
+    // engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_VERTEX_BUFFER, "\n\n- ADD OBJ TO VB vb:%u -", params->vbidx);
 
+    for(uint32 i = 0; i < obj_group_ids->tail+1; i++) {
+
+        struct object* obj = object_get(((objid_t*)obj_group_ids->data)[i]);
+        obj->ib_start = ib->count;
+        if(ib->count > 0) ind_offset = ib->data[ib->count-1]+1;
+
+        print("\n%s id:%d, vcount:%u %s\n", YELLOW, obj->id, obj->vertex_count, CLEAR);
+
+        enum MESH_TYPE mesh_type = obj->mesh_type;
+        vind_t* ind = mesh_get_mesh_indices_from_type(mesh_type);
+        vind_t count = mesh_get_mesh_indices_count_from_type(mesh_type);
+        // uint16 vpos_count = obj->vertex_count * params->vpos_num_elems;
+        cnt1 = 0;
+
+        for(uint32 j = 0; j < count; j++) {
+
+            // print("\n[%2u][%2u]: ", i, cnt++);
+            // engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_VERTEX_BUFFER, "\n[%2u][%3u]: ", i, vcnt-1);
+
+            // for(uint8 k = 0; k < params->vpos_num_elems; k++) {
+                // if(cnt1 >= vpos_count) cnt1 = 0;
+                ib->data[ib->count++] = ind[cnt1++] + ind_offset;
+                print("%3u, ", ib->data[ib->count-1]);
+                // engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_VERTEX_BUFFER, "%2u, ", ib->data[ib->count-1]);
+
+            // }
+
+        }
+
+    }
+    print("%s\n\n", CLEAR);
+
+    // engine_fdebug_append_to_file_from_arena(ENGINE_FDEBUG_FILE_VERTEX_BUFFER);
+    // engine_fdebug_flush_arena(ENGINE_FDEBUG_FILE_VERTEX_BUFFER);
+
+
+    return ib->data;
+
+}

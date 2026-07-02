@@ -142,9 +142,9 @@ draw()
         gfx_vertex_buffer_update_data(&(struct vb_cmd_params){.vbidx = rq.vbidx});
         GL_CHECK();
 
-        gl_draw_arrays(OPENGL_TRIANGLES, 0, rq.draw_count);
-        // gl_draw_arrays(OPENGL_TRIANGLES, 0, 6);
-        // gl_draw_arrays(OPENGL_TRIANGLES, 0, 36);
+        // gl_draw_arrays(OPENGL_TRIANGLES, 0, rq.draw_count);
+        // gl_draw_elements(OPENGL_TRIANGLES, rq.draw_count, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);
         GL_CHECK();
 
         // glBindVertexArray(0);

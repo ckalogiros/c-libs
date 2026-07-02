@@ -40,6 +40,7 @@ enum MESH_TYPE{
     MESH_TYPE_COUNT,
 };
 
+typedef int32 vind_t; // vertex indices type
 
 void mesh_build_dodecahedron();
 
@@ -69,6 +70,8 @@ int generate_dodecahedron_triangles(float* out_triangles);
  **************************************************************************************************/
 
 float* mesh_get_mesh_from_type(enum MESH_TYPE type);
+vind_t* mesh_get_mesh_indices_from_type(enum MESH_TYPE type);
+vind_t mesh_get_mesh_indices_count_from_type(enum MESH_TYPE type);
 uint8  mesh_get_vpos_num_elems(enum MESH_TYPE type);
 char*  mesh_get_name_from_type(enum MESH_TYPE type);
 

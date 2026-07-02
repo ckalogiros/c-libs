@@ -101,7 +101,7 @@ _____    _____
 25 	EM 		51 	3 		77 	M 		103 g
 */
 
-/* add to a string buffer, the int and fract parts of a floating point value */
+/* helper: add to a string buffer, the int and fract parts of a floating point value */
 uint32
 floating_point_format(char** const buf, double num, char* formated, bool is_formated, uint32 k)
 {

@@ -3,16 +3,13 @@
  */
 
 #include "object_components.h"
-
 #include <assert.h>
-
 #include "fdebug_test.h"
 #include "gfx_buffers.h"
 #include "logger.h"
-// #include "mesh.h"
-// #include "engine.h"
 #include "arena_allocator.h"
 #include "my_macros.h"
+#include "object.h"
 #include "sparse_arr_internals.h"
 #include "sparse_arr_struct.h"
 
@@ -28,22 +25,23 @@
 
 
 
-#define comp_get(comp_id) (&((struct components_group*) obj_components_buffer->data)[comp_id])
+#define sparse_arr_comp_get(comp_id) (&((struct components_group*) obj_component_groups_table->data)[comp_id])
+#define sparse_arr_obj_id_get(id) (&((objid_t*) comp_group->obj_group->data)[id])
 
 
-sparse_arr_t* obj_components_buffer = NULL;
+sparse_arr_t* obj_component_groups_table = NULL;
 
 
 void
 obj_component_table_init(void)
 {
-    obj_components_buffer = sparse_arr_constructor_gentype(2, sizeof(struct components_group));
+    obj_component_groups_table = sparse_arr_constructor_gentype(2, sizeof(struct components_group));
 }
 
 compid_t obj_component_group_find_match(const sididx_t sid_idx)
 {
-    for(compid_t i = 0; i < obj_components_buffer->tail+1; i++) {
-        struct components_group* comp_group = comp_get(i);
+    for(compid_t i = 0; i < obj_component_groups_table->tail+1; i++) {
+        struct components_group* comp_group = sparse_arr_comp_get(i);
         struct comp_per_group_descriptor* comp_desc = &comp_group->comp_desc;
         if(sid_check_match(comp_desc->sid_idx, sid_idx)) { return i; }
     }
@@ -54,18 +52,18 @@ compid_t obj_component_group_find_match(const sididx_t sid_idx)
 compid_t obj_component_create_new_components_group(const sididx_t sid_idx)
 {
     /// init struct comp_per_group_descriptor
-    const compid_t comp_group_id = sparse_arr_set_for_push(obj_components_buffer);
-    struct components_group* comp_group = comp_get(comp_group_id);
-    /// TODOD: INITIALIZE ---> comp_group->comp_group_id =;
-    /// TODOD: INITIALIZE ---> comp_group->obj_group     =;
-    comp_group->attribs_data_inst_id = arena_allocator_create_new_instance(16);
+    const compid_t comp_group_id = sparse_arr_set_for_push(obj_component_groups_table);
+    struct components_group* comp_group = sparse_arr_comp_get(comp_group_id);
+    comp_group->attribs_data_inst_id = arena_allocator_create_new_instance(6);
+
+    /// init the mem group buffer that will store all objects id for a compomonent group
+    comp_group->obj_group = sparse_arr_create_gentype(16, sizeof(objid_t));
 
     struct comp_per_group_descriptor* comp_desc = &comp_group->comp_desc;
     comp_desc->sid_idx               = sid_idx;
     comp_desc->added_components_flag = 0x0;
     comp_desc->commands_flag         = 0x0;
     comp_desc->per_attr_desc_counter = 0;
-    comp_desc->per_obj_desc_counter  = 0;
     comp_desc->obj_count             = 0;
     comp_desc->total_vertex_count    = 0;
     comp_desc->obj_vertex_count      = 0;
@@ -84,27 +82,29 @@ compid_t obj_component_create_new_components_group(const sididx_t sid_idx)
     return comp_group_id;
 }
 
-compid_t obj_component_create_new_obj(const vbidx_t group_id, const uint16 obj_vertex_count, enum MESH_TYPE mesh_type)
+compid_t obj_component_create_new_obj(const vbidx_t group_id, const objid_t obj_id, const uint16 obj_vertex_count, enum MESH_TYPE mesh_type)
 {
     // struct components_group* group = &object_components_buffer[group_id];
-    struct components_group* group = comp_get(group_id);
-    const uint32 obj_comp_idx = group->comp_desc.obj_count;
-    group->comp_desc.obj_count++;
+    struct components_group* comp_group = sparse_arr_comp_get(group_id);
+    const uint32 obj_comp_idx = comp_group->comp_desc.obj_count;
+    comp_group->comp_desc.obj_count++;
 
     /// initialization: parameters for each object components
-    struct comp_per_group_descriptor* desc = &group->comp_desc; // cache
+    struct comp_per_group_descriptor* desc = &comp_group->comp_desc; // cache
     desc->total_vertex_count += obj_vertex_count;
-
-    desc->per_obj_desc[desc->per_obj_desc_counter].mesh_type    = mesh_type;
-    desc->per_obj_desc[desc->per_obj_desc_counter].vb_start     = 0;
-    desc->per_obj_desc[desc->per_obj_desc_counter].vertex_count = obj_vertex_count;
-    assert(desc->per_obj_desc_counter < COMP_MAX_OBJECTS);
-    desc->per_obj_desc_counter++;
 
     desc->per_attr_desc[desc->per_attr_desc_counter].attr_offset = 0;
     desc->per_attr_desc[desc->per_attr_desc_counter].attr_count++;
     assert(desc->per_attr_desc_counter < COMP_MAX_ATTRIBUTES);
     desc->per_attr_desc_counter++;
+
+    comp_group->obj_group_id = sparse_arr_set_for_push(comp_group->obj_group);
+    objid_t* buffer_ids = sparse_arr_obj_id_get(comp_group->obj_group_id);
+    *buffer_ids = obj_id;
+
+    // const struct object* obj = object_get(obj_comp_idx);
+
+
 
     return obj_comp_idx;
 }
@@ -112,7 +112,7 @@ compid_t obj_component_create_new_obj(const vbidx_t group_id, const uint16 obj_v
 struct components_group* obj_component_get_component(const vbidx_t group_id)
 {
     // struct components_group* group = &object_components_buffer[group_id];
-    struct components_group* comp_group = comp_get(group_id);
+    struct components_group* comp_group = sparse_arr_comp_get(group_id);
     return comp_group;
 }
 
@@ -155,60 +155,71 @@ void obj_component_add_comp(const vbidx_t group_id, const uint32 obj_idx, float*
 
 void obj_component_set_stride(const vbidx_t group_id, uint32 stride)
 {
-    struct components_group* comp_group = comp_get(group_id);
+    struct components_group* comp_group = sparse_arr_comp_get(group_id);
     comp_group->comp_desc.stride = stride;
 }
 build_t obj_component_set_build_idx(const vbidx_t group_id, const build_t build_idx)
 {
-    struct components_group* comp_group = comp_get(group_id);
+    struct components_group* comp_group = sparse_arr_comp_get(group_id);
     comp_group->comp_desc.build_idx = build_idx;
 }
-void obj_component_set_obj_vertex_count(const vbidx_t group_id, const uint32 obj_vertex_count)
-{
-    // struct components_group* comp_group = &object_components_buffer[group_id];
-    struct components_group* comp_group = comp_get(group_id);
-    comp_group->comp_desc.obj_vertex_count = obj_vertex_count;
-}
+// void obj_component_set_obj_vertex_count(const vbidx_t group_id, const uint32 obj_vertex_count)
+// {
+//     // struct components_group* comp_group = &object_components_buffer[group_id];
+//     struct components_group* comp_group = sparse_arr_comp_get(group_id);
+//     comp_group->comp_desc.obj_vertex_count = obj_vertex_count;
+// }
 
 struct comp_per_group_descriptor* obj_component_get_comp_desc(const vbidx_t group_id)
 {
-    struct components_group* comp_group = comp_get(group_id);
+    struct components_group* comp_group = sparse_arr_comp_get(group_id);
     return &comp_group->comp_desc;
+}
+// objid_t* obj_component_get_obj_group(const vbidx_t group_id)
+// {
+//     struct components_group* comp_group = sparse_arr_comp_get(group_id);
+//     objid_t* buffer_ids = sparse_arr_obj_id_get(comp_group->obj_group_id);
+//     return buffer_ids;
+// }
+sparse_arr_t* obj_component_get_obj_group(const vbidx_t group_id)
+{
+    struct components_group* comp_group = sparse_arr_comp_get(group_id);
+    return comp_group->obj_group;
 }
 build_t obj_component_get_build_idx(const vbidx_t group_id)
 {
-    struct components_group* comp_group = comp_get(group_id);
+    struct components_group* comp_group = sparse_arr_comp_get(group_id);
     return comp_group->comp_desc.build_idx;
 }
 uint32 obj_component_obj_comp_desc_get_stride(const vbidx_t group_id)
 {
-    struct components_group* comp_group = comp_get(group_id);
+    struct components_group* comp_group = sparse_arr_comp_get(group_id);
     return comp_group->comp_desc.stride;
 }
 uint32 obj_component_obj_comp_desc_get_total_vertex_count(const vbidx_t group_id)
 {
-    struct components_group* comp_group = comp_get(group_id);
+    struct components_group* comp_group = sparse_arr_comp_get(group_id);
     return comp_group->comp_desc.total_vertex_count;
 }
 uint32 obj_component_obj_comp_desc_get_total_object_count(const vbidx_t group_id)
 {
-    struct components_group* comp_group = comp_get(group_id);
+    struct components_group* comp_group = sparse_arr_comp_get(group_id);
     return comp_group->comp_desc.obj_count;
 }
 float* obj_component_get_obj_attribs_data(const vbidx_t group_id)
 {
-    struct components_group* comp_group = comp_get(group_id);
+    struct components_group* comp_group = sparse_arr_comp_get(group_id);
     float* buffer_ptr = debug_arena_allocator_get_instance_data(comp_group->attribs_data_inst_id);
     return &buffer_ptr[0];
 }
 uint32 obj_component_get_obj_vertex_count(const vbidx_t group_id)
 {
-    struct components_group* comp_group = comp_get(group_id);
+    struct components_group* comp_group = sparse_arr_comp_get(group_id);
     return comp_group->comp_desc.obj_vertex_count;
 }
 uint32 obj_component_get_total_vertex_count(const vbidx_t group_id)
 {
-    struct components_group* comp_group = comp_get(group_id);
+    struct components_group* comp_group = sparse_arr_comp_get(group_id);
     return comp_group->comp_desc.total_vertex_count;
 }
 
@@ -217,7 +228,7 @@ uint32 obj_component_get_total_vertex_count(const vbidx_t group_id)
 void obj_component_group_print()
 {
     print("\n%s- OBJECT COMPONENTS GROUP -%s",  YELLOW, CLEAR);
-    for(uint32 group_id = 0; group_id < obj_components_buffer->tail; group_id++) {
+    for(uint32 group_id = 0; group_id < obj_component_groups_table->tail; group_id++) {
 
         struct components_group* comp_group = obj_component_get_component(group_id);
 

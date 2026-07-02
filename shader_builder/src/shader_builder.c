@@ -596,13 +596,13 @@ shader_builder_build(const sididx_t sid_idx, const build_t build_idx)
 
     /// TODO: rotations must be conditional
     /// ROTATE
-    const char* rot_x =
-                       "  vpos = mat4(\n"
-                       "      1.0, 0.0,     0.0,    0.0, \n"
-                       "      0.0, rot2_0, -rot2_1, 0.0, \n"
-                       "      0.0, rot2_1,  rot2_0, 0.0, \n"
-                       "      0.0, 0.0,     0.0,    1.0) * vpos;\n";
-    engine_fdebug_append_string(ENGINE_FDEBUG_FILE_VSHADER, rot_x, strlen(rot_x));
+    // const char* rot_x =
+    //                    "  vpos = mat4(\n"
+    //                    "      1.0, 0.0,     0.0,    0.0, \n"
+    //                    "      0.0, rot2_0, -rot2_1, 0.0, \n"
+    //                    "      0.0, rot2_1,  rot2_0, 0.0, \n"
+    //                    "      0.0, 0.0,     0.0,    1.0) * vpos;\n";
+    // engine_fdebug_append_string(ENGINE_FDEBUG_FILE_VSHADER, rot_x, strlen(rot_x));
     //
     // const char* rot_y =
     //                    "  vpos = mat4(\n"

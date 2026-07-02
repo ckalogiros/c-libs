@@ -40,7 +40,7 @@ void engine_fdebug_init()
         char filename[64] = ENGINE_FDEBUG_DIR;
         strcat(filename, engine_fdebug_get_filename_from_enum_type(i));
 
-        fdebug_table[i].arena_instance_id = arena_allocator_create_new_instance(16);
+        fdebug_table[i].arena_instance_id = arena_allocator_create_new_instance(8);
         fdebug_table[i].file = fs_create(filename);
         fdebug_table[i].file_type = i;
         fdebug_table[i].is_arena_in_use = FALSE;
