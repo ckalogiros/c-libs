@@ -3,9 +3,7 @@
  */
 #ifndef GRAPHICS_TEST_MESH_H
 #define GRAPHICS_TEST_MESH_H
-#include <assert.h>
-#include <math.h>
-#include "logger.h"
+
 #include "my_types.h"
 
 
@@ -33,6 +31,7 @@ enum MESH_TYPE{
     MESH_TRIANGLE,
     MESH_RECTANGLE,
     MESH_PENTAGON,
+    MESH_HEXAGON,
     MESH_OCTAGON,
     MESH_CUBE,
     MESH_OCTAHEDRON,
@@ -46,10 +45,6 @@ void mesh_build_dodecahedron();
 
 void create_blender_ico_sphere(float* out);
 
-
-/**************************************************************************************************/
-#define PHI 1.618033988749895f
-#define INV_PHI 0.618033988749895f
 
 typedef struct { float x, y, z; } Vec3;
 
@@ -69,7 +64,8 @@ int generate_dodecahedron_triangles(float* out_triangles);
  * GETTERS
  **************************************************************************************************/
 
-float* mesh_get_mesh_from_type(enum MESH_TYPE type);
+float* mesh_get_mesh_vertices_from_type(enum MESH_TYPE type);
+uint32 mesh_get_mesh_vertex_count_from_type(enum MESH_TYPE type);
 vind_t* mesh_get_mesh_indices_from_type(enum MESH_TYPE type);
 vind_t mesh_get_mesh_indices_count_from_type(enum MESH_TYPE type);
 uint8  mesh_get_vpos_num_elems(enum MESH_TYPE type);

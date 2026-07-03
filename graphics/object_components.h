@@ -1,5 +1,8 @@
 /*
  * Created by ckalo on 5/29/26.
+ *
+ * TODO: maybe the "components" is the wrong name, with the correct being "object attributes".
+ * Then we can name "components" any higher structure, (like: {scroller}), that has a set of attributes and functionality.
  */
 #ifndef GRAPHICS_TEST_TEST_H
 #define GRAPHICS_TEST_TEST_H
@@ -15,7 +18,7 @@
 #define COMP_MAX_GROUPS     32
 #define COMP_MAX_ATTRIBUTES 32
 #define COMP_MAX_OBJECTS    16
-#define COMP_MAX_FLOATS_PER_ATTRIBUTE 4 /// TODO:
+#define COMP_MAX_FLOATS_PER_ATTRIBUTE 4
 
 struct comp_per_attrib_descriptor {
     uint8 attr_offset;
@@ -60,6 +63,7 @@ void    obj_component_set_stride(const vbidx_t group_id, uint32 stride);
 build_t obj_component_set_build_idx(const vbidx_t group_id, const build_t build_idx);
 
 struct  comp_per_group_descriptor* obj_component_get_comp_desc(const vbidx_t group_id);
+bool obj_component_is_indexed_geometry(const vbidx_t group_id);
 sparse_arr_t* obj_component_get_obj_group(const vbidx_t group_id);
 build_t obj_component_get_build_idx(const vbidx_t group_id);
 uint32  obj_component_obj_comp_desc_get_stride(const vbidx_t group_id);

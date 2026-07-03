@@ -54,6 +54,16 @@ sid_check_match(const sididx_t sid_idx1, const sididx_t sid_idx2)
     return FALSE;
 }
 
+bool
+sid_check_attr_match_from_flag(const sididx_t sid_idx, const sid_t flag)
+{
+    struct gfx_sid sid = gfx_get_sid(sid_idx);
+    if(sid.attr & flag)
+        return TRUE;
+
+    return FALSE;
+}
+
 
 
 /***************************************************************************************************

@@ -15,16 +15,15 @@
  **************************************************************************************************/
 struct vb_cmd_params {
     /// TODO: flags:{ FORCED_NEW | FORCED_USED | ANY }
-    uint16 comp_idx;
+    uint16  comp_idx;
     vbidx_t vbidx;
-    uint8 vpos_num_elems; // TODO: pass SID_VPOS_ID instead which is smaller value
+    uint8   vpos_num_elems; // TODO: pass SID_VPOS_ID instead which is smaller value
 };
 
 struct ib_cmd_params {
-    /// TODO: flags:{ FORCED_NEW | FORCED_USED | ANY }
-    uint16 comp_idx;
+    uint16  comp_idx;
     ibidx_t ibidx;
-    uint8 vpos_num_elems; // TODO: pass SID_VPOS_ID instead which is smaller value
+    uint8   vpos_num_elems; // TODO: pass SID_VPOS_ID instead which is smaller value
 };
 
 
@@ -96,6 +95,7 @@ void gfx_vertex_buffer_set_scale(const build_t build_idx, const vbidx_t vbidx, v
 struct vertex_index_buffer_object {
     vind_t* data;
     uint32  size;
+    uint32  last_index; // stores the index of the last object, in order for the next object to continue the indexing
     uint16  count;
     ibidx_t idx;
     ibidx_t ibo;
@@ -105,7 +105,7 @@ struct vertex_index_buffer_object* vertex_index_buffer_get_table(void);
 
 uint32 vertex_index_buffer_get_table_count(void);
 
-struct vertex_index_buffer_object* vertex_index_buffer_get_ibo(const ibidx_t ibidx);
+struct vertex_index_buffer_object* vertex_index_buffer_get_ib(const ibidx_t ibidx);
 
 uint32 vertex_index_buffer_get_vertex_count(const ibidx_t ibidx);
 

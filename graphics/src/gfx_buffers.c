@@ -101,26 +101,75 @@ void   gfx_vertex_buffer_update_data(struct vb_cmd_params* params)
 }
 
 
+#define RGBA_WHITE   0.8f, 0.8f, 0.8f, 1.0f
+#define RGBA_BLACK   0.1f, 0.1f, 0.1f, 1.0f
+#define RGBA_GREY    0.4f, 0.4f, 0.4f, 1.0f
+#define RGBA_BLUE    0.1f, 0.5f, 1.0f, 1.0f
+#define RGBA_PURPLE  0.5f, 0.1f, 0.8f, 1.0f
+#define RGBA_MAGENTA 0.7f, 0.1f, 0.5f, 1.0f
+#define RGBA_RED     0.7f, 0.1f, 0.1f, 1.0f
+#define RGBA_ORANGE  0.9f, 0.4f, 0.1f, 1.0f
+#define RGBA_ORANGE2 0.9f, 0.6f, 0.1f, 1.0f
+#define RGBA_GREEN   0.1f, 0.6f, 0.1f, 1.0f
+#define RGBA_YELLOW  0.7f, 0.7f, 0.1f, 1.0f
+#define RGBA_CYAN    0.1f, 0.8f, 0.8f, 1.0f
+#define COLORS_COUNT 12
 uint32 color_cnt = 0;
-#define COLORS_COUNT 3*4
-static float gfx_color_array[COLORS_COUNT] = {
+uint32 next_color = 0;
+/* 1 color per vertex */
+#define COLORS_PER_VERTEX_COUNT (COLORS_COUNT*4)
+static float gfx_color_per_vertex[] = {
+    RGBA_BLUE, RGBA_PURPLE, RGBA_MAGENTA, RGBA_RED, RGBA_ORANGE, RGBA_ORANGE2,
+    RGBA_GREEN, RGBA_YELLOW, RGBA_CYAN, RGBA_BLACK, RGBA_WHITE, RGBA_GREY
+};
+/* 1 color per triangle */
+#define COLORS_PER_TRIANGLE_COUNT (COLORS_COUNT*VERTICES_PER_TRI*4)
+static float gfx_color_per_triangle[] = {
+    RGBA_BLUE, RGBA_BLUE, RGBA_BLUE,
+     RGBA_PURPLE, RGBA_PURPLE, RGBA_PURPLE,
+     RGBA_MAGENTA, RGBA_MAGENTA, RGBA_MAGENTA,
+     RGBA_RED, RGBA_RED, RGBA_RED,
+     RGBA_ORANGE, RGBA_ORANGE, RGBA_ORANGE,
+     RGBA_ORANGE2, RGBA_ORANGE2, RGBA_ORANGE2,
+     RGBA_GREEN, RGBA_GREEN, RGBA_GREEN,
+     RGBA_YELLOW, RGBA_YELLOW, RGBA_YELLOW,
+     RGBA_CYAN, RGBA_CYAN, RGBA_CYAN,
+     RGBA_BLACK, RGBA_BLACK, RGBA_BLACK,
+     RGBA_WHITE, RGBA_WHITE, RGBA_WHITE,
+     RGBA_GREY, RGBA_GREY, RGBA_GREY,
+};
+/* 1 color per pentagon */
+#define COLORS_PER_PENTAGON_COUNT (COLORS_COUNT*VERTICES_PER_PENTAGON*4)
+static float gfx_color_per_pentagon[COLORS_PER_PENTAGON_COUNT] = {
     /// Basic colors
-    0.1, 0.5, 1.0, 1.0,   /// BLUE
-    0.9, 0.5, 0.1, 1.0,   /// ORANGE
-    0.6, 0.1, 0.8, 1.0,   /// PURPLE
+    RGBA_BLUE, RGBA_BLUE, RGBA_BLUE, RGBA_BLUE, RGBA_BLUE, RGBA_BLUE, RGBA_BLUE, RGBA_BLUE, RGBA_BLUE,
+    RGBA_PURPLE, RGBA_PURPLE, RGBA_PURPLE, RGBA_PURPLE, RGBA_PURPLE, RGBA_PURPLE, RGBA_PURPLE, RGBA_PURPLE, RGBA_PURPLE,
+    RGBA_MAGENTA, RGBA_MAGENTA, RGBA_MAGENTA, RGBA_MAGENTA, RGBA_MAGENTA, RGBA_MAGENTA, RGBA_MAGENTA, RGBA_MAGENTA, RGBA_MAGENTA,
+    RGBA_RED, RGBA_RED, RGBA_RED, RGBA_RED, RGBA_RED, RGBA_RED, RGBA_RED, RGBA_RED, RGBA_RED,
+    RGBA_ORANGE, RGBA_ORANGE, RGBA_ORANGE, RGBA_ORANGE, RGBA_ORANGE, RGBA_ORANGE, RGBA_ORANGE, RGBA_ORANGE, RGBA_ORANGE,
+    RGBA_ORANGE2, RGBA_ORANGE2, RGBA_ORANGE2, RGBA_ORANGE2, RGBA_ORANGE2, RGBA_ORANGE2, RGBA_ORANGE2, RGBA_ORANGE2, RGBA_ORANGE2,
+    RGBA_GREEN, RGBA_GREEN, RGBA_GREEN, RGBA_GREEN, RGBA_GREEN, RGBA_GREEN, RGBA_GREEN, RGBA_GREEN, RGBA_GREEN,
+    RGBA_YELLOW, RGBA_YELLOW, RGBA_YELLOW, RGBA_YELLOW, RGBA_YELLOW, RGBA_YELLOW, RGBA_YELLOW, RGBA_YELLOW, RGBA_YELLOW,
+    RGBA_CYAN, RGBA_CYAN, RGBA_CYAN, RGBA_CYAN, RGBA_CYAN, RGBA_CYAN, RGBA_CYAN, RGBA_CYAN, RGBA_CYAN,
+    RGBA_BLACK, RGBA_BLACK, RGBA_BLACK, RGBA_BLACK, RGBA_BLACK, RGBA_BLACK, RGBA_BLACK, RGBA_BLACK, RGBA_BLACK,
+    RGBA_WHITE, RGBA_WHITE, RGBA_WHITE, RGBA_WHITE, RGBA_WHITE, RGBA_WHITE, RGBA_WHITE, RGBA_WHITE, RGBA_WHITE,
+    RGBA_GREY, RGBA_GREY, RGBA_GREY, RGBA_GREY, RGBA_GREY, RGBA_GREY, RGBA_GREY, RGBA_GREY, RGBA_GREY
+
 };
 
 /// TODO: (SET VERTEX BUFFER)-(SET VERTEX BUFFER REGION)
 /// TODO: eventualy this function will be implemented for "per vertex" and "per instance" attributes
+/// If the rendering is indexed geometry, then we run for vertex count, else we run for index count
 float* gfx_vertex_buffer_set_data(struct vb_cmd_params* params)
 {
-
     struct vertex_buffer_object* vb = &vertex_buffer_table[params->vbidx];
+    sparse_arr_t* obj_group_ids     = obj_component_get_obj_group(params->comp_idx);
+    float* obj_attr_data            = obj_component_get_obj_attribs_data(params->comp_idx);
 
-    sparse_arr_t* obj_group_ids = obj_component_get_obj_group(params->comp_idx);
-    float* obj_attr_data = obj_component_get_obj_attribs_data(params->comp_idx);
+    uint32 vcnt = 0;
 
-    uint32 cnt1 = 0, vcnt = 0;
+    bool is_indexed = obj_component_is_indexed_geometry(params->comp_idx);
+    vind_t vcount = 0;
 
     uint32 comp_stride = vb->stride-params->vpos_num_elems; // components stride is the vb attrib stride minus the vertex position's number of elements
     uint32 comp_offset = 0; // the next object's components/attributes in the "obj_attr_data"
@@ -128,41 +177,66 @@ float* gfx_vertex_buffer_set_data(struct vb_cmd_params* params)
     print("\n\n%s- ADD OBJ TO VB vb:%u -",  YELLOW, params->vbidx);
     engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_VERTEX_BUFFER, "\n\n- ADD OBJ TO VB vb:%u -", params->vbidx);
 
-    for(uint32 i = 0; i < obj_group_ids->tail+1; i++) {
+    for(uint32 i = 0; i < obj_group_ids->tail+1; i++) { // per object run
+
+        color_cnt = 0; // reset colors for each object
 
         struct object* obj = object_get(((objid_t*)obj_group_ids->data)[i]);
-        obj->vertex_count;
-        obj->mesh_type;
-        obj->vb_start = vb->count;
-        obj->verts_per_face;
+        enum MESH_TYPE mesh_type = obj->mesh_type;
+
+        /// get the object's mesh vertices buffer
+        float (*vpos)[params->vpos_num_elems] = (float(*)[params->vpos_num_elems])mesh_get_mesh_vertices_from_type(mesh_type);
+        /// get object's indices buffer
+        vind_t* ind   = mesh_get_mesh_indices_from_type(mesh_type);
+
+        if(is_indexed)  vcount = obj->vertex_count;
+        else            vcount = mesh_get_mesh_indices_count_from_type(mesh_type);
+
+        obj->vb_start = vb->count; /// set the start index, of the object, in the vertex buffer
+        vcnt = 0;
+
 
         print("\n%s id:%d, vcount:%u %s\n", YELLOW, obj->id, obj->vertex_count, CLEAR);
 
-        enum MESH_TYPE mesh_type = obj->mesh_type;
-        float* vpos = mesh_get_mesh_from_type(mesh_type);
-        uint16 vpos_count = obj->vertex_count * params->vpos_num_elems;
-        cnt1 = 0;
+        for(uint32 j = 0; j < vcount; j++) { /// per vertex run
 
-        for(uint32 j = 0; j < obj->vertex_count; j++) {
+            uint32 vertex_index =  ind[vcnt];
+            if(is_indexed) vertex_index = vcnt;
 
-            print("\n[%2u][%2u]: ", i, vcnt++);
-            engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_VERTEX_BUFFER, "\n[%2u][%3u]: ", i, vcnt-1);
+            print("\n[%2u][%2u]: ", i, vcount);
+            engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_VERTEX_BUFFER, "\n[%2u][%3u]: ", i, vcount);
 
+            /// TODO: remove conditional
             for(uint8 k = 0; k < params->vpos_num_elems; k++) {
-                if(cnt1 >= vpos_count) cnt1 = 0;
-                vb->data[vb->count++] = vpos[cnt1++];
+
+                vb->data[vb->count++] = vpos[vertex_index][k];
                 print("%5.2f, ", vb->data[vb->count-1]);
                 engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_VERTEX_BUFFER, "%2.2f, ", vb->data[vb->count-1]);
-
             }
+            vcnt++;
+
 
             for(uint32 k = comp_offset; k < comp_offset+comp_stride; k++) {
 
                 if(k >= comp_offset+comp_stride-4) {
-                    vb->data[vb->count++] = gfx_color_array[color_cnt++];
+
+                    // vb->data[vb->count++] = gfx_color_per_pentagon[color_cnt++];
+                    // if(color_cnt >= COLORS_PER_PENTAGON_COUNT) color_cnt = 0;
+                    if(is_indexed) {
+                        vb->data[vb->count++] = gfx_color_per_vertex[color_cnt++];
+                        if(color_cnt >= COLORS_PER_VERTEX_COUNT) color_cnt = 0;
+                    } else {
+                        vb->data[vb->count++] = gfx_color_per_triangle[color_cnt++];
+                        if(color_cnt >= COLORS_PER_TRIANGLE_COUNT) color_cnt = 0;
+                    }
+
+
+
                     print("%4.1f, ", vb->data[vb->count-1]);
                     engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_VERTEX_BUFFER, "%2.2f, ", vb->data[vb->count-1]);
-                    if(color_cnt >= COLORS_COUNT) color_cnt = 0;
+
+
+
                 }
                 else {
                     vb->data[vb->count++] = obj_attr_data[k];
@@ -254,7 +328,7 @@ struct vertex_index_buffer_object* vertex_index_buffer_get_table(void);
 
 uint32 vertex_index_buffer_get_table_count(void){ return index_buffer_table_count; }
 
-struct vertex_index_buffer_object* vertex_index_buffer_get_ibo(const ibidx_t ibidx){ return &vertex_index_buffer_table[ibidx]; }
+struct vertex_index_buffer_object* vertex_index_buffer_get_ib(const ibidx_t ibidx){ return &vertex_index_buffer_table[ibidx]; }
 
 uint32 vertex_index_buffer_get_vertex_count(ibidx_t ibidx){ return vertex_index_buffer_table[ibidx].count; }
 
@@ -302,8 +376,10 @@ uint32* gfx_vertex_index_buffer_set_data(struct ib_cmd_params* params)
     struct vertex_index_buffer_object* ib = &vertex_index_buffer_table[params->ibidx];
 
     sparse_arr_t* obj_group_ids = obj_component_get_obj_group(params->comp_idx);
-    uint32 cnt1 = 0, cnt = 0;
-    uint32 ind_offset = 0;
+    uint32 cnt = 0, ind_offset = 0, max_index = 0;
+
+    // if(ib->count > 0) ind_offset = ib->last_index+1;
+    ind_offset = ib->last_index;
 
 
     print("\n\n%s- ADD OBJ TO IB ib:%u -",  YELLOW, params->ibidx);
@@ -313,33 +389,33 @@ uint32* gfx_vertex_index_buffer_set_data(struct ib_cmd_params* params)
 
         struct object* obj = object_get(((objid_t*)obj_group_ids->data)[i]);
         obj->ib_start = ib->count;
-        if(ib->count > 0) ind_offset = ib->data[ib->count-1]+1;
 
         print("\n%s id:%d, vcount:%u %s\n", YELLOW, obj->id, obj->vertex_count, CLEAR);
 
         enum MESH_TYPE mesh_type = obj->mesh_type;
-        vind_t* ind = mesh_get_mesh_indices_from_type(mesh_type);
-        vind_t count = mesh_get_mesh_indices_count_from_type(mesh_type);
-        // uint16 vpos_count = obj->vertex_count * params->vpos_num_elems;
-        cnt1 = 0;
+        vind_t* ind   = mesh_get_mesh_indices_from_type(mesh_type);
+        vind_t  count = mesh_get_mesh_indices_count_from_type(mesh_type);
+        cnt = 0;
 
         for(uint32 j = 0; j < count; j++) {
 
-            // print("\n[%2u][%2u]: ", i, cnt++);
-            // engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_VERTEX_BUFFER, "\n[%2u][%3u]: ", i, vcnt-1);
+            if((j%3)==0) print("\n");
+            if(ind[cnt]+ind_offset > max_index) max_index = ind[cnt]+ind_offset;
 
-            // for(uint8 k = 0; k < params->vpos_num_elems; k++) {
-                // if(cnt1 >= vpos_count) cnt1 = 0;
-                ib->data[ib->count++] = ind[cnt1++] + ind_offset;
-                print("%3u, ", ib->data[ib->count-1]);
-                // engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_VERTEX_BUFFER, "%2u, ", ib->data[ib->count-1]);
-
-            // }
+            ib->data[ib->count++] = ind[cnt++] + ind_offset;
+            print("%3u, ", ib->data[ib->count-1]);
+            // engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_VERTEX_BUFFER, "%2u, ", ib->data[ib->count-1]);
 
         }
 
+
+        ind_offset = max_index+1;
+
     }
-    print("%s\n\n", CLEAR);
+
+    ib->last_index = ind_offset;
+
+    print("\nind_offset:%u\n\n", ind_offset);
 
     // engine_fdebug_append_to_file_from_arena(ENGINE_FDEBUG_FILE_VERTEX_BUFFER);
     // engine_fdebug_flush_arena(ENGINE_FDEBUG_FILE_VERTEX_BUFFER);
@@ -347,4 +423,4 @@ uint32* gfx_vertex_index_buffer_set_data(struct ib_cmd_params* params)
 
     return ib->data;
 
-}
+} 

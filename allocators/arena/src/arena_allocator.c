@@ -3,7 +3,6 @@
  *
  * TODO:
  * # implement realloc() for arena_allocator_table
- * # implement realloc() for offsets table
  * # implement realloc() for data storage
  */
 

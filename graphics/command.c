@@ -8,6 +8,8 @@
  */
 
 #include "command.h"
+
+#include <assert.h>
 #include <string.h>
 
 #include "queue_allocator.h"
@@ -33,13 +35,14 @@ void* cmd_pop_params()
     return address;
 }
 
-
-struct command cmd_buffer[16];
+#define CMD_TABLE_COUNT 32
+struct command cmd_buffer[CMD_TABLE_COUNT];
 uint32 cmd_table_count = 0;
 
 
 struct command* cmd_get_next_free()
 {
+    assert((cmd_table_count+1) < CMD_TABLE_COUNT);
     uint32 idx = cmd_table_count;
     cmd_table_count++;
     return &cmd_buffer[idx];

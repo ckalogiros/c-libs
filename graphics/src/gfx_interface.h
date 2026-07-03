@@ -26,20 +26,8 @@ sididx_t gfx_create_sid(struct gfx_sid sid);
 sididx_t gfx_sid_find_match(struct gfx_sid sid);
 
 bool sid_check_match(const sididx_t sid_idx1, const sididx_t sid_idx2);
-//
-// static bool
-// sid_copy(const sididx_t dst_sid_idx1, const sididx_t dst_sid_idx2)
-// {
-//     struct gfx_sid dst = gfx_get_sid(dst_sid_idx1);
-//     struct gfx_sid src = gfx_get_sid(src_sid_idx2);
-//     dst->attr = src.attr;
-//     dst->unif = src.unif;
-//     dst->out  = src.out;
-//     dst->pass = src.pass;
-//     dst->oper = src.oper;
-// }
 
-
+bool sid_check_attr_match_from_flag(const sididx_t sid_idx, const sid_t flag);
 
 vaidx_t gfx_vertex_array_find_match(const sididx_t sid_idx, const bool attrib_devisor);
 

@@ -6,8 +6,16 @@
 
 #include "my_types.h"
 
-#define PI 3.141592654
-#define PI_HALF 1.570796327
+
+#define PI      3.141592654f
+#define PI_HALF 1.570796327f
+#define SQRT2   1.41421356237f
+#define SQRT3   1.73205080757f
+#define SQRT5   2.2360679775f
+#define SQRT_10_PLUS_2SQRT5  3.80422606518f
+#define SQRT_10_MINUS_2SQRT5 2.35114100917f
+#define PHI     1.618033988749895f   /// ((1.f + sqrt(5.f)) / 2.f)  *Golden ratio ≈ 1.618
+#define INV_PHI 0.618033988749895f   /// (1.f / PHI)
 
 #define is_power_of_two(x) ((x) != 0 && ((x) & ((x) - 1)) == 0)
 
@@ -22,27 +30,6 @@ static inline int64 fast_abs64(int64 x) {
     return (x + mask) ^ mask;
 }
 
-static void randomize_range(uint32 arr[], int m, int n) {
-
-    int size = n - m;
-
-    // Fill array with numbers from m to n
-    for (int i = 0; i < size; i++) {
-        arr[i] = m + i;
-    }
-
-    // Fisher-Yates shuffle
-    for (int i = size - 1; i > 0; i--) {
-        int j = rand() % (i + 1);
-        // Swap arr[i] and arr[j]
-        int temp = arr[i];
-        arr[i] = arr[j];
-        arr[j] = temp;
-    }
-
-    for (int i = 0; i < size; i++)
-        print("arr[%u]:%u\n", i, arr[i]);
-
-}
+void randomize_range(uint32 arr[], int m, int n);
 
 #endif //MEMORY_SMATH_H

@@ -27,6 +27,8 @@
 
 #define sparse_arr_comp_get(comp_id) (&((struct components_group*) obj_component_groups_table->data)[comp_id])
 #define sparse_arr_obj_id_get(id) (&((objid_t*) comp_group->obj_group->data)[id])
+// #define sparse_arr_obj_id_get(id) (&((objid_t*) comp_group->obj_group->data)[id]) /// TODO: to compine the 2 buffers we use the first buffer offset( sizeof(struct comp_per_attrib_descriptor) * num_attributes)
+// #define sparse_arr_obj_id_get(id) (&((objid_t*) comp_group->obj_group->data)[id])
 
 
 sparse_arr_t* obj_component_groups_table = NULL;
@@ -121,20 +123,15 @@ void obj_component_add_comp(const vbidx_t group_id, const uint32 obj_idx, float*
 {
     engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_GENERIC, " { %s }:[", shaderinfo_flag_to_flagname(comp_flag));
     struct components_group* group = obj_component_get_component(group_id);
-    const uint32 start = obj_idx * group->comp_desc.stride;
 
     float* buffer_ptr = arena_allocator_alloc(group->attribs_data_inst_id, elems_count*sizeof(float), sizeof(float));
-    // float* buffer = &group->data[start];
     uint32 bidx = offset;
     for(uint32 i = 0; i < elems_count; i++) {
-        // buffer_ptr[bidx++] = src[i];
         buffer_ptr[i] = src[i];
         print("  %2.2f, ", buffer_ptr[i]);
-        // print("  %2.2f, ", buffer_ptr[bidx-1]);
         engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_GENERIC, "%2.2f,", buffer_ptr[i]);
     }
     print("\n");
-    // engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_GENERIC, "\n");
 
     /// the "per_attr_desc" stores each unique component description (ONCE per component per group).
     /// this function is called for every object, but we need not to keep duplicates of component descriptions
@@ -175,12 +172,13 @@ struct comp_per_group_descriptor* obj_component_get_comp_desc(const vbidx_t grou
     struct components_group* comp_group = sparse_arr_comp_get(group_id);
     return &comp_group->comp_desc;
 }
-// objid_t* obj_component_get_obj_group(const vbidx_t group_id)
-// {
-//     struct components_group* comp_group = sparse_arr_comp_get(group_id);
-//     objid_t* buffer_ids = sparse_arr_obj_id_get(comp_group->obj_group_id);
-//     return buffer_ids;
-// }
+bool obj_component_is_indexed_geometry(const vbidx_t group_id)
+{
+    struct components_group* comp_group = sparse_arr_comp_get(group_id);
+    const sididx_t sid_idx = comp_group->comp_desc.sid_idx;
+    bool res = sid_check_attr_match_from_flag(sid_idx, SID_INDEXED);
+    return res;
+}
 sparse_arr_t* obj_component_get_obj_group(const vbidx_t group_id)
 {
     struct components_group* comp_group = sparse_arr_comp_get(group_id);

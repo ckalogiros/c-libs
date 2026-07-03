@@ -8,24 +8,26 @@
 struct timer;
 
 struct render_queue {
-    build_t program;
-    build_t progidx;
-    vbidx_t vao;
-    vbidx_t vaidx;
-    vbidx_t vbo;
-    vbidx_t vbidx;
-    ibidx_t ibo;
-    ibidx_t ibidx;
-    tbidx_t tbo;
-    tbidx_t tbidx;
+    uint32   draw_count;
+    sididx_t sid_idx;
+    build_t  program;
+    build_t  progidx;
+    vbidx_t  vao;
+    vbidx_t  vaidx;
+    vbidx_t  vbo;
+    vbidx_t  vbidx;
+    ibidx_t  ibo;
+    ibidx_t  ibidx;
+    tbidx_t  tbo;
+    tbidx_t  tbidx;
 
-    uint32 draw_count;
 };
 
 struct command_render_queue_params {
     uint32 rqidx;
     uint32 comp_idx;
     uint32 vertex_count;
+    uint32 index_count;
 };
 
 struct render_queue* render_queue_get(const uint32 rqidx);
@@ -33,8 +35,8 @@ struct render_queue* render_queue_get(const uint32 rqidx);
 
 void render_queue_add_draw_count(struct command_render_queue_params* params);
 
-uint32 renderer_renderqueue_add(const build_t program, const build_t progidx, const vbidx_t vao,
-                                              const vbidx_t vaidx, const vbidx_t vbo, const vbidx_t vbidx);
+uint32 renderer_renderqueue_add(const sididx_t sid_idx, const build_t program, const build_t progidx,
+                                const vbidx_t vao, const vbidx_t vaidx, const vbidx_t vbo, const vbidx_t vbidx);
 
 
 void run(struct timer* loop_timer);

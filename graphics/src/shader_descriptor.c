@@ -158,8 +158,7 @@ shader_descriptor_vertex_layout_set(const desc_t desc_idx, struct vertex_layout 
     struct shader_descriptor* desc = s_desc_get(desc_idx);
     struct vertex_layout* attribs = desc->v_layout;
     /// TODO: typedef the sparse array's element index
-    // const uint16 idx = sparse_arr_set_for_push(shader_descriptor_table);
-    const uint16 idx = desc_idx;
+    const desc_t idx = desc_idx;
 
     for(uint32 i = 0; i < count; i++) {
         if(attribs_desc[i].size > 0) {

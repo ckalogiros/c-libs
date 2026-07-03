@@ -42,3 +42,8 @@ It needs: set_for_push and then add/copy a new descriptor object.
 ### vertex buffer add function should implement vb realloc to extend the vertex buffer memory
 
 ### vertex buffer set data should use mem copy to copy from components attribs buffer as many times as the vertex count
+
+### TODO: implement the n-polygon in a unit circle math formula, to create any n-gon shape
+
+
+automate render indexed geometry

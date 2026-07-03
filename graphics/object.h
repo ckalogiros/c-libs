@@ -24,6 +24,7 @@ struct object {
     uint16 num_faces;
     uint16 comp_id;
     uint16 vertex_count;      /// number of object's vertices
+    uint16 index_count;       /// number of object's vertex indices
     sididx_t sid_idx;
     uint8  verts_per_face;
 
@@ -39,6 +40,8 @@ struct object* object_get(const objid_t obj_id);
 
 uint16 object_get_vertex_count(const objid_t obj_id);
 
+vind_t object_get_vertex_index_count(const objid_t obj_id);
+
 void object_σet_vertex_count(const objid_t obj_id);
 
 enum MESH_TYPE object_get_vertex_mesh_type(const objid_t obj_id);
@@ -51,6 +54,9 @@ object_create_rectangle(struct gfx_sid sid, float wpos[3], float scale[2], float
 
 struct object*
 object_create_pentagon(struct gfx_sid sid, float wpos[3], float scale[2], float rot[2], float color[4]);
+
+struct object*
+object_create_hexagon(struct gfx_sid sid, float wpos[3], float scale[2], float rot[2], float color[4]);
 
 struct object*
 object_create_octagon(struct gfx_sid sid, float wpos[3], float scale[2], float rot[2], float color[4]);
