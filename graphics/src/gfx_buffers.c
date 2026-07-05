@@ -16,7 +16,7 @@
 #include "opengl.h"
 #include "opengl_debug.h"
 #include "shader_builder.h"
-#include "object_components.h"
+#include "attributes.h"
 
 
 /***************************************************************************************************
@@ -163,16 +163,16 @@ static float gfx_color_per_pentagon[COLORS_PER_PENTAGON_COUNT] = {
 float* gfx_vertex_buffer_set_data(struct vb_cmd_params* params)
 {
     struct vertex_buffer_object* vb = &vertex_buffer_table[params->vbidx];
-    sparse_arr_t* obj_group_ids     = obj_component_get_obj_group(params->comp_idx);
-    float* obj_attr_data            = obj_component_get_obj_attribs_data(params->comp_idx);
+    buffer_t* obj_group_ids     = attribsGroupDescr_get_objects_group(params->attribs_idx);
+    float* obj_attr_data        = attribsGroupDescr_get_attribs_data(params->attribs_idx);
 
     uint32 vcnt = 0;
 
-    bool is_indexed = obj_component_is_indexed_geometry(params->comp_idx);
+    bool is_indexed = attribsGroupDescr_is_indexed_geometry(params->attribs_idx);
     vind_t vcount = 0;
 
-    uint32 comp_stride = vb->stride-params->vpos_num_elems; // components stride is the vb attrib stride minus the vertex position's number of elements
-    uint32 comp_offset = 0; // the next object's components/attributes in the "obj_attr_data"
+    uint32 attribs_stride = vb->stride-params->vpos_num_elems; // attributess stride is the vb attrib stride minus the vertex position's number of elements
+    uint32 attribs_offset = 0; // the next object's attributes in the buffer
 
     print("\n\n%s- ADD OBJ TO VB vb:%u -",  YELLOW, params->vbidx);
     engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_VERTEX_BUFFER, "\n\n- ADD OBJ TO VB vb:%u -", params->vbidx);
@@ -216,9 +216,9 @@ float* gfx_vertex_buffer_set_data(struct vb_cmd_params* params)
             vcnt++;
 
 
-            for(uint32 k = comp_offset; k < comp_offset+comp_stride; k++) {
+            for(uint32 k = attribs_offset; k < attribs_offset+attribs_stride; k++) {
 
-                if(k >= comp_offset+comp_stride-4) {
+                if(k >= attribs_offset+attribs_stride-4) {
 
                     // vb->data[vb->count++] = gfx_color_per_pentagon[color_cnt++];
                     // if(color_cnt >= COLORS_PER_PENTAGON_COUNT) color_cnt = 0;
@@ -246,7 +246,7 @@ float* gfx_vertex_buffer_set_data(struct vb_cmd_params* params)
             }
         }
 
-        comp_offset += comp_stride; // go to the next objects start of component's data
+        attribs_offset += attribs_stride; // go to the next objects start of attributes data
     }
     print("%s\n\n", CLEAR);
 
@@ -375,7 +375,7 @@ uint32* gfx_vertex_index_buffer_set_data(struct ib_cmd_params* params)
 
     struct vertex_index_buffer_object* ib = &vertex_index_buffer_table[params->ibidx];
 
-    sparse_arr_t* obj_group_ids = obj_component_get_obj_group(params->comp_idx);
+    buffer_t* obj_group_ids = attribsGroupDescr_get_objects_group(params->attribs_idx);
     uint32 cnt = 0, ind_offset = 0, max_index = 0;
 
     // if(ib->count > 0) ind_offset = ib->last_index+1;
@@ -405,9 +405,7 @@ uint32* gfx_vertex_index_buffer_set_data(struct ib_cmd_params* params)
             ib->data[ib->count++] = ind[cnt++] + ind_offset;
             print("%3u, ", ib->data[ib->count-1]);
             // engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_VERTEX_BUFFER, "%2u, ", ib->data[ib->count-1]);
-
         }
-
 
         ind_offset = max_index+1;
 

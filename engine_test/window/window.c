@@ -3,8 +3,6 @@
  */
 
 #include "window.h"
-// #define GLFW_INCLUDE_NONE
-// #include <glfw3.h>
 #include "renderer.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -131,6 +129,8 @@ window_create()
     glfwWindowHint(GLFW_FOCUSED, GLFW_TRUE);
 
     glfwWindowHint(GLFW_DEPTH_BITS, 24);
+
+    glfwWindowHint(GLFW_SAMPLES, MULTISAMPLE_RES);
 
 
     int32 width = SCREEN_RES_X, height = SCREEN_RES_Y;

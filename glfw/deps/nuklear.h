@@ -11457,8 +11457,8 @@ nk_tt_GetGlyphShape(const struct nk_tt_fontinfo *info, struct nk_allocator *allo
         while (more)
         {
             nk_ushort flags, gidx;
-            int comp_num_verts = 0, i;
-            struct nk_tt_vertex *comp_verts = 0, *tmp = 0;
+            int attribs_num_verts = 0, i;
+            struct nk_tt_vertex *attribs_verts = 0, *tmp = 0;
             float mtx[6] = {1,0,0,1,0,0}, m, n;
 
             flags = (nk_ushort)nk_ttSHORT(comp); comp+=2;
@@ -11495,12 +11495,12 @@ nk_tt_GetGlyphShape(const struct nk_tt_fontinfo *info, struct nk_allocator *allo
             n = (float) NK_SQRT(mtx[2]*mtx[2] + mtx[3]*mtx[3]);
 
              /* Get indexed glyph. */
-            comp_num_verts = nk_tt_GetGlyphShape(info, alloc, gidx, &comp_verts);
-            if (comp_num_verts > 0)
+            attribs_num_verts = nk_tt_GetGlyphShape(info, alloc, gidx, &attribs_verts);
+            if (attribs_num_verts > 0)
             {
                 /* Transform vertices. */
-                for (i = 0; i < comp_num_verts; ++i) {
-                    struct nk_tt_vertex* v = &comp_verts[i];
+                for (i = 0; i < attribs_num_verts; ++i) {
+                    struct nk_tt_vertex* v = &attribs_verts[i];
                     short x,y;
                     x=v->x; y=v->y;
                     v->x = (short)(m * (mtx[0]*x + mtx[2]*y + mtx[4]));
@@ -11511,18 +11511,18 @@ nk_tt_GetGlyphShape(const struct nk_tt_fontinfo *info, struct nk_allocator *allo
                 }
                 /* Append vertices. */
                 tmp = (struct nk_tt_vertex*)alloc->alloc(alloc->userdata, 0,
-                    (nk_size)(num_vertices+comp_num_verts)*sizeof(struct nk_tt_vertex));
+                    (nk_size)(num_vertices+attribs_num_verts)*sizeof(struct nk_tt_vertex));
                 if (!tmp) {
                     if (vertices) alloc->free(alloc->userdata, vertices);
-                    if (comp_verts) alloc->free(alloc->userdata, comp_verts);
+                    if (attribs_verts) alloc->free(alloc->userdata, attribs_verts);
                     return 0;
                 }
                 if (num_vertices > 0) NK_MEMCPY(tmp, vertices, (nk_size)num_vertices*sizeof(struct nk_tt_vertex));
-                NK_MEMCPY(tmp+num_vertices, comp_verts, (nk_size)comp_num_verts*sizeof(struct nk_tt_vertex));
+                NK_MEMCPY(tmp+num_vertices, attribs_verts, (nk_size)attribs_num_verts*sizeof(struct nk_tt_vertex));
                 if (vertices) alloc->free(alloc->userdata,vertices);
                 vertices = tmp;
-                alloc->free(alloc->userdata,comp_verts);
-                num_vertices += comp_num_verts;
+                alloc->free(alloc->userdata,attribs_verts);
+                num_vertices += attribs_num_verts;
             }
             /* More components ? */
             more = flags & (1<<5);

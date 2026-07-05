@@ -11,9 +11,9 @@
 #include "fdebug_test.h"
 #include "mesh.h"
 #include "shader_builder.h"
-#include "sparse_arr_internals.h"
-#include "sparse_arr_struct.h"
-#include "object_components.h"
+#include "buffer_arr_internals.h"
+#include "buffer_arr_struct.h"
+#include "attributes.h"
 #include "logger.h"
 
 
@@ -21,25 +21,25 @@
 #define obj_get(obj_id) (&((struct object*) object_table->data)[obj_id])
 
 
-static uint32 object_id = 0;
-sparse_arr_t* object_table = NULL;
+static objid_t object_id = 0;
+buffer_t* object_table = NULL;
 
 
 void
 object_table_init(void)
 {
-    object_table = sparse_arr_create_gentype(80, sizeof(struct object));
+    object_table = buffer_arr_create_gentype(80, sizeof(struct object));
 }
 
 struct object*
-object_create(const sididx_t sid_idx, enum MESH_TYPE mesh_type)
+object_create(const sididx_t sid_idx, const enum MESH_TYPE mesh_type)
 {
-    struct object obj = {
+    const struct object obj = {
         .id             = object_id++,
         .sid_idx        = sid_idx,
         .num_faces      = 0,
         .attrib_count   = 0,
-        .comp_id        = 0,
+        .attribs_id        = 0,
         .verts_per_face = 0,
         .mesh_type      = mesh_type,
         .vb_start       = 0,
@@ -47,7 +47,7 @@ object_create(const sididx_t sid_idx, enum MESH_TYPE mesh_type)
         .index_count    = 0,
     };
 
-    const uint16 obj_idx = sparse_arr_set_for_push(object_table);
+    const uint16 obj_idx = buffer_arr_set_for_push(object_table);
     struct object* object = obj_get(obj_idx);
     *object = obj;
 
@@ -56,7 +56,7 @@ object_create(const sididx_t sid_idx, enum MESH_TYPE mesh_type)
 
 void object_destroy(const objid_t obj_id)
 {
-    sparse_arr_free_elem(object_table, obj_id);
+    buffer_arr_free_elem(object_table, obj_id);
 }
 
 /*************************************************************************************************
@@ -66,7 +66,6 @@ struct object*
 object_get(const objid_t obj_id)
 {
     assert(obj_id >= 0);
-    // const desc_t obj_idx = sparse_arr_set_for_push(object_table);
     struct object* object = obj_get(obj_id);
     return object;
 }
@@ -96,7 +95,7 @@ enum MESH_TYPE
 object_get_vertex_mesh_type(const objid_t obj_id)
 {
     assert(obj_id >= 0);
-    const desc_t obj_idx = sparse_arr_set_for_push(object_table);
+    const objid_t obj_idx = buffer_arr_set_for_push(object_table);
     struct object* object = obj_get(obj_idx);
     return object->mesh_type;
 }
@@ -118,32 +117,31 @@ object_create_triangle(struct gfx_sid sid, float wpos[3], float scale[2], float 
     enum MESH_TYPE mesh_type = MESH_TRIANGLE;
 
     sididx_t sid_idx = gfx_sid_find_match(sid);
-    compid_t comp_group_id = INT_NULL;
+    attrid_t attribs_group_id = INT_NULL;
 
     if(sid_idx == INT_NULL) {
 
         sid_idx = gfx_create_sid(sid);
-        comp_group_id = obj_component_create_new_components_group(sid_idx);
+        attribs_group_id = attribsGroupDescr_create_new_components_group(sid_idx);
     } else {
 
-        comp_group_id = obj_component_group_find_match(sid_idx);
+        attribs_group_id = attribsGroupDescr_group_find_match(sid_idx);
     }
 
     struct object* obj = object_create(sid_idx, mesh_type);
     obj->num_faces = 1;
     obj->verts_per_face = mesh_get_mesh_vertex_count_from_type(mesh_type);
     obj->index_count = mesh_get_mesh_indices_count_from_type(mesh_type);
-    obj->comp_id = comp_group_id;
+    obj->attribs_id = attribs_group_id;
 
     object_set_vertex_count(obj->id, obj->num_faces * obj->verts_per_face);
-    const uint32 obj_comp_idx = obj_component_create_new_obj(obj->comp_id, obj->id, obj->num_faces * obj->verts_per_face, mesh_type);
+    attribsGroupDescr_create_new_obj(obj->attribs_id, obj->id, obj->num_faces * obj->verts_per_face);
 
     const build_t build_idx = shader_create_input(sid_idx, "VPOS2", VEC2F, SID_VPOSI2_ID, IN_VSHADER | IS_ATTR  | IS_TRANSFORM_VPOS);
-    obj_component_set_build_idx(comp_group_id, build_idx);
+    attribsGroupDescr_set_build_idx(attribs_group_id, build_idx);
 
-
-    engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_GENERIC, "--- CREATE OBJ: %s, id:%3u  comp_id:%u  num_faces:%2u  verts_per_face:%3u   attrib_count:%u | ",
-            mesh_get_name_from_type(mesh_type), obj->id, obj->comp_id, obj->num_faces, obj->verts_per_face, obj->attrib_count);
+    engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_GENERIC, "--- CREATE OBJ: %s, id:%3u  attribs_id:%u  num_faces:%2u  verts_per_face:%3u   attrib_count:%u | ",
+            mesh_get_name_from_type(mesh_type), obj->id, obj->attribs_id, obj->num_faces, obj->verts_per_face, obj->attrib_count);
 
 
     /* Create the necessary attribute descriptor and store the attributes data
@@ -153,43 +151,43 @@ object_create_triangle(struct gfx_sid sid, float wpos[3], float scale[2], float 
     {
         shader_create_input(sid_idx, "WPOS3", VEC3F, SID_WPOSI3_ID, IN_VSHADER | IS_ATTR | IS_TRANSFORM_WPOS);
         sid_attr = SID_WPOSI3;
-        uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
-        obj_component_add_comp(obj->comp_id, obj_comp_idx, wpos, attrib_size, attrib_offset, sid_attr);
+        const uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
+        attribsGroupDescr_add_comp(obj->attribs_id, wpos, attrib_size, attrib_offset, sid_attr);
         attrib_offset += attrib_size;
         obj->attrib_count++;
     }
     {
         shader_create_input(sid_idx, "SCALE2", VEC2F, SID_SCALE2_ID, IN_VSHADER | IS_ATTR | IS_TRANSFORM_SCALE);
         sid_attr = SID_SCALE2;
-        uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
-        obj_component_add_comp(obj->comp_id, obj_comp_idx, scale, attrib_size, attrib_offset, sid_attr);
+        const uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
+        attribsGroupDescr_add_comp(obj->attribs_id, scale, attrib_size, attrib_offset, sid_attr);
         attrib_offset += attrib_size;
         obj->attrib_count++;
     }
     {
         shader_create_input(sid_idx, "ROT2", VEC2F, SID_ROTAT2_ID, IN_VSHADER | IS_ATTR | IS_TRANSFORM_ROT);
         sid_attr = SID_ROTAT2;
-        uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
-        obj_component_add_comp(obj->comp_id, obj_comp_idx, rot, attrib_size, attrib_offset, sid_attr);
+        const uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
+        attribsGroupDescr_add_comp(obj->attribs_id, rot, attrib_size, attrib_offset, sid_attr);
         attrib_offset += attrib_size;
         obj->attrib_count++;
     }
     {
         shader_create_input(sid_idx, "COL4", VEC4F, SID_COLOR4_ID, IN_VSHADER | IS_ATTR | IS_OUT);
         sid_attr = SID_COLOR4;
-        uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
-        obj_component_add_comp(obj->comp_id, obj_comp_idx, color, attrib_size, attrib_offset, sid_attr);
+        const uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
+        attribsGroupDescr_add_comp(obj->attribs_id, color, attrib_size, attrib_offset, sid_attr);
         attrib_offset += attrib_size;
         obj->attrib_count++;
     }
 
-    obj_component_set_stride(obj->comp_id, attrib_offset);
+    attribsGroupDescr_set_stride(obj->attribs_id, attrib_offset);
 
     shader_create_input(sid_idx, "PROJMAT4X4", MAT4X4F, SID_PROJMAT4X4_ID, IN_VSHADER | IS_UNIF | IS_TRANSFORM_PROJ);
 
     print("%s- Create object: triangle -%s\n"
-          "   id:%u\n   comp_id:%u\n   num_faces:%2u\n   verts_per_face:%3u \n   attrib_count:%u\n",
-          BLUE, CLEAR, obj->id, obj->comp_id, obj->num_faces, obj->verts_per_face, obj->attrib_count);
+          "   id:%u\n   attribs_id:%u\n   num_faces:%2u\n   verts_per_face:%3u \n   attrib_count:%u\n",
+          BLUE, CLEAR, obj->id, obj->attribs_id, obj->num_faces, obj->verts_per_face, obj->attrib_count);
 
     engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_GENERIC, "\n");
 
@@ -208,36 +206,32 @@ object_create_rectangle(struct gfx_sid sid, float wpos[3], float scale[2], float
     enum MESH_TYPE mesh_type = MESH_RECTANGLE;
 
     sididx_t sid_idx = gfx_sid_find_match(sid);
-    compid_t comp_group_id = INT_NULL;
+    attrid_t attribs_group_id = INT_NULL;
 
     if(sid_idx == INT_NULL) {
 
         sid_idx = gfx_create_sid(sid);
-        comp_group_id = obj_component_create_new_components_group(sid_idx);
+        attribs_group_id = attribsGroupDescr_create_new_components_group(sid_idx);
     } else {
 
-        comp_group_id = obj_component_group_find_match(sid_idx);
+        attribs_group_id = attribsGroupDescr_group_find_match(sid_idx);
     }
-    assert(comp_group_id >= 0);
-
+    assert(attribs_group_id >= 0);
 
     struct object* obj = object_create(sid_idx, mesh_type);
     obj->num_faces = 1;
     obj->verts_per_face = mesh_get_mesh_vertex_count_from_type(mesh_type);
     obj->index_count = mesh_get_mesh_indices_count_from_type(mesh_type);
-    obj->comp_id = comp_group_id;
-
+    obj->attribs_id = attribs_group_id;
 
     object_set_vertex_count(obj->id, obj->num_faces * obj->verts_per_face);
-    const uint32 obj_comp_idx = obj_component_create_new_obj(obj->comp_id, obj->id, obj->num_faces * obj->verts_per_face, mesh_type);
+    attribsGroupDescr_create_new_obj(obj->attribs_id, obj->id, obj->num_faces * obj->verts_per_face);
 
     const build_t build_idx = shader_create_input(sid_idx, "VPOS2", VEC2F, SID_VPOSI2_ID, IN_VSHADER | IS_ATTR  | IS_TRANSFORM_VPOS);
-    obj_component_set_build_idx(comp_group_id, build_idx);
+    attribsGroupDescr_set_build_idx(attribs_group_id, build_idx);
 
-
-    // engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_GENERIC, "--- CREATE OBJ: RECTANGLE, id: %u\n", obj->id);
-    engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_GENERIC, "--- CREATE OBJ: %s, id:%3u  comp_id:%u  num_faces:%2u  verts_per_face:%3u   attrib_count:%u | ",
-            mesh_get_name_from_type(mesh_type), obj->id, obj->comp_id, obj->num_faces, obj->verts_per_face, obj->attrib_count);
+    engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_GENERIC, "--- CREATE OBJ: %s, id:%3u  attribs_id:%u  num_faces:%2u  verts_per_face:%3u   attrib_count:%u | ",
+            mesh_get_name_from_type(mesh_type), obj->id, obj->attribs_id, obj->num_faces, obj->verts_per_face, obj->attrib_count);
 
 
     /* Create the necessary attribute descriptor and store the attributes data
@@ -247,44 +241,44 @@ object_create_rectangle(struct gfx_sid sid, float wpos[3], float scale[2], float
     {
         shader_create_input(sid_idx, "WPOS3", VEC3F, SID_WPOSI3_ID, IN_VSHADER | IS_ATTR | IS_TRANSFORM_WPOS);
         sid_attr = SID_WPOSI3;
-        uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
-        obj_component_add_comp(obj->comp_id, obj_comp_idx, wpos, attrib_size, attrib_offset, sid_attr);
+        const uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
+        attribsGroupDescr_add_comp(obj->attribs_id, wpos, attrib_size, attrib_offset, sid_attr);
         attrib_offset += attrib_size;
         obj->attrib_count++;
     }
     {
         shader_create_input(sid_idx, "SCALE2", VEC2F, SID_SCALE2_ID, IN_VSHADER | IS_ATTR | IS_TRANSFORM_SCALE);
         sid_attr = SID_SCALE2;
-        uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
-        obj_component_add_comp(obj->comp_id, obj_comp_idx, scale, attrib_size, attrib_offset, sid_attr);
+        const uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
+        attribsGroupDescr_add_comp(obj->attribs_id, scale, attrib_size, attrib_offset, sid_attr);
         attrib_offset += attrib_size;
         obj->attrib_count++;
     }
     {
         shader_create_input(sid_idx, "ROT2", VEC2F, SID_ROTAT2_ID, IN_VSHADER | IS_ATTR | IS_TRANSFORM_ROT);
         sid_attr = SID_ROTAT2;
-        uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
-        obj_component_add_comp(obj->comp_id, obj_comp_idx, rot, attrib_size, attrib_offset, sid_attr);
+        const uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
+        attribsGroupDescr_add_comp(obj->attribs_id, rot, attrib_size, attrib_offset, sid_attr);
         attrib_offset += attrib_size;
         obj->attrib_count++;
     }
     {
         shader_create_input(sid_idx, "COL4", VEC4F, SID_COLOR4_ID, IN_VSHADER | IS_ATTR | IS_OUT);
         sid_attr = SID_COLOR4;
-        uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
-        obj_component_add_comp(obj->comp_id, obj_comp_idx, color, attrib_size, attrib_offset, sid_attr);
+        const uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
+        attribsGroupDescr_add_comp(obj->attribs_id, color, attrib_size, attrib_offset, sid_attr);
         attrib_offset += attrib_size;
         obj->attrib_count++;
     }
 
 
-    obj_component_set_stride(obj->comp_id, attrib_offset);
+    attribsGroupDescr_set_stride(obj->attribs_id, attrib_offset);
 
     shader_create_input(sid_idx, "PROJMAT4X4", MAT4X4F, SID_PROJMAT4X4_ID, IN_VSHADER | IS_UNIF | IS_TRANSFORM_PROJ);
 
     print("%s- Create object: rectangle -%s\n"
-          "   id:%u\n   comp_id:%u\n   num_faces:%2u\n   verts_per_face:%3u \n   attrib_count:%u\n",
-          BLUE, CLEAR, obj->id, obj->comp_id, obj->num_faces, obj->verts_per_face, obj->attrib_count);
+          "   id:%u\n   attribs_id:%u\n   num_faces:%2u\n   verts_per_face:%3u \n   attrib_count:%u\n",
+          BLUE, CLEAR, obj->id, obj->attribs_id, obj->num_faces, obj->verts_per_face, obj->attrib_count);
 
     engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_GENERIC, "\n");
     return obj;
@@ -302,34 +296,32 @@ object_create_pentagon(struct gfx_sid sid, float wpos[3], float scale[2], float 
     enum MESH_TYPE mesh_type = MESH_PENTAGON;
 
     sididx_t sid_idx = gfx_sid_find_match(sid);
-    compid_t comp_group_id = INT_NULL;
+    attrid_t attribs_group_id = INT_NULL;
 
     if(sid_idx == INT_NULL) {
 
         sid_idx = gfx_create_sid(sid);
-        comp_group_id = obj_component_create_new_components_group(sid_idx);
+        attribs_group_id = attribsGroupDescr_create_new_components_group(sid_idx);
     } else {
 
-        comp_group_id = obj_component_group_find_match(sid_idx);
+        attribs_group_id = attribsGroupDescr_group_find_match(sid_idx);
     }
-    assert(comp_group_id >= 0);
+    assert(attribs_group_id >= 0);
 
     struct object* obj = object_create(sid_idx, mesh_type);
     obj->num_faces = 1;
     obj->verts_per_face = mesh_get_mesh_vertex_count_from_type(mesh_type);
     obj->index_count = mesh_get_mesh_indices_count_from_type(mesh_type);
-    obj->comp_id = comp_group_id;
-
+    obj->attribs_id = attribs_group_id;
 
     object_set_vertex_count(obj->id, obj->num_faces * obj->verts_per_face);
-    const uint32 obj_comp_idx = obj_component_create_new_obj(obj->comp_id, obj->id, obj->num_faces * obj->verts_per_face, mesh_type);
+    attribsGroupDescr_create_new_obj(obj->attribs_id, obj->id, obj->num_faces * obj->verts_per_face);
 
     const build_t build_idx = shader_create_input(sid_idx, "VPOS2", VEC2F, SID_VPOSI2_ID, IN_VSHADER | IS_ATTR  | IS_TRANSFORM_VPOS);
-    obj_component_set_build_idx(comp_group_id, build_idx);
+    attribsGroupDescr_set_build_idx(attribs_group_id, build_idx);
 
-    // engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_GENERIC, "--- CREATE OBJ: PENTAGON, id: %u\n", obj->id);
-    engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_GENERIC, "--- CREATE OBJ: %s, id:%3u  comp_id:%u  num_faces:%2u  verts_per_face:%3u   attrib_count:%u | ",
-            mesh_get_name_from_type(mesh_type), obj->id, obj->comp_id, obj->num_faces, obj->verts_per_face, obj->attrib_count);
+    engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_GENERIC, "--- CREATE OBJ: %s, id:%3u  attribs_id:%u  num_faces:%2u  verts_per_face:%3u   attrib_count:%u | ",
+            mesh_get_name_from_type(mesh_type), obj->id, obj->attribs_id, obj->num_faces, obj->verts_per_face, obj->attrib_count);
 
 
     /* Create the necessary attribute descriptor and store the attributes data
@@ -339,44 +331,44 @@ object_create_pentagon(struct gfx_sid sid, float wpos[3], float scale[2], float 
     {
         shader_create_input(sid_idx, "WPOS3", VEC3F, SID_WPOSI3_ID, IN_VSHADER | IS_ATTR | IS_TRANSFORM_WPOS);
         sid_attr = SID_WPOSI3;
-        uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
-        obj_component_add_comp(obj->comp_id, obj_comp_idx, wpos, attrib_size, attrib_offset, sid_attr);
+        const uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
+        attribsGroupDescr_add_comp(obj->attribs_id, wpos, attrib_size, attrib_offset, sid_attr);
         attrib_offset += attrib_size;
         obj->attrib_count++;
     }
     {
         shader_create_input(sid_idx, "SCALE2", VEC2F, SID_SCALE2_ID, IN_VSHADER | IS_ATTR | IS_TRANSFORM_SCALE);
         sid_attr = SID_SCALE2;
-        uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
-        obj_component_add_comp(obj->comp_id, obj_comp_idx, scale, attrib_size, attrib_offset, sid_attr);
+        const uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
+        attribsGroupDescr_add_comp(obj->attribs_id, scale, attrib_size, attrib_offset, sid_attr);
         attrib_offset += attrib_size;
         obj->attrib_count++;
     }
     {
         shader_create_input(sid_idx, "ROT2", VEC2F, SID_ROTAT2_ID, IN_VSHADER | IS_ATTR | IS_TRANSFORM_ROT);
         sid_attr = SID_ROTAT2;
-        uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
-        obj_component_add_comp(obj->comp_id, obj_comp_idx, rot, attrib_size, attrib_offset, sid_attr);
+        const uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
+        attribsGroupDescr_add_comp(obj->attribs_id, rot, attrib_size, attrib_offset, sid_attr);
         attrib_offset += attrib_size;
         obj->attrib_count++;
     }
     {
         shader_create_input(sid_idx, "COL4", VEC4F, SID_COLOR4_ID, IN_VSHADER | IS_ATTR | IS_OUT);
         sid_attr = SID_COLOR4;
-        uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
-        obj_component_add_comp(obj->comp_id, obj_comp_idx, color, attrib_size, attrib_offset, sid_attr);
+        const uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
+        attribsGroupDescr_add_comp(obj->attribs_id, color, attrib_size, attrib_offset, sid_attr);
         attrib_offset += attrib_size;
         obj->attrib_count++;
     }
 
 
-    obj_component_set_stride(obj->comp_id, attrib_offset);
+    attribsGroupDescr_set_stride(obj->attribs_id, attrib_offset);
 
     shader_create_input(sid_idx, "PROJMAT4X4", MAT4X4F, SID_PROJMAT4X4_ID, IN_VSHADER | IS_UNIF | IS_TRANSFORM_PROJ);
 
     print("%s- Create object: pentagon -%s\n"
-          "   id:%u\n   comp_id:%u\n   num_faces:%2u\n   verts_per_face:%3u \n   attrib_count:%u\n",
-          BLUE, CLEAR, obj->id, obj->comp_id, obj->num_faces, obj->verts_per_face, obj->attrib_count);
+          "   id:%u\n   attribs_id:%u\n   num_faces:%2u\n   verts_per_face:%3u \n   attrib_count:%u\n",
+          BLUE, CLEAR, obj->id, obj->attribs_id, obj->num_faces, obj->verts_per_face, obj->attrib_count);
 
     engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_GENERIC, "\n");
     return obj;
@@ -394,34 +386,32 @@ object_create_hexagon(struct gfx_sid sid, float wpos[3], float scale[2], float r
     enum MESH_TYPE mesh_type = MESH_HEXAGON;
 
     sididx_t sid_idx = gfx_sid_find_match(sid);
-    compid_t comp_group_id = INT_NULL;
+    attrid_t attribs_group_id = INT_NULL;
 
     if(sid_idx == INT_NULL) {
 
         sid_idx = gfx_create_sid(sid);
-        comp_group_id = obj_component_create_new_components_group(sid_idx);
+        attribs_group_id = attribsGroupDescr_create_new_components_group(sid_idx);
     } else {
 
-        comp_group_id = obj_component_group_find_match(sid_idx);
+        attribs_group_id = attribsGroupDescr_group_find_match(sid_idx);
     }
-    assert(comp_group_id >= 0);
+    assert(attribs_group_id >= 0);
 
     struct object* obj = object_create(sid_idx, mesh_type);
     obj->num_faces = 1;
     obj->verts_per_face = mesh_get_mesh_vertex_count_from_type(mesh_type);
     obj->index_count = mesh_get_mesh_indices_count_from_type(mesh_type);
-    obj->comp_id = comp_group_id;
-
+    obj->attribs_id = attribs_group_id;
 
     object_set_vertex_count(obj->id, obj->num_faces * obj->verts_per_face);
-    const uint32 obj_comp_idx = obj_component_create_new_obj(obj->comp_id, obj->id, obj->num_faces * obj->verts_per_face, mesh_type);
+    attribsGroupDescr_create_new_obj(obj->attribs_id, obj->id, obj->num_faces * obj->verts_per_face);
 
     const build_t build_idx = shader_create_input(sid_idx, "VPOS2", VEC2F, SID_VPOSI2_ID, IN_VSHADER | IS_ATTR  | IS_TRANSFORM_VPOS);
-    obj_component_set_build_idx(comp_group_id, build_idx);
+    attribsGroupDescr_set_build_idx(attribs_group_id, build_idx);
 
-    // engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_GENERIC, "--- CREATE OBJ: PENTAGON, id: %u\n", obj->id);
-    engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_GENERIC, "--- CREATE OBJ: %s, id:%3u  comp_id:%u  num_faces:%2u  verts_per_face:%3u   attrib_count:%u | ",
-            mesh_get_name_from_type(mesh_type), obj->id, obj->comp_id, obj->num_faces, obj->verts_per_face, obj->attrib_count);
+    engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_GENERIC, "--- CREATE OBJ: %s, id:%3u  attribs_id:%u  num_faces:%2u  verts_per_face:%3u   attrib_count:%u | ",
+            mesh_get_name_from_type(mesh_type), obj->id, obj->attribs_id, obj->num_faces, obj->verts_per_face, obj->attrib_count);
 
 
     /* Create the necessary attribute descriptor and store the attributes data
@@ -431,44 +421,44 @@ object_create_hexagon(struct gfx_sid sid, float wpos[3], float scale[2], float r
     {
         shader_create_input(sid_idx, "WPOS3", VEC3F, SID_WPOSI3_ID, IN_VSHADER | IS_ATTR | IS_TRANSFORM_WPOS);
         sid_attr = SID_WPOSI3;
-        uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
-        obj_component_add_comp(obj->comp_id, obj_comp_idx, wpos, attrib_size, attrib_offset, sid_attr);
+        const uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
+        attribsGroupDescr_add_comp(obj->attribs_id, wpos, attrib_size, attrib_offset, sid_attr);
         attrib_offset += attrib_size;
         obj->attrib_count++;
     }
     {
         shader_create_input(sid_idx, "SCALE2", VEC2F, SID_SCALE2_ID, IN_VSHADER | IS_ATTR | IS_TRANSFORM_SCALE);
         sid_attr = SID_SCALE2;
-        uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
-        obj_component_add_comp(obj->comp_id, obj_comp_idx, scale, attrib_size, attrib_offset, sid_attr);
+        const uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
+        attribsGroupDescr_add_comp(obj->attribs_id, scale, attrib_size, attrib_offset, sid_attr);
         attrib_offset += attrib_size;
         obj->attrib_count++;
     }
     {
         shader_create_input(sid_idx, "ROT2", VEC2F, SID_ROTAT2_ID, IN_VSHADER | IS_ATTR | IS_TRANSFORM_ROT);
         sid_attr = SID_ROTAT2;
-        uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
-        obj_component_add_comp(obj->comp_id, obj_comp_idx, rot, attrib_size, attrib_offset, sid_attr);
+        const uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
+        attribsGroupDescr_add_comp(obj->attribs_id, rot, attrib_size, attrib_offset, sid_attr);
         attrib_offset += attrib_size;
         obj->attrib_count++;
     }
     {
         shader_create_input(sid_idx, "COL4", VEC4F, SID_COLOR4_ID, IN_VSHADER | IS_ATTR | IS_OUT);
         sid_attr = SID_COLOR4;
-        uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
-        obj_component_add_comp(obj->comp_id, obj_comp_idx, color, attrib_size, attrib_offset, sid_attr);
+        const uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
+        attribsGroupDescr_add_comp(obj->attribs_id, color, attrib_size, attrib_offset, sid_attr);
         attrib_offset += attrib_size;
         obj->attrib_count++;
     }
 
 
-    obj_component_set_stride(obj->comp_id, attrib_offset);
+    attribsGroupDescr_set_stride(obj->attribs_id, attrib_offset);
 
     shader_create_input(sid_idx, "PROJMAT4X4", MAT4X4F, SID_PROJMAT4X4_ID, IN_VSHADER | IS_UNIF | IS_TRANSFORM_PROJ);
 
     print("%s- Create object: pentagon -%s\n"
-          "   id:%u\n   comp_id:%u\n   num_faces:%2u\n   verts_per_face:%3u \n   attrib_count:%u\n",
-          BLUE, CLEAR, obj->id, obj->comp_id, obj->num_faces, obj->verts_per_face, obj->attrib_count);
+          "   id:%u\n   attribs_id:%u\n   num_faces:%2u\n   verts_per_face:%3u \n   attrib_count:%u\n",
+          BLUE, CLEAR, obj->id, obj->attribs_id, obj->num_faces, obj->verts_per_face, obj->attrib_count);
 
     engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_GENERIC, "\n");
     return obj;
@@ -486,33 +476,32 @@ object_create_octagon(struct gfx_sid sid, float wpos[3], float scale[2], float r
     enum MESH_TYPE mesh_type = MESH_OCTAGON;
 
     sididx_t sid_idx = gfx_sid_find_match(sid);
-    compid_t comp_group_id = INT_NULL;
+    attrid_t attribs_group_id = INT_NULL;
 
     if(sid_idx == INT_NULL) {
 
         sid_idx = gfx_create_sid(sid);
-        comp_group_id = obj_component_create_new_components_group(sid_idx);
+        attribs_group_id = attribsGroupDescr_create_new_components_group(sid_idx);
     } else {
 
-        comp_group_id = obj_component_group_find_match(sid_idx);
+        attribs_group_id = attribsGroupDescr_group_find_match(sid_idx);
     }
-    assert(comp_group_id >= 0);
+    assert(attribs_group_id >= 0);
 
     struct object* obj = object_create(sid_idx, mesh_type);
     obj->num_faces = 1;
     obj->verts_per_face = mesh_get_mesh_vertex_count_from_type(mesh_type);
     obj->index_count = mesh_get_mesh_indices_count_from_type(mesh_type);
-    obj->comp_id = comp_group_id;
+    obj->attribs_id = attribs_group_id;
 
     object_set_vertex_count(obj->id, obj->num_faces * obj->verts_per_face);
-    const uint32 obj_comp_idx = obj_component_create_new_obj(obj->comp_id, obj->id, obj->num_faces * obj->verts_per_face, mesh_type);
+    attribsGroupDescr_create_new_obj(obj->attribs_id, obj->id, obj->num_faces * obj->verts_per_face);
 
     const build_t build_idx = shader_create_input(sid_idx, "VPOS2", VEC2F, SID_VPOSI2_ID, IN_VSHADER | IS_ATTR  | IS_TRANSFORM_VPOS);
-    obj_component_set_build_idx(comp_group_id, build_idx);
+    attribsGroupDescr_set_build_idx(attribs_group_id, build_idx);
 
-    // engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_GENERIC, "--- CREATE OBJ: OCTAGON, id: %u\n", obj->id);
-    engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_GENERIC, "--- CREATE OBJ: %s, id:%3u  comp_id:%u  num_faces:%2u  verts_per_face:%3u   attrib_count:%u | ",
-            mesh_get_name_from_type(mesh_type), obj->id, obj->comp_id, obj->num_faces, obj->verts_per_face, obj->attrib_count);
+    engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_GENERIC, "--- CREATE OBJ: %s, id:%3u  attribs_id:%u  num_faces:%2u  verts_per_face:%3u   attrib_count:%u | ",
+            mesh_get_name_from_type(mesh_type), obj->id, obj->attribs_id, obj->num_faces, obj->verts_per_face, obj->attrib_count);
 
 
     /* Create the necessary attribute descriptor and store the attributes data
@@ -523,44 +512,44 @@ object_create_octagon(struct gfx_sid sid, float wpos[3], float scale[2], float r
     {
         shader_create_input(sid_idx, "WPOS3", VEC3F, SID_WPOSI3_ID, IN_VSHADER | IS_ATTR | IS_TRANSFORM_WPOS);
         sid_attr = SID_WPOSI3;
-        uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
-        obj_component_add_comp(obj->comp_id, obj_comp_idx, wpos, attrib_size, attrib_offset, sid_attr);
+        const uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
+        attribsGroupDescr_add_comp(obj->attribs_id, wpos, attrib_size, attrib_offset, sid_attr);
         attrib_offset += attrib_size;
         obj->attrib_count++;
     }
     {
         shader_create_input(sid_idx, "SCALE2", VEC2F, SID_SCALE2_ID, IN_VSHADER | IS_ATTR | IS_TRANSFORM_SCALE);
         sid_attr = SID_SCALE2;
-        uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
-        obj_component_add_comp(obj->comp_id, obj_comp_idx, scale, attrib_size, attrib_offset, sid_attr);
+        const uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
+        attribsGroupDescr_add_comp(obj->attribs_id, scale, attrib_size, attrib_offset, sid_attr);
         attrib_offset += attrib_size;
         obj->attrib_count++;
     }
     {
         shader_create_input(sid_idx, "ROT2", VEC2F, SID_ROTAT2_ID, IN_VSHADER | IS_ATTR | IS_TRANSFORM_ROT);
         sid_attr = SID_ROTAT2;
-        uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
-        obj_component_add_comp(obj->comp_id, obj_comp_idx, rot, attrib_size, attrib_offset, sid_attr);
+        const uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
+        attribsGroupDescr_add_comp(obj->attribs_id, rot, attrib_size, attrib_offset, sid_attr);
         attrib_offset += attrib_size;
         obj->attrib_count++;
     }
     {
         shader_create_input(sid_idx, "COL4", VEC4F, SID_COLOR4_ID, IN_VSHADER | IS_ATTR | IS_OUT);
         sid_attr = SID_COLOR4;
-        uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
-        obj_component_add_comp(obj->comp_id, obj_comp_idx, color, attrib_size, attrib_offset, sid_attr);
+        const uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
+        attribsGroupDescr_add_comp(obj->attribs_id, color, attrib_size, attrib_offset, sid_attr);
         attrib_offset += attrib_size;
         obj->attrib_count++;
     }
 
 
-    obj_component_set_stride(obj->comp_id, attrib_offset);
+    attribsGroupDescr_set_stride(obj->attribs_id, attrib_offset);
 
     shader_create_input(sid_idx, "PROJMAT4X4", MAT4X4F, SID_PROJMAT4X4_ID, IN_VSHADER | IS_UNIF | IS_TRANSFORM_PROJ);
 
     print("%s- Create object: rectangle -%s\n"
-          "   id:%u\n   comp_id:%u\n   num_faces:%2u\n   verts_per_face:%3u \n   attrib_count:%u\n",
-          BLUE, CLEAR, obj->id, obj->comp_id, obj->num_faces, obj->verts_per_face, obj->attrib_count);
+          "   id:%u\n   attribs_id:%u\n   num_faces:%2u\n   verts_per_face:%3u \n   attrib_count:%u\n",
+          BLUE, CLEAR, obj->id, obj->attribs_id, obj->num_faces, obj->verts_per_face, obj->attrib_count);
 
     engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_GENERIC, "\n");
     return obj;
@@ -578,37 +567,32 @@ object_create_cube(struct gfx_sid sid, float wpos[3], float scale[2], float rot[
     enum MESH_TYPE mesh_type = MESH_CUBE;
 
     sididx_t sid_idx = gfx_sid_find_match(sid);
-    compid_t comp_group_id = INT_NULL;
+    attrid_t attribs_group_id = INT_NULL;
 
     if(sid_idx == INT_NULL) {
 
         sid_idx = gfx_create_sid(sid);
-        comp_group_id = obj_component_create_new_components_group(sid_idx);
+        attribs_group_id = attribsGroupDescr_create_new_components_group(sid_idx);
     } else {
 
-        comp_group_id = obj_component_group_find_match(sid_idx);
+        attribs_group_id = attribsGroupDescr_group_find_match(sid_idx);
     }
-    assert(comp_group_id >= 0);
+    assert(attribs_group_id >= 0);
 
     struct object* obj = object_create(sid_idx, mesh_type);
-    // obj->num_faces = FACES_PER_CUBE;
-    // obj->verts_per_face = VERTICES_PER_QUAD;
     obj->num_faces = 1;
     obj->verts_per_face = mesh_get_mesh_vertex_count_from_type(mesh_type);
     obj->index_count = mesh_get_mesh_indices_count_from_type(mesh_type);
-    obj->comp_id = comp_group_id;
-
+    obj->attribs_id = attribs_group_id;
 
     object_set_vertex_count(obj->id, obj->num_faces * obj->verts_per_face);
-    object_set_vertex_count(obj->id, obj->num_faces * obj->verts_per_face);
-    const uint32 obj_comp_idx = obj_component_create_new_obj(obj->comp_id, obj->id, obj->num_faces * obj->verts_per_face, mesh_type);
+    attribsGroupDescr_create_new_obj(obj->attribs_id, obj->id, obj->num_faces * obj->verts_per_face);
 
     const build_t build_idx = shader_create_input(sid_idx, "VPOS3", VEC3F, SID_VPOSI3_ID, IN_VSHADER | IS_ATTR | IS_TRANSFORM_VPOS);
-    obj_component_set_build_idx(comp_group_id, build_idx);
+    attribsGroupDescr_set_build_idx(attribs_group_id, build_idx);
 
-    // engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_GENERIC, "--- CREATE OBJ: CUBE, id: %u\n", obj->id);
-    engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_GENERIC, "--- CREATE OBJ: %s, id:%3u  comp_id:%u  num_faces:%2u  verts_per_face:%3u   attrib_count:%u | ",
-            mesh_get_name_from_type(mesh_type), obj->id, obj->comp_id, obj->num_faces, obj->verts_per_face, obj->attrib_count);
+    engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_GENERIC, "--- CREATE OBJ: %s, id:%3u  attribs_id:%u  num_faces:%2u  verts_per_face:%3u   attrib_count:%u | ",
+            mesh_get_name_from_type(mesh_type), obj->id, obj->attribs_id, obj->num_faces, obj->verts_per_face, obj->attrib_count);
 
 
     /* Create the necessary attribute descriptor and store the attribute data
@@ -618,44 +602,44 @@ object_create_cube(struct gfx_sid sid, float wpos[3], float scale[2], float rot[
     {
         shader_create_input(sid_idx, "WPOS3", VEC3F, SID_WPOSI3_ID, IN_VSHADER | IS_ATTR | IS_TRANSFORM_WPOS);
         sid_attr = SID_WPOSI3;
-        uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
-        obj_component_add_comp(obj->comp_id, obj_comp_idx, wpos, attrib_size, attrib_offset, sid_attr);
+        const uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
+        attribsGroupDescr_add_comp(obj->attribs_id, wpos, attrib_size, attrib_offset, sid_attr);
         attrib_offset += attrib_size;
         obj->attrib_count++;
     }
     {
         shader_create_input(sid_idx, "SCALE2", VEC2F, SID_SCALE2_ID, IN_VSHADER | IS_ATTR | IS_TRANSFORM_SCALE);
         sid_attr = SID_SCALE2;
-        uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
-        obj_component_add_comp(obj->comp_id, obj_comp_idx, scale, attrib_size, attrib_offset, sid_attr);
+        const uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
+        attribsGroupDescr_add_comp(obj->attribs_id, scale, attrib_size, attrib_offset, sid_attr);
         attrib_offset += attrib_size;
         obj->attrib_count++;
     }
     {
         shader_create_input(sid_idx, "ROT2", VEC2F, SID_ROTAT2_ID, IN_VSHADER | IS_ATTR | IS_TRANSFORM_ROT);
         sid_attr = SID_ROTAT2;
-        uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
-        obj_component_add_comp(obj->comp_id, obj_comp_idx, rot, attrib_size, attrib_offset, sid_attr);
+        const uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
+        attribsGroupDescr_add_comp(obj->attribs_id, rot, attrib_size, attrib_offset, sid_attr);
         attrib_offset += attrib_size;
         obj->attrib_count++;
     }
     {
         shader_create_input(sid_idx, "COL4", VEC4F, SID_COLOR4_ID, IN_VSHADER | IS_ATTR | IS_OUT);
         sid_attr = SID_COLOR4;
-        uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
-        obj_component_add_comp(obj->comp_id, obj_comp_idx, color, attrib_size, attrib_offset, sid_attr);
+        const uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
+        attribsGroupDescr_add_comp(obj->attribs_id, color, attrib_size, attrib_offset, sid_attr);
         attrib_offset += attrib_size;
         obj->attrib_count++;
     }
 
 
-    obj_component_set_stride(obj->comp_id, attrib_offset);
+    attribsGroupDescr_set_stride(obj->attribs_id, attrib_offset);
 
     shader_create_input(sid_idx, "PROJMAT4X4", MAT4X4F, SID_PROJMAT4X4_ID, IN_VSHADER | IS_UNIF | IS_TRANSFORM_PROJ);
 
     print("%s- Create object: cube -%s\n"
-          "   id:%u\n   comp_id:%u\n   num_faces:%2u\n   verts_per_face:%3u \n   attrib_count:%u\n",
-          BLUE, CLEAR, obj->id, obj->comp_id, obj->num_faces, obj->verts_per_face, obj->attrib_count);
+          "   id:%u\n   attribs_id:%u\n   num_faces:%2u\n   verts_per_face:%3u \n   attrib_count:%u\n",
+          BLUE, CLEAR, obj->id, obj->attribs_id, obj->num_faces, obj->verts_per_face, obj->attrib_count);
 
     engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_GENERIC, "\n");
     return obj;
@@ -673,36 +657,32 @@ object_create_octahedron(struct gfx_sid sid, float wpos[3], float scale[2], floa
     enum MESH_TYPE mesh_type = MESH_OCTAHEDRON;
 
     sididx_t sid_idx = gfx_sid_find_match(sid);
-    compid_t comp_group_id = INT_NULL;
+    attrid_t attribs_group_id = INT_NULL;
 
     if(sid_idx == INT_NULL) {
 
         sid_idx = gfx_create_sid(sid);
-        comp_group_id = obj_component_create_new_components_group(sid_idx);
+        attribs_group_id = attribsGroupDescr_create_new_components_group(sid_idx);
     } else {
 
-        comp_group_id = obj_component_group_find_match(sid_idx);
+        attribs_group_id = attribsGroupDescr_group_find_match(sid_idx);
     }
-    assert(comp_group_id >= 0);
+    assert(attribs_group_id >= 0);
 
     struct object* obj = object_create(sid_idx, mesh_type);
-    // obj->num_faces = FACES_PER_OCTAHEDRON;
-    // obj->verts_per_face = VERTICES_PER_TRI;
     obj->num_faces = 1;
     obj->verts_per_face = mesh_get_mesh_vertex_count_from_type(mesh_type);
     obj->index_count = mesh_get_mesh_indices_count_from_type(mesh_type);
-    obj->comp_id = comp_group_id;
-
+    obj->attribs_id = attribs_group_id;
 
     object_set_vertex_count(obj->id, obj->num_faces * obj->verts_per_face);
-    const uint32 obj_comp_idx = obj_component_create_new_obj(obj->comp_id, obj->id, obj->num_faces * obj->verts_per_face, mesh_type);
+    attribsGroupDescr_create_new_obj(obj->attribs_id, obj->id, obj->num_faces * obj->verts_per_face);
 
     const build_t build_idx = shader_create_input(sid_idx, "VPOS3", VEC3F, SID_VPOSI3_ID, IN_VSHADER | IS_ATTR | IS_TRANSFORM_VPOS);
-    obj_component_set_build_idx(comp_group_id, build_idx);
+    attribsGroupDescr_set_build_idx(attribs_group_id, build_idx);
 
-    // engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_GENERIC, "--- CREATE OBJ: OCTAHEDRON, id: %u\n", obj->id);
-    engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_GENERIC, "--- CREATE OBJ: %s, id:%3u  comp_id:%u  num_faces:%2u  verts_per_face:%3u   attrib_count:%u | ",
-            mesh_get_name_from_type(mesh_type), obj->id, obj->comp_id, obj->num_faces, obj->verts_per_face, obj->attrib_count);
+    engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_GENERIC, "--- CREATE OBJ: %s, id:%3u  attribs_id:%u  num_faces:%2u  verts_per_face:%3u   attrib_count:%u | ",
+            mesh_get_name_from_type(mesh_type), obj->id, obj->attribs_id, obj->num_faces, obj->verts_per_face, obj->attrib_count);
 
 
     /* Create the necessary attribute descriptor and store the attribute data
@@ -712,44 +692,44 @@ object_create_octahedron(struct gfx_sid sid, float wpos[3], float scale[2], floa
     {
         shader_create_input(sid_idx, "WPOS3", VEC3F, SID_WPOSI3_ID, IN_VSHADER | IS_ATTR | IS_TRANSFORM_WPOS);
         sid_attr = SID_WPOSI3;
-        uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
-        obj_component_add_comp(obj->comp_id, obj_comp_idx, wpos, attrib_size, attrib_offset, sid_attr);
+        const uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
+        attribsGroupDescr_add_comp(obj->attribs_id, wpos, attrib_size, attrib_offset, sid_attr);
         attrib_offset += attrib_size;
         obj->attrib_count++;
     }
     {
         shader_create_input(sid_idx, "SCALE2", VEC2F, SID_SCALE2_ID, IN_VSHADER | IS_ATTR | IS_TRANSFORM_SCALE);
         sid_attr = SID_SCALE2;
-        uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
-        obj_component_add_comp(obj->comp_id, obj_comp_idx, scale, attrib_size, attrib_offset, sid_attr);
+        const uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
+        attribsGroupDescr_add_comp(obj->attribs_id, scale, attrib_size, attrib_offset, sid_attr);
         attrib_offset += attrib_size;
         obj->attrib_count++;
     }
     {
         shader_create_input(sid_idx, "ROT2", VEC2F, SID_ROTAT2_ID, IN_VSHADER | IS_ATTR | IS_TRANSFORM_ROT);
         sid_attr = SID_ROTAT2;
-        uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
-        obj_component_add_comp(obj->comp_id, obj_comp_idx, rot, attrib_size, attrib_offset, sid_attr);
+        const uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
+        attribsGroupDescr_add_comp(obj->attribs_id, rot, attrib_size, attrib_offset, sid_attr);
         attrib_offset += attrib_size;
         obj->attrib_count++;
     }
     {
         shader_create_input(sid_idx, "COL4", VEC4F, SID_COLOR4_ID, IN_VSHADER | IS_ATTR | IS_OUT);
         sid_attr = SID_COLOR4;
-        uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
-        obj_component_add_comp(obj->comp_id, obj_comp_idx, color, attrib_size, attrib_offset, sid_attr);
+        const uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
+        attribsGroupDescr_add_comp(obj->attribs_id, color, attrib_size, attrib_offset, sid_attr);
         attrib_offset += attrib_size;
         obj->attrib_count++;
     }
 
 
-    obj_component_set_stride(obj->comp_id, attrib_offset);
+    attribsGroupDescr_set_stride(obj->attribs_id, attrib_offset);
 
     shader_create_input(sid_idx, "PROJMAT4X4", MAT4X4F, SID_PROJMAT4X4_ID, IN_VSHADER | IS_UNIF | IS_TRANSFORM_PROJ);
 
     print("%s- Create object: octahedron -%s\n"
-          "   id:%u\n   comp_id:%u\n   num_faces:%2u\n   verts_per_face:%3u \n   attrib_count:%u\n",
-          BLUE, CLEAR, obj->id, obj->comp_id, obj->num_faces, obj->verts_per_face, obj->attrib_count);
+          "   id:%u\n   attribs_id:%u\n   num_faces:%2u\n   verts_per_face:%3u \n   attrib_count:%u\n",
+          BLUE, CLEAR, obj->id, obj->attribs_id, obj->num_faces, obj->verts_per_face, obj->attrib_count);
 
     engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_GENERIC, "\n");
     return obj;
@@ -767,36 +747,32 @@ object_create_dodecahedron(struct gfx_sid sid, float wpos[3], float scale[2], fl
     enum MESH_TYPE mesh_type = MESH_DODECAHEDRON;
 
     sididx_t sid_idx = gfx_sid_find_match(sid);
-    compid_t comp_group_id = INT_NULL;
+    attrid_t attribs_group_id = INT_NULL;
 
     if(sid_idx == INT_NULL) {
 
         sid_idx = gfx_create_sid(sid);
-        comp_group_id = obj_component_create_new_components_group(sid_idx);
+        attribs_group_id = attribsGroupDescr_create_new_components_group(sid_idx);
     } else {
 
-        comp_group_id = obj_component_group_find_match(sid_idx);
+        attribs_group_id = attribsGroupDescr_group_find_match(sid_idx);
     }
-    assert(comp_group_id >= 0);
+    assert(attribs_group_id >= 0);
 
     struct object* obj  = object_create(sid_idx, mesh_type);
-    // obj->num_faces      = FACES_PER_DODECAHEDRON;
-    // obj->verts_per_face = VERTICES_PER_PENTAGON;
     obj->num_faces      = 1;
     obj->verts_per_face = mesh_get_mesh_vertex_count_from_type(mesh_type);
     obj->index_count = mesh_get_mesh_indices_count_from_type(mesh_type);
-    obj->comp_id = comp_group_id;
-
+    obj->attribs_id = attribs_group_id;
 
     object_set_vertex_count(obj->id, obj->num_faces * obj->verts_per_face);
-    const uint32 obj_comp_idx = obj_component_create_new_obj(obj->comp_id, obj->id, obj->num_faces * obj->verts_per_face, mesh_type);
+    attribsGroupDescr_create_new_obj(obj->attribs_id, obj->id, obj->num_faces * obj->verts_per_face);
 
     const build_t build_idx = shader_create_input(sid_idx, "VPOS3", VEC3F, SID_VPOSI3_ID, IN_VSHADER | IS_ATTR | IS_TRANSFORM_VPOS);;
-    obj_component_set_build_idx(comp_group_id, build_idx);
+    attribsGroupDescr_set_build_idx(attribs_group_id, build_idx);
 
-    // engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_GENERIC, "--- CREATE OBJ: DODECAHEDRON, id: %u\n", obj->id);
-    engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_GENERIC, "--- CREATE OBJ: %s, id:%3u  comp_id:%u  num_faces:%2u  verts_per_face:%3u   attrib_count:%u | ",
-            mesh_get_name_from_type(mesh_type), obj->id, obj->comp_id, obj->num_faces, obj->verts_per_face, obj->attrib_count);
+    engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_GENERIC, "--- CREATE OBJ: %s, id:%3u  attribs_id:%u  num_faces:%2u  verts_per_face:%3u   attrib_count:%u | ",
+            mesh_get_name_from_type(mesh_type), obj->id, obj->attribs_id, obj->num_faces, obj->verts_per_face, obj->attrib_count);
 
 
     /* Create the necessary attribute descriptor and store the attribute data
@@ -806,44 +782,44 @@ object_create_dodecahedron(struct gfx_sid sid, float wpos[3], float scale[2], fl
     {
         shader_create_input(sid_idx, "WPOS3", VEC3F, SID_WPOSI3_ID, IN_VSHADER | IS_ATTR | IS_TRANSFORM_WPOS);
         sid_attr = SID_WPOSI3;
-        uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
-        obj_component_add_comp(obj->comp_id, obj_comp_idx, wpos, attrib_size, attrib_offset, sid_attr);
+        const uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
+        attribsGroupDescr_add_comp(obj->attribs_id, wpos, attrib_size, attrib_offset, sid_attr);
         attrib_offset += attrib_size;
         obj->attrib_count++;
     }
     {
         shader_create_input(sid_idx, "SCALE2", VEC2F, SID_SCALE2_ID, IN_VSHADER | IS_ATTR | IS_TRANSFORM_SCALE);
         sid_attr = SID_SCALE2;
-        uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
-        obj_component_add_comp(obj->comp_id, obj_comp_idx, scale, attrib_size, attrib_offset, sid_attr);
+        const uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
+        attribsGroupDescr_add_comp(obj->attribs_id, scale, attrib_size, attrib_offset, sid_attr);
         attrib_offset += attrib_size;
         obj->attrib_count++;
     }
     {
         shader_create_input(sid_idx, "ROT2", VEC2F, SID_ROTAT2_ID, IN_VSHADER | IS_ATTR | IS_TRANSFORM_ROT);
         sid_attr = SID_ROTAT2;
-        uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
-        obj_component_add_comp(obj->comp_id, obj_comp_idx, rot, attrib_size, attrib_offset, sid_attr);
+        const uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
+        attribsGroupDescr_add_comp(obj->attribs_id, rot, attrib_size, attrib_offset, sid_attr);
         attrib_offset += attrib_size;
         obj->attrib_count++;
     }
     {
         shader_create_input(sid_idx, "COL4", VEC4F, SID_COLOR4_ID, IN_VSHADER | IS_ATTR | IS_OUT);
         sid_attr = SID_COLOR4;
-        uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
-        obj_component_add_comp(obj->comp_id, obj_comp_idx, color, attrib_size, attrib_offset, sid_attr);
+        const uint32 attrib_size = shaderinfo_flag_to_numelems(sid_attr);
+        attribsGroupDescr_add_comp(obj->attribs_id, color, attrib_size, attrib_offset, sid_attr);
         attrib_offset += attrib_size;
         obj->attrib_count++;
     }
 
 
-    obj_component_set_stride(obj->comp_id, attrib_offset);
+    attribsGroupDescr_set_stride(obj->attribs_id, attrib_offset);
 
     shader_create_input(sid_idx, "PROJMAT4X4", MAT4X4F, SID_PROJMAT4X4_ID, IN_VSHADER | IS_UNIF | IS_TRANSFORM_PROJ);
 
     print("%s- Create object: dodecahedron -%s\n"
-          "   id:%u\n   comp_id:%u\n   num_faces:%2u\n   verts_per_face:%3u \n   attrib_count:%u\n",
-          BLUE, CLEAR, obj->id, obj->comp_id, obj->num_faces, obj->verts_per_face, obj->attrib_count);
+          "   id:%u\n   attribs_id:%u\n   num_faces:%2u\n   verts_per_face:%3u \n   attrib_count:%u\n",
+          BLUE, CLEAR, obj->id, obj->attribs_id, obj->num_faces, obj->verts_per_face, obj->attrib_count);
 
     engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_GENERIC, "\n");
     return obj;

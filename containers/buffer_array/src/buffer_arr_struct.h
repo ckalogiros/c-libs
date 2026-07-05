@@ -1,23 +1,26 @@
 /*
  * Created by ckalo on 1/9/26.
  */
-#ifndef SPARSE_ARR_SPARSE_ARR_STRUCT_H
-#define SPARSE_ARR_SPARSE_ARR_STRUCT_H
+#ifndef BUFFER_ARR_BUFFER_ARR_STRUCT_H
+#define BUFFER_ARR_BUFFER_ARR_STRUCT_H
 
 #include "my_types.h"
 
+typedef uint16 bufidx_t;
 
-enum SPARSE_ARR_ERROR_CODE {
-    NO_SPARSE_ARR_TABLE_INIT                = BIT_MASK_FROM_UINT(1),
-    SPARSE_ARR_INDEX_GREATER_THAN_TAIL      = BIT_MASK_FROM_UINT(2),
-    SPARSE_ARR_INDEX_GREATER_THAN_CAPACITY  = BIT_MASK_FROM_UINT(3),
-    SPARSE_ARR_TAIL_GREATER_THAN_CAPACITY   = BIT_MASK_FROM_UINT(4),
-    SPARSE_ARR_CAPACITY_LESS_THAN_1         = BIT_MASK_FROM_UINT(5),
-    SPARSE_ARR_TABLE_ALREADY_INIT           = BIT_MASK_FROM_UINT(6),
-    SPARSE_ARR_TABLE_INIT_FROM_CREATE_FUN   = BIT_MASK_FROM_UINT(7),
+
+
+enum BUFFER_ARR_ERROR_CODE {
+    NO_BUFFER_ARR_TABLE_INIT                = BIT_MASK_FROM_UINT(1),
+    BUFFER_ARR_INDEX_GREATER_THAN_TAIL      = BIT_MASK_FROM_UINT(2),
+    BUFFER_ARR_INDEX_GREATER_THAN_CAPACITY  = BIT_MASK_FROM_UINT(3),
+    BUFFER_ARR_TAIL_GREATER_THAN_CAPACITY   = BIT_MASK_FROM_UINT(4),
+    BUFFER_ARR_CAPACITY_LESS_THAN_1         = BIT_MASK_FROM_UINT(5),
+    BUFFER_ARR_TABLE_ALREADY_INIT           = BIT_MASK_FROM_UINT(6),
+    BUFFER_ARR_TABLE_INIT_FROM_CREATE_FUN   = BIT_MASK_FROM_UINT(7),
 };
 
-typedef struct sparse_arr_t {
+typedef struct buffer_array {
     void*    data;               // buffer start (allocations of type allocations_t)
     uint64*  free_list;          // pointer to the start of the free elems list
     uint16   free_list_capacity; // total free list uint64's (Ex. buf size=128 => flist=2 uin64)
@@ -26,12 +29,13 @@ typedef struct sparse_arr_t {
     int16    tail;               // last element's index
     bufidx_t id;                 // self reference index
     typesize_t typesize;         // last element's index
-} sparse_arr_t;
+} buffer_t;
+
 
 /*
  * Can do this instead and have buffer and data in contiguous memory
  *
- * typedef struct sparse_arr_t {
+ * typedef struct buffer_arr_t {
  *    uint16 free_list_capacity;
  *    bufidx_t capacity;
  *    bufidx_t count;
@@ -40,10 +44,10 @@ typedef struct sparse_arr_t {
  *    int16 typesize;
  *    uint8 flist[size/8]; // with min size=8
  *    void data[1];
- * } sparse_arr_t;
+ * } buffer_arr_t;
  */
 
-#endif //SPARSE_ARR_SPARSE_ARR_STRUCT_H
+#endif //BUFFER_ARR_BUFFER_ARR_STRUCT_H
 
 
 /*

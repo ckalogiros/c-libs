@@ -53,7 +53,7 @@ typedef uint16 typesize_t;
 #define GET_MAX(a, b) (((a) > (b)) ? (a) : (b))
 #define GET_MIN(a, b) (((a) < (b)) ? (a) : (b))
 
-typedef uint16 bufidx_t; // todo remove from here
+// typedef uint16 bufidx_t; // todo remove from here
 
 
 

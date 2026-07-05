@@ -25,7 +25,7 @@ struct render_queue {
 
 struct command_render_queue_params {
     uint32 rqidx;
-    uint32 comp_idx;
+    uint32 attribs_idx;
     uint32 vertex_count;
     uint32 index_count;
 };

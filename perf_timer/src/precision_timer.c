@@ -6,7 +6,7 @@
 
 #include <assert.h>
 #include <stdlib.h>
-#include "sparse_arr_impl.h"
+#include "buffer_arr_impl.h"
 #include "precision_timer_logger.h"
 #include "logger.h"
 #include "sys_utils.h"
@@ -58,7 +58,7 @@ timer_table_flist_add(void* ptr)
     timer_table_allocations_count++;
 }
 
-sparse_arr_t*
+buffer_t*
 timer_table_flist_get_free(void)
 {
     if(!timer_table) {
@@ -73,7 +73,7 @@ timer_table_flist_get_free(void)
     timer_table_free_list_head = timer_table_free_list_head->next;
     timer_table_count++;
     timer_table_allocations_count--;
-    return (sparse_arr_t*) list;
+    return (buffer_t*) list;
 }
 
 void

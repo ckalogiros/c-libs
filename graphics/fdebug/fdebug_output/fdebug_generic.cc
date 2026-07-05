@@ -1,0 +1,9 @@
+- DEBUG FPRINT: INITIALIZED -
+-- CREATE NEW COMPONENTS BUFFER, idx: 0
+--- CREATE OBJ: TRIANGLE    , id:  0  attribs_id:0  num_faces: 1  verts_per_face:  3   attrib_count:0 |  { WPOSI3 }:[-4.0, 4.0,-14.0,] { SCALE2 }:[ 1.0, 1.0,] { ROTAT2 }:[ 1.0, 0.0,] { COLOR4 }:[ 0.2, 0.5, 0.8, 1.0,]
+--- CREATE OBJ: RECTANGLE   , id:  1  attribs_id:0  num_faces: 1  verts_per_face:  4   attrib_count:0 |  { WPOSI3 }:[-2.0, 4.0,-14.0,] { SCALE2 }:[ 1.0, 1.0,] { ROTAT2 }:[ 1.0, 0.0,] { COLOR4 }:[ 0.2, 0.5, 0.8, 1.0,]
+--- CREATE OBJ: PENTAGON    , id:  2  attribs_id:0  num_faces: 1  verts_per_face:  5   attrib_count:0 |  { WPOSI3 }:[-4.0, 2.0,-14.0,] { SCALE2 }:[ 1.0, 1.0,] { ROTAT2 }:[ 1.0, 0.0,] { COLOR4 }:[ 0.2, 0.5, 0.8, 1.0,]
+--- CREATE OBJ: HEXAGON    , id:  3  attribs_id:0  num_faces: 1  verts_per_face:  6   attrib_count:0 |  { WPOSI3 }:[-4.0, 0.0,-13.9,] { SCALE2 }:[ 1.0, 1.0,] { ROTAT2 }:[ 1.0, 0.0,] { COLOR4 }:[ 0.2, 0.5, 0.8, 1.0,]
+--- CREATE OBJ: OCTAGON     , id:  4  attribs_id:0  num_faces: 1  verts_per_face:  8   attrib_count:0 |  { WPOSI3 }:[-4.0,-2.0,-13.9,] { SCALE2 }:[ 1.0, 1.0,] { ROTAT2 }:[ 1.0, 0.0,] { COLOR4 }:[ 0.2, 0.5, 0.8, 1.0,]
+-- CREATE NEW COMPONENTS BUFFER, idx: 1
+--- CREATE OBJ: CUBE        , id:  5  attribs_id:1  num_faces: 1  verts_per_face:  8   attrib_count:0 |  { WPOSI3 }:[ 2.0, 4.0,-13.9,] { SCALE2 }:[ 1.0, 1.0,] { ROTAT2 }:[ 1.0, 0.0,] { COLOR4 }:[ 0.2, 0.5, 0.8, 1.0,]

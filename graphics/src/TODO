@@ -34,7 +34,7 @@ It needs: set_for_push and then add/copy a new descriptor object.
 ### implement bits.c with all bit operations functions
 
 ### put the "per_attr_desc", of the memory allocated for the attribs description of a group component.
-    directly at the meemory of the float* attribs_data_inst_id
+    directly at the memory of the float* attribs_data_inst_id
     attributes data buffer: arena allocator
     [[per_attr_desc][float*attribs_data]]
 
@@ -46,4 +46,56 @@ It needs: set_for_push and then add/copy a new descriptor object.
 ### TODO: implement the n-polygon in a unit circle math formula, to create any n-gon shape
 
 
-automate render indexed geometry
+### Capitalize the structs first character
+
+
+### INSTANCED GEOMETRY
+
+    vertex buffer a: 1 set  of "per vertex attributes"
+    vertex buffer b: n sets of "per object attributes" (INSTANCES BUFFER)
+    OR
+    vertex buffer a: 1 set  of "per vertex attributes"
+    and a uniform buffer with all instaced attributes data  "uniform vec2 wpos[100];" (a limit on the amount of uniform data count)
+
+    where these 2 buffers belong?
+    who controls them?
+
+                                 { VPOSI2 }
+                                 { WPOSI3 } { SCALE2 } { ROTAT2 } { COLOR4 }
+
+        // store instance data in an array buffer
+        // --------------------------------------
+        unsigned int instanceVBO;
+        glGenBuffers(1, &instanceVBO);
+        glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec2) * 100, &translations[0], GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+        // set up vertex data (and buffer(s)) and configure vertex attributes
+        // ------------------------------------------------------------------
+        float quadVertices[] =
+            // positions     // colors
+            -0.05f,  0.05f,  1.0f, 0.0f, 0.0f,
+
+        unsigned int quadVAO, quadVBO;
+        glGenVertexArrays(1, &quadVAO);
+        glGenBuffers(1, &quadVBO);
+        glBindVertexArray(quadVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(2 * sizeof(float)));
+
+        // also set instance data
+        // ------------------------------------------------------------------
+        glEnableVertexAttribArray(2);
+        glBindBuffer(GL_ARRAY_BUFFER, instanceVBO); // this attribute comes from a different vertex buffer
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glVertexAttribDivisor(2, 1); // tell OpenGL this is an instanced vertex attribute
+
+    glDrawArraysInstanced(num_instances)
+    glDrawElementsInstanced(num_instances)
+

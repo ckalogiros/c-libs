@@ -12,6 +12,8 @@
 #define SCREEN_RES_X 600
 #define SCREEN_RES_Y 600
 
+#define MULTISAMPLE_RES 4
+
 
 GLuint renderer_create_vb(void* vertices, const uint32 size);
 void renderer_bind_vb(GLuint vbo);

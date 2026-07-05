@@ -12,7 +12,7 @@
 #include "opengl.h"
 #include "opengl_debug.h"
 #include "precision_timer.h"
-#include "object_components.h"
+#include "attributes.h"
 #include "window.h"
 
 struct render_queue render_queue[8];
@@ -28,11 +28,11 @@ render_queue_get_count() { return render_queue_count; }
 void
 render_queue_add_draw_count(struct command_render_queue_params* params)
 {
-    struct comp_per_group_descriptor* comp_desc =  obj_component_get_comp_desc(params->comp_idx);
-    struct render_queue* rq = &render_queue[comp_desc->rqidx];
+    struct attributes_group* attribs_group = attribsGroupDescr_get_group(params->attribs_idx);
+    struct render_queue* rq = &render_queue[attribs_group->rqidx];
     // rq->draw_count += params->vertex_count;
     rq->draw_count += params->index_count;
-    print("%s- Renderqueue draw count-\n  rqidx:%u, add:%u, total:%u%s\n", br2, comp_desc->rqidx, params->vertex_count, rq->draw_count, CLEAR);
+    print("%s- Renderqueue draw count-\n  rqidx:%u, add:%u, total:%u%s\n", br2, attribs_group->rqidx, params->vertex_count, rq->draw_count, CLEAR);
 }
 
 uint32

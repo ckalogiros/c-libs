@@ -2,11 +2,11 @@
  * Created by ckalo on 1/11/26.
  */
 
-#include "sparse_arr_internals.h"
+#include "buffer_arr_internals.h"
 #include "bits.h"
 #include <stdlib.h>
 #include <string.h>
-#include "sparse_arr_log.h"
+#include "buffer_arr_log.h"
 #include "logger.h"
 #include "sys_utils.h"
 #include "slab_allocator.h"
@@ -24,14 +24,14 @@ static struct fs_t* fs_buffer = NULL;
 static struct fs_t* fs_register_created_buffers = NULL;
 // todo: must be dynamicaly reallocated
 
-#define SPARSE_ARR_TABLE_MIN_CAPACITY 512
-#define SPARSE_ARR_ALIGNMENT 1024
+#define BUFFER_ARR_TABLE_MIN_CAPACITY 512
+#define BUFFER_ARR_ALIGNMENT 1024
 
 
 #define DEBUG_FPRINT_BUFFER 1
 #ifdef DEBUG_FPRINT_BUFFER
 /* append info on buffer creation */
-#define fs_register_sparse_arr_create(fs, buffer)\
+#define fs_register_buffer_arr_create(fs, buffer)\
 fs_append(fs,\
 "CREATE  : | "             \
 " id:    %3u | "         \
@@ -51,7 +51,7 @@ buffer->tail,     \
 )
 
 /* append formated data to the buffer's file */
-#define fs_sparse_arr_append(fs, fmt, ...)\
+#define fs_buffer_arr_append(fs, fmt, ...)\
 fs_append(fs, fmt, ##__VA_ARGS__)
 
 #else
@@ -62,24 +62,24 @@ fs_append(fs, fmt, ##__VA_ARGS__)
 
 
 /*******************************************************************************
- * sparse_arr_table: a buffer to store all applications buffer structures
+ * buffer_arr_table: a buffer to store all applications buffer structures
  ******************************************************************************/
-/* an array of pointers of type sparse_arr_t, that the [0] elem is the pointer to memory block start */
-sparse_arr_t* sparse_arr_table = NULL;
-uint32 sparse_arr_table_count = 0;
+/* an array of pointers of type buffer_arr_t, that the [0] elem is the pointer to memory block start */
+buffer_t* buffer_arr_table = NULL;
+uint32 buffer_arr_table_count = 0;
 uint32 ID = 0;
 uint16 allocator_instance_id = 0;
-uint16 sparse_arr_get_allocator_instance_id(){ return allocator_instance_id; }
+uint16 buffer_arr_get_allocator_instance_id(){ return allocator_instance_id; }
 
 
-uint32 sparse_arr_get_id(){ return ++ID; }
+uint32 buffer_arr_get_id(){ return ++ID; }
 
 
 
 void
-TEMP_PRINT_SPARSE_ARR_TABLE_COUNT()
+TEMP_PRINT_BUFFER_ARR_TABLE_COUNT()
 {
-    print("TEMP_PRINT_SPARSE_ARR_TABLE_COUNT:%u\n", sparse_arr_table_count);
+    print("TEMP_PRINT_BUFFER_ARR_TABLE_COUNT:%u\n", buffer_arr_table_count);
 }
 
 /*******************************************************************************
@@ -90,57 +90,57 @@ TEMP_PRINT_SPARSE_ARR_TABLE_COUNT()
  *             Ex. for capacity<=64, 1x uint64 as free list,
  *                 for capacity>64 && <=128, 2x uint64 as free list, ...
  ******************************************************************************/
-struct sparse_arr_table_free_list {
-    struct sparse_arr_table_free_list* next;
+struct buffer_arr_table_free_list {
+    struct buffer_arr_table_free_list* next;
 };
 
-static struct sparse_arr_table_free_list* sparse_arr_table_free_list_head = NULL;
+static struct buffer_arr_table_free_list* buffer_arr_table_free_list_head = NULL;
 
-static uint32 sparse_arr_table_allocations_count = 0;
+static uint32 buffer_arr_table_allocations_count = 0;
 void
 btable_flist_add(void* ptr)
 {
-    struct sparse_arr_table_free_list* list = ptr;
-    list->next = sparse_arr_table_free_list_head;
-    sparse_arr_table_free_list_head = list;
-    sparse_arr_table_allocations_count++;
+    struct buffer_arr_table_free_list* list = ptr;
+    list->next = buffer_arr_table_free_list_head;
+    buffer_arr_table_free_list_head = list;
+    buffer_arr_table_allocations_count++;
 }
 
-sparse_arr_t*
+buffer_t*
 btable_flist_get_free(void)
 {
-    if(!sparse_arr_table) {
-        sparse_arr_print_error(NO_SPARSE_ARR_TABLE_INIT);
+    if(!buffer_arr_table) {
+        buffer_arr_print_error(NO_BUFFER_ARR_TABLE_INIT);
     }
-    struct sparse_arr_table_free_list* list = sparse_arr_table_free_list_head;
-    sparse_arr_table_free_list_head = sparse_arr_table_free_list_head->next;
-    sparse_arr_table_count++;
-    sparse_arr_table_allocations_count--;
-    return (sparse_arr_t*) list;
+    struct buffer_arr_table_free_list* list = buffer_arr_table_free_list_head;
+    buffer_arr_table_free_list_head = buffer_arr_table_free_list_head->next;
+    buffer_arr_table_count++;
+    buffer_arr_table_allocations_count--;
+    return (buffer_t*) list;
 }
 
 
 void
-sparse_arr_init_table(const pageid_t num_pages)
+buffer_arr_init_table(const pageid_t num_pages)
 {
-    if(sparse_arr_table) {
-        sparse_arr_print_error(SPARSE_ARR_TABLE_ALREADY_INIT);
+    if(buffer_arr_table) {
+        buffer_arr_print_error(BUFFER_ARR_TABLE_ALREADY_INIT);
         return;
     }
 
-    allocator_instance_id = slab_allocator_create_new_instance(num_pages, "sparse_arr_init_table()");
+    allocator_instance_id = slab_allocator_create_new_instance(num_pages, "buffer_arr_init_table()");
 
-    const uint32 btable_typesize = sizeof(sparse_arr_t);
-    assert(sizeof(sparse_arr_t) > sizeof(void*));
+    const uint32 btable_typesize = sizeof(buffer_t);
+    assert(sizeof(buffer_t) > sizeof(void*));
 
     /* create memory for buffer table and buffer's free list */
     void* address =
-            (sparse_arr_t*) aligned_alloc(SPARSE_ARR_ALIGNMENT, SPARSE_ARR_TABLE_MIN_CAPACITY * btable_typesize);
+            (buffer_t*) aligned_alloc(BUFFER_ARR_ALIGNMENT, BUFFER_ARR_TABLE_MIN_CAPACITY * btable_typesize);
 
-    sparse_arr_table = address;
+    buffer_arr_table = address;
 
-    sparse_arr_t* btable_ptr = sparse_arr_table;
-    while((uint64) btable_ptr < (uint64) (sparse_arr_table + SPARSE_ARR_TABLE_MIN_CAPACITY-1)) {
+    buffer_t* btable_ptr = buffer_arr_table;
+    while((uint64) btable_ptr < (uint64) (buffer_arr_table + BUFFER_ARR_TABLE_MIN_CAPACITY-1)) {
         btable_flist_add(btable_ptr);
         btable_ptr++;
     }
@@ -152,11 +152,11 @@ sparse_arr_init_table(const pageid_t num_pages)
 }
 
 void
-sparse_arr_destroy_table(void)
+buffer_arr_destroy_table(void)
 {
-    if(sparse_arr_table) {
-        print("FREEING sparse_arr_table: %x ... ", ry, sparse_arr_table, CLEAR);
-        free(sparse_arr_table);
+    if(buffer_arr_table) {
+        print("FREEING buffer_arr_table: %x ... ", ry, buffer_arr_table, CLEAR);
+        free(buffer_arr_table);
         print("OK\n\n", GREEN, CLEAR);
     }
 }
@@ -165,16 +165,16 @@ sparse_arr_destroy_table(void)
 /***************************************************************************************************
  * buffer constructors-destructors
  **************************************************************************************************/
-sparse_arr_t*
-sparse_arr_constructor_uint32(const bufidx_t capacity)
+buffer_t*
+buffer_arr_constructor_uint32(const bufidx_t capacity)
 {
-    if(!sparse_arr_table) {
-        sparse_arr_print_error(NO_SPARSE_ARR_TABLE_INIT);
-        my_exit("sparse_arr_constructor_uint32", __FILE__, __LINE__);
+    if(!buffer_arr_table) {
+        buffer_arr_print_error(NO_BUFFER_ARR_TABLE_INIT);
+        my_exit("buffer_arr_constructor_uint32", __FILE__, __LINE__);
     }
     if(capacity <= 0) {
-        sparse_arr_print_error(SPARSE_ARR_CAPACITY_LESS_THAN_1);
-        my_exit("sparse_arr_constructor_uint32", __FILE__, __LINE__);
+        buffer_arr_print_error(BUFFER_ARR_CAPACITY_LESS_THAN_1);
+        my_exit("buffer_arr_constructor_uint32", __FILE__, __LINE__);
     }
 
 
@@ -183,86 +183,86 @@ sparse_arr_constructor_uint32(const bufidx_t capacity)
 
     /* alloc storage for bufer data */
     const void* const data_ptr =
-        slab_allocator_alloc(allocator_instance_id, capacity, sizeof(uint32), "sparse_arr_constructor_uint32()");
+        slab_allocator_alloc(allocator_instance_id, capacity, sizeof(uint32), "buffer_arr_constructor_uint32()");
     /* alloc storage for buffer free-list data (a uint64 for each 64 buffer elements) */
-    uint64* const sparse_arr_flist_ptr =
-        slab_allocator_alloc(allocator_instance_id, free_list_uint64_count, sizeof(uint64), "sparse_arr_constructor_uint32()-free list");
+    uint64* const buffer_arr_flist_ptr =
+        slab_allocator_alloc(allocator_instance_id, free_list_uint64_count, sizeof(uint64), "buffer_arr_constructor_uint32()-free list");
 
     // file_sys_push(pname, sizeof(char*), TYPE_POINTER);
 
-    sparse_arr_t* buffer = btable_flist_get_free();
-    buffer->free_list = sparse_arr_flist_ptr;
+    buffer_t* buffer = btable_flist_get_free();
+    buffer->free_list = buffer_arr_flist_ptr;
     buffer->free_list_capacity = free_list_uint64_count;
     buffer->data = (uint32*) data_ptr;
     buffer->capacity = capacity;
     buffer->count = 0;
     buffer->tail = INT_NULL;
-    buffer->id = sparse_arr_get_id();
+    buffer->id = buffer_arr_get_id();
     buffer->typesize = sizeof(uint32);
 
 
     /* init buffer data */
-    sparse_arr_memset(buffer, 0);
+    buffer_arr_memset(buffer, 0);
 
     /* init buffer free_list */
-    sparse_arr_flist_memset(buffer, 0xffffffffffffffff);
+    buffer_arr_flist_memset(buffer, 0xffffffffffffffff);
 
     return buffer;
 }
 
 
-sparse_arr_t*
-sparse_arr_constructor_gentype(const bufidx_t capacity, const typesize_t typesize)
+buffer_t*
+buffer_arr_constructor_gentype(const bufidx_t capacity, const typesize_t typesize)
 {
     // uint64 s = max_value_from_type(typesize);
     // assert(s < MAX_UINT32);
 
-    if(!sparse_arr_table) {
-        // sparse_arr_init_table();
-        sparse_arr_print_error(SPARSE_ARR_TABLE_INIT_FROM_CREATE_FUN);
-        // my_exit("sparse_arr_constructor_uint32", __FILE__, __LINE__);
+    if(!buffer_arr_table) {
+        // buffer_arr_init_table();
+        buffer_arr_print_error(BUFFER_ARR_TABLE_INIT_FROM_CREATE_FUN);
+        // my_exit("buffer_arr_constructor_uint32", __FILE__, __LINE__);
     }
     if(capacity <= 0) {
-        sparse_arr_print_error(SPARSE_ARR_CAPACITY_LESS_THAN_1);
-        my_exit("sparse_arr_constructor_uint32", __FILE__, __LINE__);
+        buffer_arr_print_error(BUFFER_ARR_CAPACITY_LESS_THAN_1);
+        my_exit("buffer_arr_constructor_uint32", __FILE__, __LINE__);
     }
 
     // how many uint64's do we need to cover all buffer elements. 16 uint64's for buffer capacity=1024
     const uint32 free_list_uint64_count = ((capacity - 1) / BITS64) + 1;
 
     /* allocate storage for bufer data */
-    const void* const data_ptr = slab_allocator_alloc(allocator_instance_id, capacity, typesize, "sparse_arr_constructor_gentype()");
+    const void* const data_ptr = slab_allocator_alloc(allocator_instance_id, capacity, typesize, "buffer_arr_constructor_gentype()");
 
     /* allocate storage for buffer free-list data (an uint64 for each 64 buffer elements) */
-    uint64* const sparse_arr_flist_ptr = slab_allocator_alloc(allocator_instance_id, free_list_uint64_count, sizeof(uint64), "sparse_arr_constructor_gentype()-free list");
+    uint64* const buffer_arr_flist_ptr = slab_allocator_alloc(allocator_instance_id, free_list_uint64_count, sizeof(uint64), "buffer_arr_constructor_gentype()-free list");
 
-    sparse_arr_t* buffer = btable_flist_get_free();
-    buffer->free_list = sparse_arr_flist_ptr;
+    buffer_t* buffer = btable_flist_get_free();
+    buffer->free_list = buffer_arr_flist_ptr;
     buffer->free_list_capacity = free_list_uint64_count;
     buffer->data = (void*) data_ptr;
     buffer->capacity = capacity;
     buffer->count = 0;
     buffer->tail = INT_NULL;
-    buffer->id = sparse_arr_get_id();
+    buffer->id = buffer_arr_get_id();
     buffer->typesize = typesize;
     // 0x00005555566287c0
     // 0x0000555556628840
     /* init buffer data */
-    sparse_arr_memset(buffer, 0xcd);
+    buffer_arr_memset(buffer, 0xcd);
 
     /* init buffer free_list */
-    sparse_arr_flist_memset(buffer, 0xffffffffffffffff);
+    buffer_arr_flist_memset(buffer, 0xffffffffffffffff);
 
 
     /* DEBUG-FPRINT */
-    fs_register_sparse_arr_create(fs_register_created_buffers, buffer);
+    fs_register_buffer_arr_create(fs_register_created_buffers, buffer);
 
 
     return buffer;
 }
 
 void
-sparse_arr_destructor(sparse_arr_t* buffer)
+buffer_arr_destructor(buffer_t* buffer)
 {
     void* const ptr = buffer;
 
@@ -304,12 +304,12 @@ sparse_arr_destructor(sparse_arr_t* buffer)
 
     /* free buffer from buffer table */
     btable_flist_add(ptr);
-    sparse_arr_table_count--;
+    buffer_arr_table_count--;
 
 }
 
 void
-sparse_arr_release(sparse_arr_t* buffer)
+buffer_arr_release(buffer_t* buffer)
 {
     void* const ptr = buffer;
 
@@ -340,7 +340,7 @@ sparse_arr_release(sparse_arr_t* buffer)
 
     /* free buffer from buffer table */
     btable_flist_add(ptr);
-    sparse_arr_table_count--; // TODO: move this to btable_flist_add BUT create an init btable function (so that counter is not decremened at init)
+    buffer_arr_table_count--; // TODO: move this to btable_flist_add BUT create an init btable function (so that counter is not decremened at init)
 
 }
 
@@ -349,7 +349,7 @@ sparse_arr_release(sparse_arr_t* buffer)
  * helpers
  */
 bufidx_t
-sparse_arr_find_next_free_elem(sparse_arr_t* const buffer)
+buffer_arr_find_next_free_elem(buffer_t* const buffer)
 {
     const uint64* free_list = buffer->free_list;
 
@@ -364,7 +364,7 @@ sparse_arr_find_next_free_elem(sparse_arr_t* const buffer)
     }
 
     // todo: if no last index is found ???
-    my_exit("sparse_arr_find_next_free_elem: NO SPARSE_ARR FREE INDEX FOUND", __FILE__, __LINE__);
+    my_exit("buffer_arr_find_next_free_elem: NO SPARSE_ARR FREE INDEX FOUND", __FILE__, __LINE__);
 }
 
 
@@ -372,7 +372,7 @@ sparse_arr_find_next_free_elem(sparse_arr_t* const buffer)
  * PRIVATE
  **************************************************************************************************/
 void
-sparse_arr_reallocate(sparse_arr_t* const buffer)
+buffer_arr_reallocate(buffer_t* const buffer)
 {
     /* 1. allocate new buffer
      * 2. copy data
@@ -385,7 +385,7 @@ sparse_arr_reallocate(sparse_arr_t* const buffer)
 
     // 1.
     void* const data_ptr =
-        (uint32*) slab_allocator_alloc(allocator_instance_id, new_capacity, buffer->typesize, "sparse_arr_reallocate()");
+        (uint32*) slab_allocator_alloc(allocator_instance_id, new_capacity, buffer->typesize, "buffer_arr_reallocate()");
 
     // 2.
     memcpy(data_ptr, buffer->data, buffer->capacity * buffer->typesize);
@@ -397,7 +397,7 @@ sparse_arr_reallocate(sparse_arr_t* const buffer)
     const uint32 flist_old_capacity = ((buffer->capacity - 1) / BITS64) + 1;
     const uint32 flist_capacity = ((new_capacity - 1) / BITS64) + 1;
     void* const free_list_ptr =
-        (uint64*) slab_allocator_alloc(allocator_instance_id, flist_capacity, sizeof(uint64), "sparse_arr_reallocate()");
+        (uint64*) slab_allocator_alloc(allocator_instance_id, flist_capacity, sizeof(uint64), "buffer_arr_reallocate()");
     memset(free_list_ptr, MAX_UINT32, flist_capacity * sizeof(uint64));
 
     // 5.
@@ -413,19 +413,19 @@ sparse_arr_reallocate(sparse_arr_t* const buffer)
 }
 
 void
-sparse_arr_memcopy(const sparse_arr_t* const dst, const sparse_arr_t* const src)
+buffer_arr_memcopy(const buffer_t* const dst, const buffer_t* const src)
 {
     memcpy(dst->data, src->data, src->capacity * sizeof(uint32));
 }
 
 void
-sparse_arr_memset(const sparse_arr_t* const buffer, const uint64 val)
+buffer_arr_memset(const buffer_t* const buffer, const uint64 val)
 {
     memset(buffer->data, val, buffer->capacity * buffer->typesize);
 }
 
 void
-sparse_arr_flist_memset(const sparse_arr_t* const buffer, const uint64 val)
+buffer_arr_flist_memset(const buffer_t* const buffer, const uint64 val)
 {
     for(uint32 i = 0; i < buffer->free_list_capacity; i++) {
         buffer->free_list[i] = val;
@@ -439,12 +439,12 @@ sparse_arr_flist_memset(const sparse_arr_t* const buffer, const uint64 val)
  * USELESS
  **************************************************************************************************/
 bufidx_t
-TEMP_sparse_arr_find_tail(const sparse_arr_t* const buffer)
+TEMP_buffer_arr_find_tail(const buffer_t* const buffer)
 {
     // uint32 accum_num_bits = 0;
     // uint64 free_list = *buffer->free_list;
     // // todo: free_list is a buffer of uint64
-    // const bufidx_t index = sparse_arr_find_tail_recur(free_list, &accum_num_bits);
+    // const bufidx_t index = buffer_arr_find_tail_recur(free_list, &accum_num_bits);
     // print("accum_num_bits = %d\n", accum_num_bits);
     //
     // if(index == INT_NULL) {
@@ -459,7 +459,7 @@ TEMP_sparse_arr_find_tail(const sparse_arr_t* const buffer)
 /* Find the last element in buffer
  * return: int32 index, -1 error  */
 int32
-sparse_arr_find_tail_recur(const uint64 val, uint32* accum_num_bits)
+buffer_arr_find_tail_recur(const uint64 val, uint32* accum_num_bits)
 {
     // todo: realloc and/or implement searching to the second uint64 free buffer
     // todo: reimplement with: __builtin_ctzll();
@@ -474,7 +474,7 @@ sparse_arr_find_tail_recur(const uint64 val, uint32* accum_num_bits)
         // on every recursion, cut type size by half, and accumulate all the previous devisions lower part
         *accum_num_bits += types_get_half_bitsize_from_type(low);
         const uint64 high = bits_mask_high(val);
-        index = sparse_arr_find_tail_recur(high, accum_num_bits);
+        index = buffer_arr_find_tail_recur(high, accum_num_bits);
     }
 
     return index;
@@ -494,9 +494,9 @@ find_first_free_helper(const uint32 val, const bufidx_t num_elems)
 
 
 /* DEBUG-FPRINT */
-void sparse_arr_print_to_file(sparse_arr_t* buffer)
+void buffer_arr_print_to_file(buffer_t* buffer)
 {
-    fs_sparse_arr_append(fs_buffer,
+    fs_buffer_arr_append(fs_buffer,
         " count:%u |"
         " tail:%d |"
         " capacity:%u |"
@@ -516,11 +516,11 @@ void sparse_arr_print_to_file(sparse_arr_t* buffer)
     for(uint32 i = 0; i < buffer->tail; i++) {
 
         if((i+elems_per_line) % elems_per_line == 0) {
-            fs_sparse_arr_append(fs_buffer, "\n");
+            fs_buffer_arr_append(fs_buffer, "\n");
         }
 
-        // fs_sparse_arr_append(fs_buffer, "[%3u]= %5u, ", i, data[i]);
-        fs_sparse_arr_append(fs_buffer, "%5u, ", data[i]);
+        // fs_buffer_arr_append(fs_buffer, "[%3u]= %5u, ", i, data[i]);
+        fs_buffer_arr_append(fs_buffer, "%5u, ", data[i]);
 
 
     }

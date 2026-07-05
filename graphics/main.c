@@ -17,9 +17,9 @@
 #include "run.h"
 #include "scene.h"
 #include "shader_builder.h"
-#include "sparse_arr_internals.h"
+#include "buffer_arr_internals.h"
 #include "string_format.h"
-#include "object_components.h"
+#include "attributes.h"
 
 
 #   define COLOR_RED     1.0f, 0.3f, 0.3f, 1.0f
@@ -123,7 +123,7 @@ struct cmd_gfx_params {
     // float* mesh_data;
     struct camera camera;
     sididx_t sid_idx;
-    uint16   comp_idx;
+    uint16   attribs_idx;
     build_t  build_idx;
     desc_t   desc_idx;
     uint8    vpos_num_elems;
@@ -150,7 +150,7 @@ void command_set_camera(struct cmd_gfx_params* params)
 }
 void command_create_vao(struct cmd_gfx_params* params)
 {
-    struct comp_per_group_descriptor* comp_desc =  obj_component_get_comp_desc(params->comp_idx);
+    struct attributes_group* attribs_group = attribsGroupDescr_get_group(params->attribs_idx);
     struct shader_descriptor* desc = shader_descriptor_get(params->desc_idx);
     const uint32 stride = desc->vshader_attribs_stride;
     struct opengl_program* prog = shader_program_get(params->desc_idx);
@@ -184,9 +184,9 @@ void command_create_vao(struct cmd_gfx_params* params)
         shader_attributes_enable(desc->vshader_attrib_locations_count, desc->vshader_attribs_stride, desc->last_loc_num_elems);
         opengl_debug_attributes_in(desc->vshader_attrib_locations_count);
         GL_CHECK();
-        comp_desc->rqidx = renderer_renderqueue_add(params->sid_idx, prog->program, desc->build_idx, va->vao, va->idx, vb->vbo, vb->idx);
+        attribs_group->rqidx = renderer_renderqueue_add(params->sid_idx, prog->program, desc->build_idx, va->vao, va->idx, vb->vbo, vb->idx);
     } else {
-        vbidx = gfx_vertex_buffer_find_match(comp_desc->sid_idx);
+        vbidx = gfx_vertex_buffer_find_match(attribs_group->sid_idx);
         vb = vertex_buffer_get_vbo(vbidx);
     }
     assert(vbidx != INT_NULL);
@@ -206,7 +206,7 @@ void command_create_vao(struct cmd_gfx_params* params)
 
     } else {
         assert(0>0);
-        // vbidx = gfx_vertex_buffer_find_match(comp_desc->sid_idx);
+        // vbidx = gfx_vertex_buffer_find_match(attribs_desc->sid_idx);
         // vb = vertex_buffer_get_vbo(vbidx);
     }
     assert(ibidx != INT_NULL);
@@ -215,7 +215,7 @@ void command_create_vao(struct cmd_gfx_params* params)
     /* SET COMMANDS */
     void* p = NULL;
     /// SET COMMAND: IB_SET_DATE
-    struct ib_cmd_params ind_args = { .ibidx = ib->idx, .vpos_num_elems = params->vpos_num_elems, .comp_idx = params->comp_idx};
+    struct ib_cmd_params ind_args = { .ibidx = ib->idx, .vpos_num_elems = params->vpos_num_elems, .attribs_idx = params->attribs_idx};
     p = &ind_args;
     cmd_add_command((void*)gfx_vertex_index_buffer_set_data, p, sizeof(struct ib_cmd_params));
 
@@ -224,7 +224,7 @@ void command_create_vao(struct cmd_gfx_params* params)
 
 
     /// SET COMMAND: VB_SET_DATE
-    struct vb_cmd_params vert_args = { .vbidx = vb->idx, .vpos_num_elems = params->vpos_num_elems, .comp_idx = params->comp_idx};
+    struct vb_cmd_params vert_args = { .vbidx = vb->idx, .vpos_num_elems = params->vpos_num_elems, .attribs_idx = params->attribs_idx};
     p = &vert_args;
     cmd_add_command((void*)gfx_vertex_buffer_set_data, p, sizeof(struct vb_cmd_params));
 
@@ -278,7 +278,7 @@ struct object* test_create_hexagon(const uint32 num_objects, float wpos[3], floa
 {
     struct object* obj;
     scale[0]=1; scale[1]=1;
-    wpos[2] += .01; /// render it to the front
+    wpos[2] += .01;
     for(uint32 i = 0; i < num_objects; i++) {
         obj = object_create_hexagon((struct gfx_sid){attr_flags, 0, 0, 0, 0}, wpos, scale, rot, color);
         wpos[0] += 3.f;
@@ -331,40 +331,40 @@ struct object* test_create_dodecahedron(const uint32 num_objects, float wpos[3],
 }
 
 
-void test_create_object(const uint16 comp_idx, const objid_t obj_id, const uint32 num_objects, enum MESH_TYPE mesh_type, struct camera* camera)
+void test_create_object(const uint16 attribs_idx, const objid_t obj_id, const uint32 num_objects, enum MESH_TYPE mesh_type, struct camera* camera)
 {
-    struct comp_per_group_descriptor* comp_desc =  obj_component_get_comp_desc(comp_idx);
+    struct attributes_group* attribs_group = attribsGroupDescr_get_group(attribs_idx);
 
     struct cmd_gfx_params gfx_params = {
-        .sid_idx = comp_desc->sid_idx,
-        .comp_idx = comp_idx,
-        .build_idx = comp_desc->build_idx,
+        .sid_idx = attribs_group->sid_idx,
+        .attribs_idx = attribs_idx,
+        .build_idx = attribs_group->build_idx,
         .desc_idx = INT_NULL,
         .vpos_num_elems = mesh_get_vpos_num_elems(mesh_type),
         .camera = *camera,
     };
 
-    if((comp_desc->commands_flag & CMD_CREATE_SHADER_PROGRAM)==0) {
+    if((attribs_group->commands_flag & CMD_CREATE_SHADER_PROGRAM)==0) {
         cmd_add_command((void*)command_create_shader_program, &gfx_params, sizeof(struct cmd_gfx_params));
-        comp_desc->commands_flag |= CMD_CREATE_SHADER_PROGRAM;
-        gfx_params.desc_idx =  obj_component_get_comp_desc(comp_idx)->build_idx;
+        attribs_group->commands_flag |= CMD_CREATE_SHADER_PROGRAM;
+        gfx_params.desc_idx =  attribsGroupDescr_get_group(attribs_idx)->build_idx;
     }
 
 
-    if((comp_desc->commands_flag & CMD_CREATE_VAO)==0) {
+    if((attribs_group->commands_flag & CMD_CREATE_VAO)==0) {
         cmd_add_command((void*)command_create_vao, &gfx_params, sizeof(struct cmd_gfx_params));
-        comp_desc->commands_flag |= CMD_CREATE_VAO;
+        attribs_group->commands_flag |= CMD_CREATE_VAO;
     }
 
 
-    if((comp_desc->commands_flag & CMD_SET_CAMERA_PROJ)==0) {
+    if((attribs_group->commands_flag & CMD_SET_CAMERA_PROJ)==0) {
         cmd_add_command((void*)command_set_camera, &gfx_params, sizeof(struct cmd_gfx_params));
-        comp_desc->commands_flag |= CMD_SET_CAMERA_PROJ;
+        attribs_group->commands_flag |= CMD_SET_CAMERA_PROJ;
     }
 
-    // struct command_render_queue_params rq_params = {.comp_idx = comp_idx, .vertex_count = num_objects*num_vertices};
+    // struct command_render_queue_params rq_params = {.attribs_idx = attribs_idx, .vertex_count = num_objects*num_vertices};
     struct command_render_queue_params rq_params = {
-        .comp_idx = comp_idx,
+        .attribs_idx = attribs_idx,
         .index_count  = num_objects * object_get_vertex_index_count(obj_id),
         .vertex_count = num_objects * object_get_vertex_count(obj_id)
     };
@@ -376,12 +376,12 @@ int
 main(void)
 {
     memman_init();
-    sparse_arr_init_table(128);
+    buffer_arr_init_table(128);
     shader_descriptor_init();
     shader_builder_init();
     timer_init_table();
     object_table_init();
-    obj_component_table_init();
+    attribsGroupDescr_table_init();
 
     /* DEBUG-FPRINT */
     engine_fdebug_init();
@@ -436,52 +436,54 @@ main(void)
     // glHint(GLenum target, GLenum mode = GL_FASTEST, GL_NICEST, and GL_DONT_CARE);
     // glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
 
+    glEnable(GL_MULTISAMPLE);
+
 
 
     gl_viewport(SCREEN_RES_X, SCREEN_RES_Y);
     opengl_debug_init();
 
-    const uint64 indexed_geometry = SID_INDEXED;
-    // const uint64 indexed_geometry = 0x0;
+    // const uint64 indexed_geometry = SID_INDEXED;
+    const uint64 indexed_geometry = 0x0;
 
     float wpos[3] = {-5, 3,-14}, rot[2] = {cos(0.0),sin(0.0)}, scale[2] = {4,4}, color[4] = {.2,.5,.9,1};
     uint16 num_objects = 1;
 
     wpos[0] = -4; wpos[1] = 4;
     struct object* tri = test_create_triangles(num_objects, wpos, scale, rot, color, indexed_geometry);
-    test_create_object(tri->comp_id, tri->id, num_objects, MESH_TRIANGLE, &camera);
+    test_create_object(tri->attribs_id, tri->id, num_objects, MESH_TRIANGLE, &camera);
     // object_destroy(tri2->id);
 
     wpos[0] = -2; wpos[1] = 4;
     struct object* quad = test_create_quads(num_objects, wpos, scale, rot, color, indexed_geometry);
-    test_create_object(quad->comp_id, quad->id, num_objects, MESH_TRIANGLE, &camera);
+    test_create_object(quad->attribs_id, quad->id, num_objects, MESH_TRIANGLE, &camera);
 
 
     wpos[0] = -4; wpos[1] = 2;
     struct object* penta = test_create_pentagon(num_objects, wpos, scale, rot, color, indexed_geometry);
-    test_create_object(penta->comp_id, penta->id, num_objects, MESH_PENTAGON, &camera);
+    test_create_object(penta->attribs_id, penta->id, num_objects, MESH_PENTAGON, &camera);
 
     wpos[0] = -4; wpos[1] = 0;
     struct object* hex = test_create_hexagon(num_objects, wpos, scale, rot, color, indexed_geometry);
-    test_create_object(hex->comp_id, hex->id, num_objects, MESH_HEXAGON, &camera);
+    test_create_object(hex->attribs_id, hex->id, num_objects, MESH_HEXAGON, &camera);
 
     wpos[0] = -4; wpos[1] = -2;
     struct object* octa = test_create_octagon(num_objects, wpos, scale, rot, color, indexed_geometry);
-    test_create_object(octa->comp_id, octa->id, num_objects, MESH_OCTAGON, &camera);
+    test_create_object(octa->attribs_id, octa->id, num_objects, MESH_OCTAGON, &camera);
 
     wpos[0] = 2; wpos[1] = 4;
     struct object* cube = test_create_cube(num_objects, wpos, scale, rot, color, indexed_geometry);
-    test_create_object(cube->comp_id, cube->id, num_objects, MESH_CUBE, &camera);
-    
+    test_create_object(cube->attribs_id, cube->id, num_objects, MESH_CUBE, &camera);
+    //
     // wpos[0] = 2; wpos[1] = 0;
     // // wpos[0] = 0; wpos[1] = 0; wpos[2]=-14;
     // struct object* octahedron = test_create_octahedron(num_objects, wpos, scale, rot, color, indexed_geometry);
-    // test_create_object(octahedron->comp_id, octahedron->id, num_objects, MESH_OCTAHEDRON, &camera);
+    // test_create_object(octahedron->attribs_id, octahedron->id, num_objects, MESH_OCTAHEDRON, &camera);
     //
-    wpos[0] = 2; wpos[1] = -3;
-    // mesh_build_dodecahedron();
-    struct object* dodecahedron = test_create_dodecahedron(num_objects, wpos, scale, rot, color, indexed_geometry);
-    test_create_object(dodecahedron->comp_id, dodecahedron->id, num_objects, MESH_DODECAHEDRON, &camera);
+    // wpos[0] = 2; wpos[1] = -3;
+    // // mesh_build_dodecahedron();
+    // struct object* dodecahedron = test_create_dodecahedron(num_objects, wpos, scale, rot, color, indexed_geometry);
+    // test_create_object(dodecahedron->attribs_id, dodecahedron->id, num_objects, MESH_DODECAHEDRON, &camera);
 
     /// DEBUG OPENGL
     {
@@ -497,7 +499,7 @@ main(void)
 
 
     temp_print_builds();
-    obj_component_group_print();
+    attribsGroupDescr_group_print();
 
     struct timer* loop_timer = timer_create_perf_timer();
 
@@ -513,7 +515,7 @@ main(void)
 
 
     /* CLOSE APP */
-    sparse_arr_destroy_table();
+    buffer_arr_destroy_table();
     shader_builder_destroy();
     memman_terminate();
 

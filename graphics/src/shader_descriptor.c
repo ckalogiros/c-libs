@@ -11,11 +11,11 @@
 #include "opengl_debug.h"
 #include "shader_builder.h"
 #include "slab_allocator_internals.h"
-#include "sparse_arr_internals.h"
+#include "buffer_arr_internals.h"
 
 
 
-sparse_arr_t* shader_descriptor_table = NULL;
+buffer_t* shader_descriptor_table = NULL;
 
 
 #define s_desc_get(desc_idx) (&((struct shader_descriptor*) shader_descriptor_table->data)[desc_idx])
@@ -23,13 +23,13 @@ sparse_arr_t* shader_descriptor_table = NULL;
 void
 shader_descriptor_init(void)
 {
-    shader_descriptor_table = sparse_arr_constructor_gentype(80, sizeof(struct shader_descriptor));
+    shader_descriptor_table = buffer_arr_constructor_gentype(80, sizeof(struct shader_descriptor));
 }
 
 build_t
 shader_descriptor_create(const sididx_t sid_idx)
 {
-    const desc_t desc_idx = sparse_arr_set_for_push(shader_descriptor_table);
+    const desc_t desc_idx = buffer_arr_set_for_push(shader_descriptor_table);
     struct shader_descriptor* desc = s_desc_get(desc_idx);
 
     desc->sid_idx = sid_idx;

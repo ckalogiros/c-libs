@@ -7,6 +7,6 @@
 
 
 typedef int32 objid_t;
-typedef int16 compid_t;
+typedef int16 attrid_t;
 
 #endif //GRAPHICS_TEST_ENGINE_H

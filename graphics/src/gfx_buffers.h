@@ -15,13 +15,13 @@
  **************************************************************************************************/
 struct vb_cmd_params {
     /// TODO: flags:{ FORCED_NEW | FORCED_USED | ANY }
-    uint16  comp_idx;
+    uint16  attribs_idx;
     vbidx_t vbidx;
     uint8   vpos_num_elems; // TODO: pass SID_VPOS_ID instead which is smaller value
 };
 
 struct ib_cmd_params {
-    uint16  comp_idx;
+    uint16  attribs_idx;
     ibidx_t ibidx;
     uint8   vpos_num_elems; // TODO: pass SID_VPOS_ID instead which is smaller value
 };

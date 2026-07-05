@@ -2,9 +2,9 @@
  * Created by ckalo on 1/6/26.
  */
 
-#include "sparse_arr_log.h"
+#include "buffer_arr_log.h"
 #include "bits.h"
-#include "sparse_arr_internals.h"
+#include "buffer_arr_internals.h"
 #include "logger.h"
 #include "sys_utils.h"
 
@@ -12,11 +12,11 @@
 //#undef DEBUG_PRINT_BUFFER // undef to remove print info
 
 void
-sparse_arr_print_uint32(sparse_arr_print_params params)
+buffer_arr_print_uint32(buffer_arr_print_params params)
 {
 #ifdef DEBUG_PRINT_BUFFER
 
-    sparse_arr_t* const buffer = params.buffer;
+    buffer_t* const buffer = params.buffer;
     const uint32 print_num_elems = params.print_num_elems;
 
     print("-- %sbuffer%s --\n", ry, CLEAR);
@@ -57,7 +57,7 @@ sparse_arr_print_uint32(sparse_arr_print_params params)
 }
 
 void
-sparse_arr_print_free_list(const sparse_arr_t* const buffer)
+buffer_arr_print_free_list(const buffer_t* const buffer)
 {
     uint64* free_list = buffer->free_list;
     print(" -PRINT free list bitmap\n");
@@ -67,23 +67,23 @@ sparse_arr_print_free_list(const sparse_arr_t* const buffer)
 }
 
 void
-sparse_arr_print_char(const sparse_arr_t* const buffer) {}
+buffer_arr_print_char(const buffer_t* const buffer) {}
 
 
 // ERROR handling
 void
-sparse_arr_print_error(const enum SPARSE_ARR_ERROR_CODE code)
+buffer_arr_print_error(const enum BUFFER_ARR_ERROR_CODE code)
 {
     switch(code) {
-        case NO_SPARSE_ARR_TABLE_INIT: {
+        case NO_BUFFER_ARR_TABLE_INIT: {
             print("%sERROR:\n"
                   "Buffer table is uninitialized\n"
-                  "Call sparse_arr_init_table()%s\n",
+                  "Call buffer_arr_init_table()%s\n",
                   RED, CLEAR
             );
             my_exit("", __FILE__, __LINE__);
         }
-        case SPARSE_ARR_INDEX_GREATER_THAN_TAIL: {
+        case BUFFER_ARR_INDEX_GREATER_THAN_TAIL: {
             print("%sERROR:\n"
                   "trying to make use of index\n"
                   "that is greater than the buffer tail%s\n",
@@ -91,7 +91,7 @@ sparse_arr_print_error(const enum SPARSE_ARR_ERROR_CODE code)
             );
             break;
         }
-        case SPARSE_ARR_INDEX_GREATER_THAN_CAPACITY: {
+        case BUFFER_ARR_INDEX_GREATER_THAN_CAPACITY: {
             print("%sERROR:\n"
                   "trying to make use of index\n"
                   "that is greater than the buffer capacity%s\n",
@@ -99,35 +99,35 @@ sparse_arr_print_error(const enum SPARSE_ARR_ERROR_CODE code)
             );
             break;
         }
-        case SPARSE_ARR_TAIL_GREATER_THAN_CAPACITY: {
+        case BUFFER_ARR_TAIL_GREATER_THAN_CAPACITY: {
             print("%sERROR:\n"
                   "buffer tail is greater than the buffer capacity%s\n",
                   RED, CLEAR
             );
             break;
         }
-        case SPARSE_ARR_CAPACITY_LESS_THAN_1: {
+        case BUFFER_ARR_CAPACITY_LESS_THAN_1: {
             print("%sERROR:\n"
                   "buffer capacity is 0 or negative number%s\n",
                   RED, CLEAR
             );
             break;
         }
-        case SPARSE_ARR_TABLE_ALREADY_INIT: {
+        case BUFFER_ARR_TABLE_ALREADY_INIT: {
             print("%sERROR:\n"
                   "buffer table already initialized%s\n",
                   RED, CLEAR
             );
             break;
         }
-        case SPARSE_ARR_TABLE_INIT_FROM_CREATE_FUN: {
+        case BUFFER_ARR_TABLE_INIT_FROM_CREATE_FUN: {
             print("%sWARNING:\n"
-                  "buffer table initialized from sparse_arr_create()%s\n",
+                  "buffer table initialized from buffer_arr_create()%s\n",
                   YELLOW, CLEAR
             );
             break;
         }
     }
 
-    // my_exit("sparse_arr_print_error", __FILE__, __LINE__);
+    // my_exit("buffer_arr_print_error", __FILE__, __LINE__);
 }
