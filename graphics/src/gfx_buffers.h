@@ -3,6 +3,7 @@
  */
 #ifndef GRAPHICS_TEST_OPENGL_BUFFERS_H
 #define GRAPHICS_TEST_OPENGL_BUFFERS_H
+#include "engine.h"
 #include "my_types.h"
 #include "gfx_interface.h"
 #include "mesh.h"
@@ -15,7 +16,7 @@
  **************************************************************************************************/
 struct vb_cmd_params {
     /// TODO: flags:{ FORCED_NEW | FORCED_USED | ANY }
-    uint16  attribs_idx;
+    attrid_t  attribs_idx;
     vbidx_t vbidx;
     uint8   vpos_num_elems; // TODO: pass SID_VPOS_ID instead which is smaller value
 };
@@ -25,23 +26,6 @@ struct ib_cmd_params {
     ibidx_t ibidx;
     uint8   vpos_num_elems; // TODO: pass SID_VPOS_ID instead which is smaller value
 };
-
-
-/***************************************************************************************************
- * vertex array object
- **************************************************************************************************/
-struct vertex_array_object {
-    vbidx_t idx;
-    vbidx_t vao;
-    desc_t  desc_idx;
-    bool    attrib_devisor;
-};
-
-struct vertex_array_object* gfx_vertex_array_get_byidx(uint32 idx);
-
-uint32 gfx_vertex_array_create(const desc_t desc_idx);
-
-void gfx_vertex_array_delete(void);
 
 
 
@@ -86,6 +70,25 @@ void gfx_vertex_buffer_set_wpos(const build_t build_idx, const vbidx_t vbidx, ve
 void gfx_vertex_buffer_add_wpos(const build_t build_idx, const vbidx_t vbidx, vec3f wpos);
 
 void gfx_vertex_buffer_set_scale(const build_t build_idx, const vbidx_t vbidx, vec2f scale);
+
+
+/***************************************************************************************************
+ * vertex array object
+ **************************************************************************************************/
+struct vertex_array_object {
+    vbidx_t idx;
+    vbidx_t vao;
+    desc_t  desc_idx;
+    bool    attrib_devisor;
+    /// TODO: make dynamic buffer
+    vbidx_t vbos[8]; /// all the vertex buffer indexes belong to this VAO
+};
+
+struct vertex_array_object* gfx_vertex_array_get_byidx(uint32 idx);
+
+uint32 gfx_vertex_array_create(const desc_t desc_idx);
+
+void gfx_vertex_array_delete(void);
 
 
 

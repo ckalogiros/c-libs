@@ -4,6 +4,8 @@
 
 #include "attributes.h"
 #include <assert.h>
+#include <string.h>
+
 #include "fdebug_test.h"
 #include "gfx_buffers.h"
 #include "logger.h"
@@ -25,10 +27,9 @@
 
 
 
-#define buffer_arr_attribs_get(attribs_id) (&((struct attributes_group*) attribsGroupDescr_groups_table->data)[attribs_id])
-#define buffer_arr_obj_bufids_get(id) (&((objid_t*) attribs_group->obj_bufids->data)[id])
-// #define buffer_arr_obj_bufids_get(id) (&((objid_t*) attribs_group->obj_bufids->data)[id]) /// TODO: to compine the 2 buffers we use the first buffer offset( sizeof(struct attribs_per_attrib_descriptor) * num_attributes)
-// #define buffer_arr_obj_bufids_get(id) (&((objid_t*) attribs_group->obj_bufids->data)[id])
+#define attribs_group_buffer_get(attribs_id) (&((struct attributes_group*) attribsGroupDescr_groups_table->data)[attribs_id])
+#define obj_bufids_get(id) (&((objid_t*) attribs_group->obj_bufids->data)[id])
+// #define instancing_buffer_get(id) (&((struct instancing*) attribs_group->instancing->data)[id])
 
 
 buffer_t* attribsGroupDescr_groups_table = NULL;
@@ -40,79 +41,88 @@ attribsGroupDescr_table_init(void)
     attribsGroupDescr_groups_table = buffer_arr_constructor_gentype(2, sizeof(struct attributes_group));
 }
 
-attrid_t attribsGroupDescr_create_new_components_group(const sididx_t sid_idx)
+attrid_t attribsGroupDescr_create_new_attribs_group(const sididx_t sid_idx)
 {
-    /// init struct attribs_per_group_descriptor
-    const attrid_t group_id = buffer_arr_set_for_push(attribsGroupDescr_groups_table);
-    struct attributes_group* attribs_group = buffer_arr_attribs_get(group_id);
+    /// create new attributes group
+    const attrid_t attribs_idx = buffer_arr_set_for_push(attribsGroupDescr_groups_table);
+    struct attributes_group* attribs_group = attribs_group_buffer_get(attribs_idx);
+
+    /// init memory storage for attributes data. This is a contiguous buffer of type float(for now), storing attributes for each object interleaved.
     attribs_group->attribs_data_id = arena_allocator_create_new_instance(6);
 
-    /// init the mem group buffer that will store all objects id for a compomonent group
+    /// init memory storage for object ids. Store the objects that "belong" to this group
     attribs_group->obj_bufids = buffer_arr_create_gentype(16, sizeof(objid_t));
+
+
+    /// init memory storage for instancing data. For instancing we need to handle > 1 vertex buffers, plus all other parameters of per vertex buffer
+    // attribs_group->instancing = buffer_arr_create_gentype(16, sizeof(struct instancing));
+    // memset(attribs_group->instancing->data, 0x0, attribs_group->instancing->capacity*sizeof(struct instancing));
 
     attribs_group->sid_idx               = sid_idx;
     attribs_group->added_components_flag = 0x0;
     attribs_group->commands_flag         = 0x0;
-    attribs_group->attribs_desc_counter  = 0;
+    attribs_group->attribs_desc_count  = 0;
     attribs_group->vertex_count          = 0;
     attribs_group->attribs_count         = 0;
     attribs_group->stride                = 0;
     attribs_group->build_idx = INT_NULL;
-    attribs_group->ibidx     = INT_NULL;
-    attribs_group->vaidx     = INT_NULL;
-    attribs_group->vbidx     = INT_NULL;
-    attribs_group->ibidx     = INT_NULL;
-    attribs_group->tbidx     = INT_NULL;
+    // attribs_group->ibidx     = INT_NULL;
+    // attribs_group->vaidx     = INT_NULL;
+    // attribs_group->vbidx     = INT_NULL;
+    // attribs_group->ibidx     = INT_NULL;
+    // attribs_group->tbidx     = INT_NULL;
     attribs_group->rqidx     = INT_NULL;
 
-    engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_GENERIC, "-- CREATE NEW COMPONENTS BUFFER, idx: %u\n", group_id);
+    engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_GENERIC, "-- CREATE NEW COMPONENTS BUFFER, idx: %u\n", attribs_idx);
 
-    return group_id;
+    return attribs_idx;
 }
 
 attrid_t attribsGroupDescr_group_find_match(const sididx_t sid_idx)
 {
     for(attrid_t i = 0; i < attribsGroupDescr_groups_table->tail+1; i++) {
-        const struct attributes_group* attribs_group = buffer_arr_attribs_get(i);
+        const struct attributes_group* attribs_group = attribs_group_buffer_get(i);
         if(sid_check_match(attribs_group->sid_idx, sid_idx)) { return i; }
     }
 
     return INT_NULL;
 }
 
-objid_t attribsGroupDescr_create_new_obj(const attrid_t group_id, const objid_t obj_id, const uint16 obj_vertex_count)
+/* adds the object's id to the objects id buffer of the attribute group, along with some descriptor parameters */
+objid_t attribsGroupDescr_create_new_obj(const attrid_t attribs_idx, const objid_t obj_id, const uint16 obj_vertex_count)
 {
-    struct attributes_group* attribs_group = buffer_arr_attribs_get(group_id);
+    struct attributes_group* attribs_group = attribs_group_buffer_get(attribs_idx);
 
-    /// initialization: parameters for each object attributes
+    /*
+     * initialization: parameters for the group's attributes
+     * The "attribs_descr" is a per attribute buffer and not a per object.
+     * That means, all objects must have the following attribute characteristics:
+     *      stride,
+     *
+     */
     attribs_group->vertex_count += obj_vertex_count;
+    const uint32 cnt = attribs_group->attribs_desc_count;
+    assert(cnt < COMP_MAX_ATTRIBUTES);
+    attribs_group->attribs_descr[cnt].attr_offset    = 0;
+    attribs_group->attribs_descr[cnt].attr_num_elems = 0;
+    attribs_group->attribs_desc_count++;
 
-    attribs_group->attribs_descr[attribs_group->attribs_desc_counter].attr_offset = 0;
-    attribs_group->attribs_descr[attribs_group->attribs_desc_counter].attr_count++;
-    assert(attribs_group->attribs_desc_counter < COMP_MAX_ATTRIBUTES);
-    attribs_group->attribs_desc_counter++;
-
-    ///
-    objid_t idx = buffer_arr_set_for_push(attribs_group->obj_bufids); /// get the
-    objid_t* buffer_ids = buffer_arr_obj_bufids_get(idx);
+    /// an attribute group stores all objects by their id, in a dynamicaly grown buffer
+    const objid_t idx = buffer_arr_set_for_push(attribs_group->obj_bufids); /// get the
+    objid_t* buffer_ids = obj_bufids_get(idx);
     *buffer_ids = obj_id;
     const objid_t obj_count = attribs_group->obj_bufids->count;
+
     return obj_count;
 }
 
-struct attributes_group* attribsGroupDescr_get_component(const attrid_t group_id)
+void attribsGroupDescr_add_attributes(const attrid_t attribs_idx, const float* const src, const uint32 elems_count,
+                                      const uint32 offset, const sid_t attrib_flag, const int16 inst_divisor, const attr_t shader_attrib_idx)
 {
-    // struct attributes_group* group = &object_components_buffer[group_id];
-    struct attributes_group* attribs_group = buffer_arr_attribs_get(group_id);
-    return attribs_group;
-}
+    engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_GENERIC, " { %s }:[", shaderinfo_flag_to_flagname(attrib_flag));
+    struct attributes_group* attribs_group = attribsGroupDescr_get_attribs_group(attribs_idx);
 
-void attribsGroupDescr_add_comp(const attrid_t group_id, const float* src, const uint32 elems_count, const uint32 offset, const sid_t attribs_flag)
-{
-    engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_GENERIC, " { %s }:[", shaderinfo_flag_to_flagname(attribs_flag));
-    struct attributes_group* group = attribsGroupDescr_get_component(group_id);
-
-    float* buffer_ptr = arena_allocator_alloc(group->attribs_data_id, elems_count*sizeof(float), sizeof(float));
+    float* buffer_ptr = arena_allocator_alloc(attribs_group->attribs_data_id, elems_count*sizeof(float), sizeof(float));
     for(uint32 i = 0; i < elems_count; i++) {
         buffer_ptr[i] = src[i];
         print("  %2.2f, ", buffer_ptr[i]);
@@ -122,70 +132,177 @@ void attribsGroupDescr_add_comp(const attrid_t group_id, const float* src, const
 
     /// the "per_attr_desc" stores each unique attributes description (ONCE per attributes per group).
     /// this function is called for every object, but we need not to keep duplicates of attributes descriptions
-    if((group->added_components_flag & attribs_flag) == 0x0) {
-        const uint32 attribs_idx = group->attribs_count;
-        assert(attribs_idx < COMP_MAX_GROUPS);
-        group->added_components_flag |= attribs_flag;
-        group->attribs_descr[attribs_idx].attr_offset = offset;
-        group->attribs_descr[attribs_idx].attr_count  = elems_count;
-        group->attribs_count++;
+    if((attribs_group->added_components_flag & attrib_flag) == 0x0) {
+        const attr_t attrib_idx = attribs_group->attribs_count;
+        assert(attrib_idx < COMP_MAX_ATTRIBUTES);
+        attribs_group->added_components_flag |= attrib_flag;
+        attribs_group->attribs_descr[attrib_idx].attrib_flag = attrib_flag;
+        attribs_group->attribs_descr[attrib_idx].attr_offset = offset;
+        attribs_group->attribs_descr[attrib_idx].attr_num_elems  = elems_count;
+        attribs_group->attribs_descr[attrib_idx].divisor  = inst_divisor;
+        // attribs_group->attribs_descr[attrib_idx].shader_attrib_idx  = shader_attrib_idx;
+        attribs_group->attribs_count++;
     }
 
     engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_GENERIC, "]");
+
+
+    // /// "push" attribute to the appropriate instanced category
+    // /// push only for unique divisor value
+    // /// AND
+    // /// for already existing divisor, get the instincing buffer elem and update struct fields
+    // const attrid_t inst_id = buffer_arr_set_for_push(attribs_group->instancing);
+    // struct instancing* inst = instancing_buffer_get(inst_id);
+    // inst->attribs_count++;
+
 }
+
+struct attributes_group* attribsGroupDescr_get_attribs_group(const attrid_t attribs_idx)
+{
+    // struct attributes_group* group = &object_components_buffer[attribs_idx];
+    struct attributes_group* attribs_group = attribs_group_buffer_get(attribs_idx);
+    return attribs_group;
+}
+//
+// void TEMP_resolve_instancing(const attrid_t attribs_idx, const sid_t attribs_flag)
+// {
+//     struct attributes_group* attribs_group = attribs_group_buffer_get(attribs_idx);
+//
+//     /// run through all attributes
+//     ///     run through already created instancing
+//     /// todo: set_for_push must be used for building the instncing array
+//     for(attr_t i = 0; i < COMP_MAX_ATTRIBUTES; i++) {
+//
+//         struct attribs_per_attrib_descriptor* attr_descr = &attribs_group->attribs_descr[i];
+//         uint16 divisor = attr_descr->divisor;
+//
+//         for(attr_t j = 0; j < attribs_group->instancing->count; j++) {
+//
+//             /// !IMPORTANT! this is a sparse buffer, ALWAYS need to check for NULL element
+//             struct instancing* inst = instancing_buffer_get(j);
+//             if(inst->divisor == divisor) {
+//
+//                 struct instancing* inst = instancing_buffer_get(j);
+//                 inst->stride += attr_descr->stride; /// accumulate strides
+//
+//
+//             }
+//
+//
+//             // inst->attrib_ids[];
+//             inst->attribs_count++; /// increment current instancing's attributes count
+//         }
+//
+//         // !IMPORTANT! if instancing buffer is empty, create new default with divisor 0
+//         // else
+//         {
+//
+//             const attrid_t inst_id = buffer_arr_set_for_push(attribs_group->instancing);
+//             struct instancing* new_inst = instancing_buffer_get(inst_id);
+//             new_inst->divisor = divisor;
+//             new_inst->stride = attr_descr->stride;
+//             new_inst->vbidx = INT_NULL;
+//             new_inst->attribs_count++; /// increment current instancing's attributes count
+//         }
+//
+//     }
+//
+//     /// if attribute is per instance
+//     ///     if instance buffer exists (check current instanced elements in buffer, check via their divisor to match)
+//     ///         use this
+//     ///     else
+//     ///         create new instaned element
+//     /// else
+//     ///     if default instance has been created
+//     ///         use this
+//     ///     else
+//     ///         create new
+//     ///
+//     /// EXAMPLE
+//     /// attributes {VPOS2, WPOS3, SCALE2, ROT2, COLOR4}
+//     /// DIVISOR    {0,     1,     1,      1,    4     }
+//     ///
+//     /// STRUCT FIELDS
+//     ///     vbidx_t vbidx         SET AFTER GFX CREATION
+//     ///     uint8   stride;
+//     ///     uint8   divisor;
+//     ///     uint8   attribs_count;
+//     ///     uint8   attrib_idx[];
+//     ///
+// }
 
 
 /* GETTERS-SETTERS */
 
-void attribsGroupDescr_set_stride(const attrid_t group_id, const uint32 stride)
+void attribsGroupDescr_set_stride(const attrid_t attribs_idx, const uint32 stride)
 {
-    struct attributes_group* attribs_group = buffer_arr_attribs_get(group_id);
+    struct attributes_group* attribs_group = attribs_group_buffer_get(attribs_idx);
     attribs_group->stride = stride;
 }
-void attribsGroupDescr_set_build_idx(const attrid_t group_id, const build_t build_idx)
+void attribsGroupDescr_set_build_idx(const attrid_t attribs_idx, const build_t build_idx)
 {
-    struct attributes_group* attribs_group = buffer_arr_attribs_get(group_id);
+    struct attributes_group* attribs_group = attribs_group_buffer_get(attribs_idx);
     attribs_group->build_idx = build_idx;
 }
-struct attributes_group* attribsGroupDescr_get_group(const attrid_t group_id)
+buffer_t* attribsGroupDescr_get_objects_group(const attrid_t attribs_idx)
 {
-    struct attributes_group* attribs_group = buffer_arr_attribs_get(group_id);
-    return attribs_group;
-}
-buffer_t* attribsGroupDescr_get_objects_group(const attrid_t group_id)
-{
-    const struct attributes_group* attribs_group = buffer_arr_attribs_get(group_id);
+    struct attributes_group* attribs_group = attribs_group_buffer_get(attribs_idx);
     return attribs_group->obj_bufids;
 }
-build_t attribsGroupDescr_get_buildidx(const attrid_t group_id)
+struct attribs_per_attrib_descriptor* attribsGroupDescr_get_attribs_descr(const attrid_t attribs_idx)
 {
-    const struct attributes_group* attribs_group = buffer_arr_attribs_get(group_id);
+    struct attributes_group* attribs_group = attribs_group_buffer_get(attribs_idx);
+    return attribs_group->attribs_descr;
+}
+// /// get the actual buffer data for the instancing
+// struct instancing* attribsGroupDescr_get_instancing_data(const attrid_t attribs_idx, const attrid_t inst_id)
+// {
+//     struct attributes_group* attribs_group = attribs_group_buffer_get(attribs_idx);
+//     struct instancing* inst_buffer_data = instancing_buffer_get(inst_id);
+//     return inst_buffer_data;
+// }
+/// get the dynamic sparse buffer for the instancing
+buffer_t* attribsGroupDescr_get_instancing_buffer(const attrid_t attribs_idx)
+{
+    struct attributes_group* attribs_group = attribs_group_buffer_get(attribs_idx);
+    buffer_t* inst_buffer = attribs_group->instancing;
+    return inst_buffer;
+}
+build_t attribsGroupDescr_get_buildidx(const attrid_t attribs_idx)
+{
+    const struct attributes_group* attribs_group = attribs_group_buffer_get(attribs_idx);
     return attribs_group->build_idx;
 }
-uint32 attribsGroupDescr_get_attribs_stride(const attrid_t group_id)
+uint32 attribsGroupDescr_get_attribs_stride(const attrid_t attribs_idx)
 {
-    const struct attributes_group* attribs_group = buffer_arr_attribs_get(group_id);
+    const struct attributes_group* attribs_group = attribs_group_buffer_get(attribs_idx);
     return attribs_group->stride;
 }
-uint32 attribsGroupDescr_get_vertex_count(const attrid_t group_id)
+/// get the count of how many attributes this group/descriptor have enabled
+attr_t attribsGroupDescr_get_attribs_count(const attrid_t attribs_idx)
 {
-    const struct attributes_group* attribs_group = buffer_arr_attribs_get(group_id);
+    const struct attributes_group* attribs_group = attribs_group_buffer_get(attribs_idx);
+    return attribs_group->attribs_count;
+}
+uint32 attribsGroupDescr_get_vertex_count(const attrid_t attribs_idx)
+{
+    const struct attributes_group* attribs_group = attribs_group_buffer_get(attribs_idx);
     return attribs_group->vertex_count;
 }
-float* attribsGroupDescr_get_attribs_data(const attrid_t group_id)
+float* attribsGroupDescr_get_attribs_data(const attrid_t attribs_idx)
 {
-    const struct attributes_group* attribs_group = buffer_arr_attribs_get(group_id);
+    const struct attributes_group* attribs_group = attribs_group_buffer_get(attribs_idx);
     float* buffer_ptr = debug_arena_allocator_get_instance_data(attribs_group->attribs_data_id);
     return &buffer_ptr[0];
 }
-uint32 attribsGroupDescr_get_objects_count(const attrid_t group_id)
+uint32 attribsGroupDescr_get_objects_count(const attrid_t attribs_idx)
 {
-    const struct attributes_group* attribs_group = buffer_arr_attribs_get(group_id);
+    const struct attributes_group* attribs_group = attribs_group_buffer_get(attribs_idx);
     return attribs_group->obj_bufids->count;
 }
-bool attribsGroupDescr_is_indexed_geometry(const attrid_t group_id)
+bool attribsGroupDescr_is_indexed_geometry(const attrid_t attribs_idx)
 {
-    const struct attributes_group* attribs_group = buffer_arr_attribs_get(group_id);
+    const struct attributes_group* attribs_group = attribs_group_buffer_get(attribs_idx);
     const sididx_t sid_idx = attribs_group->sid_idx;
     const bool res = sid_check_attr_match_from_flag(sid_idx, SID_INDEXED);
     return res;
@@ -195,10 +312,10 @@ bool attribsGroupDescr_is_indexed_geometry(const attrid_t group_id)
 /* DEBUG-PRINT */
 void attribsGroupDescr_group_print()
 {
-    print("\n%s- OBJECT COMPONENTS GROUP -%s",  YELLOW, CLEAR);
-    for(attrid_t group_id = 0; group_id < attribsGroupDescr_groups_table->tail; group_id++) {
+    print("\n%s- OBJECT ATTRIBUTES GROUP -%s",  YELLOW, CLEAR);
+    for(attrid_t attribs_idx = 0; attribs_idx < attribsGroupDescr_groups_table->tail+1; attribs_idx++) {
 
-        const struct attributes_group* attribs_group = attribsGroupDescr_get_component(group_id);
+        const struct attributes_group* attribs_group = attribsGroupDescr_get_attribs_group(attribs_idx);
 
 
         print(
@@ -213,11 +330,21 @@ void attribsGroupDescr_group_print()
 
         for(uint32 attribs_idx = 0; attribs_idx < attribs_group->attribs_count; attribs_idx++) {
 
-            print("\n  comp:[%u] - offset:%u, elems:%u", attribs_idx,
+            print("\n  attrib:[%u] - offset:%u, elems:%u", attribs_idx,
                   attribs_group->attribs_descr[attribs_idx].attr_offset,
-                  attribs_group->attribs_descr[attribs_idx].attr_count
+                  attribs_group->attribs_descr[attribs_idx].attr_num_elems
             );
         }
+        // for(uint32 i = 0; i < attribs_group->instancing->tail+1; i++) {
+        //
+        //     struct instancing* inst = attribs_group->instancing->data;
+        //     print("\n  inst:[%u] - attribs_count:%u, divisor:%u, stride:%u, vbidx:%d", i,
+        //           inst[i].attribs_count,
+        //           inst[i].divisor,
+        //           inst[i].stride,
+        //           inst[i].vbidx
+        //     );
+        // }
     }
     print("\n\n");
 }

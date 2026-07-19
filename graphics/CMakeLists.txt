@@ -19,15 +19,17 @@ register_module(
         sources
             ${CMAKE_CURRENT_LIST_DIR}/run.c
             ${CMAKE_CURRENT_LIST_DIR}/mesh.c
-        ${CMAKE_CURRENT_LIST_DIR}/attributes.c
+            ${CMAKE_CURRENT_LIST_DIR}/attributes.c
             ${CMAKE_CURRENT_LIST_DIR}/object.c
             ${CMAKE_CURRENT_LIST_DIR}/command.c
+            ${CMAKE_CURRENT_LIST_DIR}/bubble_sort.c
         headers
             ${CMAKE_CURRENT_LIST_DIR}/engine.h
             ${CMAKE_CURRENT_LIST_DIR}/run.h
             ${CMAKE_CURRENT_LIST_DIR}/mesh.h
             ${CMAKE_CURRENT_LIST_DIR}/object.h
             ${CMAKE_CURRENT_LIST_DIR}/command.h
+            ${CMAKE_CURRENT_LIST_DIR}/bubble_sort.h
         ${CMAKE_CURRENT_LIST_DIR}/attributes.h
         include_dirs
             ${CMAKE_CURRENT_LIST_DIR}

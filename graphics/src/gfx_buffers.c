@@ -163,8 +163,11 @@ static float gfx_color_per_pentagon[COLORS_PER_PENTAGON_COUNT] = {
 float* gfx_vertex_buffer_set_data(struct vb_cmd_params* params)
 {
     struct vertex_buffer_object* vb = &vertex_buffer_table[params->vbidx];
-    buffer_t* obj_group_ids     = attribsGroupDescr_get_objects_group(params->attribs_idx);
-    float* obj_attr_data        = attribsGroupDescr_get_attribs_data(params->attribs_idx);
+    buffer_t* obj_group_ids = attribsGroupDescr_get_objects_group(params->attribs_idx);
+    float*    obj_attr_data = attribsGroupDescr_get_attribs_data(params->attribs_idx);
+    struct attribs_per_attrib_descriptor* attribs_descr = attribsGroupDescr_get_attribs_descr(params->attribs_idx);
+    // attribs_descr[attribs_idx].attr_offset
+    // attribs_descr[0].stride
 
     uint32 vcnt = 0;
 
@@ -182,6 +185,7 @@ float* gfx_vertex_buffer_set_data(struct vb_cmd_params* params)
         color_cnt = 0; // reset colors for each object
 
         struct object* obj = object_get(((objid_t*)obj_group_ids->data)[i]);
+        // struct object* obj = object_get(i);
         enum MESH_TYPE mesh_type = obj->mesh_type;
 
         /// get the object's mesh vertices buffer
@@ -189,6 +193,7 @@ float* gfx_vertex_buffer_set_data(struct vb_cmd_params* params)
         /// get object's indices buffer
         vind_t* ind   = mesh_get_mesh_indices_from_type(mesh_type);
 
+        /// TODO: remove conditional
         if(is_indexed)  vcount = obj->vertex_count;
         else            vcount = mesh_get_mesh_indices_count_from_type(mesh_type);
 
@@ -201,12 +206,12 @@ float* gfx_vertex_buffer_set_data(struct vb_cmd_params* params)
         for(uint32 j = 0; j < vcount; j++) { /// per vertex run
 
             uint32 vertex_index =  ind[vcnt];
+            /// TODO: remove conditional
             if(is_indexed) vertex_index = vcnt;
 
             print("\n[%2u][%2u]: ", i, vcount);
             engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_VERTEX_BUFFER, "\n[%2u][%3u]: ", i, vcount);
 
-            /// TODO: remove conditional
             for(uint8 k = 0; k < params->vpos_num_elems; k++) {
 
                 vb->data[vb->count++] = vpos[vertex_index][k];
@@ -218,31 +223,31 @@ float* gfx_vertex_buffer_set_data(struct vb_cmd_params* params)
 
             for(uint32 k = attribs_offset; k < attribs_offset+attribs_stride; k++) {
 
-                if(k >= attribs_offset+attribs_stride-4) {
+                const attr_t attribs_idx = k;
+                attribs_descr[attribs_idx].attr_offset;
+                // attribs_descr[attribs_idx].shader_attrib_idx;
 
-                    // vb->data[vb->count++] = gfx_color_per_pentagon[color_cnt++];
-                    // if(color_cnt >= COLORS_PER_PENTAGON_COUNT) color_cnt = 0;
-                    if(is_indexed) {
-                        vb->data[vb->count++] = gfx_color_per_vertex[color_cnt++];
-                        if(color_cnt >= COLORS_PER_VERTEX_COUNT) color_cnt = 0;
-                    } else {
-                        vb->data[vb->count++] = gfx_color_per_triangle[color_cnt++];
-                        if(color_cnt >= COLORS_PER_TRIANGLE_COUNT) color_cnt = 0;
-                    }
-
-
-
-                    print("%4.1f, ", vb->data[vb->count-1]);
-                    engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_VERTEX_BUFFER, "%2.2f, ", vb->data[vb->count-1]);
-
-
-
-                }
-                else {
-                    vb->data[vb->count++] = obj_attr_data[k];
-                    print("%4.1f, ",vb->data[vb->count-1]);
-                    engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_VERTEX_BUFFER, "%2.2f, ", vb->data[vb->count-1]);
-                }
+                vb->data[vb->count++] = obj_attr_data[k];
+                print("%4.1f, ",vb->data[vb->count-1]);
+                engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_VERTEX_BUFFER, "%2.2f, ", vb->data[vb->count-1]);
+                //
+                // if(k >= attribs_offset+attribs_stride-4) {
+                //     if(is_indexed) {
+                //         vb->data[vb->count++] = gfx_color_per_vertex[color_cnt++];
+                //         if(color_cnt >= COLORS_PER_VERTEX_COUNT) color_cnt = 0;
+                //     } else {
+                //         vb->data[vb->count++] = gfx_color_per_triangle[color_cnt++];
+                //         if(color_cnt >= COLORS_PER_TRIANGLE_COUNT) color_cnt = 0;
+                //     }
+                //
+                //     print("%4.1f, ", vb->data[vb->count-1]);
+                //     engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_VERTEX_BUFFER, "%2.2f, ", vb->data[vb->count-1]);
+                // }
+                // else {
+                //     vb->data[vb->count++] = obj_attr_data[k];
+                //     print("%4.1f, ",vb->data[vb->count-1]);
+                //     engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_VERTEX_BUFFER, "%2.2f, ", vb->data[vb->count-1]);
+                // }
             }
         }
 
@@ -305,7 +310,7 @@ void gfx_vertex_buffer_set_scale(const build_t build_idx, const vbidx_t vbidx, v
     struct vertex_buffer_object* vb = &vertex_buffer_table[vbidx];
 
     uint8 id = shader_attrib_id_get(build_idx, SID_SCALE2_ID);
-    struct vertex_layout* vl = shader_descriptor_vertex_layout_get(build_idx, id);
+    struct shader_attribute_layout* vl = shader_descriptor_vertex_layout_get(build_idx, id);
     const uint32 start = 0; /// TODO: get the start of the mesh to update
     uint32 idx = start + vl->loc_offset;
     const uint32 stride = vb->stride;
@@ -352,9 +357,9 @@ uint32 gfx_vertex_index_buffer_create(const uint32 data_size)
 
     return ibidx;
 }
-void   gfx_vertex_index_buffer_delete(uint32 n, ibidx_t* buffer){ gl_delete_buffers(n, (GLint*)buffer); }
-void   gfx_vertex_index_buffer_push_data(const ibidx_t ibidx, void* data){}
-void   gfx_vertex_index_buffer_update_data(struct ib_cmd_params* params)
+void gfx_vertex_index_buffer_delete(uint32 n, ibidx_t* buffer){ gl_delete_buffers(n, (GLint*)buffer); }
+void gfx_vertex_index_buffer_push_data(const ibidx_t ibidx, void* data){}
+void gfx_vertex_index_buffer_update_data(struct ib_cmd_params* params)
 {
     const ibidx_t ibo = vertex_index_buffer_table[params->ibidx].ibo;
     void* const data = vertex_index_buffer_table[params->ibidx].data;
@@ -388,6 +393,7 @@ uint32* gfx_vertex_index_buffer_set_data(struct ib_cmd_params* params)
     for(uint32 i = 0; i < obj_group_ids->tail+1; i++) {
 
         struct object* obj = object_get(((objid_t*)obj_group_ids->data)[i]);
+        // struct object* obj = object_get(i);
         obj->ib_start = ib->count;
 
         print("\n%s id:%d, vcount:%u %s\n", YELLOW, obj->id, obj->vertex_count, CLEAR);

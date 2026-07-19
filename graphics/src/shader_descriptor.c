@@ -47,18 +47,18 @@ shader_descriptor_create(const sididx_t sid_idx)
 
     /// init vertex_layout
     for(uint32 i = 0; i < SHADER_INPUT_ENTRIES_MAX_COUNT; i++) {
-        struct shader_in_variables_struct* entry = &desc->entries[i];
+        struct shader_entry* entry = &desc->entries[i];
         entry->flagname = NULL;
         entry->codename = NULL;
         entry->flag = 0x0;
         entry->type = 0; // TODO: should create "enum TYPES_INDEXING NULL_TYPE "
-        entry->which_renameme = 0x0;
+        entry->input_flag = 0x0;
         entry->typesize = 0;
         entry->elems = 0;
-        entry->var_table_idx = 0; // TODO: should have NIL/NULL value
-        entry->shader_var_id = 0; // TODO: should have NIL/NULL value
+        entry->input_idx = 0; // TODO: should have NIL/NULL value
+        entry->shader_input_id = 0; // TODO: should have NIL/NULL value
 
-        struct vertex_layout* vl = &desc->v_layout[i];
+        struct shader_attribute_layout* vl = &desc->v_layout[i];
         vl->loc = 0;
         vl->size = 0;
         vl->type = 0;
@@ -78,21 +78,23 @@ shader_descriptor_create(const sididx_t sid_idx)
 }
 
 void
-shader_descriptor_create_vertex_layout(const desc_t desc_idx, struct vertex_layout attribs_desc)
+shader_descriptor_create_vertex_layout(const desc_t desc_idx, struct shader_attribute_layout vlayout)
 {
     struct shader_descriptor* desc = s_desc_get(desc_idx);
     const uint32 idx = desc->vlayout_count;
     desc->vlayout_count++;
     assert(desc->vlayout_count < SHADER_INPUT_ENTRIES_MAX_COUNT);
 
-    struct vertex_layout* vl = &desc->v_layout[idx];
-    vl->loc         = attribs_desc.idx;
-    vl->size        = attribs_desc.size;
-    vl->type        = attribs_desc.type;
-    vl->loc_offset  = attribs_desc.loc_offset;
-    vl->offset      = attribs_desc.offset;
-    vl->idx         = attribs_desc.idx;
-    vl->attr_idx    = attribs_desc.attr_idx;
+    print("########### CREATE VLAYOUT idx:%u, loc:%u, size:%u, loc_offset:%u\n", vlayout.idx, vlayout.idx, vlayout.size, vlayout.loc_offset);
+
+    struct shader_attribute_layout* vl = &desc->v_layout[idx];
+    vl->loc         = vlayout.idx;
+    vl->size        = vlayout.size;
+    vl->type        = vlayout.type;
+    vl->loc_offset  = vlayout.loc_offset;
+    vl->offset      = vlayout.offset;
+    vl->idx         = vlayout.idx;
+    // vl->attr_idx    = vlayout.attr_idx;
 }
 
 uint32
@@ -109,11 +111,11 @@ shader_descriptor_get(const desc_t idx)
     return desc;
 }
 
-struct vertex_layout*
+struct shader_attribute_layout*
 shader_descriptor_vertex_layout_get(const desc_t desc_idx, const vlayout_t vlayout_idx)
 {
     struct shader_descriptor* desc = s_desc_get(desc_idx);
-    struct vertex_layout* vl = &desc->v_layout[vlayout_idx];
+    struct shader_attribute_layout* vl = &desc->v_layout[vlayout_idx];
     return vl;
 }
 
@@ -148,46 +150,6 @@ shader_dscriptor_get_sid(const desc_t desc_idx)
     struct shader_descriptor* desc = s_desc_get(desc_idx);
     sididx_t sid_idx = desc->sid_idx;
     return sid_idx;
-}
-
-uint32
-shader_descriptor_vertex_layout_set(const desc_t desc_idx, struct vertex_layout attribs_desc[], const uint32 count)
-{
-    assert(shader_descriptor_table != NULL);
-
-    struct shader_descriptor* desc = s_desc_get(desc_idx);
-    struct vertex_layout* attribs = desc->v_layout;
-    /// TODO: typedef the sparse array's element index
-    const desc_t idx = desc_idx;
-
-    for(uint32 i = 0; i < count; i++) {
-        if(attribs_desc[i].size > 0) {
-            attribs[i].idx = attribs_desc[i].idx;
-            attribs[i].loc = attribs_desc[i].loc;
-            attribs[i].type = attribs_desc[i].type;
-            attribs[i].loc_offset = attribs_desc[i].loc_offset;
-            attribs[i].offset = attribs_desc[i].offset;
-            attribs[i].size = attribs_desc[i].size;
-            attribs[i].type = attribs_desc[i].type;
-            attribs[i].attr_idx = 0;
-        }
-    }
-
-    print("%s--- Shader descriptor. set vertex layout ---%s\n", ry, CLEAR);
-    for(uint32 i = 0; i < count; i++) {
-        if(attribs_desc[i].size > 0) {
-            print("   attr:%2u", attribs_desc[i].idx);
-            print(" type: %s", shaderinfo_type_to_glsltype_string(attribs[i].type));
-            print(" loc: %2u", attribs[i].loc);
-            print(" offset %2u", attribs[i].offset);
-            print(" loc_offset %2u", attribs[i].loc_offset);
-            print(" size %2u", attribs[i].size);
-        }
-        print("\n");
-    }
-    print("\n");
-
-    return idx;
 }
 
 void
@@ -225,6 +187,43 @@ shader_attributes_enable(const uint32 locations_count, const uint32 stride, cons
     gl_vertex_attrib_divisor(loc, SHADER_DEVISOR_PER_VERTEX);
 }
 
+void
+shader_attributes_instanced_enable(const uint32 locations_count, const uint32 stride, const uint8 last_loc_num_elems)
+{
+
+    /// LOCATIONS REMAIN PER SHADER PROGRAM AND IN SEQUENCE
+    /// STRIDE IS PER VERTEX BUFFER
+    /// OFFSET IS PER BUFFER
+    ///
+    // glEnableVertexAttribArray(2);
+    // glBindBuffer(GL_ARRAY_BUFFER, instanceVBO); // this attribute comes from a different vertex buffer
+    // glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, STRIDE, (void*)0);
+    // glBindBuffer(GL_ARRAY_BUFFER, 0);
+    // glVertexAttribDivisor(2, 1); // tell OpenGL this is an instanced vertex attribute
+
+    assert(last_loc_num_elems <= SHADER_MAX_LOCATION_SIZE);
+    uint32 k = 0;
+    uint32 loc = 0;
+
+    for(; loc < locations_count - 1; loc++) {
+        gl_enable_vertex_attrib_array(loc);
+        GL_CHECK();
+        gl_enable_attrib_pointer(loc, SHADER_MAX_LOCATION_SIZE, stride * SIZE_F32, (k * SHADER_MAX_LOCATION_SIZE));
+        GL_CHECK();
+        gl_vertex_attrib_divisor(loc, SHADER_DEVISOR_PER_VERTEX);
+        GL_CHECK();
+
+        k += SHADER_MAX_LOCATION_SIZE;
+    }
+
+    if(last_loc_num_elems) {
+        gl_enable_vertex_attrib_array(loc);
+        gl_enable_attrib_pointer(loc, last_loc_num_elems, stride * SIZE_F32, (k * SHADER_MAX_LOCATION_SIZE));
+        gl_vertex_attrib_divisor(loc, SHADER_DEVISOR_PER_VERTEX);
+    }
+
+}
+
 
 /* debug-print */
 
@@ -234,4 +233,27 @@ shader_descriptor_print_attribute_ids(const desc_t desc_idx, const uint32 vid)
     struct shader_descriptor* desc = s_desc_get(desc_idx);
     uint8 id = desc->vertex_attribute_ids.ids[vid];
     print("   vertex_attribute_id[%u]: %u\n", vid, id);
+}
+
+void
+shader_descriptor_print_vertex_layout(const desc_t desc_idx, const uint32 count)
+{
+    assert(shader_descriptor_table != NULL);
+
+    struct shader_descriptor* desc = s_desc_get(desc_idx);
+    struct shader_attribute_layout* v_layout = desc->v_layout;
+
+    print("%s--- Shader descriptor vertex layout ---%s\n", ry, CLEAR);
+    for(uint32 i = 0; i < count; i++) {
+        if(v_layout[i].size > 0) {
+            print(" attr:%2u", v_layout[i].idx);
+            print(" type: %s", shaderinfo_type_to_glsltype_string(v_layout[i].type));
+            print(" loc: %2u", v_layout[i].loc);
+            print(" offset %2u", v_layout[i].offset);
+            print(" loc_offset %2u", v_layout[i].loc_offset);
+            print(" size %2u", v_layout[i].size);
+        }
+        print("\n");
+    }
+    print("\n");
 }

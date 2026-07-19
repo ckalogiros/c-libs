@@ -20,6 +20,7 @@
 #include "buffer_arr_internals.h"
 #include "string_format.h"
 #include "attributes.h"
+#include "bubble_sort.h"
 
 
 #   define COLOR_RED     1.0f, 0.3f, 0.3f, 1.0f
@@ -138,19 +139,21 @@ build_t command_create_shader_program(struct cmd_gfx_params* params)
         GL_CHECK();
     }
 }
+
 void command_set_camera(struct cmd_gfx_params* params)
 {
     struct opengl_program* prog = shader_program_get(params->build_idx);
     gl_use_program(prog->program);
-    GLint mvp_location = gl_get_uniform_location(prog->program, "projection_matrix");
+    GLint mvp_location = gl_get_uniform_location(prog->program, "projMat");
     struct camera camera = params->camera;
     glUniformMatrix4fv(mvp_location, 1, camera.is_column_major, (float*)camera.projection_matrix.projection_matrix);
     GL_CHECK();
     gl_use_program(0x0);
 }
+
 void command_create_vao(struct cmd_gfx_params* params)
 {
-    struct attributes_group* attribs_group = attribsGroupDescr_get_group(params->attribs_idx);
+    struct attributes_group* attribs_group = attribsGroupDescr_get_attribs_group(params->attribs_idx);
     struct shader_descriptor* desc = shader_descriptor_get(params->desc_idx);
     const uint32 stride = desc->vshader_attribs_stride;
     struct opengl_program* prog = shader_program_get(params->desc_idx);
@@ -181,7 +184,8 @@ void command_create_vao(struct cmd_gfx_params* params)
         gl_bind_buffer(OPENGL_ARRAY_BUFFER, vb->vbo);
         GL_CHECK();
 
-        shader_attributes_enable(desc->vshader_attrib_locations_count, desc->vshader_attribs_stride, desc->last_loc_num_elems);
+        shader_attributes_instanced_enable(desc->vshader_attrib_locations_count, desc->vshader_attribs_stride, desc->last_loc_num_elems);
+        // shader_attributes_enable(desc->vshader_attrib_locations_count, desc->vshader_attribs_stride, desc->last_loc_num_elems);
         opengl_debug_attributes_in(desc->vshader_attrib_locations_count);
         GL_CHECK();
         attribs_group->rqidx = renderer_renderqueue_add(params->sid_idx, prog->program, desc->build_idx, va->vao, va->idx, vb->vbo, vb->idx);
@@ -218,7 +222,6 @@ void command_create_vao(struct cmd_gfx_params* params)
     struct ib_cmd_params ind_args = { .ibidx = ib->idx, .vpos_num_elems = params->vpos_num_elems, .attribs_idx = params->attribs_idx};
     p = &ind_args;
     cmd_add_command((void*)gfx_vertex_index_buffer_set_data, p, sizeof(struct ib_cmd_params));
-
     // SET COMMAND: VB_SET_DATA
     cmd_add_command((void*) gfx_vertex_index_buffer_update_data, p, sizeof(struct ib_cmd_params));
 
@@ -227,11 +230,8 @@ void command_create_vao(struct cmd_gfx_params* params)
     struct vb_cmd_params vert_args = { .vbidx = vb->idx, .vpos_num_elems = params->vpos_num_elems, .attribs_idx = params->attribs_idx};
     p = &vert_args;
     cmd_add_command((void*)gfx_vertex_buffer_set_data, p, sizeof(struct vb_cmd_params));
-
     // SET COMMAND: VB_SET_DATA
     cmd_add_command((void*) gfx_vertex_buffer_update_data, p, sizeof(struct vb_cmd_params));
-
-
 
     gl_use_program(0x0);
     gl_bind_vertex_array(0x0);
@@ -239,6 +239,7 @@ void command_create_vao(struct cmd_gfx_params* params)
 
 
 }
+
 struct object* test_create_triangles(const uint32 num_objects, float wpos[3], float scale[2], float rot[2], float color[4], const uint64 attr_flags)
 {
     struct object* obj;
@@ -250,90 +251,90 @@ struct object* test_create_triangles(const uint32 num_objects, float wpos[3], fl
 
     return obj;
 }
-
-struct object* test_create_quads(const uint32 num_objects, float wpos[3], float scale[2], float rot[2], float color[4], const uint64 attr_flags)
-{
-    struct object* obj;
-    scale[0]=1; scale[1]=1;
-    for(uint32 i = 0; i < num_objects; i++) {
-        obj = object_create_rectangle((struct gfx_sid){attr_flags, 0, 0, 0, 0}, wpos, scale, rot, color);
-        wpos[0] +=3.f;
-    }
-
-    return obj;
-}
-
-struct object* test_create_pentagon(const uint32 num_objects, float wpos[3], float scale[2], float rot[2], float color[4], const uint64 attr_flags)
-{
-    struct object* obj;
-    scale[0]=1; scale[1]=1;
-    for(uint32 i = 0; i < num_objects; i++) {
-        obj = object_create_pentagon((struct gfx_sid){attr_flags, 0, 0, 0, 0}, wpos, scale, rot, color);
-        wpos[0] += 3.f;
-    }
-    return obj;
-}
-
-struct object* test_create_hexagon(const uint32 num_objects, float wpos[3], float scale[2], float rot[2], float color[4], const uint64 attr_flags)
-{
-    struct object* obj;
-    scale[0]=1; scale[1]=1;
-    wpos[2] += .01;
-    for(uint32 i = 0; i < num_objects; i++) {
-        obj = object_create_hexagon((struct gfx_sid){attr_flags, 0, 0, 0, 0}, wpos, scale, rot, color);
-        wpos[0] += 3.f;
-    }
-    return obj;
-}
-
-struct object* test_create_octagon(const uint32 num_objects, float wpos[3], float scale[2], float rot[2], float color[4], const uint64 attr_flags)
-{
-    struct object* obj;
-    scale[0]=1; scale[1]=1;
-    for(uint32 i = 0; i < num_objects; i++) {
-        obj = object_create_octagon((struct gfx_sid){attr_flags, 0, 0, 0, 0}, wpos, scale, rot, color);
-        wpos[0] += 3.f;
-    }
-    return obj;
-}
-
-struct object* test_create_cube(const uint32 num_objects, float wpos[3], float scale[2], float rot[2], float color[4], const uint64 attr_flags)
-{
-    struct object* obj;
-    scale[0]=1; scale[1]=1;
-    for(uint32 i = 0; i < num_objects; i++) {
-        obj = object_create_cube((struct gfx_sid){attr_flags, 0, 0, 0, 0}, wpos, scale, rot, color);
-        wpos[0] -= 3.f;
-    }
-    return obj;
-}
-
-struct object* test_create_octahedron(const uint32 num_objects, float wpos[3], float scale[2], float rot[2], float color[4], const uint64 attr_flags)
-{
-    struct object* obj;
-    scale[0]=1; scale[1]=1;
-    for(uint32 i = 0; i < num_objects; i++) {
-        obj = object_create_octahedron((struct gfx_sid){attr_flags, 0, 0, 0, 0}, wpos, scale, rot, color);
-        wpos[0] -= 3.f;
-    }
-    return obj;
-}
-
-struct object* test_create_dodecahedron(const uint32 num_objects, float wpos[3], float scale[2], float rot[2], float color[4], const uint64 attr_flags)
-{
-    struct object* obj;
-    scale[0]=1; scale[1]=1;
-    for(uint32 i = 0; i < num_objects; i++) {
-        obj = object_create_dodecahedron((struct gfx_sid){attr_flags, 0, 0, 0, 0}, wpos, scale, rot, color);
-        wpos[0] -= 3.f;
-    }
-    return obj;
-}
+//
+// struct object* test_create_quads(const uint32 num_objects, float wpos[3], float scale[2], float rot[2], float color[4], const uint64 attr_flags)
+// {
+//     struct object* obj;
+//     scale[0]=1; scale[1]=1;
+//     for(uint32 i = 0; i < num_objects; i++) {
+//         obj = object_create_rectangle((struct gfx_sid){attr_flags, 0, 0, 0, 0}, wpos, scale, rot, color);
+//         wpos[0] +=3.f;
+//     }
+//
+//     return obj;
+// }
+//
+// struct object* test_create_pentagon(const uint32 num_objects, float wpos[3], float scale[2], float rot[2], float color[4], const uint64 attr_flags)
+// {
+//     struct object* obj;
+//     scale[0]=1; scale[1]=1;
+//     for(uint32 i = 0; i < num_objects; i++) {
+//         obj = object_create_pentagon((struct gfx_sid){attr_flags, 0, 0, 0, 0}, wpos, scale, rot, color);
+//         wpos[0] += 3.f;
+//     }
+//     return obj;
+// }
+//
+// struct object* test_create_hexagon(const uint32 num_objects, float wpos[3], float scale[2], float rot[2], float color[4], const uint64 attr_flags)
+// {
+//     struct object* obj;
+//     scale[0]=1; scale[1]=1;
+//     wpos[2] += .01;
+//     for(uint32 i = 0; i < num_objects; i++) {
+//         obj = object_create_hexagon((struct gfx_sid){attr_flags, 0, 0, 0, 0}, wpos, scale, rot, color);
+//         wpos[0] += 3.f;
+//     }
+//     return obj;
+// }
+//
+// struct object* test_create_octagon(const uint32 num_objects, float wpos[3], float scale[2], float rot[2], float color[4], const uint64 attr_flags)
+// {
+//     struct object* obj;
+//     scale[0]=1; scale[1]=1;
+//     for(uint32 i = 0; i < num_objects; i++) {
+//         obj = object_create_octagon((struct gfx_sid){attr_flags, 0, 0, 0, 0}, wpos, scale, rot, color);
+//         wpos[0] += 3.f;
+//     }
+//     return obj;
+// }
+//
+// struct object* test_create_cube(const uint32 num_objects, float wpos[3], float scale[2], float rot[2], float color[4], const uint64 attr_flags)
+// {
+//     struct object* obj;
+//     scale[0]=1; scale[1]=1;
+//     for(uint32 i = 0; i < num_objects; i++) {
+//         obj = object_create_cube((struct gfx_sid){attr_flags, 0, 0, 0, 0}, wpos, scale, rot, color);
+//         wpos[0] -= 3.f;
+//     }
+//     return obj;
+// }
+//
+// struct object* test_create_octahedron(const uint32 num_objects, float wpos[3], float scale[2], float rot[2], float color[4], const uint64 attr_flags)
+// {
+//     struct object* obj;
+//     scale[0]=1; scale[1]=1;
+//     for(uint32 i = 0; i < num_objects; i++) {
+//         obj = object_create_octahedron((struct gfx_sid){attr_flags, 0, 0, 0, 0}, wpos, scale, rot, color);
+//         wpos[0] -= 3.f;
+//     }
+//     return obj;
+// }
+//
+// struct object* test_create_dodecahedron(const uint32 num_objects, float wpos[3], float scale[2], float rot[2], float color[4], const uint64 attr_flags)
+// {
+//     struct object* obj;
+//     scale[0]=1; scale[1]=1;
+//     for(uint32 i = 0; i < num_objects; i++) {
+//         obj = object_create_dodecahedron((struct gfx_sid){attr_flags, 0, 0, 0, 0}, wpos, scale, rot, color);
+//         wpos[0] -= 3.f;
+//     }
+//     return obj;
+// }
 
 
 void test_create_object(const uint16 attribs_idx, const objid_t obj_id, const uint32 num_objects, enum MESH_TYPE mesh_type, struct camera* camera)
 {
-    struct attributes_group* attribs_group = attribsGroupDescr_get_group(attribs_idx);
+    struct attributes_group* attribs_group = attribsGroupDescr_get_attribs_group(attribs_idx);
 
     struct cmd_gfx_params gfx_params = {
         .sid_idx = attribs_group->sid_idx,
@@ -347,7 +348,7 @@ void test_create_object(const uint16 attribs_idx, const objid_t obj_id, const ui
     if((attribs_group->commands_flag & CMD_CREATE_SHADER_PROGRAM)==0) {
         cmd_add_command((void*)command_create_shader_program, &gfx_params, sizeof(struct cmd_gfx_params));
         attribs_group->commands_flag |= CMD_CREATE_SHADER_PROGRAM;
-        gfx_params.desc_idx =  attribsGroupDescr_get_group(attribs_idx)->build_idx;
+        gfx_params.desc_idx =  attribsGroupDescr_get_attribs_group(attribs_idx)->build_idx;
     }
 
 
@@ -371,6 +372,8 @@ void test_create_object(const uint16 attribs_idx, const objid_t obj_id, const ui
     cmd_add_command((void*) render_queue_add_draw_count, &rq_params, sizeof(struct command_render_queue_params));
 
 }
+
+void test_bubble_sort();
 
 int
 main(void)
@@ -447,34 +450,34 @@ main(void)
     const uint64 indexed_geometry = 0x0;
 
     float wpos[3] = {-5, 3,-14}, rot[2] = {cos(0.0),sin(0.0)}, scale[2] = {4,4}, color[4] = {.2,.5,.9,1};
-    uint16 num_objects = 1;
+    uint16 num_objects = 3;
 
     wpos[0] = -4; wpos[1] = 4;
     struct object* tri = test_create_triangles(num_objects, wpos, scale, rot, color, indexed_geometry);
-    test_create_object(tri->attribs_id, tri->id, num_objects, MESH_TRIANGLE, &camera);
+    test_create_object(tri->attribs_group_id, tri->id, num_objects, MESH_TRIANGLE, &camera);
     // object_destroy(tri2->id);
 
-    wpos[0] = -2; wpos[1] = 4;
-    struct object* quad = test_create_quads(num_objects, wpos, scale, rot, color, indexed_geometry);
-    test_create_object(quad->attribs_id, quad->id, num_objects, MESH_TRIANGLE, &camera);
-
-
-    wpos[0] = -4; wpos[1] = 2;
-    struct object* penta = test_create_pentagon(num_objects, wpos, scale, rot, color, indexed_geometry);
-    test_create_object(penta->attribs_id, penta->id, num_objects, MESH_PENTAGON, &camera);
-
-    wpos[0] = -4; wpos[1] = 0;
-    struct object* hex = test_create_hexagon(num_objects, wpos, scale, rot, color, indexed_geometry);
-    test_create_object(hex->attribs_id, hex->id, num_objects, MESH_HEXAGON, &camera);
-
-    wpos[0] = -4; wpos[1] = -2;
-    struct object* octa = test_create_octagon(num_objects, wpos, scale, rot, color, indexed_geometry);
-    test_create_object(octa->attribs_id, octa->id, num_objects, MESH_OCTAGON, &camera);
-
-    wpos[0] = 2; wpos[1] = 4;
-    struct object* cube = test_create_cube(num_objects, wpos, scale, rot, color, indexed_geometry);
-    test_create_object(cube->attribs_id, cube->id, num_objects, MESH_CUBE, &camera);
+    // wpos[0] = -2; wpos[1] = 4;
+    // struct object* quad = test_create_quads(num_objects, wpos, scale, rot, color, indexed_geometry);
+    // test_create_object(quad->attribs_id, quad->id, num_objects, MESH_TRIANGLE, &camera);
     //
+    //
+    // wpos[0] = -4; wpos[1] = 2;
+    // struct object* penta = test_create_pentagon(num_objects, wpos, scale, rot, color, indexed_geometry);
+    // test_create_object(penta->attribs_id, penta->id, num_objects, MESH_PENTAGON, &camera);
+    //
+    // wpos[0] = -4; wpos[1] = 0;
+    // struct object* hex = test_create_hexagon(num_objects, wpos, scale, rot, color, indexed_geometry);
+    // test_create_object(hex->attribs_id, hex->id, num_objects, MESH_HEXAGON, &camera);
+    //
+    // wpos[0] = -4; wpos[1] = -2;
+    // struct object* octa = test_create_octagon(num_objects, wpos, scale, rot, color, indexed_geometry);
+    // test_create_object(octa->attribs_id, octa->id, num_objects, MESH_OCTAGON, &camera);
+    //
+    // wpos[0] = 2; wpos[1] = 4;
+    // struct object* cube = test_create_cube(num_objects, wpos, scale, rot, color, indexed_geometry);
+    // test_create_object(cube->attribs_id, cube->id, num_objects, MESH_CUBE, &camera);
+
     // wpos[0] = 2; wpos[1] = 0;
     // // wpos[0] = 0; wpos[1] = 0; wpos[2]=-14;
     // struct object* octahedron = test_create_octahedron(num_objects, wpos, scale, rot, color, indexed_geometry);
@@ -497,13 +500,16 @@ main(void)
     // GL_CHECK();
     }
 
-
-    temp_print_builds();
+    /* DEBUG-PRINT */
     attribsGroupDescr_group_print();
+    shader_desc_table_print_build_entries(0);
+    temp_print_builds();
+    // string_format_test_validity();
 
+
+    /* PERF-TIMER */
     struct timer* loop_timer = timer_create_perf_timer();
 
-    string_format_test();
 
 
     /* RUN APP */
@@ -520,6 +526,71 @@ main(void)
     memman_terminate();
 
     return 0;
+}
+
+
+void test_bubble_sort() {
+    // Example 1: Sorting integer buffer
+    printf("=== Integer Bubble Sort ===\n");
+    int int_arr[] = {64, 34, 25, 12, 22, 11, 90};
+    int n = sizeof(int_arr) / sizeof(int_arr[0]);
+
+    printf("Original array: ");
+    print_int_array(int_arr, n);
+
+    // bubble_sort_int(int_arr, n);
+
+    printf("Sorted array: ");
+    print_int_array(int_arr, n);
+    printf("\n");
+
+    // Example 2: Sorting character buffer
+    printf("=== Character Bubble Sort ===\n");
+    char char_arr[] = {'z', 'a', 'm', 'b', 'c', 'f', 'e'};
+    int char_n = sizeof(char_arr) / sizeof(char_arr[0]);
+
+    printf("Original array: ");
+    print_char_array(char_arr, char_n);
+
+    bubble_sort_char(char_arr, char_n);
+
+    printf("Sorted array: ");
+    print_char_array(char_arr, char_n);
+    printf("\n");
+
+    // Example 3: Generic bubble sort
+    printf("=== Generic Bubble Sort ===\n");
+    int generic_arr[] = {64, 34, 25, 12, 22, 11, 90};
+    int gen_n = sizeof(generic_arr) / sizeof(generic_arr[0]);
+
+    printf("Original array: ");
+    print_int_array(generic_arr, gen_n);
+
+    bubble_sort_generic(generic_arr, gen_n, sizeof(int), compare_int);
+
+    printf("Sorted array: ");
+    print_int_array(generic_arr, gen_n);
+    printf("\n");
+
+    // Example 4: Sorting float array using generic function
+    printf("=== Float Bubble Sort ===\n");
+    float float_arr[] = {3.14, 1.5, 2.7, 0.5, 4.2, 1.1};
+    int float_n = sizeof(float_arr) / sizeof(float_arr[0]);
+
+    printf("Original array: ");
+    for (int i = 0; i < float_n; i++) {
+        printf("%.2f ", float_arr[i]);
+    }
+    printf("\n");
+
+    bubble_sort_generic(float_arr, float_n, sizeof(float), compare_float);
+
+    printf("Sorted array: ");
+    for (int i = 0; i < float_n; i++) {
+        printf("%.2f ", float_arr[i]);
+    }
+    printf("\n");
+
 }
 
 

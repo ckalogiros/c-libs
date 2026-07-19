@@ -6,7 +6,10 @@
 
 #include "my_types.h"
 #include "engine.h"
+// #include "gfx_interface.h"
 #include "shader_id.h"
+#include "shader_descriptor.h"
+
 #include "mesh.h"
 
 
@@ -19,7 +22,7 @@ struct object {
     uint16 num_faces;
     uint16 vertex_count;      /// number of object's vertices
     uint16 index_count;       /// number of object's vertex indices
-    attrid_t attribs_id;
+    attrid_t attribs_group_id;
     sididx_t sid_idx;
     uint8  verts_per_face;
 
@@ -40,6 +43,12 @@ vind_t object_get_vertex_index_count(objid_t obj_id);
 void object_set_vertex_count(const objid_t obj_id, const uint16 vertex_count);
 
 enum MESH_TYPE object_get_vertex_mesh_type(objid_t obj_id);
+
+void
+object_add_attribute(const attrid_t attribs_group_id, const build_t build_idx,
+                     const enum SID_ID shader_input_id, const uint16 divisor,
+                     enum SHADER_INPUT_FLAGS attrib_flags, const float* const src);
+
 
 struct object*
 object_create_triangle(struct gfx_sid sid, float wpos[3], float scale[2], float rot[2], float color[4]);

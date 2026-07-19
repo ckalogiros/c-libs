@@ -246,7 +246,7 @@ typedef uint8  mat4x4u8 [4][4];
 
 
 /// types
-enum TYPES_INDEXING {
+enum TYPE_ID {
     DOUBLE = 0,
     FLOAT  , INT64  ,   UINT64 ,   INT32  ,   UINT32 ,   INT16  ,   UINT16 ,   INT8   ,   UINT8  ,
     VEC2F  , VEC2I64,   VEC2U64,   VEC2I32,   VEC2U32,   VEC2I16,   VEC2U16,   VEC2I8 ,   VEC2U8 ,

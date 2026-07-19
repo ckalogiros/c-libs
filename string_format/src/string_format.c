@@ -365,7 +365,7 @@ string_buffer_push(char** const buf, const uint32 size, const char* str)
 
 
 /* TEST-DEBUG */
-void string_format_test()
+void string_format_test_validity()
 {
 #   define TEMP_BUF_LEN 16
 

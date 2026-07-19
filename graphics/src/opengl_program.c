@@ -58,7 +58,7 @@ gfx_program_exists(const sididx_t sid_idx)
 struct shader_descriptor*
 opengl_program_create(const sididx_t sid_idx, const build_t build_idx, const char* fs)
 {
-    struct shader_descriptor* desc = shader_builder_build(sid_idx, build_idx);
+    struct shader_descriptor* desc = shader_builder_build(sid_idx, build_idx, TRUE);
     GL_CHECK();
     const GLuint vertex_shader = gl_create_shader(OPENGL_VERTEX_SHADER);
     gl_shader_source(vertex_shader, 1, &(desc->vshader_code), NULL);

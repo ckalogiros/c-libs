@@ -15,7 +15,7 @@ uint32 string_format_va_list_call(char** const buf, const uint32 size, const cha
 
 uint32 string_buffer_push(char** const buf, const uint32 size, const char* str);
 
-void   string_format_test();
+void   string_format_test_validity();
 
 
 #endif //STRING_FORMAT_H

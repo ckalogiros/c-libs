@@ -25,8 +25,7 @@
 #define VERTICES_PER_DODECAHEDRON (FACES_PER_DODECAHEDRON*VERTICES_PER_PENTAGON)
 
 
-
-enum MESH_TYPE{
+enum MESH_TYPE {
     MESH_NULL = 0,
     MESH_TRIANGLE,
     MESH_RECTANGLE,
@@ -46,15 +45,16 @@ void mesh_build_dodecahedron();
 void create_blender_ico_sphere(float* out);
 
 
-typedef struct { float x, y, z; } Vec3;
+typedef struct {
+    float x, y, z;
+} Vec3;
 
 /// Generate 20 vertices of a regular dodecahedron (circumradius = 1)
 void generate_dodecahedron_vertices(float vertices[20]);
 
 
 /// Triangulate a pentagon (fan from first vertex)
-void triangulate_pentagon(const float vertices[], const int pentagon[5],
-                          float* out, int* offset);
+void triangulate_pentagon(float vertices[], int pentagon[5], float* out, int* offset);
 
 /// Generate complete dodecahedron triangles (108 vertices = 36 triangles)
 /// Returns number of vertices (always 108)
@@ -65,11 +65,16 @@ int generate_dodecahedron_triangles(float* out_triangles);
  **************************************************************************************************/
 
 float* mesh_get_mesh_vertices_from_type(enum MESH_TYPE type);
+
 uint32 mesh_get_mesh_vertex_count_from_type(enum MESH_TYPE type);
+
 vind_t* mesh_get_mesh_indices_from_type(enum MESH_TYPE type);
+
 vind_t mesh_get_mesh_indices_count_from_type(enum MESH_TYPE type);
-uint8  mesh_get_vpos_num_elems(enum MESH_TYPE type);
-char*  mesh_get_name_from_type(enum MESH_TYPE type);
+
+uint8 mesh_get_vpos_num_elems(enum MESH_TYPE type);
+
+char* mesh_get_name_from_type(enum MESH_TYPE type);
 
 
 #endif //GRAPHICS_TEST_MESH_H

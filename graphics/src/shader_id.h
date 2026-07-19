@@ -47,21 +47,21 @@
 enum SID_ID {
     // SID_NULL_=0,
     SID_OPACIT_ID = 0,
-    SID_VPOSI2_ID,
-    SID_WPOSI2_ID,
-    SID_SCALE2_ID,
-    SID_ROTAT2_ID,
-    SID_PIVOT2_ID,
-    SID_UVCOO2_ID,
-    SID_VPOSI3_ID,
-    SID_WPOSI3_ID,
-    SID_SCALE3_ID,
-    SID_ROTAT3_ID,
-    SID_PIVOT3_ID,
-    SID_COLOR3_ID,
-    SID_NORMA3_ID,
-    SID_COLOR4_ID,
-    SID_PROJMAT4X4_ID,
+    SID_VPOSI2_ID,  // 1
+    SID_WPOSI2_ID,  // 2
+    SID_SCALE2_ID,  // 3
+    SID_ROTAT2_ID,  // 4
+    SID_PIVOT2_ID,  // 5
+    SID_UVCOO2_ID,  // 6
+    SID_VPOSI3_ID,  // 7
+    SID_WPOSI3_ID,  // 8
+    SID_SCALE3_ID,  // 9
+    SID_ROTAT3_ID,  // 10
+    SID_PIVOT3_ID,  // 11
+    SID_COLOR3_ID,  // 12
+    SID_NORMA3_ID,  // 13
+    SID_COLOR4_ID,  // 14
+    SID_PROJMAT4X4_ID, // 15
 
     SID_ID_COUNT,
 };
@@ -119,7 +119,7 @@ shaderinfo_id_to_flagname(const enum SID_ID type)
         case SID_ROTAT3_ID: return "ROTAT3";
         case SID_PIVOT3_ID: return "PIVOT3";
         case SID_COLOR3_ID: return "COLOR3";
-        case SID_COLOR4_ID: return "NORMA3";
+        case SID_COLOR4_ID: return "COLOR4";
         case SID_PROJMAT4X4_ID: return "PROJMAT4X4";
         default: return "NONE";
     }
@@ -221,7 +221,7 @@ shaderinfo_id_to_numelems(const enum SID_ID type)
 }
 
 static const char*
-shaderinfo_type_to_glsltype_string(const enum TYPES_INDEXING type)
+shaderinfo_type_to_glsltype_string(const enum TYPE_ID type)
 {
     switch(type) {
         case FLOAT:   return "float";
@@ -244,7 +244,7 @@ shaderinfo_type_to_glsltype_string(const enum TYPES_INDEXING type)
 }
 
 static uint8
-shaderinfo_type_to_numelems(const enum TYPES_INDEXING type)
+shaderinfo_type_to_numelems(const enum TYPE_ID type)
 {
     switch(type) {
         case FLOAT:   return 1;
@@ -265,7 +265,7 @@ shaderinfo_type_to_numelems(const enum TYPES_INDEXING type)
 }
 
 static uint8
-shaderinfo_type_to_typesize(const enum TYPES_INDEXING type)
+shaderinfo_type_to_typesize(const enum TYPE_ID type)
 {
     switch(type) {
         case FLOAT:   return SIZE_F32;

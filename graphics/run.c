@@ -28,7 +28,7 @@ render_queue_get_count() { return render_queue_count; }
 void
 render_queue_add_draw_count(struct command_render_queue_params* params)
 {
-    struct attributes_group* attribs_group = attribsGroupDescr_get_group(params->attribs_idx);
+    struct attributes_group* attribs_group = attribsGroupDescr_get_attribs_group(params->attribs_idx);
     struct render_queue* rq = &render_queue[attribs_group->rqidx];
     // rq->draw_count += params->vertex_count;
     rq->draw_count += params->index_count;
