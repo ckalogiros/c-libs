@@ -136,10 +136,9 @@ draw()
         bool is_indexed_geometry = sid_check_attr_match_from_flag(rq.sid_idx, SID_INDEXED);
         if(is_indexed_geometry) gl_draw_elements(OPENGL_TRIANGLES, rq.draw_count, GL_UNSIGNED_INT, 0);
         else gl_draw_arrays(OPENGL_TRIANGLES, 0, rq.draw_count);
-        // glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);
         GL_CHECK();
 
-        // glBindVertexArray(0);
+        glBindVertexArray(0);
     }
 }
 

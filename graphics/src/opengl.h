@@ -40,6 +40,10 @@ void gl_draw_arrays(GLenum mode, GLint start_index, GLsizei num_vertices);
 
 void gl_draw_elements(GLenum mode, GLsizei count, GLenum type, const void* indices);
 
+void gl_draw_arrays_instanced(GLenum mode, GLint first, GLsizei count, GLsizei instancecount);
+
+void gl_draw_elements_instanced(GLenum mode, GLsizei count, GLenum type, const void * indices, GLsizei instancecount);
+
 
 void gl_viewport(GLuint width, GLuint height);
 

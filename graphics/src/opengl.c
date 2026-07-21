@@ -29,6 +29,10 @@ void gl_draw_arrays(GLenum mode, GLint start_index, GLsizei num_vertices) { glDr
 
 void gl_draw_elements(GLenum mode, GLsizei count, GLenum type, const void* indices) { glDrawElements(mode, count, type, indices); }
 
+void gl_draw_arrays_instanced(GLenum mode, GLint first, GLsizei count, GLsizei instancecount) { glDrawArraysInstanced(mode, first, count, instancecount); }
+
+void gl_draw_elements_instanced(GLenum mode, GLsizei count, GLenum type, const void * indices, GLsizei instancecount) { glDrawElementsInstanced(mode, count, type, indices, instancecount); }
+
 
 void gl_viewport(GLuint width, GLuint height) { glViewport(0, 0, width, height); }
 void gl_clear() { glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); }

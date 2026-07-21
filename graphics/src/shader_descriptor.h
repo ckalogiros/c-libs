@@ -3,6 +3,7 @@
  */
 #ifndef GRAPHICS_TEST_SHADER_ATTRIBUTES_H
 #define GRAPHICS_TEST_SHADER_ATTRIBUTES_H
+#include "attributes.h"
 #include "gfx_interface.h"
 #include "my_types.h"
 
@@ -29,13 +30,13 @@ enum SHADER_INPUT_FLAGS {
  **************************************************************************************************/
 
 struct shader_attribute_layout {
-    uint8 loc;
-    uint8 size;
-    uint8 type;
+    attr_t loc;
+    attr_t size;
+    attr_t type;
+    attr_t attr_idx;
     int8 loc_offset; // attributes's offset of shader's location
     int8 offset;     // attributes's offset from the start
     vlayout_t idx;
-    uint8 attr_idx;
 };
 
 struct uniform_layout {
@@ -51,8 +52,8 @@ struct vertex_attribute_ids {
      * (in the descriptor->vlayout buffer) using an "enum SID_ID".
      * E.x. ids[SID_VPOSI2_ID] -> gets the vlayout[] index of the SID_WPOS2 attribute
      */
-    uint8 ids[SID_ID_COUNT];
-    uint8 count;
+    attr_t ids[SID_ID_COUNT];
+    attr_t count;
 };
 
 
@@ -67,15 +68,15 @@ struct shader_entry {
     /// TODO: maybe unnecessary, because enum SID_VAR_ID does not guarantee same index in vertex_attribute_ids
     enum SID_ID shader_input_id; // the enum SID_VAR_ID index of current shader variable input
 
-    uint8 divisor;
-    uint8 typesize;
-    uint8 elems;
-    uint8 this_idx; // the index position in the shader_inputs_table buffer
-    uint8 input_idx;
+    attr_t divisor;
+    attr_t typesize;
+    attr_t elems;
+    attr_t this_idx; // the index position in the shader_inputs_table buffer
+    attr_t input_idx;
 
-    uint8 pad1;
-    uint8 pad2;
-    uint8 pad3;
+    attr_t pad1;
+    attr_t pad2;
+    attr_t pad3;
 };
 
 /***************************************************************************************************
@@ -93,10 +94,10 @@ struct shader_descriptor {
     sid_t   added_entry_flags_renameme;
     int16   vshader_attribs_idx;
     uint16  vshader_code_size;
-    uint8   vshader_attribs_count;
-    uint8   vshader_attribs_stride;
-    uint8   vshader_attrib_locations_count;
-    uint8   last_loc_num_elems;
+    attr_t   vshader_attribs_count;
+    attr_t   vshader_attribs_stride;
+    attr_t   vshader_attrib_locations_count;
+    attr_t   last_loc_num_elems;
     uint32  entry_count;
     uint32  vlayout_count;
     build_t build_idx;
@@ -128,22 +129,22 @@ void shader_init_attribsidxs(desc_t desc_idx);
 
 struct shader_attribute_layout* shader_descriptor_vertex_layout_get(desc_t desc_idx, vlayout_t vlayout_idx);
 
-uint8 shader_attrib_id_get(desc_t desc_idx, enum SID_ID idx);
+attr_t shader_attrib_id_get(desc_t desc_idx, enum SID_ID idx);
 
-uint8 shader_attrib_get_offset(desc_t desc_idx, enum SID_ID idx);
+attr_t shader_attrib_get_offset(desc_t desc_idx, enum SID_ID idx);
 
-uint8 shader_attrib_get_stride(desc_t desc_idx);
+attr_t shader_attrib_get_stride(desc_t desc_idx);
 
 sididx_t shader_dscriptor_get_sid(desc_t desc_idx);
 
 
 // uint32 shader_descriptor_vertex_layout_set(desc_t desc_idx, struct vertex_layout attribs_desc[], uint32 count);
 
-void shader_descriptor_set_attribute_ids(desc_t desc_idx, uint32 attrib_id, uint32 vid);
+void shader_descriptor_set_attribute_ids(const desc_t desc_idx, const attr_t attrib_id, const uint32 at_index);
 
-void shader_attributes_enable(uint32 count, uint32 stride, uint8 last_loc_num_elems);
+void shader_attributes_enable(uint32 count, uint32 stride, attr_t last_loc_num_elems);
 
-void shader_attributes_instanced_enable(uint32 count, uint32 stride, uint8 last_loc_num_elems);
+void shader_attributes_instanced_enable(uint32 count, uint32 stride, attr_t last_loc_num_elems);
 
 /* DEBUG-PRINT */
 

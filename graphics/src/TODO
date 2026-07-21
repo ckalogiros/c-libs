@@ -99,3 +99,13 @@ It needs: set_for_push and then add/copy a new descriptor object.
     glDrawArraysInstanced(num_instances)
     glDrawElementsInstanced(num_instances)
 
+0. adapt object creation: OK!
+1. adapt shader builder: OK!
+2. adapt VAO and VBO creation:
+ . adpt each individual vb stride, offsets etc
+3. adapt vbos[] to VAO
+ . adapt enable_attributes()
+4. change to 1 vertex buffer for attributes storage
+
+
+vertex_attribute_ids buffer of shader descriptor

@@ -14,17 +14,17 @@ void main()
 {
   float vpos2_0 = generic_0.x;
   float vpos2_1 = generic_0.y;
-  float color4_0 = generic_0.z;
-  float color4_1 = generic_0.w;
-  float color4_2 = generic_1.x;
-  float color4_3 = generic_1.y;
-  float wpos3_0 = generic_1.z;
-  float wpos3_1 = generic_1.w;
-  float wpos3_2 = generic_2.x;
-  float scale2_0 = generic_2.y;
-  float scale2_1 = generic_2.z;
-  float rot2_0 = generic_2.w;
-  float rot2_1 = generic_3.x;
+  float wpos3_0 = generic_0.z;
+  float wpos3_1 = generic_0.w;
+  float wpos3_2 = generic_1.x;
+  float scale2_0 = generic_1.y;
+  float scale2_1 = generic_1.z;
+  float rot2_0 = generic_1.w;
+  float rot2_1 = generic_2.x;
+  float color4_0 = generic_2.y;
+  float color4_1 = generic_2.z;
+  float color4_2 = generic_2.w;
+  float color4_3 = generic_3.x;
 
 
   /// calculate transform

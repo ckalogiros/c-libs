@@ -167,22 +167,52 @@ void command_create_vao(struct cmd_gfx_params* params)
         vaoidx = gfx_vertex_array_create(desc->build_idx);
         is_new_vao = TRUE;
     }
-
     desc->vaoidx = vaoidx;
+
+
     struct vertex_array_object* va = gfx_vertex_array_get_byidx(vaoidx);
     gl_bind_vertex_array(va->vao);
     GL_CHECK();
+
+    struct shader_descriptor* descr = shader_descriptor_get(va->desc_idx);
+
 
     /* VERTEX BUFFER */
     vbidx_t vbidx = INT_NULL;
     struct vertex_buffer_object* vb = NULL;
     if(is_new_vao){
-        /// TODO: calculate the size of the vertex buffer OR use dynamic array vertex buffer
-        vbidx = gfx_vertex_buffer_create(200*stride*SIZE_F32, stride);
 
-        vb = vertex_buffer_get_vbo(vbidx);
-        gl_bind_buffer(OPENGL_ARRAY_BUFFER, vb->vbo);
-        GL_CHECK();
+        /*
+         * if:
+         *      interleaved and !instanced
+         *          create 1 vb
+         *      interleaved and instanced
+         *          create 2 or more vbs
+         *      !interleaved
+         *          create 2 or more vbs
+         */
+
+        struct vertex_array_object* vao = gfx_vertex_array_get_byidx(vaoidx);
+
+
+        {
+            /// TODO: calculate the size of the vertex buffer OR use dynamic array vertex buffer
+            vbidx = gfx_vertex_buffer_create(200*stride*SIZE_F32, stride);
+            vb = vertex_buffer_get_vbo(vbidx);
+            gl_bind_buffer(OPENGL_ARRAY_BUFFER, vb->vbo);
+            GL_CHECK();
+            vao->vbos[0] = vbidx;
+        }
+        // {
+        //     /// TODO: calculate the size of the vertex buffer OR use dynamic array vertex buffer
+        //     vbidx = gfx_vertex_buffer_create(2*stride*SIZE_F32, stride);
+        //     vb = vertex_buffer_get_vbo(vbidx);
+        //     gl_bind_buffer(OPENGL_ARRAY_BUFFER, vb->vbo);
+        //     GL_CHECK();
+        //     vao->vbos[0] = vbidx;
+        // }
+
+        /// HERE: The vb is connected to the bound VAO.
 
         shader_attributes_instanced_enable(desc->vshader_attrib_locations_count, desc->vshader_attribs_stride, desc->last_loc_num_elems);
         // shader_attributes_enable(desc->vshader_attrib_locations_count, desc->vshader_attribs_stride, desc->last_loc_num_elems);
@@ -214,7 +244,6 @@ void command_create_vao(struct cmd_gfx_params* params)
         // vb = vertex_buffer_get_vbo(vbidx);
     }
     assert(ibidx != INT_NULL);
-
 
     /* SET COMMANDS */
     void* p = NULL;
@@ -450,7 +479,7 @@ main(void)
     const uint64 indexed_geometry = 0x0;
 
     float wpos[3] = {-5, 3,-14}, rot[2] = {cos(0.0),sin(0.0)}, scale[2] = {4,4}, color[4] = {.2,.5,.9,1};
-    uint16 num_objects = 3;
+    uint16 num_objects = 1;
 
     wpos[0] = -4; wpos[1] = 4;
     struct object* tri = test_create_triangles(num_objects, wpos, scale, rot, color, indexed_geometry);

@@ -348,7 +348,6 @@ uint32 gfx_vertex_index_buffer_create(const uint32 data_size)
     struct vertex_index_buffer_object* ib = &vertex_index_buffer_table[ibidx];
     ib->idx = ibidx;
     ib->ibo = ibo;
-    // ib->data = aligned_alloc(1024, data_size);
     memid_t ib_inst_id = arena_allocator_create_new_instance(ROUND_UP(data_size, PAGE_SIZE)/PAGE_SIZE);
     ib->data = arena_allocator_alloc(ib_inst_id, data_size, sizeof(float));
     memset(ib->data, 0xBCD, data_size);
