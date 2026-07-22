@@ -142,7 +142,8 @@ sididx_t shader_dscriptor_get_sid(desc_t desc_idx);
 
 void shader_descriptor_set_attribute_ids(const desc_t desc_idx, const attr_t attrib_id, const uint32 at_index);
 
-void shader_attributes_enable(uint32 count, uint32 stride, attr_t last_loc_num_elems);
+// void shader_attributes_enable(uint32 count, uint32 stride, attr_t last_loc_num_elems);
+void shader_attributes_enable(const struct shader_descriptor* desc);
 
 void shader_attributes_instanced_enable(uint32 count, uint32 stride, attr_t last_loc_num_elems);
 

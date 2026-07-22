@@ -124,6 +124,7 @@ mem_allocate_block(const uint16 num_pages, const uint32 alignment, const char* n
 {
     CHECK_MEM_NULL(mem_table, NO_MEMORY_MANAGER_INIT, "caller: mem_allocate_block()")
     assert(MEMORY_POISON_SIZE <= MAX_UINT64);
+    assert(num_pages > 0);
 
     const uint32 page_size = PAGE_SIZE;
     const uint32 poison_data_size = PAGE_SIZE;

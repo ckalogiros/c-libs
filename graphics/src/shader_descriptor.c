@@ -12,7 +12,8 @@
 #include "shader_builder.h"
 #include "slab_allocator_internals.h"
 #include "buffer_arr_internals.h"
-
+#include "fdebug_test.h"
+#include "string_format.h"
 
 
 buffer_t* shader_descriptor_table = NULL;
@@ -94,6 +95,11 @@ shader_descriptor_create_vertex_layout(const desc_t desc_idx, struct shader_attr
     vl->idx         = vlayout.idx;
 
     print("# CREATE VLAYOUT[%u]: loc:%u, loc_offset:%d, offset:%d, size:%u\n", idx, vlayout.loc, vlayout.loc_offset, vlayout.offset, vlayout.size);
+    char buf[64] = {0};
+    char* ptr = &buf[0];
+    uint32 size = string_format(&ptr, 64, "[%u]: loc:%u, loc_offset:%d, offset:%d, size:%u\n",
+                                idx, vlayout.loc, vlayout.loc_offset, vlayout.offset, vlayout.size);
+    engine_fdebug_append_string(ENGINE_FDEBUG_FILE_VERTEX_LAYOUT, buf, size);
 
 }
 
@@ -164,27 +170,28 @@ shader_descriptor_set_attribute_ids(const desc_t desc_idx, const attr_t attrib_i
 }
 
 void
-shader_attributes_enable(const uint32 locations_count, const uint32 stride, const attr_t last_loc_num_elems)
+// shader_attributes_enable(const uint32 locations_count, const uint32 stride, const attr_t last_loc_num_elems)
+shader_attributes_enable(const struct shader_descriptor* desc)
 {
-    assert(last_loc_num_elems>0);
-    assert(last_loc_num_elems <= SHADER_MAX_LOCATION_SIZE);
-    uint32 k = 0;
-    uint32 loc = 0;
+    assert(desc->last_loc_num_elems>0);
+    assert(desc->last_loc_num_elems <= SHADER_MAX_LOCATION_SIZE);
 
-    for(; loc < locations_count - 1; loc++) {
-        gl_enable_vertex_attrib_array(loc);
+    for(uint32 i = 0; i < desc->vshader_attrib_locations_count; i++) {
+
+        const struct shader_attribute_layout* vlayout = &desc->v_layout[i];
+
+        gl_enable_vertex_attrib_array(vlayout->loc);
         GL_CHECK();
-        gl_enable_attrib_pointer(loc, SHADER_MAX_LOCATION_SIZE, stride * SIZE_F32, (k * SHADER_MAX_LOCATION_SIZE));
+        gl_enable_attrib_pointer(vlayout->loc, vlayout->size, desc->vshader_attribs_stride * SIZE_F32, vlayout->offset * SIZE_F32);
         GL_CHECK();
-        gl_vertex_attrib_divisor(loc, SHADER_DEVISOR_PER_VERTEX);
+        gl_vertex_attrib_divisor(vlayout->loc, SHADER_DEVISOR_PER_VERTEX);
         GL_CHECK();
 
-        k += SHADER_MAX_LOCATION_SIZE;
     }
 
-    gl_enable_vertex_attrib_array(loc);
-    gl_enable_attrib_pointer(loc, last_loc_num_elems, stride * SIZE_F32, (k * SHADER_MAX_LOCATION_SIZE));
-    gl_vertex_attrib_divisor(loc, SHADER_DEVISOR_PER_VERTEX);
+    // gl_enable_vertex_attrib_array(vlayout->loc);
+    // gl_enable_attrib_pointer(vlayout->loc, desc->last_loc_num_elems, desc->vshader_attribs_stride * SIZE_F32, vlayout->offset);
+    // gl_vertex_attrib_divisor(vlayout->loc, SHADER_DEVISOR_PER_VERTEX);
 }
 
 void

@@ -135,6 +135,7 @@ char* engine_fdebug_get_filename_from_enum_type(enum ENGINE_FDEBUG_FILE_NAMES ty
         case ENGINE_FDEBUG_FILE_VSHADER: return "fdebug_vshader.cc";
         case ENGINE_FDEBUG_FILE_FSHADER: return "fdebug_fshader.cc";
         case ENGINE_FDEBUG_FILE_VERTEX_BUFFER:  return "fdebug_vertex_buffer.cc";
+        case ENGINE_FDEBUG_FILE_VERTEX_LAYOUT:  return "fdebug_vertex_layout.cc";
         case ENGINE_FDEBUG_FILE_OBJ_COMPONENTS: return "fdebug_obj_attributess.cc";
         default: return "fdebug_default.cc";
     }

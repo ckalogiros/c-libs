@@ -214,8 +214,9 @@ void command_create_vao(struct cmd_gfx_params* params)
 
         /// HERE: The vb is connected to the bound VAO.
 
-        shader_attributes_instanced_enable(desc->vshader_attrib_locations_count, desc->vshader_attribs_stride, desc->last_loc_num_elems);
+        // shader_attributes_instanced_enable(desc->vshader_attrib_locations_count, desc->vshader_attribs_stride, desc->last_loc_num_elems);
         // shader_attributes_enable(desc->vshader_attrib_locations_count, desc->vshader_attribs_stride, desc->last_loc_num_elems);
+        shader_attributes_enable(desc);
         opengl_debug_attributes_in(desc->vshader_attrib_locations_count);
         GL_CHECK();
         attribs_group->rqidx = renderer_renderqueue_add(params->sid_idx, prog->program, desc->build_idx, va->vao, va->idx, vb->vbo, vb->idx);
@@ -479,7 +480,7 @@ main(void)
     const uint64 indexed_geometry = 0x0;
 
     float wpos[3] = {-5, 3,-14}, rot[2] = {cos(0.0),sin(0.0)}, scale[2] = {4,4}, color[4] = {.2,.5,.9,1};
-    uint16 num_objects = 1;
+    uint16 num_objects = 4;
 
     wpos[0] = -4; wpos[1] = 4;
     struct object* tri = test_create_triangles(num_objects, wpos, scale, rot, color, indexed_geometry);
