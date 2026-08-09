@@ -29,14 +29,15 @@ enum SHADER_INPUT_FLAGS {
  * shader vertex layout
  **************************************************************************************************/
 
-struct shader_attribute_layout {
+struct attributes_layout {
     attr_t loc;
-    attr_t size;
+    attr_t num_elems;
     attr_t type;
     attr_t attr_idx;
-    int8 loc_offset; // attributes's offset of shader's location
-    int8 offset;     // attributes's offset from the start
+    attr_t loc_offset; // attributes's offset of shader's location
+    attr_t offset;     // attributes's offset from the start
     vlayout_t idx;
+    uint32 temp_attrib_counter;
 };
 
 struct uniform_layout {
@@ -106,7 +107,7 @@ struct shader_descriptor {
     sididx_t sid_idx;
 
     struct shader_entry entries[SHADER_INPUT_ENTRIES_MAX_COUNT];
-    struct shader_attribute_layout v_layout[SHADER_INPUT_ENTRIES_MAX_COUNT];
+    struct attributes_layout v_layout[SHADER_INPUT_ENTRIES_MAX_COUNT];
     // TODO: use sparse array for dynamicaly sized buffer
     struct vertex_attribute_ids vertex_attribute_ids; /// this is a SID_ID buffer of attribute entries. E.x. vertex_attribute_ids[SID_WPOS_ID]->gets the SID_WPOS for this shader
 
@@ -123,11 +124,11 @@ void shader_descriptor_init(void);
 
 build_t shader_descriptor_create(sididx_t sid_idx);
 
-void shader_descriptor_create_vertex_layout(desc_t desc_idx, struct shader_attribute_layout vlayout);
+void shader_descriptor_create_vertex_layout(desc_t desc_idx, struct attributes_layout vlayout);
 
 void shader_init_attribsidxs(desc_t desc_idx);
 
-struct shader_attribute_layout* shader_descriptor_vertex_layout_get(desc_t desc_idx, vlayout_t vlayout_idx);
+struct attributes_layout* shader_descriptor_vertex_layout_get(desc_t desc_idx, vlayout_t vlayout_idx);
 
 attr_t shader_attrib_id_get(desc_t desc_idx, enum SID_ID idx);
 
@@ -142,6 +143,8 @@ sididx_t shader_dscriptor_get_sid(desc_t desc_idx);
 
 void shader_descriptor_set_attribute_ids(const desc_t desc_idx, const attr_t attrib_id, const uint32 at_index);
 
+
+void shader_attribute_enable(const attr_t loc, const attr_t num_elems, const attr_t stride, const attr_t offset, const attr_t size, const attr_t divisor);
 // void shader_attributes_enable(uint32 count, uint32 stride, attr_t last_loc_num_elems);
 void shader_attributes_enable(const struct shader_descriptor* desc);
 

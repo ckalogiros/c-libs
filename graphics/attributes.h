@@ -55,7 +55,8 @@ struct attribs_per_attrib_descriptor {
     attr_t attr_offset;    /// the start offset of the attribute  in the attributes data buffer
     attr_t attr_num_elems; /// how many: floats | ints etc, for the attribute
     attr_t divisor;
-    /// !IMPORTANT!: This is  the equivalent index of "this" attribute in the shader's attributes entries (struct shader_entry entries).
+    sid_t  shader_input_flags;    /// flag of type: SHADER_INPUT_FLAGS aka IN_VSHADER | IS_ATTR | IS_TRANSFORM_WPOS, etc
+        /// !IMPORTANT!: This is  the equivalent index of "this" attribute in the shader's attributes entries (struct shader_entry entries).
     /// This is the way of object's attribute data NOT being in order with the shader's attributes.
     /// E.x. obj_attribs_order:{VPOS, WPOS, ..., COL}, shader_attribs_order:{VPOS, COL, WPOS, ...}
     /// attribs_descr[1] == 2.        WPOS=1                                            WPOS=2

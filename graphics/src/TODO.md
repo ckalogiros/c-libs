@@ -17,6 +17,7 @@
 * unify attributes.c with shader_descriptor.c
     There is no case in which a group of objects with the same attributes to
     belong to different shader build
+* RENAME ALL "enum SID_ID" variables to "input_idx"
 
 ----
 
@@ -30,6 +31,7 @@ flag is a compile time #define.
 ----
 
 # REMOVE UNUSED
+* Is "shader_inputs_table[]" used??? each shader build has its own shader entries.
 
 ----
 

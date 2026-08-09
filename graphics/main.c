@@ -1,7 +1,9 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
+#include "arena_allocator.h"
 #include "my_macros.h"
 #include "str_utils.h"
 #include "camera.h"
@@ -21,6 +23,8 @@
 #include "string_format.h"
 #include "attributes.h"
 #include "bubble_sort.h"
+
+#include "test_custom_rendering.h"
 
 
 #   define COLOR_RED     1.0f, 0.3f, 0.3f, 1.0f
@@ -121,10 +125,12 @@ static const char* fragment_shader_text = "\
 *
 ***************************************************************************************************/
 struct cmd_gfx_params {
-    // float* mesh_data;
     struct camera camera;
+    const char* unif_name;
+    const float* unif_data;
     sididx_t sid_idx;
-    uint16   attribs_idx;
+    attr_t   shader_attribs_idx;
+    attrid_t vao_attribs_idx;
     build_t  build_idx;
     desc_t   desc_idx;
     uint8    vpos_num_elems;
@@ -150,11 +156,21 @@ void command_set_camera(struct cmd_gfx_params* params)
     GL_CHECK();
     gl_use_program(0x0);
 }
+// void command_set_triangle_mesh(struct cmd_gfx_params* params)
+// {
+//     struct opengl_program* prog = shader_program_get(params->build_idx);
+//     gl_use_program(prog->program);
+//     GLint location = gl_get_uniform_location(prog->program, params->unif_name);
+//     glUniform2fv(location, 1, (float*)params->unif_data);
+//     GL_CHECK();
+//     gl_use_program(0x0);
+// }
 
 void command_create_vao(struct cmd_gfx_params* params)
 {
-    struct attributes_group* attribs_group = attribsGroupDescr_get_attribs_group(params->attribs_idx);
+    struct attributes_group* attribs_group = attribsGroupDescr_get_attribs_group(params->shader_attribs_idx);
     struct shader_descriptor* desc = shader_descriptor_get(params->desc_idx);
+    struct attribs_per_attrib_descriptor* vao_descr = attribsGroupDescr_get_attribs_descr(params->vao_attribs_idx);
     const uint32 stride = desc->vshader_attribs_stride;
     struct opengl_program* prog = shader_program_get(params->desc_idx);
     gl_use_program(prog->program);
@@ -171,10 +187,7 @@ void command_create_vao(struct cmd_gfx_params* params)
 
 
     struct vertex_array_object* va = gfx_vertex_array_get_byidx(vaoidx);
-    gl_bind_vertex_array(va->vao);
-    GL_CHECK();
-
-    struct shader_descriptor* descr = shader_descriptor_get(va->desc_idx);
+    gl_bind_vertex_array(va->vao);                                                      GL_CHECK();
 
 
     /* VERTEX BUFFER */
@@ -190,36 +203,89 @@ void command_create_vao(struct cmd_gfx_params* params)
          *          create 2 or more vbs
          *      !interleaved
          *          create 2 or more vbs
+         *
+         * run
+         *      for all attributes via the desc->vlayout
+         *          for any new divisor: create vertex buffer, push to VAO and set the vertex buffer vertex layout
+         *
          */
 
         struct vertex_array_object* vao = gfx_vertex_array_get_byidx(vaoidx);
 
+        char buf[64] = {0}; char* ptr = &buf[0];
+        uint32 size = string_format(&ptr, 64, "--- VAO:%2u ---\n", vao->idx);
+        engine_fdebug_append_string(ENGINE_FDEBUG_FILE_VERTEX_LAYOUT, buf, size);
 
-        {
-            /// TODO: calculate the size of the vertex buffer OR use dynamic array vertex buffer
-            vbidx = gfx_vertex_buffer_create(200*stride*SIZE_F32, stride);
-            vb = vertex_buffer_get_vbo(vbidx);
-            gl_bind_buffer(OPENGL_ARRAY_BUFFER, vb->vbo);
-            GL_CHECK();
-            vao->vbos[0] = vbidx;
+        uint32 cnt = 0, vao_attr_desc_cnt = 0;
+        attr_t divisor = INT_NULL;
+        attr_t vb_stride = 0;
+        for(uint32 i = 0; i < desc->entry_count; i++){
+
+            if(desc->entries[i].input_flag & IS_ATTR) {
+
+                if(divisor != desc->entries[i].divisor) {
+// HERE: we need to pass the correct stride based on the attribs stored per vb
+                    vbidx = gfx_vertex_buffer_create(20*3*stride*SIZE_F32, stride);
+                    vao->vbos[cnt++] = vbidx;                                                       /// push new vertex buffer's index to VAO
+
+
+                    vb = vertex_buffer_get_vbo(vbidx);
+                    gl_bind_buffer(OPENGL_ARRAY_BUFFER, vb->vbo);                       GL_CHECK();
+
+                    divisor = desc->entries[i].divisor;
+
+                    char buf2[64] = {0}; ptr = &buf[0];
+                    uint32 size2 = string_format(&ptr, 64, " VBO:%2u\n", vbidx);
+                    engine_fdebug_append_string(ENGINE_FDEBUG_FILE_VERTEX_LAYOUT, buf2, size2);
+
+                    va->vbcount++;
+                    vb_stride = 0;
+                }
+
+                vb->v_layout[vb->attrib_count].loc        = desc->v_layout[i].loc;
+                vb->v_layout[vb->attrib_count].num_elems  = desc->v_layout[i].num_elems;
+                vb->v_layout[vb->attrib_count].type       = desc->v_layout[i].type;
+                vb->v_layout[vb->attrib_count].attr_idx   = desc->v_layout[i].attr_idx;             /// UNUSED for vertex buffers???
+                vb->v_layout[vb->attrib_count].loc_offset = desc->v_layout[i].loc_offset;           /// UNUSED for vertex buffers???
+                vb->v_layout[vb->attrib_count].offset     = vao_descr[vao_attr_desc_cnt].attr_offset;
+                vb->v_layout[vb->attrib_count].idx        = desc->v_layout[i].idx;                  /// UNUSED for vertex buffers???
+                vb->attrib_count++;
+                vb_stride += desc->v_layout[i].num_elems;
+                vb->stride = vb_stride;
+
+
+                shader_attribute_enable(desc->v_layout[i].loc, desc->v_layout[i].num_elems,
+                    stride, vao_descr[vao_attr_desc_cnt].attr_offset, SIZE_F32, divisor);
+
+                char buf2[128] = {0}; ptr = &buf[0];
+                uint32 size2 = string_format(&ptr, 128,
+                    "[%2u]: "
+                    "loc: %2u, "
+                    "num_elems: %2u, "
+                    "type: %s, "
+                    "loc_offset: %2u, "
+                    "offset: %2u, "
+                    "\n",
+                    desc->v_layout[i].idx,
+                    desc->v_layout[i].loc,
+                    desc->v_layout[i].num_elems,
+                    shaderinfo_type_to_glsltype_string(desc->v_layout[i].type),
+                    desc->v_layout[i].loc_offset,
+                    vao_descr[vao_attr_desc_cnt].attr_offset
+                );
+                engine_fdebug_append_string(ENGINE_FDEBUG_FILE_VERTEX_LAYOUT, buf2, size2);
+
+                vao_attr_desc_cnt++;
+            }
+
+
+
         }
-        // {
-        //     /// TODO: calculate the size of the vertex buffer OR use dynamic array vertex buffer
-        //     vbidx = gfx_vertex_buffer_create(2*stride*SIZE_F32, stride);
-        //     vb = vertex_buffer_get_vbo(vbidx);
-        //     gl_bind_buffer(OPENGL_ARRAY_BUFFER, vb->vbo);
-        //     GL_CHECK();
-        //     vao->vbos[0] = vbidx;
-        // }
 
-        /// HERE: The vb is connected to the bound VAO.
-
-        // shader_attributes_instanced_enable(desc->vshader_attrib_locations_count, desc->vshader_attribs_stride, desc->last_loc_num_elems);
-        // shader_attributes_enable(desc->vshader_attrib_locations_count, desc->vshader_attribs_stride, desc->last_loc_num_elems);
         shader_attributes_enable(desc);
-        opengl_debug_attributes_in(desc->vshader_attrib_locations_count);
-        GL_CHECK();
-        attribs_group->rqidx = renderer_renderqueue_add(params->sid_idx, prog->program, desc->build_idx, va->vao, va->idx, vb->vbo, vb->idx);
+        opengl_debug_attributes_in(desc->vshader_attrib_locations_count);         GL_CHECK();
+        attribs_group->rqidx = renderer_renderqueue_add(params->sid_idx, prog->program, desc->build_idx,
+                                                        va->vao, va->idx, vb->vbo, vb->idx);
     } else {
         vbidx = gfx_vertex_buffer_find_match(attribs_group->sid_idx);
         vb = vertex_buffer_get_vbo(vbidx);
@@ -248,24 +314,28 @@ void command_create_vao(struct cmd_gfx_params* params)
 
     /* SET COMMANDS */
     void* p = NULL;
-    /// SET COMMAND: IB_SET_DATE
-    struct ib_cmd_params ind_args = { .ibidx = ib->idx, .vpos_num_elems = params->vpos_num_elems, .attribs_idx = params->attribs_idx};
+    /// SET COMMAND: IB_SET_DATA
+    struct ib_cmd_params ind_args = { .ibidx = ib->idx, .vpos_num_elems = params->vpos_num_elems, .attribs_idx = params->shader_attribs_idx};
     p = &ind_args;
     cmd_add_command((void*)gfx_vertex_index_buffer_set_data, p, sizeof(struct ib_cmd_params));
-    // SET COMMAND: VB_SET_DATA
+    // SET COMMAND: IB_UPDATE_DATA
     cmd_add_command((void*) gfx_vertex_index_buffer_update_data, p, sizeof(struct ib_cmd_params));
 
 
-    /// SET COMMAND: VB_SET_DATE
-    struct vb_cmd_params vert_args = { .vbidx = vb->idx, .vpos_num_elems = params->vpos_num_elems, .attribs_idx = params->attribs_idx};
+    /// SET COMMAND: VB_SET_DATA
+    struct vb_cmd_params vert_args = { .vaidx = vaoidx, .vbidx = vb->idx, .vpos_num_elems = params->vpos_num_elems, .shader_attribs_idx = params->shader_attribs_idx};
     p = &vert_args;
     cmd_add_command((void*)gfx_vertex_buffer_set_data, p, sizeof(struct vb_cmd_params));
-    // SET COMMAND: VB_SET_DATA
+    // SET COMMAND: VB_UPDATE_DATA
     cmd_add_command((void*) gfx_vertex_buffer_update_data, p, sizeof(struct vb_cmd_params));
 
     gl_use_program(0x0);
     gl_bind_vertex_array(0x0);
     gl_bind_buffer(OPENGL_ARRAY_BUFFER, 0x0);
+
+
+    /// close file for debug
+    engine_fdebug_append_to_file_from_arena(ENGINE_FDEBUG_FILE_VERTEX_LAYOUT);
 
 
 }
@@ -362,23 +432,27 @@ struct object* test_create_triangles(const uint32 num_objects, float wpos[3], fl
 // }
 
 
-void test_create_object(const uint16 attribs_idx, const objid_t obj_id, const uint32 num_objects, enum MESH_TYPE mesh_type, struct camera* camera)
+void test_create_object(const attr_t shader_attribs_idx, const attr_t vao_attribs_idx, const objid_t obj_id, const uint32 num_objects, enum MESH_TYPE mesh_type,
+                        struct camera* camera, const char* unif_name, const float* unif_data)
 {
-    struct attributes_group* attribs_group = attribsGroupDescr_get_attribs_group(attribs_idx);
+    struct attributes_group* attribs_group = attribsGroupDescr_get_attribs_group(shader_attribs_idx);
 
     struct cmd_gfx_params gfx_params = {
         .sid_idx = attribs_group->sid_idx,
-        .attribs_idx = attribs_idx,
+        .shader_attribs_idx = shader_attribs_idx,
+        .shader_attribs_idx = vao_attribs_idx,
         .build_idx = attribs_group->build_idx,
         .desc_idx = INT_NULL,
-        .vpos_num_elems = mesh_get_vpos_num_elems(mesh_type),
+        .vpos_num_elems = mesh_get_num_elems_per_vertex(mesh_type),
         .camera = *camera,
+        .unif_name = NULL,
+        .unif_data = NULL
     };
 
     if((attribs_group->commands_flag & CMD_CREATE_SHADER_PROGRAM)==0) {
         cmd_add_command((void*)command_create_shader_program, &gfx_params, sizeof(struct cmd_gfx_params));
         attribs_group->commands_flag |= CMD_CREATE_SHADER_PROGRAM;
-        gfx_params.desc_idx =  attribsGroupDescr_get_attribs_group(attribs_idx)->build_idx;
+        gfx_params.desc_idx =  attribsGroupDescr_get_attribs_group(shader_attribs_idx)->build_idx;
     }
 
 
@@ -388,6 +462,14 @@ void test_create_object(const uint16 attribs_idx, const objid_t obj_id, const ui
     }
 
 
+    // if((attribs_group->commands_flag & CMD_CREATE_UNIF_MESH)==0) {
+    //     gfx_params.unif_name = unif_name;
+    //     gfx_params.unif_data = unif_data;
+    //     cmd_add_command((void*)command_set_triangle_mesh, &gfx_params, sizeof(struct cmd_gfx_params));
+    //     attribs_group->commands_flag |= CMD_CREATE_UNIF_MESH;
+    // }
+
+
     if((attribs_group->commands_flag & CMD_SET_CAMERA_PROJ)==0) {
         cmd_add_command((void*)command_set_camera, &gfx_params, sizeof(struct cmd_gfx_params));
         attribs_group->commands_flag |= CMD_SET_CAMERA_PROJ;
@@ -395,7 +477,7 @@ void test_create_object(const uint16 attribs_idx, const objid_t obj_id, const ui
 
     // struct command_render_queue_params rq_params = {.attribs_idx = attribs_idx, .vertex_count = num_objects*num_vertices};
     struct command_render_queue_params rq_params = {
-        .attribs_idx = attribs_idx,
+        .attribs_idx  = shader_attribs_idx,
         .index_count  = num_objects * object_get_vertex_index_count(obj_id),
         .vertex_count = num_objects * object_get_vertex_count(obj_id)
     };
@@ -404,6 +486,177 @@ void test_create_object(const uint16 attribs_idx, const objid_t obj_id, const ui
 }
 
 void test_bubble_sort();
+
+
+
+struct TEMP_attribs_per_attrib_descriptor {
+    sid_t  attrib_flag;    /// flag of type: SID_... VPOS2, WPOS2, COL4, etc
+    sid_t  shader_input_flags;    /// flag of type: SHADER_INPUT_FLAGS aka IN_VSHADER | IS_ATTR | IS_TRANSFORM_WPOS, etc
+    attr_t attr_offset;    /// the start offset of the attribute  in the attributes data buffer
+    attr_t attr_num_elems; /// how many: floats | ints etc, for the attribute
+    attr_t divisor;
+};
+
+struct attribs_per_attrib_descriptor;
+
+struct object* tmp(struct gfx_sid sid, float* attribs, struct attribs_per_attrib_descriptor *desc,
+    uint32 num_desc, uint32 num_attr_per_desc, uint32 num_attribs, uint32 stride, uint32 attribs_size)
+{
+    /* shared vertex positions but no divisor=1 VBO for per instance data
+     *
+        layout(location = 0) in vec3 aPos;  // VBO 0, divisor 0 (shared)
+
+        layout(std430, binding = 0) buffer PerVertexData {
+            vec2 uvs[];
+            vec3 normals[];
+        };
+
+        layout(std430, binding = 1) buffer PerInstanceData {
+            vec4 colors[];
+            vec3 worldPositions[];
+            vec3 scales[];
+        };
+
+        uniform mat4 viewProj;
+
+        void main() {
+            int vertexIndex = gl_InstanceID * 3 + gl_VertexID;
+            int instanceIndex = gl_InstanceID;
+
+            vec2 uv = uvs[vertexIndex];
+            vec3 normal = normals[vertexIndex];
+            vec4 color = colors[instanceIndex];
+            vec3 worldPos = worldPositions[instanceIndex];
+            vec3 scale = scales[instanceIndex];
+
+            vec3 finalPos = worldPos + aPos * scale;
+            gl_Position = viewProj * vec4(finalPos, 1.0);
+        }
+     */
+
+    sid.attr |= SID_VPOSI2 | SID_SCALE2 | SID_COLOR4;
+    sid.unif |= SID_PROJMAT4X4;
+    sid.out  |= SID_COLOR4;
+    sid.pass |= SID_COLOR4;
+    sid.oper |= SID_NULL;
+
+    enum MESH_TYPE mesh_type = MESH_TRIANGLE;
+
+    sididx_t sid_idx = gfx_sid_find_match(sid);
+    attrid_t attribs_group_id = INT_NULL;
+
+    if(sid_idx != INT_NULL) { /// 1. attribute descriptor group exists
+        attribs_group_id = attribsGroupDescr_group_find_match(sid_idx);
+    } else {                  /// 2. create new attribute descriptor group
+        sid_idx = gfx_create_sid(sid);
+        attribs_group_id = attribsGroupDescr_create_new_attribs_group(sid_idx);
+    }
+
+    struct object* obj  = object_create(sid_idx, mesh_type);
+    obj->num_faces      = 1;
+    obj->verts_per_face = mesh_get_mesh_vertex_count_from_type(mesh_type);
+    obj->index_count    = mesh_get_mesh_indices_count_from_type(mesh_type);
+    obj->attribs_group_id = attribs_group_id;
+
+    object_set_vertex_count(obj->id, obj->num_faces * obj->verts_per_face);
+    attribsGroupDescr_create_new_obj(obj->attribs_group_id, obj->id, obj->num_faces * obj->verts_per_face);
+
+    /// 1. find or create shader build
+    build_t build_idx = shader_build_exists(sid_idx);
+    if(build_idx == INT_NULL) build_idx = shader_builder_create_new_build(sid_idx);
+    attribsGroupDescr_set_build_idx(attribs_group_id, build_idx);
+
+
+    enum SHADER_INPUT_FLAGS attrib_flags = 0x0;
+    enum SID_ID shader_input_id = 0;
+
+    /**********************************************************************************************
+     * ATTRIBUTES */
+    // add vpos attribute
+    attrib_flags = IN_VSHADER | IS_ATTR | IS_TRANSFORM_VPOS;
+    shader_input_id = SID_VPOSI2_ID;
+    shader_create_input(build_idx, shader_input_id, attrib_flags, 0);
+
+
+    /// sort all attributes by their divisor
+    // bubble_sort_generic_fast((void*)desc, num_attribs, sizeof(struct attribs_per_attrib_descriptor), compare_struct_attribs_per_attrib_descriptor);
+
+    /// store sorted attributes to a buffer for rendering
+    struct attribs_per_attrib_descriptor* attribs_descr = attribsGroupDescr_get_attribs_descr(attribs_group_id);
+    struct attributes_group* attribs_group = attribsGroupDescr_get_attribs_group(attribs_group_id);
+
+    float* buffer_ptr = arena_allocator_alloc(attribs_group->attribs_data_id, attribs_size*SIZE_F32, sizeof(float));
+    memcpy(buffer_ptr, attribs, attribs_size*SIZE_F32);
+
+    // for(uint32 i = 0; i < num_attribs; i++) {
+    for(uint32 i = 0; i < num_desc; i++) {
+
+        struct attribs_per_attrib_descriptor* descr = desc;
+
+        for(uint32 j = 0; j < num_attr_per_desc; j++) {
+
+        }
+
+
+        print("attr_offset: %u attr_num_elems: %u\n", attribs_descr[i].attr_offset, attribs_descr[i].attr_num_elems);
+        const attr_t shader_input_id = shaderinfo_flag_to_id(desc[1].attrib_flag);
+        struct attribs_per_attrib_descriptor* attribs_descr = attribsGroupDescr_get_attribs_descr(shader_input_id);
+        shader_create_input(build_idx, shader_input_id, desc[i].shader_input_flags, desc[i].divisor);
+
+        // attribsGroupDescr_add_attributes(attribs_group_id, temp_buffer[i].src, entry->elems, attribs_descr->attr_offset, entry->flag, temp_buffer[i].divisor, shader_input_id);
+        if((attribs_group->added_components_flag & desc[i].attrib_flag) == 0x0) {
+            const attr_t attrib_idx = attribs_group->attribs_count;
+            assert(attrib_idx < COMP_MAX_ATTRIBUTES);
+            attribs_group->added_components_flag                       |= desc[i].attrib_flag;
+            attribs_group->attribs_descr[attrib_idx].attrib_flag        = desc[i].attrib_flag;
+            attribs_group->attribs_descr[attrib_idx].attr_offset        = desc[i].attr_offset;
+            attribs_group->attribs_descr[attrib_idx].attr_num_elems     = desc[i].attr_num_elems;
+            attribs_group->attribs_descr[attrib_idx].divisor            = desc[i].divisor;
+            attribs_group->attribs_descr[attrib_idx].shader_input_flags = desc[i].shader_input_flags;
+            attribs_group->attribs_count++;
+        }
+    }
+    // for(uint32 i = 0; i < num_attribs; i++) {
+    //
+    //     print("attr_offset: %u attr_num_elems: %u\n", attribs_descr[i].attr_offset, attribs_descr[i].attr_num_elems);
+    //     const attr_t shader_input_id = shaderinfo_flag_to_id(desc[1][i].attrib_flag);
+    //     struct attribs_per_attrib_descriptor* attribs_descr = attribsGroupDescr_get_attribs_descr(shader_input_id);
+    //     shader_create_input(build_idx, shader_input_id, desc[i].shader_input_flags, desc[i].divisor);
+    //
+    //     // attribsGroupDescr_add_attributes(attribs_group_id, temp_buffer[i].src, entry->elems, attribs_descr->attr_offset, entry->flag, temp_buffer[i].divisor, shader_input_id);
+    //     if((attribs_group->added_components_flag & desc[i].attrib_flag) == 0x0) {
+    //         const attr_t attrib_idx = attribs_group->attribs_count;
+    //         assert(attrib_idx < COMP_MAX_ATTRIBUTES);
+    //         attribs_group->added_components_flag                       |= desc[i].attrib_flag;
+    //         attribs_group->attribs_descr[attrib_idx].attrib_flag        = desc[i].attrib_flag;
+    //         attribs_group->attribs_descr[attrib_idx].attr_offset        = desc[i].attr_offset;
+    //         attribs_group->attribs_descr[attrib_idx].attr_num_elems     = desc[i].attr_num_elems;
+    //         attribs_group->attribs_descr[attrib_idx].divisor            = desc[i].divisor;
+    //         attribs_group->attribs_descr[attrib_idx].shader_input_flags = desc[i].shader_input_flags;
+    //         attribs_group->attribs_count++;
+    //     }
+    // }
+    print_struct_attribs_per_attrib_descriptor(attribs_descr, num_attribs);
+
+
+
+    /***********************************************************************************************
+     * UNIFORMS */
+    /// add projection matrix uniform
+    attrib_flags = IN_VSHADER | IS_UNIF | IS_TRANSFORM_PROJ;
+    shader_input_id = SID_PROJMAT4X4_ID;
+    shader_create_input(build_idx, shader_input_id, attrib_flags, 0);
+
+    attribsGroupDescr_set_stride(attribs_group_id, stride);
+
+    print("%s- Create object: triangle -%s\n"
+          "   id:%u\n   attribs_id:%u\n   num_faces:%2u\n   verts_per_face:%3u \n   attrib_count:%u\n",
+          BLUE, CLEAR, obj->id, obj->attribs_group_id, obj->num_faces, obj->verts_per_face, obj->attrib_count);
+
+    engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_GENERIC, "\n");
+
+    return obj;
+}
 
 int
 main(void)
@@ -476,15 +729,206 @@ main(void)
     gl_viewport(SCREEN_RES_X, SCREEN_RES_Y);
     opengl_debug_init();
 
-    // const uint64 indexed_geometry = SID_INDEXED;
-    const uint64 indexed_geometry = 0x0;
+    {
+        // temp
+        /*
+         * create triangle()
+         *      creates an object
+         * add_attributes(
+         *      VPOS_for_triangle_mesh,
+         *      inst_col4, vec4[r,g,b,a],
+         *      inst_col4, vec4[r,g,b,a],   // 2 colors for gradient
+         *      inst_wpos3, vec3[x,y,z],
+         *      inst_scale, vec2[x,y]
+         * )
+         *
+         * Either user passes 1 array of attribs data(already sorted??)
+         * Or calls an enable() function for each attribute?
+         *
+         * object group attributes buffer: mock
+         *      obj id = 0
+         *      mesh id = TRIANGLE MESH
+         *      stride = 13
+         *      [ [color4   ], [color4  ], [wpos3   ], [scale2  ] ]: instanced buffer
+         *         offset=0    offset=4    offset=8    offset=11
+         *         size=4      size=4      size=3      size=2
+         *         divisor=1   divisor=1   divisor=1   divisor=1
+         *         attributes layout[4]: offset, size
+         *
+         *      calculate start: (obj id * stride) + offset
+         *
+         *      equivalent vertex buffer:
+         *      per vertex-vpos2: [x,y, x,y, x,y]
+         *      instanced:        [r,g,b,a, r,g,b,a, x,y,z, x,y]
+         *
+         *
+         *      ***************************************************************************
+         *      Other potential examples
+         *      ***************************************************************************
+         *      color per vertex and the rest per instance
+         *      [[r,g,b,a  ], [r,g,b,a  ], [r,g,b,a  ], [x,y,z    ], [x,y      ]]:
+         *        divisor=0    divisor=0    divisor=0    divisor=1    divisor=1
+         *
+         *      equivalent vertex buffer:
+         *      per vertex: [x,y, r,g,b,a, x,y, r,g,b,a, x,y, r,g,b,a]
+         *      instanced : [x,y,z, x,y]
+         *
+         *      color per vertex and many instaned buffers
+         *      [[r,g,b,a  ], [r,g,b,a  ], [r,g,b,a  ], [x,y,z    ], [x,y      ]]:
+         *        divisor=0    divisor=0    divisor=0    divisor=1    divisor=2
+         *
+         *      equivalent vertex buffer:
+         *      per vertex: [x,y, r,g,b,a, x,y, r,g,b,a, x,y, r,g,b,a]
+         *      instanced : [x,y,z] // taken per 1 instance
+         *      instanced : [x,y]   // taken per 2 instances
+         */
+        // struct attribs_per_attrib_descriptor desc[][4] = {
+        //     [0][0] = {.attr_offset = 0 , .attr_num_elems = 2, .divisor = 0, .attrib_flag = SID_VPOSI2, .shader_input_flags = IN_VSHADER | IS_ATTR | IS_TRANSFORM_VPOS},
+        //     [1][0] = {.attr_offset = 0 , .attr_num_elems = 4, .divisor = 0, .attrib_flag = SID_COLOR4, .shader_input_flags = IN_VSHADER | IS_ATTR | IS_OUT},
+        //     [1][1] = {.attr_offset = 8 , .attr_num_elems = 3, .divisor = 1, .attrib_flag = SID_WPOSI3, .shader_input_flags = IN_VSHADER | IS_ATTR | IS_TRANSFORM_WPOS},
+        //     [1][2] = {.attr_offset = 11, .attr_num_elems = 2, .divisor = 1, .attrib_flag = SID_SCALE2, .shader_input_flags = IN_VSHADER | IS_ATTR | IS_TRANSFORM_SCALE},
+        //     [1][3] = {.attr_offset = 13, .attr_num_elems = 2, .divisor = 1, .attrib_flag = SID_ROTAT2, .shader_input_flags = IN_VSHADER | IS_ATTR | IS_TRANSFORM_ROT}
+        // };
+        // float attribs[] = {
+        //     /// color4           wpos3       scale2       rot2
+        //     1.0,0.0,1.0,1.0,   0, 0,-10,   1.0,1.0,   cos(0.0),sin(0.0), // v0
+        //     1.0,1.0,0.0,1.0,   0, 0,-10,   1.0,1.0,   cos(0.0),sin(0.0), // v1
+        //     0.0,1.0,1.0,1.0,   0, 0,-10,   1.0,1.0,   cos(0.0),sin(0.0), // v2
+        // };
+        // struct object* tri = tmp((struct gfx_sid){0, 0, 0, 0, 0}, attribs, desc, 2, 4, 4+3+2+2, ARRAY_LENGTH(attribs) );
+        // const attr_t vao_attribs_idx = 0;
+        // test_create_object(tri->attribs_group_id, vao_attribs_idx, tri->id, 1, MESH_TRIANGLE, &camera, "vpos2", mesh_get_mesh_vertices_from_type(MESH_TRIANGLE));
+    }
+    { // temp
 
-    float wpos[3] = {-5, 3,-14}, rot[2] = {cos(0.0),sin(0.0)}, scale[2] = {4,4}, color[4] = {.2,.5,.9,1};
-    uint16 num_objects = 4;
+        // /// create attrib buffer:
+        // struct attribs_per_attrib_descriptor desc[] = {
+        //     {.attr_offset = 0 , .attr_num_elems = 2, .divisor = 0, .attrib_flag = SID_VPOSI2, .shader_input_flags = IN_VSHADER | IS_ATTR | IS_TRANSFORM_VPOS},
+        //     {.attr_offset = 0 , .attr_num_elems = 4, .divisor = 0, .attrib_flag = SID_COLOR4, .shader_input_flags = IN_VSHADER | IS_ATTR | IS_OUT},
+        //     {.attr_offset = 8 , .attr_num_elems = 3, .divisor = 1, .attrib_flag = SID_WPOSI3, .shader_input_flags = IN_VSHADER | IS_ATTR | IS_TRANSFORM_WPOS},
+        //     {.attr_offset = 11, .attr_num_elems = 2, .divisor = 1, .attrib_flag = SID_SCALE2, .shader_input_flags = IN_VSHADER | IS_ATTR | IS_TRANSFORM_SCALE},
+        //     {.attr_offset = 13, .attr_num_elems = 2, .divisor = 1, .attrib_flag = SID_ROTAT2, .shader_input_flags = IN_VSHADER | IS_ATTR | IS_TRANSFORM_ROT}
+        // };
+        // float* triVert = mesh_get_mesh_vertices_from_type(MESH_TRIANGLE);
+        // float attribs[] = {
+        //     /// vpos2              color4             wpos3      scale2     rot2
+        //     triVert[0],triVert[1], 1.0,0.0,1.0,1.0,   0,0,-10,   1.0,1.0,   cos(0.0),sin(0.0), // v0
+        //     triVert[2],triVert[3], 1.0,1.0,0.0,1.0,   0,0,-10,   1.0,1.0,   cos(0.0),sin(0.0), // v1
+        //     triVert[4],triVert[5], 0.0,1.0,1.0,1.0,   0,0,-10,   1.0,1.0,   cos(0.0),sin(0.0), // v2
+        // };
+        //
+        // uint32 stride = 13;
+        //
+        // struct gfx_sid sid = {0,0,0,0,0};
+        // sid.attr |= SID_VPOSI2 | SID_SCALE2 | SID_COLOR4;
+        // sid.unif |= SID_PROJMAT4X4;
+        // sid.out  |= SID_COLOR4;
+        // sid.pass |= SID_COLOR4;
+        // sid.oper |= SID_NULL;
+        //
+        // enum MESH_TYPE mesh_type = MESH_TRIANGLE;
+        //
+        // sididx_t sid_idx = gfx_sid_find_match(sid);
+        // attrid_t attribs_group_id = INT_NULL;
+        //
+        // if(sid_idx != INT_NULL) { /// 1. attribute descriptor group exists
+        //     attribs_group_id = attribsGroupDescr_group_find_match(sid_idx);
+        // } else {                  /// 2. create new attribute descriptor group
+        //     sid_idx = gfx_create_sid(sid);
+        //     attribs_group_id = attribsGroupDescr_create_new_attribs_group(sid_idx);
+        // }
+        //
+        // struct object* obj  = object_create(sid_idx, mesh_type);
+        // obj->num_faces      = 1;
+        // obj->verts_per_face = mesh_get_mesh_vertex_count_from_type(mesh_type);
+        // obj->index_count    = mesh_get_mesh_indices_count_from_type(mesh_type);
+        // obj->attribs_group_id = attribs_group_id;
+        //
+        // object_set_vertex_count(obj->id, obj->num_faces * obj->verts_per_face);
+        // attribsGroupDescr_create_new_obj(obj->attribs_group_id, obj->id, obj->num_faces * obj->verts_per_face);
+        //
+        // /// 1. find or create shader build
+        // build_t build_idx = shader_build_exists(sid_idx);
+        // if(build_idx == INT_NULL) build_idx = shader_builder_create_new_build(sid_idx);
+        // attribsGroupDescr_set_build_idx(attribs_group_id, build_idx);
+        //
+        //
+        // enum SHADER_INPUT_FLAGS attrib_flags = 0x0;
+        // enum SID_ID shader_input_id = 0;
+        //
+        // /**********************************************************************************************
+        //  * ATTRIBUTES */
+        // // add vpos attribute
+        // attrib_flags = IN_VSHADER | IS_ATTR | IS_TRANSFORM_VPOS;
+        // shader_input_id = SID_VPOSI2_ID;
+        // shader_create_input(build_idx, shader_input_id, attrib_flags, 0);
+        //
+        // /// sort all attributes by their divisor
+        // // bubble_sort_generic_fast((void*)desc, num_attribs, sizeof(struct attribs_per_attrib_descriptor), compare_struct_attribs_per_attrib_descriptor);
+        //
+        // /// store sorted attributes to a buffer for rendering
+        // // struct attribs_per_attrib_descriptor* attribs_descr = attribsGroupDescr_get_attribs_descr(attribs_group_id);
+        // struct attributes_group* attribs_group = attribsGroupDescr_get_attribs_group(attribs_group_id);
+        //
+        // uint32 attrib_size = 3*stride*SIZE_F32;
+        // float* buffer_ptr = arena_allocator_alloc(attribs_group->attribs_data_id, attrib_size, SIZE_F32);
+        // memcpy(buffer_ptr, attribs, attrib_size);
+        //
+        // // for(uint32 i = 0; i < num_attribs; i++) {
+        // for(uint32 i = 0; i < 2; i++) {
+        //     // struct attribs_per_attrib_descriptor* descr = desc[i];
+        //
+        //     for(uint32 j = 0; j < 4; j++) {
+        //
+        //         if((attribs_group->added_components_flag & desc[i].attrib_flag) == 0x0) {
+        //             const attr_t attrib_idx = attribs_group->attribs_count;
+        //             assert(attrib_idx < COMP_MAX_ATTRIBUTES);
+        //             attribs_group->added_components_flag                       |= desc[i].attrib_flag;
+        //             attribs_group->attribs_descr[attrib_idx].attrib_flag        = desc[i].attrib_flag;
+        //             attribs_group->attribs_descr[attrib_idx].attr_offset        = desc[i].attr_offset;
+        //             attribs_group->attribs_descr[attrib_idx].attr_num_elems     = desc[i].attr_num_elems;
+        //             attribs_group->attribs_descr[attrib_idx].divisor            = desc[i].divisor;
+        //             attribs_group->attribs_descr[attrib_idx].shader_input_flags = desc[i].shader_input_flags;
+        //             attribs_group->attribs_count++;
+        //         }
+        //
+        //         const attr_t shader_input_id = shaderinfo_flag_to_id(desc[i].attrib_flag);
+        //         shader_create_input(build_idx, shader_input_id, desc[i].shader_input_flags, desc[i].divisor);
+        //     }
+        // }
+        //
+        //
+        //
+        // /***********************************************************************************************
+        //  * UNIFORMS */
+        // /// add projection matrix uniform
+        // attrib_flags = IN_VSHADER | IS_UNIF | IS_TRANSFORM_PROJ;
+        // shader_input_id = SID_PROJMAT4X4_ID;
+        // shader_create_input(build_idx, shader_input_id, attrib_flags, 0);
+        //
+        // attribsGroupDescr_set_stride(attribs_group_id, stride);
+        //
+        // print("%s- Create object: triangle -%s\n"
+        //       "   id:%u\n   attribs_id:%u\n   num_faces:%2u\n   verts_per_face:%3u \n   attrib_count:%u\n",
+        //       BLUE, CLEAR, obj->id, obj->attribs_group_id, obj->num_faces, obj->verts_per_face, obj->attrib_count);
+        //
+        // engine_fdebug_append_string_format(ENGINE_FDEBUG_FILE_GENERIC, "\n");
+        // const attr_t vao_attribs_idx = 0;
+        //
+        // struct object* tri = obj;
+        // test_create_object(tri->attribs_group_id, vao_attribs_idx, tri->id, 1, MESH_TRIANGLE, &camera, "vpos2", mesh_get_mesh_vertices_from_type(MESH_TRIANGLE));
+    }
 
-    wpos[0] = -4; wpos[1] = 4;
-    struct object* tri = test_create_triangles(num_objects, wpos, scale, rot, color, indexed_geometry);
-    test_create_object(tri->attribs_group_id, tri->id, num_objects, MESH_TRIANGLE, &camera);
+    {
+        // // const uint64 indexed_geometry = SID_INDEXED;
+    // const uint64 indexed_geometry = 0x0;
+    //
+    // float wpos[3] = {-5, 3,-14}, rot[2] = {cos(0.0),sin(0.0)}, scale[2] = {4,4}, color[4] = {.2,.5,.9,1};
+    // uint16 num_objects = 1;
+    //
+    // wpos[0] = -4; wpos[1] = 4;
+    // struct object* tri = test_create_triangles(num_objects, wpos, scale, rot, color, indexed_geometry);
+    // test_create_object(tri->attribs_group_id, tri->id, num_objects, MESH_TRIANGLE, &camera);
     // object_destroy(tri2->id);
 
     // wpos[0] = -2; wpos[1] = 4;
@@ -517,6 +961,9 @@ main(void)
     // // mesh_build_dodecahedron();
     // struct object* dodecahedron = test_create_dodecahedron(num_objects, wpos, scale, rot, color, indexed_geometry);
     // test_create_object(dodecahedron->attribs_id, dodecahedron->id, num_objects, MESH_DODECAHEDRON, &camera);
+        }
+
+    render_tri(&camera);
 
     /// DEBUG OPENGL
     {

@@ -15,22 +15,22 @@
 vind_t triangle_indices[] = {
     0, 1, 2
 };
-vind_t rectangle_indices[] = {
+vind_t rectangle_indices[]    = {
     0, 1, 2, // [0]
     0, 2, 3  // [1]
 };
-vind_t pentagon_indices[] = {
+vind_t pentagon_indices[]     = {
     0, 1, 2, // [0]
     0, 2, 3, // [1]
     0, 3, 4  // [2]
 };
-vind_t hexagon_indices[] = {
+vind_t hexagon_indices[]      = {
     0, 1, 2, // [0]
     0, 2, 3, // [1]
     0, 3, 4, // [2]
     0, 4, 5, // [3]
 };
-vind_t octagon_indices[] = {
+vind_t octagon_indices[]      = {
     0, 1, 2, // [0]
     0, 2, 3, // [1]
     0, 3, 4, // [2]
@@ -38,7 +38,7 @@ vind_t octagon_indices[] = {
     0, 5, 6, // [4]
     0, 6, 7  // [5]
 };
-vind_t cube_indices[] = {
+vind_t cube_indices[]         = {
     0, 1, 2, // [0]  FRONT
     0, 2, 3, // [1]
     4, 0, 3, // [2]  TOP
@@ -52,7 +52,7 @@ vind_t cube_indices[] = {
     1, 5, 6, // [10] BOTTOM
     1, 6, 2  // [11]
 };
-vind_t octahedron_indices[] = {
+vind_t octahedron_indices[]   = {
     0, 1, 2,// [0]
     0, 3, 2,// [1]
     0, 3, 4,// [2]
@@ -205,6 +205,9 @@ float dodecahedron_vertices[]= {
 #undef d
 #undef r
 
+#undef a
+#undef b
+
 /// TODO: implement n-polygon
 /// TODO: implement n-polyhedron
 float blender_ico_shere_vertices_indexed[] = {
@@ -251,11 +254,6 @@ float blender_ico_shere_vertices_indexed[] = {
    -0.425323f,  0.850654f, -0.309011f,
     0.162456f,  0.850654f, -0.499995f
 };
-void create_blender_ico_sphere(float* out)
-{
-    uint32 vcnt = 0;
-    // float* in = dodecahedron_vertices;
-}
 
 
 /**************************************************************************************************
@@ -296,7 +294,7 @@ uint32 mesh_get_mesh_vertex_count_from_type(enum MESH_TYPE type)
         case MESH_TRIANGLE     : return ARRAY_LENGTH(triangle_vertices)    /VERTEX_POS2;
         case MESH_RECTANGLE    : return ARRAY_LENGTH(rectangle_vertices)   /VERTEX_POS2;
         case MESH_PENTAGON     : return ARRAY_LENGTH(pentagon_vertices)    /VERTEX_POS2;
-        case MESH_HEXAGON      : return ARRAY_LENGTH(hexagon_vertices)    /VERTEX_POS2;
+        case MESH_HEXAGON      : return ARRAY_LENGTH(hexagon_vertices)     /VERTEX_POS2;
         case MESH_OCTAGON      : return ARRAY_LENGTH(octagon_vertices)     /VERTEX_POS2;
         case MESH_CUBE         : return ARRAY_LENGTH(cube_vertices)        /VERTEX_POS3;
         case MESH_OCTAHEDRON   : return ARRAY_LENGTH(octahedron_vertices)  /VERTEX_POS3;
@@ -318,7 +316,7 @@ vind_t mesh_get_mesh_indices_count_from_type(enum MESH_TYPE type)
         default: assert(0 < 0);
     }
 }
-uint8 mesh_get_vpos_num_elems(enum MESH_TYPE type)
+uint8 mesh_get_num_elems_per_vertex(enum MESH_TYPE type)
 {
     switch(type) {
         case MESH_TRIANGLE     : return 2;
@@ -348,127 +346,3 @@ char* mesh_get_name_from_type(enum MESH_TYPE type)
 }
 
 
-#undef a
-#undef b
-
-
-/***************************************************************************************************
- * saved vertex data, none indexed
- **************************************************************************************************/
-
-// float rectangle_vertices[VERTICES_PER_QUAD*VERTEX_POS2] = {
-//     -1,  1,
-//     -1, -1,
-//      1, -1,
-//     -1,  1,
-//      1, -1,
-//      1,  1,
-// };
-
-// float pentagon_vertices[VERTICES_PER_PENTAGON*VERTEX_POS2] = {
-//     0.0,        1.0,
-//    -0.95105652, 0.30901699,
-//    -0.58778525,-0.80901699,
-//
-//     0.0,        1.0,
-//    -0.58778525,-0.80901699,
-//     0.58778525,-0.80901699,
-//
-//     0.0,        1.0,
-//     0.58778525,-0.80901699,
-//     0.95105652, 0.30901699,
-// };
-
-// float octagon_vertices[VERTICES_PER_OCTAGON*VERTEX_POS2] = {
-//     0.0,        1.0,
-//    -0.70710678, 0.70710678,
-//    -1.0,        0.0,
-//
-//     0.0,        1.0,
-//    -1.0,        0.0,
-//    -0.70710678,-0.70710678,
-//
-//     0.0,        1.0,
-//    -0.70710678,-0.70710678,
-//     0.0,       -1.0,
-//
-//     0.0,        1.0,
-//     0.0,       -1.0,
-//     0.70710678,-0.70710678,
-//
-//     0.0,        1.0,
-//     0.70710678,-0.70710678,
-//     1.0,        0.0,
-//
-//     0.0,        1.0,
-//     1.0,        0.0,
-//     0.70710678, 0.70710678,
-// };
-
-// float cube_vertices[] = {
-//     -1, -1, 1, /// FRONT
-//      1, -1, 1,
-//      1,  1, 1,
-//     -1, -1, 1,
-//      1,  1, 1,
-//     -1,  1, 1,
-//      1, -1,-1, /// BACK
-//     -1, -1,-1,
-//     -1,  1,-1,
-//      1, -1,-1,
-//     -1,  1,-1,
-//      1,  1,-1,
-//     -1, -1,-1, /// LEFT
-//     -1, -1, 1,
-//     -1,  1, 1,
-//     -1, -1,-1,
-//     -1,  1, 1,
-//     -1,  1,-1,
-//      1, -1, 1, /// RIGHT
-//      1, -1,-1,
-//      1,  1,-1,
-//      1, -1, 1,
-//      1,  1,-1,
-//      1,  1, 1,
-//     -1,  1, 1, /// TOP
-//      1,  1, 1,
-//      1,  1,-1,
-//     -1,  1, 1,
-//      1,  1,-1,
-//     -1,  1,-1,
-//     -1, -1,-1, /// BOTTOM
-//      1, -1,-1,
-//      1, -1, 1,
-//     -1, -1,-1,
-//      1, -1, 1,
-//     -1, -1, 1
-// };
-
-// float octahedron_vertices[VERTICES_PER_OCTAHEDRON*VERTEX_POS3] = {
-//     /// octahedron's vertex to vertex distance is √(1² + 1² + 1²) = √(1 + 1 + 1) = √3
-//     /// in order to have similar dimention with the cube
-//     1.73,  0,  0, /// Face 1 (right-top-front)
-//     0,  0,  1.73,
-//     0,  1.73,  0,
-//     1.73,  0,  0, /// Face 2 (right-bottom-front)
-//     0,  0,  1.73,
-//     0, -1.73,  0,
-//    -1.73,  0,  0, /// Face 3 (left-top-front)
-//     0,  0,  1.73,
-//     0,  1.73,  0,
-//    -1.73,  0,  0, /// Face 4 (left-bottom-front)
-//     0,  0,  1.73,
-//     0, -1.73,  0,
-//     1.73,  0,  0, /// Face 5 (right-top-back)
-//     0,  1.73,  0,
-//     0,  0, -1.73,
-//     1.73,  0,  0, /// Face 6 (right-bottom-back)
-//     0, -1.73,  0,
-//     0,  0, -1.73,
-//    -1.73,  0,  0, /// Face 7 (left-top-back)
-//     0,  1.73,  0,
-//     0,  0, -1.73,
-//    -1.73,  0,  0, /// Face 8 (left-bottom-back)
-//     0, -1.73,  0,
-//     0,  0, -1.73,
-// };

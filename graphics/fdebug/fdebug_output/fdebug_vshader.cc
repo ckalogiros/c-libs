@@ -2,10 +2,10 @@
 
 /// attributes: in
 layout (location = 0) in vec2 vpos2;
-layout (location = 1) in vec3 wpos3;
-layout (location = 2) in vec2 scale2;
-layout (location = 3) in vec2 rot2;
-layout (location = 4) in vec4 color4;
+layout (location = 1) in vec4 color4;
+layout (location = 2) in vec3 wpos3;
+layout (location = 3) in vec2 scale2;
+layout (location = 4) in vec2 rot2;
 
 out vec4 out_color4;
 

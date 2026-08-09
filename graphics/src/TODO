@@ -109,3 +109,5 @@ It needs: set_for_push and then add/copy a new descriptor object.
 
 
 vertex_attribute_ids buffer of shader descriptor
+
+RENAME ALL "enum SID_ID" variables to "input_idx"

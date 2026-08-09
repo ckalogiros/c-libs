@@ -1,28 +1,17 @@
 cmake_minimum_required(VERSION 3.28)
-project(tests C)
+project(varius_tests C)
+
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
 
 # 1. include utility functions
-set(cmake_utils "/home/ckalo/data/projects/clion/cmake_utils/proj_utils.cmake")
+#set(cmake_utils "/home/ckalo/data/projects/clion/cmake_utils/proj_utils.cmake")
+set(cmake_utils "${CMAKE_CURRENT_LIST_DIR}/../../cmake_utils/proj_utils.cmake")
 include(${cmake_utils})
 set(root_path ${CLION_ROOT_DIR})
-enable_sanitizer()
+#enable_sanitizer()
 
-# 2. add project's sub-directories
-#add_subdirectory(data_oriented)
-register_module(
-        sources
-        ${CMAKE_CURRENT_LIST_DIR}/perf_operations.c
-        headers
-        ${CMAKE_CURRENT_LIST_DIR}/perf_operations.h
-        include_dirs
-        ${CMAKE_CURRENT_LIST_DIR}
-        compiler_macros
-        ENABLE_DEBUG=1
-        VERSION_MAJOR=0
-)
 
 # 3. add external projects
 include_project(${root_path}/g_includes)
@@ -35,17 +24,23 @@ include_project(${root_path}/memory/src/mem_log)
 include_project(${root_path}/allocators/slab_array/src)
 include_project(${root_path}/allocators/slab_array/log)
 include_project(${root_path}/allocators/stack/src)
-include_project(${root_path}/containers/sparse_array/src)
-include_project(${root_path}/containers/sparse_array/log)
+include_project(${root_path}/allocators/queue/src)
+include_project(${root_path}/allocators/arena/src)
+include_project(${root_path}/containers/buffer_array/src)
+include_project(${root_path}/containers/buffer_array/log)
 include_project(${root_path}/containers/string/src)
 include_project(${root_path}/perf_timer/src)
 
+
+
+
+
+
 # 4. create executable with all the source files
-add_project_executable(tests main.c)
+add_project_executable(varius_tests main.c)
 
 # Link math library
-target_link_libraries(tests m)  # "m" is the linker name for libm
+target_link_libraries(varius_tests m)  # "m" is the linker name for libm
 
 # Debug: global properties
 print_all_registered()
-

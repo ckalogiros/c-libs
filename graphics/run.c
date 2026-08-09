@@ -124,7 +124,7 @@ draw()
         gl_bind_vertex_array(rq.vao);
         GL_CHECK();
 
-        gfx_vertex_buffer_set_rotation(rq.progidx, rq.vbidx, anglvel);
+        // gfx_vertex_buffer_set_rotation(rq.progidx, rq.vbidx, anglvel);
         // gfx_vertex_buffer_set_wpos(rq.progidx, rq.vbidx, wpos);
         // gfx_vertex_buffer_set_scale(rq.progidx, rq.vbidx, scale);
 
@@ -134,7 +134,12 @@ draw()
 
         /// TODO: temporary conditional. use function pointer or similar
         bool is_indexed_geometry = sid_check_attr_match_from_flag(rq.sid_idx, SID_INDEXED);
-        gl_draw_elements(OPENGL_TRIANGLES, rq.draw_count, GL_UNSIGNED_INT, 0);
+
+        // gl_draw_elements(OPENGL_TRIANGLES, rq.draw_count, GL_UNSIGNED_INT, 0);
+        gl_draw_arrays(OPENGL_TRIANGLES, 0, rq.draw_count);
+
+        // gl_draw_elements_instanced(OPENGL_TRIANGLES, rq.draw_count, GL_UNSIGNED_INT, 0, 1);
+        // gl_draw_elements_instanced(OPENGL_TRIANGLES, 3, GL_UNSIGNED_INT, 0, 1);
         // if(is_indexed_geometry) gl_draw_elements(OPENGL_TRIANGLES, rq.draw_count, GL_UNSIGNED_INT, 0);
         // else gl_draw_arrays(OPENGL_TRIANGLES, 0, rq.draw_count);
         GL_CHECK();

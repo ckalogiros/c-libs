@@ -200,10 +200,10 @@ compare_float(const void* a, const void* b)
 }
 
 int
-compare_struct_temp(const void* a, const void* b)
+compare_struct_attribs_per_attrib_descriptor(const void* a, const void* b)
 {
-    const struct temp* aa = (const struct temp*)a;
-    const struct temp* bb = (const struct temp*)b;
+    const struct attribs_per_attrib_descriptor* aa = (const struct attribs_per_attrib_descriptor*)a;
+    const struct attribs_per_attrib_descriptor* bb = (const struct attribs_per_attrib_descriptor*)b;
     int diff = aa->divisor - bb->divisor;
     if(diff > 0) return 1;
     if(diff < 0) return -1;
@@ -239,13 +239,17 @@ print_char_array(char arr[], uint32 n)
 }
 
 void
-print_struct_temp(struct temp arr[], uint32 n)
+print_struct_attribs_per_attrib_descriptor(struct attribs_per_attrib_descriptor arr[], uint32 n)
 {
-    print("divisor sorted attributes: \n");
+    print("%sdivisor sorted attributes: %s\n", YELLOW, CLEAR);
     for(int i = 0; i < n; i++) {
         // print("%u %u, %u, %u\n ",
-        const char* attrib_name = shaderinfo_id_to_flagname(arr[i].shader_input_id);
-        print("%s: %u ", attrib_name, arr[i].divisor);
+        // const char* attrib_name = shaderinfo_id_to_flagname(arr[i].shader_input_id);
+        // print("%s: %u ", attrib_name, arr[i].divisor);
+        print("attr_num_elems: %u ", arr[i].attr_num_elems);
+        print("attr_offset: %u ", arr[i].attr_offset);
+        print("divisor: %u ", arr[i].divisor);
+        print("\n");
     }
     print("\n");
 }

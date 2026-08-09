@@ -23,6 +23,7 @@ register_module(
             ${CMAKE_CURRENT_LIST_DIR}/object.c
             ${CMAKE_CURRENT_LIST_DIR}/command.c
             ${CMAKE_CURRENT_LIST_DIR}/bubble_sort.c
+            ${CMAKE_CURRENT_LIST_DIR}/test_custom_rendering.c
         headers
             ${CMAKE_CURRENT_LIST_DIR}/engine.h
             ${CMAKE_CURRENT_LIST_DIR}/run.h
@@ -30,6 +31,7 @@ register_module(
             ${CMAKE_CURRENT_LIST_DIR}/object.h
             ${CMAKE_CURRENT_LIST_DIR}/command.h
             ${CMAKE_CURRENT_LIST_DIR}/bubble_sort.h
+            ${CMAKE_CURRENT_LIST_DIR}/test_custom_rendering.h
         ${CMAKE_CURRENT_LIST_DIR}/attributes.h
         include_dirs
             ${CMAKE_CURRENT_LIST_DIR}
@@ -37,8 +39,6 @@ register_module(
         ENABLE_DEBUG=1
         VERSION_MAJOR=0
 )
-
-#sdsdsd
 
 
 

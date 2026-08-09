@@ -112,6 +112,7 @@ void object_add_attribute(const attrid_t attribs_group_id, const build_t build_i
 {
     struct attribs_per_attrib_descriptor* attribs_descr = attribsGroupDescr_get_attribs_descr(shader_input_id);
     struct shader_entry* entry = shader_input_get_entry(shader_input_id);
+
     shader_create_input(build_idx, shader_input_id, attrib_flags, divisor);
 
     attribsGroupDescr_add_attributes(attribs_group_id, src, entry->elems, attribs_descr->attr_offset, entry->flag, divisor, shader_input_id);
@@ -199,7 +200,7 @@ object_create_triangle(struct gfx_sid sid, float wpos[3], float scale[2], float 
     attribsGroupDescr_set_build_idx(attribs_group_id, build_idx);
 
 
-    struct temp temp_buffer[4];
+    struct attribs_per_attrib_descriptor temp_buffer[4];
     enum SHADER_INPUT_FLAGS attrib_flags = 0x0;
     enum SID_ID shader_input_id = 0;
     uint16 divisor = 0; /// instanced rendering
@@ -211,41 +212,42 @@ object_create_triangle(struct gfx_sid sid, float wpos[3], float scale[2], float 
     shader_input_id = SID_VPOSI2_ID;
     shader_create_input(build_idx, shader_input_id, attrib_flags, 0);
 
-    /// add wpos attribute
-    uint32 cnt = 0;
-    temp_buffer[cnt].src = &wpos[0];
-    temp_buffer[cnt].attrib_flags = IN_VSHADER | IS_ATTR | IS_TRANSFORM_WPOS;
-    temp_buffer[cnt].shader_input_id = SID_WPOSI3_ID;
-    temp_buffer[cnt++].divisor = 0;
-    /// add scale attribute
-    temp_buffer[cnt].src = &scale[0];
-    temp_buffer[cnt].attrib_flags = IN_VSHADER | IS_ATTR | IS_TRANSFORM_SCALE;
-    temp_buffer[cnt].shader_input_id = SID_SCALE2_ID;
-    temp_buffer[cnt++].divisor = 0;
-    /// add scale attribute
-    temp_buffer[cnt].src = &rot[0];
-    temp_buffer[cnt].attrib_flags = IN_VSHADER | IS_ATTR | IS_TRANSFORM_ROT;
-    temp_buffer[cnt].shader_input_id = SID_ROTAT2_ID;
-    temp_buffer[cnt++].divisor = 0;
-    /// add scale attribute
-    temp_buffer[cnt].src = &color[0];
-    temp_buffer[cnt].attrib_flags = IN_VSHADER | IS_ATTR | IS_OUT;
-    temp_buffer[cnt].shader_input_id = SID_COLOR4_ID;
-    temp_buffer[cnt++].divisor = 0;
+    // /// add wpos attribute
+    // uint32 cnt = 0;
+    // temp_buffer[cnt].src = &wpos[0];
+    // temp_buffer[cnt].attrib_flags = IN_VSHADER | IS_ATTR | IS_TRANSFORM_WPOS;
+    // temp_buffer[cnt].shader_input_id = SID_WPOSI3_ID;
+    // temp_buffer[cnt++].divisor = 1;
+    // /// add scale attribute
+    // temp_buffer[cnt].src = &scale[0];
+    // temp_buffer[cnt].attrib_flags = IN_VSHADER | IS_ATTR | IS_TRANSFORM_SCALE;
+    // temp_buffer[cnt].shader_input_id = SID_SCALE2_ID;
+    // temp_buffer[cnt++].divisor = 1;
+    // /// add rotation attribute
+    // temp_buffer[cnt].src = &rot[0];
+    // temp_buffer[cnt].attrib_flags = IN_VSHADER | IS_ATTR | IS_TRANSFORM_ROT;
+    // temp_buffer[cnt].shader_input_id = SID_ROTAT2_ID;
+    // temp_buffer[cnt++].divisor = 1;
+    // /// add color attribute
+    // temp_buffer[cnt].src = &color[0];
+    // temp_buffer[cnt].attrib_flags = IN_VSHADER | IS_ATTR | IS_OUT;
+    // temp_buffer[cnt].shader_input_id = SID_COLOR4_ID;
+    // temp_buffer[cnt++].divisor = 0;
 
     /// sort all attributes by their divisor
     /// TODO: only if there are any different divisors???
-    bubble_sort_generic_fast((void*)temp_buffer, 4, sizeof(struct temp), compare_struct_temp);
-    print_struct_temp(temp_buffer, 4);
+    bubble_sort_generic_fast((void*)temp_buffer, 4, sizeof(struct attribs_per_attrib_descriptor), compare_struct_attribs_per_attrib_descriptor);
+    print_struct_attribs_per_attrib_descriptor(temp_buffer, 4);
 
 
     /// store sorted attributes to a buffer for rendering
     struct attributes_group* group = attribsGroupDescr_get_attribs_group(attribs_group_id);
     struct attribs_per_attrib_descriptor* attribs_descr = attribsGroupDescr_get_attribs_descr(attribs_group_id);
     struct shader_entry* entry = shader_input_get_entry(shader_input_id);
+
     for(uint32 i = 0; i < 4; i++) {
         print("attr_offset: %u attr_num_elems: %u\n", attribs_descr[i].attr_offset, attribs_descr[i].attr_num_elems);
-        object_add_attribute(obj->attribs_group_id, build_idx, temp_buffer[i].shader_input_id, temp_buffer[i].divisor, temp_buffer[i].attrib_flags, temp_buffer[i].src);
+        // object_add_attribute(obj->attribs_group_id, build_idx, temp_buffer[i].shader_input_id, temp_buffer[i].divisor, temp_buffer[i].attrib_flags, temp_buffer[i].src);
     }
 
 

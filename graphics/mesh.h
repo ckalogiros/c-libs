@@ -40,26 +40,6 @@ enum MESH_TYPE {
 
 typedef int32 vind_t; // vertex indices type
 
-void mesh_build_dodecahedron();
-
-void create_blender_ico_sphere(float* out);
-
-
-typedef struct {
-    float x, y, z;
-} Vec3;
-
-/// Generate 20 vertices of a regular dodecahedron (circumradius = 1)
-void generate_dodecahedron_vertices(float vertices[20]);
-
-
-/// Triangulate a pentagon (fan from first vertex)
-void triangulate_pentagon(float vertices[], int pentagon[5], float* out, int* offset);
-
-/// Generate complete dodecahedron triangles (108 vertices = 36 triangles)
-/// Returns number of vertices (always 108)
-int generate_dodecahedron_triangles(float* out_triangles);
-
 /**************************************************************************************************
  * GETTERS
  **************************************************************************************************/
@@ -72,7 +52,7 @@ vind_t* mesh_get_mesh_indices_from_type(enum MESH_TYPE type);
 
 vind_t mesh_get_mesh_indices_count_from_type(enum MESH_TYPE type);
 
-uint8 mesh_get_vpos_num_elems(enum MESH_TYPE type);
+uint8 mesh_get_num_elems_per_vertex(enum MESH_TYPE type);
 
 char* mesh_get_name_from_type(enum MESH_TYPE type);
 

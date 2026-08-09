@@ -187,6 +187,7 @@ code_operate_mat2x2(struct shader_entry oper1, struct shader_entry oper2)
  * in "shader_descriptor_table", input_flag is the storage for each shader program
  **************************************************************************************************/
 #define SHADER_ATTRIBUTES_ARRAY_COUNT 64
+/// TODO: typesize and type should be set as NULL, upon shader entry creation they should be set to a specific type
 struct shader_entry shader_inputs_table[SHADER_ATTRIBUTES_ARRAY_COUNT] = {
     {.flagname = TO_STRING(SID_OPACIT), .flag = SID_OPACIT, .typesize = SIZE_F32, .elems = 1, .input_idx = SID_OPACIT_ID, .type = FLOAT, .codename = "opacity",},
     {.flagname = TO_STRING(SID_VPOSI2), .flag = SID_VPOSI2, .typesize = SIZE_F32, .elems = 2, .input_idx = SID_VPOSI2_ID, .type = VEC2F, .codename = "vpos2",},
@@ -321,8 +322,22 @@ shader_builder_push_entry(const build_t idx, const struct shader_entry* entry, c
     desc->entry_count++; /// increment current build's entry count
 
     assert(desc->entry_count < 10);
-    print("%s- shader add entry:%s, count:%u, divisor:%u -%s\n", ry, entry->codename, desc->entry_count, desc->entries[entry_idx].divisor, CLEAR);
+    print("%s- shader add entry:%s, count:%u, divisor:%u -%s\n",
+          ry, entry->codename, desc->entry_count, desc->entries[entry_idx].divisor, CLEAR);
     assert(desc->entry_count < SHADER_INPUT_ENTRIES_MAX_COUNT);
+
+    char buf[96] = {0};
+    char* ptr = &buf[0];
+    uint32 size = string_format(&ptr, 96,
+        "entry[%u]:%9s, elems:%2u, type:%6s, typesize:%2u, divisor:%2u\n",
+                entry_idx,
+                entry->codename,
+                entry->elems,
+                shaderinfo_type_to_glsltype_string(entry->type),
+                entry->typesize,
+                divisor
+                );
+    engine_fdebug_append_string(ENGINE_FDEBUG_FILE_VERTEX_LAYOUT, buf, size);
 
     return entry_idx;
 }
@@ -439,8 +454,8 @@ shader_builder_build(const sididx_t sid_idx, const build_t build_idx, bool temp_
             if(desc->entries[input_idx].input_flag & IS_ATTR) { // only if input variable is a vertex attribute
 
                 /// Record the start position offset for this attribute
-                struct shader_attribute_layout loc = (struct shader_attribute_layout){
-                    .loc = loc_cnt, .size = entry.elems, .type = entry.type, .loc_offset = loc_offset, .offset = total_offset, .idx = input_idx
+                struct attributes_layout loc = (struct attributes_layout){
+                    .loc = loc_cnt, .num_elems = entry.elems, .type = entry.type, .loc_offset = loc_offset, .offset = total_offset, .idx = input_idx
                 };
                 shader_descriptor_create_vertex_layout(build_idx, loc); // store by attributes, not by locations
 
@@ -450,7 +465,7 @@ shader_builder_build(const sididx_t sid_idx, const build_t build_idx, bool temp_
                 /// create new vec4 generic location
                 char buf[64] = {0};
                 char* ptr = &buf[0];
-                uint32 size = string_format(&ptr, 64, "layout (location = %u) in vec%u %s;\n", loc.loc, loc.size, entry.codename);
+                uint32 size = string_format(&ptr, 64, "layout (location = %u) in vec%u %s;\n", loc.loc, loc.num_elems, entry.codename);
                 engine_fdebug_append_string(ENGINE_FDEBUG_FILE_VSHADER, buf, size);
 
                 // Advance the offset by the size of this attribute
@@ -621,7 +636,7 @@ shader_builder_build(const sididx_t sid_idx, const build_t build_idx, bool temp_
     desc->vshader_code = engine_fdebug_get_string_from_arena_alloc(ENGINE_FDEBUG_FILE_VSHADER);
     desc->vshader_code_size = strlen(desc->vshader_code);
 
-    /// fprint vshader code to file for debug
+    /// close file for debug
     engine_fdebug_append_to_file_from_arena(ENGINE_FDEBUG_FILE_VSHADER);
     engine_fdebug_append_to_file_from_arena(ENGINE_FDEBUG_FILE_VERTEX_LAYOUT);
 

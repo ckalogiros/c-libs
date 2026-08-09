@@ -7,6 +7,8 @@
 #include "my_types.h"
 #include "bubble_sort.h"
 #include "shader_descriptor.h"
+#include "attributes.h"
+
 
 struct temp {
     float* src;
@@ -46,7 +48,7 @@ int compare_char(const void *a, const void *b);
 
 int compare_float(const void *a, const void *b);
 
-int compare_struct_temp(const void* a, const void* b);
+int compare_struct_attribs_per_attrib_descriptor(const void* a, const void* b);
 
 
 void print_int_array(int arr[], uint32 n);
@@ -55,7 +57,7 @@ void print_float_array(float arr[], uint32 n);
 
 void print_char_array(char arr[], uint32 n);
 
-void print_struct_temp(struct temp arr[], uint32 n);
+void print_struct_attribs_per_attrib_descriptor(struct attribs_per_attrib_descriptor arr[], uint32 n);
 
 
 
