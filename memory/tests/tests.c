@@ -215,7 +215,7 @@ test_alloc_first_release_after(const pageid_t num_pages, const bool print_list)
 
     const char* start = calc_address_from_page_id(hnd1.page_id, hnd1.mem_id);
     const char str[8] = {'H', 'E', 'L', 'L', 'O', '!', '!', '!'};
-    const uint64 strint = make_uint64_from_char8(str);
+    const uint64 strint = make_uint64_from_string_max_8chars(str, 8);
     memset_64bit(start, strint, PAGE_SIZE);
     struct fs_t* fs = fs_create("memory/test_alloc_first_release_after.txt");
     fs_append_mem(fs, start, PAGE_SIZE, "occupied memory");

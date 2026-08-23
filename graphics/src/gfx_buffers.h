@@ -3,10 +3,7 @@
  */
 #ifndef GRAPHICS_TEST_OPENGL_BUFFERS_H
 #define GRAPHICS_TEST_OPENGL_BUFFERS_H
-#include "engine.h"
 #include "my_types.h"
-#include "gfx_interface.h"
-#include "mesh.h"
 #include "shader_descriptor.h"
 
 
@@ -15,20 +12,18 @@
  **************************************************************************************************/
 struct vb_cmd_params {
     /// TODO: flags:{ FORCED_NEW | FORCED_USED | ANY }
-    attrid_t  shader_attribs_idx;
-    attrid_t  vao_attribs_idx;
+    attrid_t shader_attribs_idx;
+    attrid_t vao_attribs_idx;
     vaidx_t vaidx;
     vbidx_t vbidx;
-    uint8   vpos_num_elems; // TODO: pass SID_VPOS_ID instead which is smaller value
+    uint8 vpos_num_elems; // TODO: pass SID_VPOS_ID instead which is smaller value
 };
 
 struct ib_cmd_params {
-    uint16  attribs_idx;
+    uint16 attribs_idx;
     ibidx_t ibidx;
-    uint8   vpos_num_elems; // TODO: pass SID_VPOS_ID instead which is smaller value
+    uint8 vpos_num_elems; // TODO: pass SID_VPOS_ID instead which is smaller value
 };
-
-
 
 
 /***************************************************************************************************
@@ -58,11 +53,11 @@ void gfx_vertex_buffer_delete();
 
 void gfx_vertex_buffer_push_data(const vbidx_t vbidx, void* data);
 
-// void gfx_vertex_buffer_update_data(const vbidx_t vbidx);
 void gfx_vertex_buffer_update_data(struct vb_cmd_params* params);
 
 void gfx_vertex_buffer_set_data(struct vb_cmd_params* params);
-// float* gfx_vertex_buffer_set_data(const vbidx_t vbidx, const uint32 verts_per_obj, const uint32 num_objects, const uint32 num_vpos, const uint32 vpos_count, float* vpos);
+
+float* gfx_vertex_buffer_set_data2(struct vb_cmd_params* params);
 
 void gfx_vertex_buffer_set_rotation(const build_t build_idx, const vbidx_t vbidx, vec2f anglvel);
 
@@ -79,12 +74,11 @@ void gfx_vertex_buffer_set_scale(const build_t build_idx, const vbidx_t vbidx, v
 struct vertex_array_object {
     vbidx_t idx;
     vbidx_t vao;
-    desc_t  desc_idx;
-    bool    attrib_devisor;
+    desc_t desc_idx;
+    bool attrib_devisor;
     vbidx_t vbcount; /// the number of created vbos
     /// TODO: make dynamic buffer
     vbidx_t vbos[8]; /// all the vertex buffer indexes belong to this VAO
-
 };
 
 struct vertex_array_object* gfx_vertex_array_get_byidx(const vaidx_t vaidx);
@@ -94,16 +88,14 @@ uint32 gfx_vertex_array_create(const desc_t desc_idx);
 void gfx_vertex_array_delete(void);
 
 
-
-
 /***************************************************************************************************
  * vertex index buffer object
  **************************************************************************************************/
 struct vertex_index_buffer_object {
     vind_t* data;
-    uint32  size;
-    uint32  last_index; // stores the index of the last object, in order for the next object to continue the indexing
-    uint16  count;
+    uint32 size;
+    uint32 last_index; // stores the index of the last object, in order for the next object to continue the indexing
+    uint16 count;
     ibidx_t idx;
     ibidx_t ibo;
 };

@@ -24,7 +24,9 @@
 #include "attributes.h"
 #include "bubble_sort.h"
 
-#include "test_custom_rendering.h"
+
+#include "uniforms.h"
+#include "tests/test_custom_rendering.h"
 
 
 #   define COLOR_RED     1.0f, 0.3f, 0.3f, 1.0f
@@ -129,8 +131,7 @@ struct cmd_gfx_params {
     const char* unif_name;
     const float* unif_data;
     sididx_t sid_idx;
-    attr_t   shader_attribs_idx;
-    attrid_t vao_attribs_idx;
+    attr_t   attribs_group_desc_idx;
     build_t  build_idx;
     desc_t   desc_idx;
     uint8    vpos_num_elems;
@@ -142,7 +143,7 @@ build_t command_create_shader_program(struct cmd_gfx_params* params)
         /// TODO: Maybe create program returns the build_idx and not the decriptor object
         // gfx_create_shader_program(params->sid_idx, params->build_idx);
         opengl_program_create(params->sid_idx, params->build_idx, fragment_shader_text);
-        GL_CHECK();
+        GFX_CHECK_ERROR();
     }
 }
 
@@ -153,7 +154,7 @@ void command_set_camera(struct cmd_gfx_params* params)
     GLint mvp_location = gl_get_uniform_location(prog->program, "projMat");
     struct camera camera = params->camera;
     glUniformMatrix4fv(mvp_location, 1, camera.is_column_major, (float*)camera.projection_matrix.projection_matrix);
-    GL_CHECK();
+    GFX_CHECK_ERROR();
     gl_use_program(0x0);
 }
 // void command_set_triangle_mesh(struct cmd_gfx_params* params)
@@ -162,15 +163,15 @@ void command_set_camera(struct cmd_gfx_params* params)
 //     gl_use_program(prog->program);
 //     GLint location = gl_get_uniform_location(prog->program, params->unif_name);
 //     glUniform2fv(location, 1, (float*)params->unif_data);
-//     GL_CHECK();
+//     GFX_CHECK_ERROR();
 //     gl_use_program(0x0);
 // }
 
 void command_create_vao(struct cmd_gfx_params* params)
 {
-    struct attributes_group* attribs_group = attribsGroupDescr_get_attribs_group(params->shader_attribs_idx);
+    struct attributes_group* attribs_group = attribsGroupDescr_get_attribs_group(params->attribs_group_desc_idx);
     struct shader_descriptor* desc = shader_descriptor_get(params->desc_idx);
-    struct attribs_per_attrib_descriptor* vao_descr = attribsGroupDescr_get_attribs_descr(params->vao_attribs_idx);
+    struct attributes_descriptor* vao_descr = attribsGroupDescr_get_attribs_descr(params->attribs_group_desc_idx);
     const uint32 stride = desc->vshader_attribs_stride;
     struct opengl_program* prog = shader_program_get(params->desc_idx);
     gl_use_program(prog->program);
@@ -187,7 +188,7 @@ void command_create_vao(struct cmd_gfx_params* params)
 
 
     struct vertex_array_object* va = gfx_vertex_array_get_byidx(vaoidx);
-    gl_bind_vertex_array(va->vao);                                                      GL_CHECK();
+    gl_bind_vertex_array(va->vao);                                                      GFX_CHECK_ERROR();
 
 
     /* VERTEX BUFFER */
@@ -230,7 +231,7 @@ void command_create_vao(struct cmd_gfx_params* params)
 
 
                     vb = vertex_buffer_get_vbo(vbidx);
-                    gl_bind_buffer(OPENGL_ARRAY_BUFFER, vb->vbo);                       GL_CHECK();
+                    gl_bind_buffer(OPENGL_ARRAY_BUFFER, vb->vbo);                       GFX_CHECK_ERROR();
 
                     divisor = desc->entries[i].divisor;
 
@@ -283,7 +284,7 @@ void command_create_vao(struct cmd_gfx_params* params)
         }
 
         shader_attributes_enable(desc);
-        opengl_debug_attributes_in(desc->vshader_attrib_locations_count);         GL_CHECK();
+        opengl_debug_attributes_in(desc->vshader_attrib_locations_count);         GFX_CHECK_ERROR();
         attribs_group->rqidx = renderer_renderqueue_add(params->sid_idx, prog->program, desc->build_idx,
                                                         va->vao, va->idx, vb->vbo, vb->idx);
     } else {
@@ -303,7 +304,7 @@ void command_create_vao(struct cmd_gfx_params* params)
 
         ib = vertex_index_buffer_get_ib(ibidx);
         gl_bind_buffer(OPENGL_ELEMENT_ARRAY_BUFFER, ib->ibo);
-        GL_CHECK();
+        GFX_CHECK_ERROR();
 
     } else {
         assert(0>0);
@@ -315,7 +316,7 @@ void command_create_vao(struct cmd_gfx_params* params)
     /* SET COMMANDS */
     void* p = NULL;
     /// SET COMMAND: IB_SET_DATA
-    struct ib_cmd_params ind_args = { .ibidx = ib->idx, .vpos_num_elems = params->vpos_num_elems, .attribs_idx = params->shader_attribs_idx};
+    struct ib_cmd_params ind_args = { .ibidx = ib->idx, .vpos_num_elems = params->vpos_num_elems, .attribs_idx = params->attribs_group_desc_idx};
     p = &ind_args;
     cmd_add_command((void*)gfx_vertex_index_buffer_set_data, p, sizeof(struct ib_cmd_params));
     // SET COMMAND: IB_UPDATE_DATA
@@ -323,7 +324,7 @@ void command_create_vao(struct cmd_gfx_params* params)
 
 
     /// SET COMMAND: VB_SET_DATA
-    struct vb_cmd_params vert_args = { .vaidx = vaoidx, .vbidx = vb->idx, .vpos_num_elems = params->vpos_num_elems, .shader_attribs_idx = params->shader_attribs_idx};
+    struct vb_cmd_params vert_args = { .vaidx = vaoidx, .vbidx = vb->idx, .vpos_num_elems = params->vpos_num_elems, .shader_attribs_idx = params->attribs_group_desc_idx};
     p = &vert_args;
     cmd_add_command((void*)gfx_vertex_buffer_set_data, p, sizeof(struct vb_cmd_params));
     // SET COMMAND: VB_UPDATE_DATA
@@ -439,8 +440,8 @@ void test_create_object(const attr_t shader_attribs_idx, const attr_t vao_attrib
 
     struct cmd_gfx_params gfx_params = {
         .sid_idx = attribs_group->sid_idx,
-        .shader_attribs_idx = shader_attribs_idx,
-        .shader_attribs_idx = vao_attribs_idx,
+        .attribs_group_desc_idx = shader_attribs_idx,
+        .attribs_group_desc_idx = vao_attribs_idx,
         .build_idx = attribs_group->build_idx,
         .desc_idx = INT_NULL,
         .vpos_num_elems = mesh_get_num_elems_per_vertex(mesh_type),
@@ -497,9 +498,9 @@ struct TEMP_attribs_per_attrib_descriptor {
     attr_t divisor;
 };
 
-struct attribs_per_attrib_descriptor;
+struct attributes_descriptor;
 
-struct object* tmp(struct gfx_sid sid, float* attribs, struct attribs_per_attrib_descriptor *desc,
+struct object* tmp(struct gfx_sid sid, float* attribs, struct attributes_descriptor *desc,
     uint32 num_desc, uint32 num_attr_per_desc, uint32 num_attribs, uint32 stride, uint32 attribs_size)
 {
     /* shared vertex positions but no divisor=1 VBO for per instance data
@@ -582,7 +583,7 @@ struct object* tmp(struct gfx_sid sid, float* attribs, struct attribs_per_attrib
     // bubble_sort_generic_fast((void*)desc, num_attribs, sizeof(struct attribs_per_attrib_descriptor), compare_struct_attribs_per_attrib_descriptor);
 
     /// store sorted attributes to a buffer for rendering
-    struct attribs_per_attrib_descriptor* attribs_descr = attribsGroupDescr_get_attribs_descr(attribs_group_id);
+    struct attributes_descriptor* attribs_descr = attribsGroupDescr_get_attribs_descr(attribs_group_id);
     struct attributes_group* attribs_group = attribsGroupDescr_get_attribs_group(attribs_group_id);
 
     float* buffer_ptr = arena_allocator_alloc(attribs_group->attribs_data_id, attribs_size*SIZE_F32, sizeof(float));
@@ -591,7 +592,7 @@ struct object* tmp(struct gfx_sid sid, float* attribs, struct attribs_per_attrib
     // for(uint32 i = 0; i < num_attribs; i++) {
     for(uint32 i = 0; i < num_desc; i++) {
 
-        struct attribs_per_attrib_descriptor* descr = desc;
+        struct attributes_descriptor* descr = desc;
 
         for(uint32 j = 0; j < num_attr_per_desc; j++) {
 
@@ -600,14 +601,14 @@ struct object* tmp(struct gfx_sid sid, float* attribs, struct attribs_per_attrib
 
         print("attr_offset: %u attr_num_elems: %u\n", attribs_descr[i].attr_offset, attribs_descr[i].attr_num_elems);
         const attr_t shader_input_id = shaderinfo_flag_to_id(desc[1].attrib_flag);
-        struct attribs_per_attrib_descriptor* attribs_descr = attribsGroupDescr_get_attribs_descr(shader_input_id);
+        struct attributes_descriptor* attribs_descr = attribsGroupDescr_get_attribs_descr(shader_input_id);
         shader_create_input(build_idx, shader_input_id, desc[i].shader_input_flags, desc[i].divisor);
 
         // attribsGroupDescr_add_attributes(attribs_group_id, temp_buffer[i].src, entry->elems, attribs_descr->attr_offset, entry->flag, temp_buffer[i].divisor, shader_input_id);
-        if((attribs_group->added_components_flag & desc[i].attrib_flag) == 0x0) {
+        if((attribs_group->added_attributes_flag & desc[i].attrib_flag) == 0x0) {
             const attr_t attrib_idx = attribs_group->attribs_count;
             assert(attrib_idx < COMP_MAX_ATTRIBUTES);
-            attribs_group->added_components_flag                       |= desc[i].attrib_flag;
+            attribs_group->added_attributes_flag                       |= desc[i].attrib_flag;
             attribs_group->attribs_descr[attrib_idx].attrib_flag        = desc[i].attrib_flag;
             attribs_group->attribs_descr[attrib_idx].attr_offset        = desc[i].attr_offset;
             attribs_group->attribs_descr[attrib_idx].attr_num_elems     = desc[i].attr_num_elems;
@@ -668,6 +669,7 @@ main(void)
     timer_init_table();
     object_table_init();
     attribsGroupDescr_table_init();
+    unifGroupDescr_table_init();
 
     /* DEBUG-FPRINT */
     engine_fdebug_init();
@@ -679,7 +681,9 @@ main(void)
 
     /// create camera
     float aspect = (float)SCREEN_RES_X / (float)SCREEN_RES_Y;
-    float near = 0.1f;
+    // float aspect = (float)SCREEN_RES_Y / (float)SCREEN_RES_X;
+    float near = 0.01f;
+    // float near = -10.f;
     float far = 100.0f;
 
     /// perspective
@@ -728,6 +732,7 @@ main(void)
 
     gl_viewport(SCREEN_RES_X, SCREEN_RES_Y);
     opengl_debug_init();
+
 
     {
         // temp
@@ -963,22 +968,24 @@ main(void)
     // test_create_object(dodecahedron->attribs_id, dodecahedron->id, num_objects, MESH_DODECAHEDRON, &camera);
         }
 
-    render_tri(&camera);
+    // render_tri(&camera);
+    render_tri_many(&camera);
 
     /// DEBUG OPENGL
     {
-    // GL_CHECK();
+    // GFX_CHECK_ERROR();
     //     struct shader_descriptor* desc = shader_descriptor_get(0);
     //     uint32 total_vertex_count = test_get_total_vertex_count(0);
     //     struct opengl_program* prog = shader_program_get(0);
     //     struct vertex_array_object* va = gfx_vertex_array_get_byidx(0);
     //     struct vertex_buffer_object* vb = vertex_buffer_get_vbo(0);
     //     debug_opengl(prog, va, vb, total_vertex_count, desc->vshader_attribs_stride);
-    // GL_CHECK();
+    // GFX_CHECK_ERROR();
     }
 
     /* DEBUG-PRINT */
     attribsGroupDescr_group_print();
+    unifGroupDescr_group_print();
     shader_desc_table_print_build_entries(0);
     temp_print_builds();
     // string_format_test_validity();

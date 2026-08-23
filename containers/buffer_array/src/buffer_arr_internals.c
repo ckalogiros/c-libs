@@ -62,11 +62,11 @@ fs_append(fs, fmt, ##__VA_ARGS__)
 
 
 /*******************************************************************************
- * buffer_arr_table: a buffer to store all applications buffer structures
+ * buffer_table: a buffer to store all applications buffer structures
  ******************************************************************************/
-/* an array of pointers of type buffer_arr_t, that the [0] elem is the pointer to memory block start */
-buffer_t* buffer_arr_table = NULL;
-uint32 buffer_arr_table_count = 0;
+/* an array of pointers of type bufidx_t, that the [0] elem is the pointer to memory block start */
+buffer_t* buffer_table = NULL;
+uint32 buffer_table_count = 0;
 uint32 ID = 0;
 uint16 allocator_instance_id = 0;
 uint16 buffer_arr_get_allocator_instance_id(){ return allocator_instance_id; }
@@ -79,43 +79,43 @@ uint32 buffer_arr_get_id(){ return ++ID; }
 void
 TEMP_PRINT_BUFFER_ARR_TABLE_COUNT()
 {
-    print("TEMP_PRINT_BUFFER_ARR_TABLE_COUNT:%u\n", buffer_arr_table_count);
+    print("TEMP_PRINT_BUFFER_ARR_TABLE_COUNT:%u\n", buffer_table_count);
 }
 
 /*******************************************************************************
  * free_list:  a buffer to store uint64 values as bitmaps
  *                to store free elements of a buffer. the number of
- *                uint64s deppends on the buffer's capacity.
- *             this is dynamicaly reallocated buffer
+ *                uint64s depends on the buffer's capacity.
+ *             this is dynamically reallocated buffer
  *             Ex. for capacity<=64, 1x uint64 as free list,
  *                 for capacity>64 && <=128, 2x uint64 as free list, ...
  ******************************************************************************/
-struct buffer_arr_table_free_list {
-    struct buffer_arr_table_free_list* next;
+struct buffer_table_free_list {
+    struct buffer_table_free_list* next;
 };
 
-static struct buffer_arr_table_free_list* buffer_arr_table_free_list_head = NULL;
+static struct buffer_table_free_list* buffer_table_free_list_head = NULL;
 
-static uint32 buffer_arr_table_allocations_count = 0;
+static uint32 buffer_table_allocations_count = 0;
 void
 btable_flist_add(void* ptr)
 {
-    struct buffer_arr_table_free_list* list = ptr;
-    list->next = buffer_arr_table_free_list_head;
-    buffer_arr_table_free_list_head = list;
-    buffer_arr_table_allocations_count++;
+    struct buffer_table_free_list* list = ptr;
+    list->next = buffer_table_free_list_head;
+    buffer_table_free_list_head = list;
+    buffer_table_allocations_count++;
 }
 
 buffer_t*
 btable_flist_get_free(void)
 {
-    if(!buffer_arr_table) {
+    if(!buffer_table) {
         buffer_arr_print_error(NO_BUFFER_ARR_TABLE_INIT);
     }
-    struct buffer_arr_table_free_list* list = buffer_arr_table_free_list_head;
-    buffer_arr_table_free_list_head = buffer_arr_table_free_list_head->next;
-    buffer_arr_table_count++;
-    buffer_arr_table_allocations_count--;
+    struct buffer_table_free_list* list = buffer_table_free_list_head;
+    buffer_table_free_list_head = buffer_table_free_list_head->next;
+    buffer_table_count++;
+    buffer_table_allocations_count--;
     return (buffer_t*) list;
 }
 
@@ -123,7 +123,7 @@ btable_flist_get_free(void)
 void
 buffer_arr_init_table(const pageid_t num_pages)
 {
-    if(buffer_arr_table) {
+    if(buffer_table) {
         buffer_arr_print_error(BUFFER_ARR_TABLE_ALREADY_INIT);
         return;
     }
@@ -133,14 +133,14 @@ buffer_arr_init_table(const pageid_t num_pages)
     const uint32 btable_typesize = sizeof(buffer_t);
     assert(sizeof(buffer_t) > sizeof(void*));
 
-    /* create memory for buffer table and buffer's free list */
+    /* create memory for buffer table and buffer's table free list */
     void* address =
             (buffer_t*) aligned_alloc(BUFFER_ARR_ALIGNMENT, BUFFER_ARR_TABLE_MIN_CAPACITY * btable_typesize);
 
-    buffer_arr_table = address;
+    buffer_table = address;
 
-    buffer_t* btable_ptr = buffer_arr_table;
-    while((uint64) btable_ptr < (uint64) (buffer_arr_table + BUFFER_ARR_TABLE_MIN_CAPACITY-1)) {
+    buffer_t* btable_ptr = buffer_table;
+    while((uint64) btable_ptr < (uint64) (buffer_table + BUFFER_ARR_TABLE_MIN_CAPACITY-1)) {
         btable_flist_add(btable_ptr);
         btable_ptr++;
     }
@@ -154,9 +154,9 @@ buffer_arr_init_table(const pageid_t num_pages)
 void
 buffer_arr_destroy_table(void)
 {
-    if(buffer_arr_table) {
-        print("FREEING buffer_arr_table: %x ... ", ry, buffer_arr_table, CLEAR);
-        free(buffer_arr_table);
+    if(buffer_table) {
+        print("FREEING buffer_table: %x ... ", ry, buffer_table, CLEAR);
+        free(buffer_table);
         print("OK\n\n", GREEN, CLEAR);
     }
 }
@@ -168,7 +168,7 @@ buffer_arr_destroy_table(void)
 buffer_t*
 buffer_arr_constructor_uint32(const bufidx_t capacity)
 {
-    if(!buffer_arr_table) {
+    if(!buffer_table) {
         buffer_arr_print_error(NO_BUFFER_ARR_TABLE_INIT);
         my_exit("buffer_arr_constructor_uint32", __FILE__, __LINE__);
     }
@@ -217,7 +217,7 @@ buffer_arr_constructor_gentype(const bufidx_t capacity, const typesize_t typesiz
     // uint64 s = max_value_from_type(typesize);
     // assert(s < MAX_UINT32);
 
-    if(!buffer_arr_table) {
+    if(!buffer_table) {
         // buffer_arr_init_table();
         buffer_arr_print_error(BUFFER_ARR_TABLE_INIT_FROM_CREATE_FUN);
         // my_exit("buffer_arr_constructor_uint32", __FILE__, __LINE__);
@@ -303,7 +303,7 @@ buffer_arr_destructor(buffer_t* buffer)
 
     /* free buffer from buffer table */
     btable_flist_add(ptr);
-    buffer_arr_table_count--;
+    buffer_table_count--;
 
 }
 
@@ -339,7 +339,7 @@ buffer_arr_release(buffer_t* buffer)
 
     /* free buffer from buffer table */
     btable_flist_add(ptr);
-    buffer_arr_table_count--; // TODO: move this to btable_flist_add BUT create an init btable function (so that counter is not decremened at init)
+    buffer_table_count--; // TODO: move this to btable_flist_add BUT create an init btable function (so that counter is not decremened at init)
 
 }
 

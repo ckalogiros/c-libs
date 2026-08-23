@@ -1,4 +1,5 @@
-CREATE  : |  id:      1 |  tsize:   896 |  capac:    80 slabs |  count:   0 |  tail:   -1 |  data:  000070c8 d237a040  flist: 000070c8 d2359040
-CREATE  : |  id:      2 |  tsize:    28 |  capac:    80 slabs |  count:   0 |  tail:   -1 |  data:  000070c8 d2338040  flist: 000070c8 d2359050
-CREATE  : |  id:      3 |  tsize:   432 |  capac:     2 slabs |  count:   0 |  tail:   -1 |  data:  000070c8 d2338c40  flist: 000070c8 d2359440
-CREATE  : |  id:      4 |  tsize:     4 |  capac:    16 slabs |  count:   0 |  tail:   -1 |  data:  000070c8 d2359840  flist: 000070c8 d2359448
+CREATE  : |  id:      1 |  tsize:     4 |  capac: 32768 slabs |  count:   0 |  tail:   -1 |  data:  000076f9 6bee8040  flist: 000076f9 6bf08040
+CREATE  : |  id:      2 |  tsize:    12 |  capac:  8192 slabs |  count:   0 |  tail:   -1 |  data:  000076f9 6be77040  flist: 000076f9 6bb8f040
+CREATE  : |  id:      3 |  tsize:     8 |  capac:  8192 slabs |  count:   0 |  tail:   -1 |  data:  000076f9 6bb1e040  flist: 000076f9 6bb8f440
+CREATE  : |  id:      4 |  tsize:    16 |  capac:  8192 slabs |  count:   0 |  tail:   -1 |  data:  000076f9 6bf08040  flist: 000076f9 6bb8f840
+CREATE  : |  id:      5 |  tsize:    36 |  capac:  8192 slabs |  count:   0 |  tail:   -1 |  data:  000076f9 6baad040  flist: 000076f9 6bb8fc40

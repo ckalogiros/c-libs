@@ -4,7 +4,6 @@
 #ifndef ENGINE_TEST_OPENGL_DEBUG_H
 #define ENGINE_TEST_OPENGL_DEBUG_H
 
-#include <stdlib.h>
 #include <glad/gl.h>
 #include "glfw3.h"
 #include "logger.h"
@@ -116,8 +115,8 @@
  */
 
 
-// #define GL_CHECK()
-#define GL_CHECK() do { \
+// #define GFX_CHECK_ERROR()
+#define GFX_CHECK_ERROR() do { \
 GLenum err = glGetError(); \
 if (err != GL_NO_ERROR) { \
 print("OpenGL Error 0x%x at %s:%d\n", err, __FILE__, __LINE__); \
@@ -267,18 +266,18 @@ static void debug_opengl(struct opengl_program* prog,
 
     // After shader_attributes_enable, verify the state:
     glBindVertexArray(va->vao); // Your VAO
-    GL_CHECK();
+    GFX_CHECK_ERROR();
 
 
     int nrAttributes;
     glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nrAttributes);
     print("\nMax number of attributes: %d\n", nrAttributes);
-    GL_CHECK();
+    GFX_CHECK_ERROR();
 
     GLint viewport[4];
     glGetIntegerv(GL_VIEWPORT, viewport);
     print("\nViewport: x=%d y=%d w=%d h=%d\n", viewport[0], viewport[1], viewport[2], viewport[3]);
-    GL_CHECK();
+    GFX_CHECK_ERROR();
 
     print(""
           "program: %u, progidx:%u\n"
@@ -294,13 +293,13 @@ static void debug_opengl(struct opengl_program* prog,
     glBindBuffer(GL_ARRAY_BUFFER, vb->vbo);
     uint32 stride = shader_attrib_get_stride(prog->build_idx);
     const uint32 vbdata_count = total_vertex_count * stride;
-    GL_CHECK();
+    GFX_CHECK_ERROR();
 
     // float* readback = (float*) glMapBuffer(GL_ARRAY_BUFFER, GL_READ_ONLY);
     float* readback = (float*) glMapBuffer(GL_ARRAY_BUFFER, GL_MAP_READ_BIT | GL_MAP_WRITE_BIT);
     // float* readback = (float*) malloc(vbdata_count * sizeof(float));
     // glGetBufferSubData(GL_ARRAY_BUFFER, 0, vbdata_count * sizeof(float), readback);
-    GL_CHECK();
+    GFX_CHECK_ERROR();
 
 
 
@@ -320,7 +319,7 @@ static void debug_opengl(struct opengl_program* prog,
         }
         print("\n\n");
         glUnmapBuffer(GL_ARRAY_BUFFER);
-    GL_CHECK();
+    GFX_CHECK_ERROR();
 
     } else {
         print("Failed to map buffer\n");

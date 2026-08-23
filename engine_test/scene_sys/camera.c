@@ -5,6 +5,8 @@
 #include "camera.h"
 #include <math.h>
 
+#include "smath.h"
+
 /*
  * let camera constructor to take a projection matrix(float projmat[16])
  * so that user passes different params for ortho and persective
@@ -14,11 +16,11 @@ struct camera_projection_matrix scene_create_perspective_projection_matrix(const
                                                              const float far, const float aspect)
 {
     // Convert FOV to radians and calculate
-    float f = 1.0f / tan(fov * 3.14159f / 360.0f);  // cot(fov/2)
+    float f = 1.0f / tan(fov * (PI / 360.0f));  // cot(fov/2)
     struct camera_projection_matrix mat = {
         .projection_matrix = {
-            f / aspect,   0.0f,   0.0f,                               0.0f,
-            0.0f,         f,      0.0f,                               0.0f,
+            f / aspect,   0.0f,    0.0f,                               0.0f,
+            0.0f,         f,       0.0f,                               0.0f,
             0.0f,         0.0f,   -(far + near) / (far - near),       -1.0f,
             0.0f,         0.0f,   -(2.0f * far * near) / (far - near), 0.0f
         }
@@ -35,8 +37,8 @@ struct camera_projection_matrix scene_create_orthographic_projection_matrix(cons
             // 0.0f,              2.0f/(top-bottom), 0.0f,             -(top+bottom)/(top-bottom),
             // 0.0f,              0.0f,              -2.0f/(far-near), -(far+near)/(far-near),
             // 0.0,               0.0,               0.0,              1.0f,
-            2.0f/(right-left), 0.0f,              0.0f,             0.0,
-            0.0f,              2.0f/(top-bottom), 0.0f,             0.0,
+            2.0f/(right-left), 0.0f,               0.0f,            0.0,
+            0.0f,              2.0f/(top-bottom),  0.0f,            0.0,
             0.0f,              0.0f,              -2.0f/(far-near), 0.0,
             -(right+left)/(right-left), -(top+bottom)/(top-bottom), -(far+near)/(far-near), 1.0f
         }

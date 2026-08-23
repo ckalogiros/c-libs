@@ -5,7 +5,7 @@
 #include "tests.h"
 
 
-#include "sparse_arr_internals.h"
+#include "buffer_arr_internals.h"
 #include "component.h"
 #include "ecs.h"
 #include "entity.h"
@@ -82,11 +82,9 @@ test_components_together_add(const uint32 count)
     for(uint32 r = 0; r < repeat; r++) {
         for(uint32 i = 0; i < count; i++) {
             const uint32 eid = entity_get_id(i);
-            add_pos_component(eid, (vec3f){ .x = i, .y = i + count, .z = 0, });
-            // add component scale
+            add_pos_component  (eid, (vec3f){ .x = i, .y=i+count, .z = 0, });
             add_scale_component(eid, (vec2f){ .x = i, .y=i+count, });
-            // add component col
-            add_col_component(eid, (vec4f){ .r = i, .g=i+count, .b = 0, .a=1.0, });
+            add_col_component  (eid, (vec4f){ .r = i, .g=i+count, .b = 0, .a=1.0, });
         }
     }
     perf_timer_stop(t);
@@ -117,9 +115,9 @@ test_components_all_attribs(const uint32 count)
         for(uint32 i = 0; i < count; i++) {
             const uint32 eid = entity_get_id(i);
             add_all_attribs_component(eid, (struct all_attribs){
-                                          .col = {.r = i, .g = i + count, .b = 0, .a = 1.0,},
-                                          .pos = {.x=i, .y=i+count, .z=0},
-                                          .scale = {.x=i, .y=i+count},
+                                          .col   = {.r = i, .g = i + count, .b = 0, .a = 1.0,},
+                                          .pos   = {.x=i,   .y=i+count,     .z=0},
+                                          .scale = {.x=i,   .y=i+count},
                                       });
         }
     }
@@ -225,14 +223,16 @@ void
 test_perf_ecs_insert_to_comp()
 {
     memman_init();
-    sparse_arr_init_table(4);
+    buffer_arr_init_table(4);
     timer_init_table();
 
-    init_entity_table();
-    init_col_table();
-    init_pos_table();
-    init_scale_table();
-    init_all_attribs_table();
+    const uint32 capacity = 1024;
+
+    init_entity_table(capacity);
+    init_col_table(capacity);
+    init_pos_table(capacity);
+    init_scale_table(capacity);
+    init_all_attribs_table(capacity);
 
     struct timer* t = timer_create_perf_timer();
 
@@ -240,7 +240,7 @@ test_perf_ecs_insert_to_comp()
 
 
     // create entities
-    for(uint32 i = 0; i < 1024; i++) {
+    for(uint32 i = 0; i < capacity; i++) {
         uint32 eidx = entity_create();
     }
 
@@ -271,8 +271,9 @@ void
 test_ecs_groups()
 {
     memman_init();
-    sparse_arr_init_table(4);
-    init_entity_table();
+    buffer_arr_init_table(4);
+    const uint32 capacity = 1024;
+    init_entity_table(capacity);
 
     // create many entities
     for(uint32 i = 0; i < 10; i++) {

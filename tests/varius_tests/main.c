@@ -6,6 +6,7 @@
 #include "mem_man_interface.h"
 #include "precision_timer.h"
 #include "smath.h"
+#include "test_buffers.h"
 
 
 #define LEN 2048*16
@@ -21,18 +22,24 @@ main(void)
     printf("Hello, World!\n");
 
     memman_init();
-    buffer_arr_init_table(2);
-    timer_init_table();
+    // buffer_arr_init_table(2);
+    // timer_init_table();
 
+    /****/
     // test_memcpy_vs_loop();
-    test_struct_vs_flat_buffer();
+    // test_struct_vs_flat_buffer();
 
+    /****/
+    test_buffers_access();
 
     /* CLOSE APP */
-    buffer_arr_destroy_table();
+    // buffer_arr_destroy_table();
     memman_terminate();
     return 0;
 }
+
+
+
 
 void test_memcpy_vs_loop()
 {

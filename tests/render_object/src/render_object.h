@@ -1,7 +1,0 @@
-/*
- * Created by ckalo on 5/28/26.
- */
-#ifndef RENDER_OBJECT_RENDER_OBJECT_H
-#define RENDER_OBJECT_RENDER_OBJECT_H
-
-#endif //RENDER_OBJECT_RENDER_OBJECT_H

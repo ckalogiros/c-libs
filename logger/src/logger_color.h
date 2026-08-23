@@ -17,7 +17,7 @@
 #define gc  (FG_RGB(50,240, 140))
 #define CYAN   (FG_RGB(10,240, 255))
 #define BLUE   (FG_RGB(0,100, 255))
-#define br1 (FG_RGB(120,50, 255))
+#define br1 (FG_RGB(170, 70, 250))
 #define br2 (FG_RGB(200,50, 255))
 #define br3 (FG_RGB(240, 50, 100))
 

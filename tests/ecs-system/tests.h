@@ -11,7 +11,7 @@ print("%stest:%s %sadd components in seperate loops%s\n", GREEN, CLEAR, ry, CLEA
 print("%stest:%s %sall components in 1 loop%s\n", GREEN, CLEAR, ry, CLEAR);\
 print("%stest:%s %s1 component for all attributes in 1 loop%s\n", GREEN, CLEAR, ry, CLEAR);
 
-static const uint32 REPEAT = 1000000;
+static const uint32 REPEAT = 10000;
 
 
 void test_create_entities(const uint32 count);
@@ -22,7 +22,7 @@ uint32 test_components_seperate_add(const uint32 count);
 
 uint32 test_components_together_add(const uint32 count);
 
-uint32 test_components_all_attribs();
+uint32 test_components_all_attribs(const uint32 count);
 
 
 struct timer;

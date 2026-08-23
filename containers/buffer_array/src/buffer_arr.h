@@ -9,9 +9,9 @@
 #include "mem_man_types.h"
 
 
-void buffer_arr_table_init(const pageid_t num_pages);
+void buffer_table_init(const pageid_t num_pages);
 
-void buffer_arr_table_destroy(void);
+void buffer_table_destroy(void);
 
 buffer_t* buffer_arr_create_uint32(const uint32 capacity);
 

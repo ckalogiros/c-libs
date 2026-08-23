@@ -5,7 +5,7 @@
 #define ENGINE_TEST_OPENGL_H
 
 #include <glad/gl.h>
-#include "gfx_interface.h"
+#include "gfx_context.h"
 #include "my_types.h"
 #include "shader_descriptor.h"
 

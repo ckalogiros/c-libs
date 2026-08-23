@@ -35,7 +35,7 @@ typedef struct buffer_array {
 /*
  * Can do this instead and have buffer and data in contiguous memory
  *
- * typedef struct buffer_arr_t {
+ * typedef struct bufidx_t {
  *    uint16 free_list_capacity;
  *    bufidx_t capacity;
  *    bufidx_t count;
@@ -44,7 +44,7 @@ typedef struct buffer_array {
  *    int16 typesize;
  *    uint8 flist[size/8]; // with min size=8
  *    void data[1];
- * } buffer_arr_t;
+ * } bufidx_t;
  */
 
 #endif //BUFFER_ARR_BUFFER_ARR_STRUCT_H

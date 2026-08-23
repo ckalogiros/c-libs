@@ -7,7 +7,7 @@
 
 
 void
-init_entity_table();
+init_entity_table(const uint32 capacity);
 
 uint32
 entity_get_id(const uint32 idx);

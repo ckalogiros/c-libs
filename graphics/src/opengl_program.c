@@ -59,25 +59,25 @@ struct shader_descriptor*
 opengl_program_create(const sididx_t sid_idx, const build_t build_idx, const char* fs)
 {
     struct shader_descriptor* desc = shader_builder_build(sid_idx, build_idx, TRUE);
-    GL_CHECK();
+    GFX_CHECK_ERROR();
     const GLuint vertex_shader = gl_create_shader(OPENGL_VERTEX_SHADER);
     gl_shader_source(vertex_shader, 1, &(desc->vshader_code), NULL);
     gl_compile_shader(vertex_shader);
     opengl_debug_shader(vertex_shader);
-    GL_CHECK();
+    GFX_CHECK_ERROR();
 
     const GLuint fragment_shader = gl_create_shader(OPENGL_FRAGMENT_SHADER);
     gl_shader_source(fragment_shader, 1, &fs, NULL);
     gl_compile_shader(fragment_shader);
     opengl_debug_shader(fragment_shader);
-    GL_CHECK();
+    GFX_CHECK_ERROR();
 
     const GLuint program = gl_create_program();
     gl_attach_shader(program, vertex_shader);
     gl_attach_shader(program, fragment_shader);
     gl_link_program(program);
     opengl_debug_program(program);
-    GL_CHECK();
+    GFX_CHECK_ERROR();
 
     const build_t program_idx = insert_program((GLint) program);
     desc->build_idx = program_idx;
@@ -86,7 +86,7 @@ opengl_program_create(const sididx_t sid_idx, const build_t build_idx, const cha
 
     gl_delete_shader(vertex_shader);
     gl_delete_shader(fragment_shader);
-    GL_CHECK();
+    GFX_CHECK_ERROR();
 
     engine_fdebug_flush_arena(ENGINE_FDEBUG_FILE_VSHADER);
 

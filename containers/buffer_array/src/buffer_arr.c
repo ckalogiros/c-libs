@@ -17,19 +17,19 @@
 #define BUFFER_ARR_DEBUG_PRINT 1
 #undef BUFFER_ARR_DEBUG_PRINT
 
-#define buffer_arr_free_list_insert(value, bit) (bit_set(value, bit, uint64))
-#define buffer_arr_free_list_remove(value, bit) (bit_clear(value, bit, uint64))
+#define buffer_arr_free_list_insert(value, bit)  (bit_set(value, bit, uint64))
+#define buffer_arr_free_list_remove(value, bit)  (bit_clear(value, bit, uint64))
 #define buffer_arr_free_list_is_free(value, bit) (bit_is_set(value, bit, uint64))
 
 
 void
-buffer_arr_table_init(const pageid_t num_pages)
+buffer_table_init(const pageid_t num_pages)
 {
     buffer_arr_init_table(num_pages);
 }
 
 void
-buffer_arr_table_destroy(void)
+buffer_table_destroy(void)
 {
     buffer_arr_destroy_table();
 }
@@ -117,9 +117,8 @@ buffer_arr_free_elem(buffer_t* const buffer, const bufidx_t index)
         // do not decrement tail if tail < index
         if(index == buffer->tail) buffer->tail--;
     }
-
+    /// reset memory
     memset(&buffer->data[index*buffer->typesize], 0xAB, buffer->typesize);
-    // memset_64bit(buffer->data, 0xAB, buffer->typesize);
 }
 
 void // sets all elems as free. buffer data remain untouched
@@ -129,7 +128,7 @@ buffer_arr_empty(buffer_t* const buffer, const bufidx_t index)
         buffer->free_list[i] = 0x0;
 
     buffer->count = 0;
-    buffer->tail = -1;
+    buffer->tail  = -1;
 }
 
 int16
@@ -156,7 +155,6 @@ buffer_arr_set_for_push(buffer_t* const buffer)
     buffer_arr_free_list_remove(*free_list, buffer->tail);
 
     return buffer->tail;
-
 }
 
 void // sets up buffer's fields, but the data transform happens at caller site
@@ -165,15 +163,12 @@ buffer_arr_set_for_insert(buffer_t* const buffer, const bufidx_t index)
     if(index >= buffer->capacity)
         buffer_arr_print_error(BUFFER_ARR_INDEX_GREATER_THAN_CAPACITY);
 
-
     buffer->count++; // todo: we assume that we insert in a none occupied element
     // increment tail only if index is greater
     if(index > buffer->tail) buffer->tail = index;
 
     const uint32 offset = index / BITS64;
     buffer_arr_free_list_remove(buffer->free_list[offset], index);
-    // uint64* free_list = buffer->free_list + offset;
-    // buffer_arr_free_list_remove(*free_list, index);
 }
 
 

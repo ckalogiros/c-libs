@@ -4,7 +4,7 @@
 #ifndef GRAPHICS_TEST_SHADER_ID_H
 #define GRAPHICS_TEST_SHADER_ID_H
 #include <assert.h>
-#include "my_types.h"
+#include "gfx_types.h"
 
 
 #define SHADER_MAX_LOCATION_SIZE 4
@@ -15,11 +15,11 @@
 /***************************************************************************************************
  * ## SHADER STANDARD/STATIC VARIABLES {ATTRIBUTES, UNIFORMS}
  * # These flags are used to compile the appropriate shaders for mesh creation, by the user.
- * # all static and user created shader variables are stored in an array,
+ * # all flags, static and user created shader variables are stored in an array,
  *   along with other useful information.
  * ! IMPORTANT !
  *  The number of flags, the number of indexes and the number of array elements
- *  MUST MATCH and MUST BE 1 TO 1 in terms of their position in their decleration.
+ *  MUST MATCH and MUST BE 1 TO 1 in terms of their position in their declaration.
  *  -- So we must create the appropriate checks --
  *   TODO: continue explanation
  **************************************************************************************************/
@@ -66,9 +66,6 @@ enum SID_ID {
     SID_ID_COUNT,
 };
 
-
-typedef uint64 sid_t;
-typedef int16  sididx_t;
 
 /// TODO: unite some flags into one
 struct gfx_sid {

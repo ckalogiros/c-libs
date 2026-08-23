@@ -4,18 +4,17 @@
 #ifndef TESTS_COMPONENT_H
 #define TESTS_COMPONENT_H
 
-#include "sparse_arr_struct.h"
 #include "my_types.h"
 
 typedef vec3f pos3;
 typedef vec2f scale2;
 typedef vec4f col4;
 
-void init_pos_table(void);
+void init_pos_table(const uint32 capacity);
 
-void init_scale_table(void);
+void init_scale_table(const uint32 capacity);
 
-void init_col_table(void);
+void init_col_table(const uint32 capacity);
 
 
 void add_pos_component(const uint32 id, const vec3f pos);
@@ -32,7 +31,7 @@ struct all_attribs {
     // vec4f pad2;
 };
 
-void init_all_attribs_table();
+void init_all_attribs_table(const uint32 capacity);
 
 void add_all_attribs_component(const uint32 id, const struct all_attribs col);
 

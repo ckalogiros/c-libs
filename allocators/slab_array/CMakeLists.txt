@@ -15,6 +15,7 @@ add_subdirectory(src)
 add_subdirectory(log)
 add_subdirectory(tests)
 
+
 # 3. add external projects
 include_project(${root_path}/g_includes)
 include_project(${root_path}/logger/src)
@@ -24,13 +25,19 @@ include_project(${root_path}/bits/src)
 include_project(${root_path}/memory/src)
 include_project(${root_path}/memory/src/mem_log)
 include_project(${root_path}/allocators/stack/src)
-include_project(${root_path}/containers/sparse_array/src)
-include_project(${root_path}/containers/sparse_array/log)
+include_project(${root_path}/allocators/queue/src)
+include_project(${root_path}/allocators/arena/src)
+include_project(${root_path}/containers/buffer_array/src)
+include_project(${root_path}/containers/buffer_array/log)
 include_project(${root_path}/containers/string/src)
 include_project(${root_path}/perf_timer/src)
 
+
 # 4. create executable with all the source files
 add_project_executable(slab_array main.c)
+
+# Link math library
+target_link_libraries(slab_array m)  # "m" is the linker name for libm
 
 # Debug: global properties
 print_all_registered()

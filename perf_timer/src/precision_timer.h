@@ -15,6 +15,7 @@
 
 
 void timer_init_table(void);
+void timer_destroy_table(void);
 
 struct timer* timer_create_perf_timer(void);
 

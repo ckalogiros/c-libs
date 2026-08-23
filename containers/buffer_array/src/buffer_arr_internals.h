@@ -46,7 +46,7 @@ bufidx_t TEMP_buffer_arr_find_tail(const buffer_t* const buffer);
 /* DEBUG-FPRINT */
 uint16 buffer_arr_get_allocator_instance_id();
 void buffer_arr_print_to_file(buffer_t* buffer);
-// void* buffer_arr_get_data(const buffer_arr_t* const buffer);
-// uint64* buffer_arr_get_freelist(const buffer_arr_t* const buffer);
+// void* buffer_arr_get_data(const bufidx_t* const buffer);
+// uint64* buffer_arr_get_freelist(const bufidx_t* const buffer);
 
 #endif //BUFFER_ARR_BUFFER_ARR_NTERNALS_H

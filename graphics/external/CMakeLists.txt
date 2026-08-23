@@ -1,0 +1,20 @@
+include(${cmake_utils})
+register_module(
+        sources
+            ${CMAKE_CURRENT_LIST_DIR}/object.c
+            ${CMAKE_CURRENT_LIST_DIR}/mesh.c
+            ${CMAKE_CURRENT_LIST_DIR}/bubble_sort.c
+            ${CMAKE_CURRENT_LIST_DIR}/run.c
+            ${CMAKE_CURRENT_LIST_DIR}/command.c
+        headers
+            ${CMAKE_CURRENT_LIST_DIR}/mesh.h
+            ${CMAKE_CURRENT_LIST_DIR}/object.h
+            ${CMAKE_CURRENT_LIST_DIR}/bubble_sort.h
+            ${CMAKE_CURRENT_LIST_DIR}/run.h
+            ${CMAKE_CURRENT_LIST_DIR}/command.h
+        include_dirs
+            ${CMAKE_CURRENT_LIST_DIR}
+            compiler_macros
+            ENABLE_DEBUG=1
+            VERSION_MAJOR=0
+)

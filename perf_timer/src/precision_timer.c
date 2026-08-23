@@ -19,7 +19,6 @@
 #define TIMER_TABLE_MIN_CAPACITY 16
 #define TIMER_ALIGNMENT 64
 
-
 #define TIMER_CHECK_TABLE(t_table)\
 if(!t_table) {\
     print("%sERROR\nNO timer_table initialization\nForget to call \"timer_init_table()\"??%s", RED, CLEAR);\
@@ -94,6 +93,20 @@ timer_init_table(void)
         ptr++;
     }
 
+}
+void
+timer_destroy_table(void)
+{
+    if(!timer_table) {
+        print("%sERROR: timer_table already destoyed or NULL\n%s", RED, CLEAR);
+        return;
+    }
+
+    free(timer_table);
+    timer_table = NULL;
+    timer_table_free_list_head = NULL;
+    timer_table_count = 0;
+    timer_table_allocations_count = 0;
 }
 
 
@@ -175,11 +188,11 @@ void
 perf_timer_reset(struct timer* const t)
 {
     t->start = 0;
-    t->stop = 0;
+    t->stop  = 0;
     t->count = 0;
     t->accum = 0;
     t->delta = 0;
-    t->avg = 0;
+    t->avg   = 0;
 }
 
 uint32

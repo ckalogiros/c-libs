@@ -12,6 +12,10 @@ include(${cmake_utils})
 set(root_path ${CLION_ROOT_DIR})
 #enable_sanitizer()
 
+# 2. add project's sub-directories
+add_subdirectory(test_buffers)
+include(${cmake_utils})
+
 
 # 3. add external projects
 include_project(${root_path}/g_includes)
@@ -30,7 +34,7 @@ include_project(${root_path}/containers/buffer_array/src)
 include_project(${root_path}/containers/buffer_array/log)
 include_project(${root_path}/containers/string/src)
 include_project(${root_path}/perf_timer/src)
-
+include_project(${root_path}/operating_system_calls/src)
 
 
 

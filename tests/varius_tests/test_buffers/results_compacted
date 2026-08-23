@@ -1,0 +1,82 @@
+
+
+
+Ratio: t2 is faster 101.7% from t1
+Ratio: t2 is faster 101.4% from t1
+Ratio: t2 is faster 136.8% from t1
+Ratio: t2 is faster 163.1% from t1
+Ratio: t2 is faster 164.4% from t1
+Ratio: t2 is faster 157.0% from t1
+Ratio: t2 is faster 165.7% from t1
+Ratio: t2 is faster 169.1% from t
+Ratio: t2 is faster 163.0% from t1
+
+number of buffer elements:    | 16     | 32     | 64     | 128    | 256    | 512    | 1024   | 2048   | 4096   |
+separated buffers is faster:  | 101.7% | 101.4% | 136.8% | 163.1% | 164.4% | 157.0% | 165.7% | 169.1% | 163.0% |
+
+
+****************************************************************************************************
+****************************************************************************************************
+ Number of objects: 32768.
+ Repeat: 10000.
+ Random indices generated: 32768.
+ Random generator max index cap: 32768.
+ Random generator buffer count: 32768.
+
+__________________ Perf Timer __________________
+  count: 1  accum: 3143540665  delta: 3143540665
+  repeat: 10000  buf_capacity: 1
+  fps: 3181
+  avg: 314354 nano  avg: 314 micro  avg: 0 mili
+________________________________________________
+
+
+__________________ Perf Timer __________________
+  count: 1  accum: 1342608722  delta: 1342608722
+  repeat: 10000  buf_capacity: 1
+  fps: 7448
+  avg: 134260 nano  avg: 134 micro  avg: 0 mili
+________________________________________________
+
+buf interleaved   accum: 314354
+separated buffers accum: 134260
+{separated buffers} faster 57.29% from {buf  interleaved}
+{buf  interleaved} slower 134.14% from {separated buffers}
+****************************************************************************************************
+ Number of objects: 32768.
+ Repeat: 10000.
+ Random indices generated: 32768.
+ Random generator max index cap: 32768.
+ Random generator buffer count: 32768.
+
+__________________ Perf Timer __________________
+  count: 1  accum: 593005840  delta: 593005840
+  repeat: 10000  buf_capacity: 1
+  fps: 16863
+  avg: 59300 nano  avg: 59 micro  avg: 0 mili
+________________________________________________
+
+
+__________________ Perf Timer __________________
+  count: 1  accum: 2960103122  delta: 2960103122
+  repeat: 10000  buf_capacity: 1
+  fps: 3378
+  avg: 296010 nano  avg: 296 micro  avg: 0 mili
+________________________________________________
+
+buf interleaved   accum: 296010
+separated buffers accum: 59300
+{separated buffers} faster 79.97% from {buf  interleaved}
+{buf  interleaved} slower 399.17% from {separated buffers}
+****************************************************************************************************
+****************************************************************************************************
+
+buf interleaved   accum: 314354
+separated buffers accum: 134260
+{separated buffers} faster 57.29% from {buf  interleaved}
+{buf  interleaved} slower 134.14% from {separated buffers}
+
+buf interleaved   accum: 296010
+separated buffers accum: 59300
+{separated buffers} faster 79.97% from {buf  interleaved}
+{buf  interleaved} slower 399.17% from {separated buffers}

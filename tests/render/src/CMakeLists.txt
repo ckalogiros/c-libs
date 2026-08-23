@@ -1,0 +1,19 @@
+include(${cmake_utils})
+
+register_module(
+        sources
+            ${CMAKE_CURRENT_LIST_DIR}/opengl.c
+            ${CMAKE_CURRENT_LIST_DIR}/window.c
+            ${CMAKE_CURRENT_LIST_DIR}/camera.c
+        headers
+            ${CMAKE_CURRENT_LIST_DIR}/GLOBALS.h
+        ${CMAKE_CURRENT_LIST_DIR}/old_opengl_debug.h
+            ${CMAKE_CURRENT_LIST_DIR}/opengl.h
+            ${CMAKE_CURRENT_LIST_DIR}/window.h
+            ${CMAKE_CURRENT_LIST_DIR}/camera.h
+        include_dirs
+            ${CMAKE_CURRENT_LIST_DIR}
+        compiler_macros
+            ENABLE_DEBUG=1
+            VERSION_MAJOR=0
+)

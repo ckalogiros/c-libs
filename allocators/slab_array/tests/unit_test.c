@@ -71,7 +71,7 @@ mem_cache_free_slab_test_debug(struct slab_allocator_mcache* mcache, void* slab_
     struct flist* released = (struct flist*) slab_address;
     struct flist* node = mcache->slabs_free_list;
 
-    const char* free_buffer = slab_address;
+    const char* free_buffer = (const char*)slab_address;
 
     memset(slab_address, 0x0, mcache->slab_size);
 
@@ -298,7 +298,7 @@ test_slab_multiple_allocations_same_mcache()
 #define ANY_MCACHE 0 // or 1-2-3...
     assert(mcaches[ANY_MCACHE]->last_slab_end == ptrs[0] + total);
     assert(mcaches[ANY_MCACHE]->last_slab_end == ptrs[NUM_ALLOCATIONS-1] + sizes[NUM_ALLOCATIONS-1]);
-#undef ANY_MCACHE 0 // or 1-2-3...
+#undef ANY_MCACHE // or 1-2-3...
 
     print_test_result("test_slab_multiple_allocations_same_mcache", TRUE, __FILE__, __LINE__, "");
 
@@ -613,5 +613,5 @@ unit_test_runner_slab_allocator(void)
 }
 
 #undef SOME_TYPE
-#undef FOR(n)
-#undef FOR_REV(n)
+#undef FOR
+#undef FOR_REV

@@ -173,11 +173,11 @@ void
 shader_attribute_enable(const attr_t loc, const attr_t num_elems, const attr_t stride, const attr_t offset, const attr_t size, const attr_t divisor)
 {
     gl_enable_vertex_attrib_array(loc);
-    GL_CHECK();
+    GFX_CHECK_ERROR();
     gl_enable_attrib_pointer(loc, num_elems, stride * size, offset * size);
-    GL_CHECK();
+    GFX_CHECK_ERROR();
     gl_vertex_attrib_divisor(loc, divisor);
-    GL_CHECK();
+    GFX_CHECK_ERROR();
 }
 void
 shader_attributes_enable(const struct shader_descriptor* desc)
@@ -190,11 +190,11 @@ shader_attributes_enable(const struct shader_descriptor* desc)
         const struct attributes_layout* vlayout = &desc->v_layout[i];
 
         gl_enable_vertex_attrib_array(vlayout->loc);
-        GL_CHECK();
+        GFX_CHECK_ERROR();
         gl_enable_attrib_pointer(vlayout->loc, vlayout->num_elems, desc->vshader_attribs_stride * SIZE_F32, vlayout->offset * SIZE_F32);
-        GL_CHECK();
+        GFX_CHECK_ERROR();
         gl_vertex_attrib_divisor(vlayout->loc, SHADER_DEVISOR_PER_VERTEX);
-        GL_CHECK();
+        GFX_CHECK_ERROR();
 
     }
 
@@ -223,11 +223,11 @@ shader_attributes_instanced_enable(const uint32 locations_count, const uint32 st
 
     for(; loc < locations_count - 1; loc++) {
         gl_enable_vertex_attrib_array(loc);
-        GL_CHECK();
+        GFX_CHECK_ERROR();
         gl_enable_attrib_pointer(loc, SHADER_MAX_LOCATION_SIZE, stride * SIZE_F32, (k * SHADER_MAX_LOCATION_SIZE));
-        GL_CHECK();
+        GFX_CHECK_ERROR();
         gl_vertex_attrib_divisor(loc, SHADER_DEVISOR_PER_VERTEX);
-        GL_CHECK();
+        GFX_CHECK_ERROR();
 
         k += SHADER_MAX_LOCATION_SIZE;
     }

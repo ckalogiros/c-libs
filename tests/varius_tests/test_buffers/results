@@ -1,0 +1,247 @@
+
+-- TEST 1 --
+ Update scale, wpos and col vectors to the two buffer structures.
+ 1. contiguous buffer of type: { [scale] [wpos] [col] },
+ 2. 3 separate buffers of type: buf[scale] buf[wpos] buf[col] },
+ Calling 3 separate functions, setting the 3 vectors.
+ The former loop repeats: 100000 times.
+ The time measurment happens in the inner loop
+****************************************************************************************************
+ Number of objects: 16.
+ Repeat: 100000.
+ Random indices generated: 16.
+ Random generator max index cap: 16.
+ Random generator buffer count: 16.
+
+__________________ Perf Timer __________________
+  count: 100000  accum: 261048157  delta: 2375
+  repeat: 100000  buf_capacity: 1
+  fps: 383141
+  avg: 2610 nano  avg: 2 micro  avg: 0 mili
+________________________________________________
+
+
+__________________ Perf Timer __________________
+  count: 100000  accum: 256565558  delta: 2374
+  repeat: 100000  buf_capacity: 1
+  fps: 389863
+  avg: 2565 nano  avg: 2 micro  avg: 0 mili
+________________________________________________
+
+t1 accum: 261048157
+t2 accum: 256565558
+Ratio: t2 is faster 101.7% from t1
+****************************************************************************************************
+ Number of objects: 32.
+ Repeat: 100000.
+ Random indices generated: 32.
+ Random generator max index cap: 32.
+ Random generator buffer count: 32.
+
+__________________ Perf Timer __________________
+  count: 100000  accum: 263405452  delta: 2305
+  repeat: 100000  buf_capacity: 1
+  fps: 379650
+  avg: 2634 nano  avg: 2 micro  avg: 0 mili
+________________________________________________
+
+
+__________________ Perf Timer __________________
+  count: 100000  accum: 259881051  delta: 2305
+  repeat: 100000  buf_capacity: 1
+  fps: 384911
+  avg: 2598 nano  avg: 2 micro  avg: 0 mili
+________________________________________________
+
+t1 accum: 263405452
+t2 accum: 259881051
+Ratio: t2 is faster 101.4% from t1
+****************************************************************************************************
+ Number of objects: 64.
+ Repeat: 100000.
+ Random indices generated: 64.
+ Random generator max index cap: 64.
+ Random generator buffer count: 64.
+
+__________________ Perf Timer __________________
+  count: 100000  accum: 423175159  delta: 3353
+  repeat: 100000  buf_capacity: 1
+  fps: 236350
+  avg: 4231 nano  avg: 4 micro  avg: 0 mili
+________________________________________________
+
+
+__________________ Perf Timer __________________
+  count: 100000  accum: 309302283  delta: 2375
+  repeat: 100000  buf_capacity: 1
+  fps: 323310
+  avg: 3093 nano  avg: 3 micro  avg: 0 mili
+________________________________________________
+
+t1 accum: 423175159
+t2 accum: 309302283
+Ratio: t2 is faster 136.8% from t1
+****************************************************************************************************
+ Number of objects: 128.
+ Repeat: 100000.
+ Random indices generated: 128.
+ Random generator max index cap: 128.
+ Random generator buffer count: 128.
+
+__________________ Perf Timer __________________
+  count: 100000  accum: 810150008  delta: 8870
+  repeat: 100000  buf_capacity: 1
+  fps: 123441
+  avg: 8101 nano  avg: 8 micro  avg: 0 mili
+________________________________________________
+
+
+__________________ Perf Timer __________________
+  count: 100000  accum: 496819725  delta: 6775
+  repeat: 100000  buf_capacity: 1
+  fps: 201288
+  avg: 4968 nano  avg: 4 micro  avg: 0 mili
+________________________________________________
+
+t1 accum: 810150008
+t2 accum: 496819725
+Ratio: t2 is faster 163.1% from t1
+****************************************************************************************************
+ Number of objects: 256.
+ Repeat: 100000.
+ Random indices generated: 256.
+ Random generator max index cap: 256.
+ Random generator buffer count: 256.
+
+__________________ Perf Timer __________________
+  count: 100000  accum: 1390373024  delta: 12292
+  repeat: 100000  buf_capacity: 1
+  fps: 71926
+  avg: 13903 nano  avg: 13 micro  avg: 0 mili
+________________________________________________
+
+
+__________________ Perf Timer __________________
+  count: 100000  accum: 845681120  delta: 8521
+  repeat: 100000  buf_capacity: 1
+  fps: 118259
+  avg: 8456 nano  avg: 8 micro  avg: 0 mili
+________________________________________________
+
+t1 accum: 1390373024
+t2 accum: 845681120
+Ratio: t2 is faster 164.4% from t1
+****************************************************************************************************
+ Number of objects: 512.
+ Repeat: 100000.
+ Random indices generated: 512.
+ Random generator max index cap: 512.
+ Random generator buffer count: 512.
+
+__________________ Perf Timer __________________
+  count: 100000  accum: 2541221309  delta: 24724
+  repeat: 100000  buf_capacity: 1
+  fps: 39351
+  avg: 25412 nano  avg: 25 micro  avg: 0 mili
+________________________________________________
+
+
+__________________ Perf Timer __________________
+  count: 100000  accum: 1618465703  delta: 15156
+  repeat: 100000  buf_capacity: 1
+  fps: 61789
+  avg: 16184 nano  avg: 16 micro  avg: 0 mili
+________________________________________________
+
+t1 accum: 2541221309
+t2 accum: 1618465703
+Ratio: t2 is faster 157.0% from t1
+****************************************************************************************************
+ Number of objects: 1024.
+ Repeat: 100000.
+ Random indices generated: 1024.
+ Random generator max index cap: 1024.
+ Random generator buffer count: 1024.
+
+__________________ Perf Timer __________________
+  count: 100000  accum: 4964452383  delta: 140730
+  repeat: 100000  buf_capacity: 1
+  fps: 20143
+  avg: 49644 nano  avg: 49 micro  avg: 0 mili
+________________________________________________
+
+
+__________________ Perf Timer __________________
+  count: 100000  accum: 2995940672  delta: 28216
+  repeat: 100000  buf_capacity: 1
+  fps: 33378
+  avg: 29959 nano  avg: 29 micro  avg: 0 mili
+________________________________________________
+
+t1 accum: 4964452383
+t2 accum: 2995940672
+Ratio: t2 is faster 165.7% from t1
+****************************************************************************************************
+ Number of objects: 2048.
+ Repeat: 100000.
+ Random indices generated: 2048.
+ Random generator max index cap: 2048.
+ Random generator buffer count: 2048.
+
+__________________ Perf Timer __________________
+  count: 100000  accum: 9881287035  delta: 94426
+  repeat: 100000  buf_capacity: 1
+  fps: 10120
+  avg: 98812 nano  avg: 98 micro  avg: 0 mili
+________________________________________________
+
+
+__________________ Perf Timer __________________
+  count: 100000  accum: 5844070427  delta: 57689
+  repeat: 100000  buf_capacity: 1
+  fps: 17111
+  avg: 58440 nano  avg: 58 micro  avg: 0 mili
+________________________________________________
+
+t1 accum: 9881287035
+t2 accum: 5844070427
+Ratio: t2 is faster 169.1% from t
+****************************************************************************************************
+ Number of objects: 4096.
+ Repeat: 100000.
+ Random indices generated: 4096.
+ Random generator max index cap: 4096.
+ Random generator buffer count: 4096.
+
+__________________ Perf Timer __________________
+  count: 100000  accum: 19276411656  delta: 185987
+  repeat: 100000  buf_capacity: 1
+  fps: 5187
+  avg: 192764 nano  avg: 192 micro  avg: 0 mili
+________________________________________________
+
+
+__________________ Perf Timer __________________
+  count: 100000  accum: 11824833770  delta: 128858
+  repeat: 100000  buf_capacity: 1
+  fps: 8456
+  avg: 118248 nano  avg: 118 micro  avg: 0 mili
+________________________________________________
+
+t1 accum: 19276411656
+t2 accum: 11824833770
+Ratio: t2 is faster 163.0% from t1
+****************************************************************************************************
+****************************************************************************************************
+****************************************************************************************************
+****************************************************************************************************
+****************************************************************************************************
+****************************************************************************************************
+****************************************************************************************************
+****************************************************************************************************
+****************************************************************************************************
+****************************************************************************************************
+****************************************************************************************************
+****************************************************************************************************
+****************************************************************************************************
+****************************************************************************************************

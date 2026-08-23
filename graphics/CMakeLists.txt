@@ -13,32 +13,21 @@ set(root_path ${CLION_ROOT_DIR})
 
 # 2. add project's sub-directories
 add_subdirectory(src)
+add_subdirectory(tests)
+add_subdirectory(external)
 add_subdirectory(fdebug)
 include(${cmake_utils})
-register_module(
-        sources
-            ${CMAKE_CURRENT_LIST_DIR}/run.c
-            ${CMAKE_CURRENT_LIST_DIR}/mesh.c
-            ${CMAKE_CURRENT_LIST_DIR}/attributes.c
-            ${CMAKE_CURRENT_LIST_DIR}/object.c
-            ${CMAKE_CURRENT_LIST_DIR}/command.c
-            ${CMAKE_CURRENT_LIST_DIR}/bubble_sort.c
-            ${CMAKE_CURRENT_LIST_DIR}/test_custom_rendering.c
-        headers
-            ${CMAKE_CURRENT_LIST_DIR}/engine.h
-            ${CMAKE_CURRENT_LIST_DIR}/run.h
-            ${CMAKE_CURRENT_LIST_DIR}/mesh.h
-            ${CMAKE_CURRENT_LIST_DIR}/object.h
-            ${CMAKE_CURRENT_LIST_DIR}/command.h
-            ${CMAKE_CURRENT_LIST_DIR}/bubble_sort.h
-            ${CMAKE_CURRENT_LIST_DIR}/test_custom_rendering.h
-        ${CMAKE_CURRENT_LIST_DIR}/attributes.h
-        include_dirs
-            ${CMAKE_CURRENT_LIST_DIR}
-        compiler_macros
-        ENABLE_DEBUG=1
-        VERSION_MAJOR=0
-)
+#register_module(
+#        sources
+#
+#        headers
+#
+#        include_dirs
+#            ${CMAKE_CURRENT_LIST_DIR}
+#        compiler_macros
+#        ENABLE_DEBUG=1
+#        VERSION_MAJOR=0
+#)
 
 
 
@@ -59,6 +48,7 @@ include_project(${root_path}/containers/buffer_array/src)
 include_project(${root_path}/containers/buffer_array/log)
 include_project(${root_path}/containers/string/src)
 include_project(${root_path}/perf_timer/src)
+
 include_project(${root_path}/shader_builder/src)
 include_project(${root_path}/glfw/src)
 include_project(${root_path}/glfw/include/GLFW)
