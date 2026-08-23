@@ -139,7 +139,7 @@ floating_point_format(char** const buf, double num, char* formated, bool is_form
             (*buf)[k++] = ' ';
             n--;
         }
-        /// TODO: implement case: format value > 9 (e.x. %44.2f, we need to consume both numbers before the '.')
+        /// ISSUES: implement case: format value > 9 (e.x. %44.2f, we need to consume both numbers before the '.')
     }
 
     /// integer part value
@@ -179,7 +179,7 @@ add_leading_spaces(char** buf, uint32 k, uint32 count, char snum)
         (*buf)[k++] = ' ';
         n--;
     }
-    /// TODO: implement case: format value > 9 (e.x. %44.2f, we need to consume both numbers before the '.')
+    /// ISSUES: implement case: format value > 9 (e.x. %44.2f, we need to consume both numbers before the '.')
     return k;
 }
 

@@ -5,10 +5,12 @@
 #define MEMORY_INTERNALS_H
 
 #include "my_types.h"
+#include "my_macros.h"
 #include "mem_man_interface.h"
 
 
-#define COLOR_PAGE_FREE (*(uint32_t*)"FREE") // color a page to denote that belongs to free list
+// #define COLOR_PAGE_FREE (*(uint32_t*)"FREE") // color a page to denote that belongs to free list
+#define COLOR_PAGE_FREE HACK_LITERAL_STR_TO_NUM("FREE", uint32_t) // color a page to denote that belongs to free list
 #define FREE_LIST_GET_PAGE_COLOR_OFFSET(fnode) ((char*)fnode + sizeof(struct flist))
 
 #define MEM_DEBUG_FPRINT_ALL_USE_MEM

@@ -14,8 +14,8 @@ main(void)
      * SLAB ALLOCATOR TESTS
      **************************************************************************************************/
 
-    // test_mem_cache_alloc_release_slabs();
-    test_check_alloc_extend_pages(1);
+    test_mem_cache_alloc_release_slabs();
+    // test_check_alloc_extend_pages(1);
 
     /* test performance measurements */
     // test_perf_slab_allocation_release();

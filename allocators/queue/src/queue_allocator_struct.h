@@ -12,7 +12,7 @@
  * [ [1rst offset] [2nd offset] [3rd offset] ... [n-2 offset] [last offset] [free]  [free] [free] ...]
  *
  *
- * TODO
+ * ISSUES
  * 1. if the offsets are byte offsets, maybe we need to reconsider int32 type for memoffset_t
  */
 #ifndef ALLOCATORS_QUEUE_ALLOCATOR_STRUCT_H

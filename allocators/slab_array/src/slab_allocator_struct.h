@@ -42,31 +42,31 @@
 
 enum SLAB_ALLOCATOR {
     SLAB_ALLOCATOR_INSTANCE_INITIAL_COUNT = 8,
-    SLAB_ALLOCATOR_POOL_NUM_PAGES = 16,
-    SLAB_ALLOCATOR_POOL_TABLE_COUNT = 32,
-    SLAB_ALLOCATOR_MCACHE_TABLE_COUNT = 32,
+    SLAB_ALLOCATOR_POOL_NUM_PAGES         = 16,
+    SLAB_ALLOCATOR_POOL_TABLE_COUNT       = 32,
+    SLAB_ALLOCATOR_MCACHE_TABLE_COUNT     = 32,
 };
 
 
 enum SLAB_ALLOCATOR_POOL_SIZES {
     /* -1 is for the '\0' character */
-    SLAB_ALLOCATOR_POOL_SIZE_SMALL = 255 - 1, // 256 does no comply with the strlen_t type:1 byte
+    SLAB_ALLOCATOR_POOL_SIZE_SMALL  = 255 - 1, // 256 does no comply with the strlen_t type:1 byte
     SLAB_ALLOCATOR_POOL_SIZE_MEDIUM = 1024 - 1,
-    SLAB_ALLOCATOR_POOL_SIZE_LARGE = 4096 - 1,
+    SLAB_ALLOCATOR_POOL_SIZE_LARGE  = 4096 - 1,
     SLAB_ALLOCATOR_POOL_SIZES_COUNT = 3,
 };
 enum SLAB_ALLOCATOR_MCACHE_SIZES {
-    SLAB_ALLOCATOR_MCACHE_SIZE_8 = 8,
-    SLAB_ALLOCATOR_MCACHE_SIZE_16 = 16,
-    SLAB_ALLOCATOR_MCACHE_SIZE_32 = 32,
-    SLAB_ALLOCATOR_MCACHE_SIZE_64 = 64,
-    SLAB_ALLOCATOR_MCACHE_SIZE_128 = 128,
-    SLAB_ALLOCATOR_MCACHE_SIZE_256 = 256,
-    SLAB_ALLOCATOR_MCACHE_SIZE_512 = 512,
-    SLAB_ALLOCATOR_MCACHE_SIZE_1024 = 1024,
-    SLAB_ALLOCATOR_MCACHE_SIZE_2048 = 2048,
-    SLAB_ALLOCATOR_MCACHE_SIZE_4096 = 4096,
-    SLAB_ALLOCATOR_MCACHE_SIZE_8192 = 8192,
+    SLAB_ALLOCATOR_MCACHE_SIZE_8     = 8,
+    SLAB_ALLOCATOR_MCACHE_SIZE_16    = 16,
+    SLAB_ALLOCATOR_MCACHE_SIZE_32    = 32,
+    SLAB_ALLOCATOR_MCACHE_SIZE_64    = 64,
+    SLAB_ALLOCATOR_MCACHE_SIZE_128   = 128,
+    SLAB_ALLOCATOR_MCACHE_SIZE_256   = 256,
+    SLAB_ALLOCATOR_MCACHE_SIZE_512   = 512,
+    SLAB_ALLOCATOR_MCACHE_SIZE_1024  = 1024,
+    SLAB_ALLOCATOR_MCACHE_SIZE_2048  = 2048,
+    SLAB_ALLOCATOR_MCACHE_SIZE_4096  = 4096,
+    SLAB_ALLOCATOR_MCACHE_SIZE_8192  = 8192,
     SLAB_ALLOCATOR_MCACHE_SIZE_16384 = 16384,
     SLAB_ALLOCATOR_MCACHE_SIZE_32768 = 32768,
 };
@@ -93,7 +93,7 @@ enum SLAB_ALLOCATOR_ERROR_CODE {
 };
 
 
-// TODO: implement in arena_allocator.h
+// ISSUES: implement in arena_allocator.h
 #ifndef ARENA_ALLOCATOR_H
 #define ARENA_ALLOCATOR_H
 typedef int32 nameid_t;
@@ -112,11 +112,9 @@ typedef uint16 slab_elems_t; // MAX:65535
 struct slab_allocator_instance {
     struct slab_allocator_pool* pool_table;
     struct slab_allocator_mcache* mcache_table;
-    uint16 instance_id;
-    // salltable_t count; // TODO:UNUSED
-    // salltable_t size; // TODO:UNUSED
-    uint16 pool_count;
-    uint16 mcache_count;
+    uint16   instance_id;
+    uint16   pool_count;
+    uint16   mcache_count;
     pageid_t reserve_num_pages;
 };
 
@@ -126,12 +124,12 @@ struct slab_allocator_instance {
  * each one have its seperate pool of memory */
 struct slab_allocator_pool {
     memid_t mem_id;
-    uint16 min_mcache_size; // denotes the min sized mcache this pool handles
-    uint16 max_mcache_size; // denotes the max sized mcache this pool handles
-    uint16 mcache_count;
+    uint16  min_mcache_size; // denotes the min sized mcache this pool handles
+    uint16  max_mcache_size; // denotes the max sized mcache this pool handles
+    uint16  mcache_count;
 };
 
-// TODO: remove: slabs_num_pages
+// ISSUES: remove: slabs_num_pages
 struct slab_allocator_mcache {
     struct flist* slabs_free_list;
     void* slabs_start; // the start of slabs alocated memory

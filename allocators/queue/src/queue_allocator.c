@@ -37,7 +37,7 @@
  *  The 0x1008 is not an option because of the structs internal alignment, if the char c
  *  would be stored at 0x1001 then the big would go to 0x1009, which is a crash.
  *
- * TODO:
+ * ISSUES:
  * # implement realloc() for queue_allocator_table
  * # implement realloc() for offsets table
  * # implement realloc() for data storage
@@ -99,9 +99,9 @@ queue_allocator_create_new_instance(const pageid_t num_pages)
         .offsets_table_size = offsets_table_num_pages * PAGE_SIZE,
         .offsets_table_count = 0,
         .front_ptr_offset = 0,       /* points to offsets table [0]*/
-        .front_ptr_offset_index = 0, /* TODO */
+        .front_ptr_offset_index = 0, /* ISSUES */
         .back_ptr_offset  = 0,       /* points to offsets table [0]*/
-        .back_ptr_offset_index = 0,  /* TODO */
+        .back_ptr_offset_index = 0,  /* ISSUES */
 
         .data = { /* data storage */
             .start = data_address,

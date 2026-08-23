@@ -207,13 +207,13 @@ uint64 reverse_bytes_uint64(uint64 value)
 }
 
 uint16 copy_bytes_uint16(uint16 from, uint16 to)
-{ // TODO:IMPLEMENT
+{ // ISSUES:IMPLEMENT
     to |= (from & MASK_WORD1);
     to |= (from & MASK_WORD2) << 8;
     return to;
 }
 uint32 copy_bytes_uint32(uint32 from, uint32 to)
-{ // TODO:IMPLEMENT
+{ // ISSUES:IMPLEMENT
     to |= (from & MASK_WORD4);
     to |= (from & MASK_WORD3) | (to & MASK_WORD3) << 8;
     to |= (from & MASK_WORD2) | (to & MASK_WORD2) << 16;
@@ -221,7 +221,7 @@ uint32 copy_bytes_uint32(uint32 from, uint32 to)
     return to;
 }
 uint64 copy_bytes_uint64(uint64 from, uint64 to)
-{ // TODO:IMPLEMENT
+{ // ISSUES:IMPLEMENT
     to |= (from & MASK_WORD4);
     to |= (from & MASK_WORD3) | (to & MASK_WORD3) << 8;
     to |= (from & MASK_WORD2) | (to & MASK_WORD2) << 16;

@@ -155,7 +155,7 @@ str_conv_double_to_int_parts(const double number)
 void  /* convert floating point to string characters */
 str_conv_double_to_str(char* buf, struct float_number num)
 {
-    /// TODO: IMPLEMENT
+    /// ISSUES: IMPLEMENT
     // Convert integer part
     char temp[32];
     uint32 len = str_conv_int32_to_str(temp, num.int_part);
@@ -178,7 +178,7 @@ str_conv_double_to_str(char* buf, struct float_number num)
 
 
 
-bool // TODO: implement faster with uint64 values
+bool // ISSUES: implement faster with uint64 values
 str_cmp(const char* str1, const char* str2)
 {
 

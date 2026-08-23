@@ -380,7 +380,8 @@ flist_get_next_free_page(const uint16 num_pages, const memid_t mem_id)
         if(pageid + nextpageoffset != nextpageid) {
             numpages = num_pages;
             found = flist;
-            pageid = calc_page_id_from_address(flist, mem_id);
+            // pageid = calc_page_id_from_address(flist, mem_id);
+            pageid = nextpageid; /// copy the already calculated pageid from a previous call to calc_page_id_from_address(flist, mem_id)
             temp = prev; /* temp stores the last free node before the allocation */
         }
         prev = flist;

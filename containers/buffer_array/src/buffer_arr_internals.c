@@ -339,7 +339,7 @@ buffer_arr_release(buffer_t* buffer)
 
     /* free buffer from buffer table */
     btable_flist_add(ptr);
-    buffer_table_count--; // TODO: move this to btable_flist_add BUT create an init btable function (so that counter is not decremened at init)
+    buffer_table_count--; // ISSUES: move this to btable_flist_add BUT create an init btable function (so that counter is not decremened at init)
 
 }
 

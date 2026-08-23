@@ -307,7 +307,7 @@ test_slab_multiple_allocations_same_mcache()
 }
 
 /*Release Tests*/
-void // TODO: impl {same/dif slabsize}, {arbitrary num allocations},
+void // ISSUES: impl {same/dif slabsize}, {arbitrary num allocations},
 test_slab_release()
 {
     /***********************************************************************************************
@@ -500,13 +500,13 @@ test_slab_release_freelist()
 // test_allocation_exceeds_capacity()
 // {
 //     // memid_t inst_id = slab_allocator_create_new_instance(1); // Only 1 page
-//     // size_t too_big = PAGE_SIZE + 1; //// TODO: increment the size
+//     // size_t too_big = PAGE_SIZE + 1; //// ISSUES: increment the size
 //     //
 //     // // This should fail - maybe return NULL or assert
 //     // void* ptr = slab_allocator_alloc(inst_id, too_big, sizeof(SOME_TYPE));
 //     // assert(ptr == NULL); // If you implement error handling
 //
-//     print_test_result("TODO: IMPLEMENT", TRUE, __FILE__, __LINE__, "");
+//     print_test_result("ISSUES: IMPLEMENT", TRUE, __FILE__, __LINE__, "");
 // }
 //
 // /*Alignment Tests*/

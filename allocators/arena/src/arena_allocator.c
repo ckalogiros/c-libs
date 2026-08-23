@@ -1,7 +1,7 @@
 /*
  * Created by ckalo on 3/14/26.
  *
- * TODO:
+ * ISSUES:
  * # implement realloc() for arena_allocator_table
  * # implement realloc() for data storage
  */

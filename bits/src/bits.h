@@ -26,7 +26,7 @@
 /* get single bit */
 #define bit_get(v, bit)           (((v) >> (bit)) & (1))
 
-// TODO: use bitfield_read() instead
+// ISSUES: use bitfield_read() instead
 /* get the upper half part of any uint */
 #define bits_mask_low(v)          ((v) & (types_get_half_fullmask_from_type(v)))
 

@@ -48,7 +48,7 @@ buffer_arr_create_gentype(const uint32 capacity, const typesize_t typesize)
 
 void
 buffer_arr_destroy(buffer_t* buffer)
-{ // TODO: what if bufer has children buffers in its data?? how should children buffers handled??
+{ // ISSUES: what if bufer has children buffers in its data?? how should children buffers handled??
     buffer_arr_destructor(buffer);
 }
 

@@ -80,7 +80,7 @@ slab_allocator_create_new_instance(const pageid_t reserve_num_pages, const char*
     // print("%s###################################################\n"
     //       "SLAB CREATE NEW INSTANCE: %s %s\n", br1, name, CLEAR);
 
-    // TODO: maybe both tables been allocad together, so that they are not too far apart(memory fragmentation)
+    // ISSUES: maybe both tables been allocad together, so that they are not too far apart(memory fragmentation)
 
     /* initialize pool table */
     struct slab_allocator_pool* pool_table =
@@ -114,7 +114,7 @@ uint16
 slab_allocator_instance_create_new_pool(const salltable_t inst_id, const pageid_t num_pages,
     const slab_size_t slab_size, const char* name)
 {
-    // TODO: check null
+    // ISSUES: check null
     struct slab_allocator_instance* inst = slab_allocator_get_instance(inst_id);
 
     uint16 max_cache_size = 0;
@@ -150,7 +150,7 @@ struct slab_allocator_mcache*
 slab_allocator_create_mcache(const salltable_t inst_id, const slab_elems_t num_elems,
     const uint16 type_size, const char* name)
 {
-    // TODO: check null
+    // ISSUES: check null
     const slab_size_t slab_size = num_elems * type_size;
 
     struct slab_allocator_instance* inst = slab_allocator_get_instance(inst_id);
@@ -222,7 +222,7 @@ slab_allocator_create_mcache(const salltable_t inst_id, const slab_elems_t num_e
 struct slab_allocator_mcache*
 mcache_extend_allocation(struct slab_allocator_mcache* const mcache, const uint32 left_over_mem)
 {
-    // TODO: check null
+    // ISSUES: check null
     const uint32 slab_size = mcache->slab_size;
     const uint32 extra_needed_mem = slab_size - left_over_mem;
     const uint32 requested_num_pages = ROUND_UP(extra_needed_mem, PAGE_SIZE) / PAGE_SIZE;
@@ -233,7 +233,7 @@ mcache_extend_allocation(struct slab_allocator_mcache* const mcache, const uint3
     const struct memhnd_t hnd = memman_page_request(requested_num_pages, mcache->mem_handle.mem_id);
     void* address = memman_get_alloc_mem_by_handle(hnd);
     memset(address, 0x0, requested_num_pages);
-    /* update only num_pages field, mem_is and page_id
+    /* update only num_pages field, mem_id and page_id
      * should be constant for the life duration of the mcache */
     mcache->mem_handle.num_pages = hnd.num_pages;
 
@@ -245,7 +245,7 @@ mcache_extend_allocation(struct slab_allocator_mcache* const mcache, const uint3
     /* continue from the end of the last allocated slab address */
     char* ptr = mcache->last_slab_end;
 
-    // TODO: HERE: IMPORTANT!: check alignment here OR at caller if the type is known
+    // ISSUES: HERE: IMPORTANT!: check alignment here OR at caller if the type is known
     /* check if the start of the new allocated address is in contiguity with last_slab_end */
     const uint32 typesize = mcache->slab_size / mcache->slabs_capacity;
     const void* next_paged_aligned_address = (void*) ALIGN_SIZE((uintptr_t)mcache->last_slab_end, (uintptr_t)mcache->type_size);
@@ -253,7 +253,7 @@ mcache_extend_allocation(struct slab_allocator_mcache* const mcache, const uint3
     if(!mem_is_contiguous)
         ptr = address;
 
-    /* build the slabs free list for the newlly allocatd memory */
+    /* build the slabs free list for the newlly allocated memory */
     mcache->slabs_free_list = (struct flist*) ptr;
     struct flist* flist = mcache->slabs_free_list;
     while((char*) (ptr + slab_size) < (char*) (address + total_alloc_size)) {
@@ -277,9 +277,9 @@ mcache_extend_allocation(struct slab_allocator_mcache* const mcache, const uint3
 struct flist*
 mcache_alloc_slab(struct slab_allocator_mcache* mcache)
 {
-    // TODO: check null
+    // ISSUES: check null
     /*
-     * TODO: I can check with "mcache->slabs_capacity"
+     * ISSUES: I can check with "mcache->slabs_capacity"
      */
     const uint64 current_used_size = mcache->slabs_count * mcache->slab_size;
     const uint64 total_allocated = mcache->slabs_num_pages * PAGE_SIZE;
@@ -319,9 +319,9 @@ mcache_alloc_slab(struct slab_allocator_mcache* mcache)
 // struct flist*
 // mcache_alloc_slab(struct slab_allocator_mcache* mcache)
 // {
-//     // TODO: check null
+//     // ISSUES: check null
 //     /*
-//      * TODO: I can check with "mcache->slabs_capacity"
+//      * ISSUES: I can check with "mcache->slabs_capacity"
 //      */
 //     const uint64 current_used_size = mcache->slabs_count * mcache->slab_size;
 //     const uint64 total_allocated = mcache->slabs_num_pages * PAGE_SIZE;
