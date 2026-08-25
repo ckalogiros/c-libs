@@ -5,204 +5,138 @@
 
 #include "mem_man_internals.h"
 #include <assert.h>
-// #include "mem_man_structs.h"
 #include "mem_log.h"
 #include "sys_utils.h"
 #include <stdlib.h>
 #include <string.h>
-// #include "char_buf.h"
-#include "file_sys_interface.h"
 #include "logger.h"
 #include "my_macros.h"
+#include "mem_man_macros.h"
 #include "smath.h"
 
-
-#define MEMORY_POISON_SIZE 64
-
-#define CHUNK_FLAGS_FREE     BIT_MASK_FROM_UINT(0) // chunk is not in use
-#define CHUNK_FLAGS_OCCUPIED BIT_MASK_FROM_UINT(1) // chunk is in use but has free pages
+#include <sanitizer/asan_interface.h>
 
 
-#define CHECK_MEM_NULL(p, error_code, msg) if(p==NULL){\
-    mem_print_error(error_code);\
-    my_exit(msg, __FILE__, __LINE__);\
+
+/*  */
+memid_t mem_create_new_instance(const uint16 num_pages, const uint32 alignment, const char* name);
+
+
+/***************************************************************************************************
+ * MEMORY POOL
+ * local buffer to store all allocated memory requests
+ **************************************************************************************************/
+static struct mem_block* mem_pool = NULL;
+static uint32 memblock_pool_count = 0;
+struct mem_block* mem_pool_get() { return mem_pool; }
+
+void
+mem_pool_init(void)
+{
+    const uint32 capacity = MEMORY_INTERNAL_POOL_INITIAL_COUNT;
+    const uint32 size = sizeof(struct mem_block)*capacity;
+    const uint32 alloc_size = ALIGN_SIZE(size, 64);
+    mem_pool = aligned_alloc(64, alloc_size);
+    memset(mem_pool, 0x0, alloc_size);
+
+    // mem_fprint_append_mem_pool(mem_pool, MEMORY_INTERNAL_POOL_INITIAL_COUNT, size, alloc_size);
+
+#   ifdef ENABLE_SANITIZER
+        /* enable santizers to the stderr out */
+        __sanitizer_set_report_path("stderr");
+#   endif
+
+    print("%s# INITIALIZE MEMORY #%s\n\n", YELLOW, CLEAR);
+    print("%s# Allocate mem pool: %p %s\n", YELLOW, mem_pool, CLEAR);
+    print("--%s memory pool buffer %s--\n", ry, CLEAR);
+    print(
+        " capacity:        %s%u  %s\n"
+        " size bytes:      %s%lu %s\n"
+        " aloc size:       %s%lu %s\n"
+        " data start:      %s%x%s\n",
+        GREEN, capacity,    CLEAR,
+        YELLOW, size,       CLEAR,
+        YELLOW, alloc_size, CLEAR,
+        CYAN, REDUCE_ADDR((char*)mem_pool, F6), CLEAR
+    );
+
 }
+void mem_pool_realloc(){} /// TODO: implement
 
-#define CHECK_CONTIGUOUS_FREE_MEM(p1, offset, p2, error_code, msg)\
-if((uint64*)((uint8*)p1+offset) < (uint64*)p2){\
-    mem_print_error(error_code);\
-    print("free list: %x\nnext flist:%x\n", REDUCE_ADDR(p1, F6), REDUCE_ADDR(p2, F6));\
-    my_exit(msg, __FILE__, __LINE__);\
-}
 
-/* FOR DEBUG */
-#define MEMORY_DEBUG_FPRINT_USED_MEM(filename)\
-fs_fprint_all_used_mem(filename);\
-/* FOR DEBUG */
 
 
 
 
 /***************************************************************************************************
- * memory manager -> mms
- * is a single allocation at the start of a program, no realloc is implemented,
- * so is plug&play to find the appropriate total mem_chunk size a program needs.
+ * FUNCTIONS FROM INTERFACE
  **************************************************************************************************/
-static struct mem_block* mem_table = NULL;
-static uint32 mem_table_count = 0;
-
-
-
-
-/***************************************************************************************************
- * INTERFACE
- **************************************************************************************************/
-bool
-mem_table_init(void)
+enum MEMORY_DEBUG
+mem_pool_destroy(void)
 {
-    if(mem_table) return FALSE;
+    if(!mem_pool) return NO_MEMORY_MANAGER_INIT;
 
-    mem_log_print_init_mem();
+    for(uint32 i = 0; i < memblock_pool_count; i++) {
 
-    const uint32 size = MEMORY_INTERNAL_MEM_TABLE_CAPACITY * sizeof(struct mem_block);
-    const uint32 alignment = MEMORY_INTERNAL_STORAGE_NUM_PAGES;
-    const uint32 total_size = ROUND_UP(size, PAGE_SIZE);
+        void* ptr = mem_pool[i].start;
+        if(ptr == NULL)
+            assert(ptr != NULL);
 
-
-    void* addr = aligned_alloc(alignment, total_size);
-    CHECK_MEM_NULL(addr, MALLOC_FAILED_TO_ALLOC_MEMORY, "MALLOC_FAILED_TO_ALLOC_MEMORY\nin mem_table_init()");
-
-    mem_table = addr;
-
-    const struct mem_block memory = {
-        .start = addr,
-        .data_size = total_size,
-        .size = total_size,
-        .poison_data_size = 0,
-        .name = "-memory table-"
-    };
-
-
-    mem_table[mem_table_count] = memory;
-    print("ALLOC mem_block:%p\n", memory);
-    mem_log_print_mem(&mem_table[mem_table_count]);
-    mem_table_count++;
-
-    return TRUE;
-}
-
-bool
-mem_table_destroy(void)
-{
-#ifdef MEM_DEBUG_FPRINT_ALL_USE_MEM
-    const char* fname = "all_used_mem_only.txt";
-    MEMORY_DEBUG_FPRINT_USED_MEM(fname);
-#endif
-
-    fs_fprint_all_allocated_mem("all_allocated_mem.txt");
-
-    if(!mem_table) return FALSE;
-    print("FREEING MEMORY MANAGER: %x ... ", ry, mem_table[0].start, CLEAR);
-    for(uint32 i = mem_table_count-1; i > 0; i--) {
-
-        void** ptr = &mem_table[i].start;
-        if(*ptr == NULL)
-        assert(*ptr != NULL);
-
-        print("free mem_block:%p\n", ptr);
-        free(*ptr);
-        *ptr = NULL;
+        print("free mem_block[%u]: %p\n", i, ptr);
+        free(ptr);
+        ptr = NULL;
     }
 
-    free(mem_table);
-    print("OK", GREEN, CLEAR);
-    return TRUE;
+    print("Freeing memory pool: %p ... ", mem_pool);
+    free(mem_pool);
+    print("%sOK%s\n", GREEN, CLEAR);
+    return MEMORY_TERMINATE_SUCCESS;
 }
 
 memid_t
-mem_allocate_block(const uint16 num_pages, const uint32 alignment, const char* name)
+mem_create_inst(const uint16 num_pages, const uint32 alignment, const char* name)
 {
-    CHECK_MEM_NULL(mem_table, NO_MEMORY_MANAGER_INIT, "caller: mem_allocate_block()")
-    assert(MEMORY_POISON_SIZE <= MAX_UINT64);
-    assert(num_pages > 0);
-
-    const uint32 page_size = PAGE_SIZE;
-    const uint32 poison_data_size = PAGE_SIZE;
-
-    const uint32 total_size = (num_pages * page_size) + poison_data_size;
-
-    assert(is_power_of_two(alignment)); /* alignment must be power of 2 */
-    assert(alignment<total_size);
-    assert((total_size%alignment) == 0); /* size must be multiple of alignment */
-
-    void* addr = aligned_alloc(alignment, total_size);
-    CHECK_MEM_NULL(addr, MALLOC_FAILED_TO_ALLOC_MEMORY, "MALLOC_FAILED_TO_ALLOC_MEMORY\nin mem_allocate_block()");
+    /// initiaslize new mem block instance
+    memid_t inst_id = mem_create_new_instance(num_pages, alignment, name);
+    assert(inst_id < max_value_from_type(inst_id)); /// id values < type-MAX
 
 
-    const struct mem_block memory = {
-        .start = addr,
-        .size = total_size,
-        .data_size = num_pages * page_size,
-        .poison_data_size = poison_data_size,
-        .name = name, // BUG: copy string correctly
-    };
+    // struct mem_block* block = mem_pool_get_block(inst_id);
+    // mem_log_print_mem(block);
+    // mem_log_print_free_list(inst_id);
 
-    const memid_t idx = mem_table_count;
-    mem_table[idx] = memory;
-    mem_table_count++;
-
-    struct mem_block* mem = mem_get_byid(idx);
-
-    mem_init_free_list_table(mem);
-
-    /* set poison data area, for corruption detection */
-    char* off_bound_mem_start = (char*) mem->start + mem->data_size;
-    uint64* ptr = (uint64*) off_bound_mem_start;
-    const uint32 len = poison_data_size / sizeof(uint64);
-    for(uint32 i = 0; i < len; i++)
-        ptr[i] = MEM_POISON_PATTERN;
-
-    // tests it
-    const bool memory_corrupted = check_mem_off_boundaries_writes(off_bound_mem_start, poison_data_size);
-    if(memory_corrupted) {
-        my_exit("ERROR: MEMORY CORRUPTION DETECTED", __FILE__, __LINE__);
-    }
-
-    // mem_log_print_mem(mem_block);
-    // mem_log_print_free_list(idx);
-
-    return idx;
+    return inst_id;
 }
 
 memid_t
-mem_deallocate_block(const memid_t memid)
+mem_destroy_inst(const memid_t memid)
 {
-
+    return 0;
 }
 
 struct memhnd_t
-mem_page_request(const uint16 num_pages, const memid_t mem_id)
+mem_inst_request_pages(const uint16 num_pages, const memid_t mem_id)
 {
-    // HERE: double calling mem_get_byid(mem_id)
-    // flist_get_next_free_page() is used only by this function, so we can padd the mem to it
-    struct mem_block* mem = mem_get_byid(mem_id);
+    // HERE: double calling mem_pool_get_block(mem_id)
+    // flist_request_free_page() is used only by this function, so we can padd the mem to it
+    struct mem_block* mem = mem_pool_get_block(mem_id);
 
-    CHECK_MEM_NULL(mem, NO_MEMORY_MANAGER_INIT, "mem_page_request");
-    const struct memhnd_t handle = flist_get_next_free_page(num_pages, mem_id);
+    CHECK_MEM_NULL(mem, NO_MEMORY_MANAGER_INIT, "mem_inst_request_pages");
+    const struct memhnd_t handle = flist_request_free_page(num_pages, mem_id);
 
     mem->num_pages += handle.num_pages;
 
     return handle;
 }
 
-struct memhnd_t
-mem_realloc(const pageid_t num_pages, const memid_t mem_id)
-{
-    print_implement("mem_realloc()", __FILE__, __LINE__);
-}
+// struct memhnd_t
+// mem_realloc(const pageid_t num_pages, const memid_t mem_id)
+// {
+//     print_implement("mem_realloc()", __FILE__, __LINE__);
+// }
 
 bool
-mem_page_release(const struct memhnd_t hnd)
+mem_inst_release_pages(const struct memhnd_t hnd)
 {
     /* DEBUG-ERROR */
     assert(hnd.num_pages > 0);
@@ -223,18 +157,18 @@ mem_page_release(const struct memhnd_t hnd)
      * 2. free.id > head.id
      */
 
-    struct flist* head = mem_table_get_head(hnd.mem_id);
+    struct flist* head = flist_get_head(hnd.mem_id);
     const memid_t headpageid = calc_page_id_from_address((void*) head, hnd.mem_id);
 
     struct flist* cur = head;
-    struct flist* prev = head;
+    struct flist* prev = cur;
 
     /* 1. check if free id is < flist head id */
     if(hnd.page_id < headpageid) {
         pageid_t pageid = hnd.page_id;
         prev = calc_address_from_page_id(/**/pageid, hnd.mem_id);
         /* set free list head */
-        mem_table_set_head(hnd.mem_id, prev);
+        flist_set_head(hnd.mem_id, prev);
 
         for(uint32 i = 1; i < hnd.num_pages; i++) {
             pageid++;
@@ -284,14 +218,7 @@ mem_page_release(const struct memhnd_t hnd)
 }
 
 void*
-mem_get_mem_start_by_memid(const memid_t memid)
-{
-    void* addr = mem_table[memid].start;
-    return addr;
-}
-
-void*
-mem_get_addr_by_handle(const struct memhnd_t hnd)
+mem_inst_get_address(const struct memhnd_t hnd)
 {
     void* addr = calc_address_from_page_id(hnd.page_id, hnd.mem_id);
     return addr;
@@ -303,6 +230,69 @@ mem_get_addr_by_handle(const struct memhnd_t hnd)
 /***************************************************************************************************
  * PRIVATE
  **************************************************************************************************/
+memid_t
+mem_create_new_instance(const uint16 num_pages, const uint32 alignment, const char* name)
+{
+    assert(MEMORY_POISON_SIZE <= MAX_UINT64);
+
+    /* case mem_pool is uninitialized*/
+    if(!mem_pool)
+        mem_pool_init();
+
+    const uint32 size = num_pages * PAGE_SIZE;
+    const uint32 poison_data_size = BLOCK_POISON_DATA_SIZE;
+    const uint32 total_size = size + poison_data_size;
+
+    assert(num_pages > 0);
+    assert(is_power_of_two(alignment));  /* alignment must be power of 2 */
+    assert(alignment<total_size);
+    assert((total_size%alignment) == 0); /* size must be multiple of alignment */
+
+    // assert(IS_POWER_OF_2(alignment));
+    // assert(IS_POWER_OF_2(total_size));
+
+    /* initialize pool table */
+    struct mem_block* addr = aligned_alloc(alignment, total_size);
+    memset(addr, 0x0, total_size);
+    CHECK_MEM_NULL(addr, MALLOC_FAILED_TO_ALLOC_MEMORY, "MALLOC_FAILED_TO_ALLOC_MEMORY\nin mem_table_init()");
+    // print("%s# Allocate mem block: %p %s\n", YELLOW, addr, CLEAR);
+
+
+    const memid_t inst_id = memblock_pool_count;
+    memblock_pool_count++;
+
+    mem_pool[inst_id].start            = addr;
+    mem_pool[inst_id].data_size        = size;
+    mem_pool[inst_id].size             = total_size;
+    mem_pool[inst_id].num_pages        = num_pages;
+    mem_pool[inst_id].poison_data_size = poison_data_size;
+    strncpy(mem_pool[inst_id].name, name, strlen(name));
+
+    /* set poison data area, for corruption detection */
+    char* off_bound_mem_start = (char*) mem_pool[inst_id].start + mem_pool[inst_id].data_size;
+    uint64* ptr = (uint64*) off_bound_mem_start;
+    const uint32 len = poison_data_size / sizeof(uint64);
+    uint32 i = 0;
+    for(; i < len; i++)
+        ptr[i] = MEM_POISON_PATTERN;
+
+    // if poison_data is treated as string data, should end with NULL
+    // Set the last byte of the last uint64 to 0
+    char* last_byte = (char*)&ptr[len-1] + 7;
+    *last_byte = 0;
+
+
+    // test memory corruption
+    const bool memory_corrupted = check_mem_off_boundaries_writes(off_bound_mem_start, poison_data_size);
+    if(memory_corrupted) {
+        my_exit("ERROR: MEMORY CORRUPTION DETECTED", __FILE__, __LINE__);
+    }
+
+    mem_init_free_list_table(&mem_pool[inst_id]);
+
+    return inst_id;
+}
+
 void
 mem_init_free_list_table(struct mem_block* mem)
 {
@@ -315,7 +305,7 @@ mem_init_free_list_table(struct mem_block* mem)
     /* initialize all memory as free pages */
     /* INFO: remove one page, despite the memory poison corruption size,
      * so last free in list does not point to poison(its content be NULL) */
-    const char* data_mem_end = (char*) mem->start + (mem->data_size - PAGE_SIZE);
+    const char* data_mem_end = (char*) mem->start + mem->data_size;
     while(page_ptr < data_mem_end) {
         color_page = FREE_LIST_GET_PAGE_COLOR_OFFSET(flist);
         color_page[0] = 'F'; color_page[1] = 'R'; color_page[2] = 'E'; color_page[3] = 'E';
@@ -325,17 +315,13 @@ mem_init_free_list_table(struct mem_block* mem)
         flist = flist->next;
     }
 
-    // Add the last color to the NULL list element
-    flist->next = NULL;
-    color_page = FREE_LIST_GET_PAGE_COLOR_OFFSET(flist);
-    color_page[0] = 'F'; color_page[1] = 'R'; color_page[2] = 'E'; color_page[3] = 'E';
+    flist->next = NULL; /// BUG! the write to the flist->next does not belong to the memory allocation
 }
 
 struct memhnd_t
-flist_get_next_free_page(const uint16 num_pages, const memid_t mem_id)
+flist_request_free_page(const uint16 num_pages, const memid_t mem_id)
 {
-    const struct mem_block* mem = mem_get_byid(mem_id);
-    // if(!mem->flist || !mem->flist->next){
+    const struct mem_block* mem = mem_pool_get_block(mem_id);
     if(!mem->flist){
         mem_print_error(NO_FREE_MEMORY);
         if(!mem->flist) print("free list = NULL\n");
@@ -407,11 +393,11 @@ flist_get_next_free_page(const uint16 num_pages, const memid_t mem_id)
     if(head != found)
         temp->next = next_from_allocated;
     else /* if allocated starts from head, advance head accordingly */
-        mem_table_set_head(mem_id, flist);
+        flist_set_head(mem_id, flist);
 
     /* zero out allocated memory */
     void* alloc_start = (char*) mem->start + (pageid * PAGE_SIZE);
-    memset(alloc_start, 0x0, num_pages * PAGE_SIZE);
+    memset(alloc_start, 0x0, num_pages * PAGE_SIZE); /// reset requested memory before giving it to the caller
 
     // mem_log_print_free_list(mem_id);
     debug_mem_corrupted(mem_id, TRUE);
@@ -428,23 +414,23 @@ flist_get_next_free_page(const uint16 num_pages, const memid_t mem_id)
 }
 
 struct flist*
-mem_table_get_head(const memid_t mem_id)
+flist_get_head(const memid_t mem_id)
 {
-    const struct mem_block* mem = mem_get_byid(mem_id);
+    const struct mem_block* mem = mem_pool_get_block(mem_id);
     return mem->flist;
 }
 
 void
-mem_table_set_head(const memid_t mem_id, struct flist* head)
+flist_set_head(const memid_t mem_id, struct flist* head)
 {
-    struct mem_block* mem = mem_get_byid(mem_id);
+    struct mem_block* mem = mem_pool_get_block(mem_id);
     mem->flist = head;
 }
 
 pageid_t
 calc_page_id_from_address(const void* addr, const memid_t mem_id)
 {
-    const struct mem_block* mem = mem_get_byid(mem_id);
+    const struct mem_block* mem = mem_pool_get_block(mem_id);
     const char* cur_addr = addr;
 
     const uint64 ptr_dif = cur_addr - (char*) mem->start;
@@ -458,7 +444,7 @@ calc_page_id_from_address(const void* addr, const memid_t mem_id)
 void*
 calc_address_from_page_id(const pageid_t page_id, const memid_t mem_id)
 {
-    const struct mem_block* mem = mem_get_byid(mem_id);
+    const struct mem_block* mem = mem_pool_get_block(mem_id);
     void* addr = (char*) mem->start + (PAGE_SIZE * page_id);
     return addr;
 }
@@ -469,31 +455,36 @@ calc_address_from_page_id(const pageid_t page_id, const memid_t mem_id)
  * DEBUG
  **************************************************************************************************/
 struct mem_block*
-debug_mem_get_table() { return mem_table; }
+debug_mem_get_table() { return mem_pool; }
 
 struct mem_block*
-mem_get_byid(const memid_t mem_id) { return &mem_table[mem_id]; }
+mem_pool_get_block(const memid_t inst_id)
+{
+    struct mem_block* block = &mem_pool[inst_id];
+    CHECK_MEM_NULL(block, MALLOC_FAILED_TO_ALLOC_MEMORY, "MALLOC_FAILED_TO_ALLOC_MEMORY\nin mem_table_init()");
+    return block;
+}
 
 uint32
-debug_mem_get_table_count() { return mem_table_count; }
+debug_mem_get_table_count() { return memblock_pool_count; }
 
 void*
-debug_mem_get_start_address(const memid_t memid) { return mem_table[memid].start; }
+debug_mem_get_start_address(const memid_t memid) { return mem_pool[memid].start; }
 
 uint64
-debug_mem_get_size(const memid_t memid) { return mem_table[memid].size; }
+debug_mem_get_size(const memid_t memid) { return mem_pool[memid].size; }
 
 void*
 flist_peek_next_free_page(const memid_t mem_id)
 {
-    struct flist* flist_head = mem_table_get_head(mem_id);
+    struct flist* flist_head = flist_get_head(mem_id);
     return flist_head;
 }
 
 bool
 debug_mem_freeing_already_freed_pages(const struct memhnd_t hnd)
 {
-    struct flist* flist = mem_table_get_head(hnd.mem_id);
+    struct flist* flist = flist_get_head(hnd.mem_id);
     const struct flist* released = calc_address_from_page_id(hnd.page_id, hnd.mem_id);
     while(flist) {
         if(flist == released)
@@ -507,8 +498,9 @@ debug_mem_freeing_already_freed_pages(const struct memhnd_t hnd)
 void
 debug_mem_corrupted(const memid_t memid, const bool silent)
 {
-    void* off_bound_mem_start = mem_table[memid].start + mem_table[memid].data_size;
-    const bool memory_corrupted = check_mem_off_boundaries_writes(off_bound_mem_start, MEMORY_POISON_SIZE);
+    const uint32 flist_null = sizeof(struct flist);
+    void* off_bound_mem_start = mem_pool[memid].start + mem_pool[memid].data_size + flist_null;
+    const bool memory_corrupted = check_mem_off_boundaries_writes(off_bound_mem_start, MEMORY_POISON_SIZE-flist_null);
     if(memory_corrupted) {
         my_exit("ERROR: MEMORY CORRUPTION DETECTED", __FILE__, __LINE__);
     } else if(!silent){
@@ -517,11 +509,24 @@ debug_mem_corrupted(const memid_t memid, const bool silent)
 }
 
 bool
-check_mem_off_boundaries_writes(void* mem_start, const uint32 byte_size)
+check_mem_off_boundaries_writes(void* mem_start, const uint32 size)
 {
+    /*
+     * Check MEMORY_POISON_SIZE bytes
+     * excluding the first 8 bytes that the freelist
+     * occupies and have to be NULL,
+     * and also excluding the last 8 bytes
+     * where we deliberately set the last byte to '\0'
+     * for debugging purposes.
+     * Example:
+     * size:  64 bytes
+     *                 |-------------- this is what we check --------------|
+     *        byte 0-7  8-15     16-23    24-31    32-39    40-47    48-55    55-62   63
+     * data:  00000000 |POISON| |POISON| |POISON| |POISON| |POISON| |POISON| |POISON  '\0'
+     */
     const uint64* ptr = (uint64*) mem_start;
-    const uint32 len = byte_size / sizeof(uint64);
-    for(uint32 i = 0; i < len; i++) {
+    const uint32 len = size / sizeof(uint64);
+    for(uint32 i = 0; i < len-1; i++) {
         if(ptr[i] != MEM_POISON_PATTERN) {
             return TRUE;
         }
@@ -532,7 +537,7 @@ check_mem_off_boundaries_writes(void* mem_start, const uint32 byte_size)
 bool
 debug_flist_check_continuity(const memid_t memid)
 {
-    struct flist* flist = mem_table_get_head(memid);
+    struct flist* flist = flist_get_head(memid);
     bool is_contiguous = TRUE;
 
     while(flist != NULL) {

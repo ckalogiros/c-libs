@@ -7,26 +7,21 @@
 #include "my_types.h"
 #include "mem_man_types.h"
 
-
-#define MEM_POISON_PATTERN 0x0abccbcabeffdfdac
-
-
 enum MEMORY_INTERNAL {
-    MEMORY_INTERNAL_STORAGE_INDEX = 0,
-    MEMORY_INTERNAL_STORAGE_NUM_PAGES = 4,
-    MEMORY_INTERNAL_MEM_TABLE_CAPACITY=16,
-    MEMORY_INTERNAL_SLAB_ALLOCATOR_TABLE_CAPACITY=16,
-    MEMORY_INTERNAL_STACK_ALLOCATOR_TABLE_CAPACITY=16,
+    MEMORY_INTERNAL_STORAGE_INDEX      =  0,
+    MEMORY_INTERNAL_STORAGE_NUM_PAGES  =  4,
+    MEMORY_INTERNAL_POOL_INITIAL_COUNT = 16,
+    MEMORY_INTERNAL_MEMORY_ALIGNMENT   = 64,
 };
 
 struct mem_block {
     void*    start;            /// allocated start address
     struct   flist* flist;     /// block's single linked free list, stored at the block
-    const    char* name;       /// for DEBUG. THIS IS A BUG. TODO: use separate storage for strings
     uint64   size;             /// total allocated size
     uint64   data_size;        /// total data allocated size
     uint16   poison_data_size; /// a small portion to detect memory corruption
     pageid_t num_pages;        /// number of allocated pages
+    char     name[32];         /// for DEBUG. THIS IS A BUG. TODO: use separate storage for strings
 };
 
 

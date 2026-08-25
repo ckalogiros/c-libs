@@ -110,7 +110,7 @@ static struct fs_t* fs_register_created_mcaches = NULL;
 /* FOR DEBUG
  **************************************************************************************************/
 
-static void sslall_fprint_init()
+static void mem_fprint_init()
 {
     /* DEBUG-FPRINT */
     fs_flist = fs_create("Debug/allocators/slab/slab_flist.txt");

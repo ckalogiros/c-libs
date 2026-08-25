@@ -6,15 +6,20 @@
 #define MEMORY_TESTS_H
 
 #include "mem_man_structs.h"
-#include "my_types.h"
+
+#define MEM_TESTS_MEM_ALIGNMENT 64
+
+void test_mem_instance_initialization();
+
+void test_mem_page_request();
 
 void test_mem_alloc(void);
 
-void test_alloc_release_insequence(const pageid_t num_pages, const bool print_list);
+void test_alloc_release_insequence(const pageid_t num_pages);
 
-void test_alloc_first_release_after(const pageid_t num_pages, const bool print_list);
+void test_alloc_first_release_after(const pageid_t num_pages);
 
-void test_alloc_first_release_after_backwards(const pageid_t num_pages, const bool print_list);
+void test_alloc_first_release_after_backwards(const pageid_t num_pages);
 
 
 void test_alloc_release_mixed_all();

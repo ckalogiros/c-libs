@@ -6,9 +6,11 @@ register_module(
             ${CMAKE_CURRENT_LIST_DIR}/mem_man_internals.c
         headers
             ${CMAKE_CURRENT_LIST_DIR}/mem_man_types.h
+            ${CMAKE_CURRENT_LIST_DIR}/mem_man_macros.h
             ${CMAKE_CURRENT_LIST_DIR}/mem_man_structs.h
             ${CMAKE_CURRENT_LIST_DIR}/mem_man_interface.h
             ${CMAKE_CURRENT_LIST_DIR}/mem_man_internals.h
+            ${CMAKE_CURRENT_LIST_DIR}/mem_man_fprint_debug.h
         include_dirs
             ${CMAKE_CURRENT_LIST_DIR}
         compiler_macros

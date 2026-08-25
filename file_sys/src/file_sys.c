@@ -25,7 +25,7 @@
 
 #define FS_CHECK_NULL_FILE(file, filename)\
 if(file == NULL) {\
-    printf("Error: Could not open file '%s' for writing\n", filename);\
+    printf("Error: Forget to create file '%s' for writing?\n", filename);\
     my_exit("Failed to open file", __FILE__, __LINE__);\
 }
 
@@ -157,7 +157,7 @@ fs_write(const char* filename, const char* data)
     printf("Successfully wrote to '%s'\n", filename);
 }
 
-void
+void /// TODO: implement
 fs_read(const char* filename)
 {
     // FILE* file = fopen(filename, "r");
@@ -182,6 +182,8 @@ fs_read(const char* filename)
 void
 fs_append(struct fs_t* fs, const char* format, ...)
 {
+    assert(fs!=NULL);
+
     bool is_opened = FALSE;
     if(!(fs->flags & IS_OPEN)) {
         fs->file = fs_open(fs, "a");
@@ -214,7 +216,6 @@ fs_reset(struct fs_t* fs)
 void
 fs_append_mem(struct fs_t* fs, const char* ptr, const uint64 size, const char* msg)
 {
-    // fs->file = fopen(fs->filename, "a");
     bool is_opened = FALSE;
     if(!(fs->flags & IS_OPEN)) {
         fs->file = fs_open(fs, "a");
@@ -224,10 +225,10 @@ fs_append_mem(struct fs_t* fs, const char* ptr, const uint64 size, const char* m
     FS_CHECK_NULL_FILE(fs->file, fs->filename);
 
     /* define memory boundaries */
-    const char* mem_address = ptr;
-    const char* start = ptr;
+    const char*  mem_address = ptr;
+    const char*  start = ptr;
     const uint8* data = (uint8*) start;
-    const uint32 word_size = 8, line_size = 32;
+    uint32 word_size = 8, line_size = 32;
 
     /* print header, info, and draw a line ____ separator */
     char buffer[256];
@@ -258,7 +259,6 @@ fs_append_mem(struct fs_t* fs, const char* ptr, const uint64 size, const char* m
     fprintf(fs->file, "\n");
 
     const int32 sidx[] = {7, 5, 3, 1, -1, -3, -5, -7};
-    // const int32 sidx[] = {0, 0, 0, 0, 0, 0, 0, 0};
     uint32 cnt = 0;
     for(i = 0; i < size; i++) {
 
@@ -271,18 +271,10 @@ fs_append_mem(struct fs_t* fs, const char* ptr, const uint64 size, const char* m
         }
 
         /* print memory hex values (per line, reverse printing) */
-        // if((char*)&data[i + sidx[cnt]] >= ptr+(size)) {
-        // if((char*)data + i + sidx[cnt] >= ptr+(size)) {
-        //     break;
-        // }
-        // if(i + sidx[cnt] >= size) {
-        //     break;
-        // }
         if((void*)&(data[i + sidx[cnt]] ) == (void*)0x533000019c07) {
 
             print("%p\n", data[i + sidx[cnt]]);
         }
-            // print("%llx\n", &data[i + sidx[cnt]]);
 
         if(i + sidx[cnt] < size) {
             fprintf(fs->file, "%02x", data[i + sidx[cnt]]);

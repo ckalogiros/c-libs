@@ -1,5 +1,10 @@
 code
-    typedef all structs
+    * typedef all structs
+    * separate memory block's naming from the mem_block struct
+    * mem_pool_get_block(): Create 2 versions
+      1. debug
+      2. release
+      in debug pass __FILE__ to check if the function is called only internally(memory manager project scope)
 
 
 implement functionality:

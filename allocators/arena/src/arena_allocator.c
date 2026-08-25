@@ -44,14 +44,16 @@ arena_allocator_create_new_instance(const pageid_t num_pages)
     }
 
     /* create memory for data storage */
-    const uint32 data_alignment = PAGE_SIZE;
-    const memid_t data_memid = memman_allocate_block(num_pages, data_alignment, "arena_allocator: data storage");
-    void* const data_address = memman_get_mem_start_by_memid(data_memid);
-
+    const uint32 data_alignment = 64;
+    const memid_t memid = memman_allocate_block(num_pages, data_alignment, "arena_allocator: data storage");
+    struct memhnd_t hnd1 = memman_page_request(num_pages, memid);
+    void* const data_address = memman_get_alloc_mem_by_handle(hnd1);
+    // void* const data_address = memman_get_mem_start_by_memid(memid);
+HERE: remove coloring memory to the caller for testing
+    but be able to easily eneble for debugging
     /* FOR DEBUG */
-    assert(data_memid < 100); /// char c[8] cannot store values > 2 characters
     char c[8] = {'A','R','E','N','A'};
-    str_conv_int32_to_str(&c[5], data_memid);
+    str_conv_int32_to_str(&c[5], memid);
     uint64 s = make_uint64_from_string_max_8chars(c, 8);
     memset_64bit(data_address, s, num_pages * PAGE_SIZE);
     // memset(data_address, 'Q', num_pages * PAGE_SIZE);
@@ -61,7 +63,7 @@ arena_allocator_create_new_instance(const pageid_t num_pages)
 
         .data = { /* data storage */
             .start = data_address,
-            .instance_id = data_memid,
+            .instance_id = memid,
             .size = num_pages * PAGE_SIZE,
             .used_size = 0,
         },

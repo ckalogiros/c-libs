@@ -15,8 +15,6 @@
 #include "slab_alloc_fprint_debug.h"
 
 
-#define ALIGNMENT (64)
-
 /***************************************************************************************************
  * FUNCTION MACROS */
 #define SLABS_FREE_LIST_GET_PAGE_COLOR_START(fnode) ((char*)fnode + sizeof(struct flist))
@@ -59,7 +57,7 @@ slab_allocator_init(void)
     }
 
 #   ifdef SLAB_ALLOCATOR_FPRINT_DEBUG_ENABLED
-    sslall_fprint_init();
+    mem_fprint_init();
 #   endif
 
 }
@@ -77,18 +75,13 @@ slab_allocator_create_new_instance(const pageid_t reserve_num_pages, const char*
         slab_allocator_init();
     }
 
-    // print("%s###################################################\n"
-    //       "SLAB CREATE NEW INSTANCE: %s %s\n", br1, name, CLEAR);
-
-    // ISSUES: maybe both tables been allocad together, so that they are not too far apart(memory fragmentation)
-
     /* initialize pool table */
     struct slab_allocator_pool* pool_table =
-        aligned_alloc(ALIGNMENT, sizeof(struct slab_allocator_pool) * SLAB_ALLOCATOR_POOL_TABLE_COUNT);
+        aligned_alloc(SLAB_ALLOCATOR_MEMORY_ALIGNMENT, sizeof(struct slab_allocator_pool) * SLAB_ALLOCATOR_POOL_TABLE_COUNT);
 
     /* initialize mcache table */
     struct slab_allocator_mcache* mcache_table =
-        aligned_alloc(ALIGNMENT, sizeof(struct slab_allocator_mcache) * SLAB_ALLOCATOR_MCACHE_TABLE_COUNT);
+        aligned_alloc(SLAB_ALLOCATOR_MEMORY_ALIGNMENT, sizeof(struct slab_allocator_mcache) * SLAB_ALLOCATOR_MCACHE_TABLE_COUNT);
 
 
     const salltable_t inst_id = instance_count;
@@ -133,7 +126,7 @@ slab_allocator_instance_create_new_pool(const salltable_t inst_id, const pageid_
     }
 
     struct slab_allocator_pool pool = {
-        .mem_id = memman_allocate_block(num_pages, ALIGNMENT, name),
+        .mem_id = memman_allocate_block(num_pages, SLAB_ALLOCATOR_MEMORY_ALIGNMENT, name),
         .mcache_count = 0,
         .min_mcache_size = min_cache_size,
         .max_mcache_size = max_cache_size,

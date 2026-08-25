@@ -48,12 +48,15 @@ stack_allocator_create_new_instance(const pageid_t num_pages)
     const uint32 offsets_table_alignment = struct_type_size;
     const int32 offsets_table_num_pages = STACK_ALLOCATOR_INSTANCE_INITIAL_NUM_PAGES;
     const memid_t offsets_table_memid = memman_allocate_block(offsets_table_num_pages, offsets_table_alignment, "stack_allocator: offsets table");
-    void* const offsets_table_address = memman_get_mem_start_by_memid(offsets_table_memid);
+    const struct memhnd_t hnd1 = memman_page_request(num_pages, offsets_table_memid);
+    char* offsets_table_address = memman_get_alloc_mem_by_handle(hnd1);
+
 
     /* create memory for data storage */
     const uint32 data_alignment = PAGE_SIZE;
     const memid_t data_memid = memman_allocate_block(num_pages, data_alignment, "stack_allocator: data storage");
-    void* const data_address = memman_get_mem_start_by_memid(data_memid);
+    const struct memhnd_t hnd2 = memman_page_request(num_pages, data_memid);
+    char* data_address = memman_get_alloc_mem_by_handle(hnd2);
 
     /* FOR DEBUG */
     memset(data_address, 'Q', num_pages * PAGE_SIZE);

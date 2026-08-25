@@ -81,7 +81,7 @@ test_arena_allocator_alignment(void)
     void* address = NULL;
     char* addr = NULL;
     const memid_t instance_id = arena_allocator_create_new_instance(4);
-    char* start_address = debug_get_arena_allocator_instance_start_address(instance_id);
+    char* start_address = debug_arena_allocator_get_instance_data(instance_id);
     uint32 total_size = 0;
 
     {

@@ -15,13 +15,13 @@
 
 
 
-void
-mem_log_print_init_mem(void)
-{
-#ifdef DEBUG_PRINT_MEM
-    print("%s# INITIALIZE MEMORY #%s\n\n", YELLOW, CLEAR);
-#endif
-}
+// void
+// mem_log_print_init_mem(void)
+// {
+// #ifdef DEBUG_PRINT_MEM
+//     print("%s# INITIALIZE MEMORY #%s\n\n", YELLOW, CLEAR);
+// #endif
+// }
 
 void
 mem_log_print_terminate_mem(void)
@@ -35,15 +35,15 @@ void
 mem_log_print_mem(const struct mem_block* const mem)
 {
 #ifdef DEBUG_PRINT_MEM
-    print("-- %smemory%s --\n", ry, CLEAR);
+    print("--%s memory: %s %s--\n", ry, mem->name, CLEAR);
     print(
-        " size bytes:  %s%lu, %lukb%s\n"
-        " data size:   %s%lu, %lukb%s\n"
-        " total pages: %s%u%s\n"
-        " mem_block start:      %s%x%s\n"
-        " data start:     %s%x%s\n"
-        " last page:      %s%x%s\n"
-        " unauth page:    %s%x%s\n",
+        " size bytes:      %s%lu, %lukb%s\n"
+        " data size:       %s%lu, %lukb%s\n"
+        " total pages:     %s%u%s\n"
+        " mem_block start: %s%x%s\n"
+        " data start:      %s%x%s\n"
+        " last page:       %s%x%s\n"
+        " unauth page:     %s%x%s\n",
         YELLOW, mem->size, mem->size/PAGE_SIZE, CLEAR,
         YELLOW, mem->data_size, mem->data_size/PAGE_SIZE, CLEAR,
         YELLOW, mem->num_pages, CLEAR,
@@ -59,12 +59,27 @@ mem_log_print_mem(const struct mem_block* const mem)
 }
 
 void
+mem_log_print_mem_handle(const struct memhnd_t memhnd)
+{
+#ifdef DEBUG_PRINT_MEM
+    print("--%s memory handle %s--\n", ry, CLEAR);
+    print(
+        " mem_id:     %d\n"
+        " page_id:    %d\n"
+        " num_pages:  %d\n",
+        memhnd.mem_id, memhnd.page_id, memhnd.num_pages
+    );
+    print("\n");
+#endif
+}
+
+void
 mem_log_print_free_list(const memid_t memid)
 {
 #ifdef DEBUG_PRINT_MEM
-    print("-- %sfree list heads table%s --\n", ry, CLEAR);
+    print("--%s free list heads table %s--\n", ry, CLEAR);
 
-    struct flist* flist = mem_table_get_head(memid);
+    struct flist* flist = flist_get_head(memid);
 
     if(!flist)
         print("head = %sNULL%s\n", YELLOW, CLEAR);
@@ -92,7 +107,7 @@ mem_print_mem_alloc(void* allocated_addr, const struct memhnd_t hnd)
       ry, CLEAR,
       YELLOW, hnd.page_id, CLEAR,
       br1, allocated_addr, CLEAR,
-      br2, mem_table_get_head(hnd.mem_id), CLEAR
+      br2, flist_get_head(hnd.mem_id), CLEAR
       );
 }
 
@@ -106,13 +121,13 @@ mem_print_mem_release(void* released_addr, const struct memhnd_t hnd)
           ry, CLEAR,
           YELLOW, hnd.page_id, CLEAR,
           br1, released_addr, CLEAR,
-          br2, mem_table_get_head(hnd.mem_id), CLEAR
+          br2, flist_get_head(hnd.mem_id), CLEAR
           );
 }
 
 // ERROR handling
 void
-mem_print_error(const enum MEMORY_ERROR_CODE code)
+mem_print_error(const enum MEMORY_DEBUG code)
 {
     switch(code) {
         case MALLOC_FAILED_TO_ALLOC_MEMORY: {
@@ -123,10 +138,10 @@ mem_print_error(const enum MEMORY_ERROR_CODE code)
             break;
         }
         case NO_MEMORY_MANAGER_INIT: {
-            print("%sERROR:\n"
-                  "Memory manager is uninitialized\n"
-                  "Call memman_init() and don't forget memman_terminate()%s\n",
-                  RED, CLEAR
+            print("%sWARN:\n"
+                  "Memory pool is uninitialized\n",
+                  // "Call memman_init() and don't forget memman_terminate()%s\n",
+                  YELLOW, CLEAR
             );
             break;
         }
@@ -141,7 +156,7 @@ mem_print_error(const enum MEMORY_ERROR_CODE code)
         case MEMMAN_ALREADY_INITIALIZED: {
             print("%sERROR:\n"
                   "Memory manager already initialized%s\n",
-                  RED, CLEAR
+                  YELLOW, CLEAR
             );
             break;
         }
@@ -174,6 +189,13 @@ mem_print_error(const enum MEMORY_ERROR_CODE code)
             );
             my_exit("TRYING TO RELEASE AN ALREADY RELEASED MEM PAGE", __FILE__, __LINE__);
 
+            break;
+        }
+        case MEMORY_TERMINATE_SUCCESS: {
+            print("%sSUCCESS:\n"
+                  "Freeing memory pool%s\n",
+                  GREEN, CLEAR
+            );
             break;
         }
     }

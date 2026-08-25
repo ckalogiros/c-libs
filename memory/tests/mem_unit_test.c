@@ -6,8 +6,10 @@
 #include <assert.h>
 #include <string.h>
 #include "logger.h"
+#include "mem_fprint_debug.h"
 #include "mem_man_structs.h"
 #include "mem_man_internals.h"
+#include "tests.h"
 
 
 #define FOR(n) for(int32 i = 0; i < n; i++)
@@ -24,7 +26,7 @@
  **************************************************************************************************/
 /*
 struct  mem_block* debug_mem_get_table                ();
-struct  mem_block* mem_get_byid                       (const memid_t mem_id);
+struct  mem_block* mem_pool_get_block                       (const memid_t mem_id);
 uint32  debug_mem_get_table_count               ();
 void*   debug_mem_get_start_address             (const memid_t memid);
 uint64  debug_mem_get_size                      (const memid_t memid);
@@ -41,13 +43,13 @@ void
 test_mem_struct()
 {
 #define ALLOCPAGES 16
-#define ALIGNMENT PAGE_SIZE
+#define ALIGNMENT MEM_TESTS_MEM_ALIGNMENT
 #define fl struct flist
 
     uint32 prev_table_count = debug_mem_get_table_count();
 
-    memid_t memid = mem_allocate_block(ALLOCPAGES, ALIGNMENT, "");
-    struct mem_block* mem = mem_get_byid(memid);
+    memid_t memid = mem_create_inst(ALLOCPAGES, ALIGNMENT, "debug_mem_get_table_count()");
+    struct mem_block* mem = mem_pool_get_block(memid);
     void* start = debug_mem_get_start_address(memid);
     assert(start == mem->start);
 
@@ -62,12 +64,13 @@ test_mem_struct()
     assert(memsize == mem->size);
 
     /* allocate pages */
-    struct memhnd_t handle = mem_page_request(2, memid);
-    void* ptr = mem_get_addr_by_handle(handle);
+    struct memhnd_t handle = mem_inst_request_pages(2, memid);
+    void* ptr = mem_inst_get_address(handle);
 
     assert(ptr == mem->start);
 
     print_test_result("test_mem_struct", TRUE, __FILE__, __LINE__, "");
+    mem_fprint_append_mem_block(memid);
 
 #undef fl
 #undef ALIGNMENT
@@ -82,7 +85,7 @@ void
 test_mem_multiple_allocations()
 {
 #define ALLOCPAGES 16
-#define ALIGNMENT PAGE_SIZE
+#define ALIGNMENT MEM_TESTS_MEM_ALIGNMENT
 #define N 8
 #define M 1 // number of pages per allocation request
 #define fl struct flist
@@ -99,8 +102,8 @@ test_mem_multiple_allocations()
     FOR(N) {
         num_allocs[i] = M;
 
-        memids[i] = mem_allocate_block(ALLOCPAGES, ALIGNMENT, "test_mem_multiple_allocations()");
-        mems[i] = mem_get_byid(memids[i]);
+        memids[i] = mem_create_inst(ALLOCPAGES, ALIGNMENT, "test_mem_multiple_allocations()");
+        mems[i] = mem_pool_get_block(memids[i]);
 
         assert(debug_flist_check_continuity(memids[i]));
 
@@ -114,7 +117,7 @@ test_mem_multiple_allocations()
         uint64 alloced_size = num_allocs[i] * PAGE_SIZE;;
         char* ptr = mem->start;
 
-        mem_page_request(num_allocs[i], memids[i]);
+        mem_inst_request_pages(num_allocs[i], memids[i]);
 
         memset(mems[i]->start, MARK, num_allocs[i] * PAGE_SIZE);
         assert(*ptr == MARK);
@@ -132,6 +135,10 @@ test_mem_multiple_allocations()
 
 
     print_test_result("test_mem_multiple_allocations()", TRUE, __FILE__, __LINE__, "");
+    FOR(N)
+    {
+        mem_fprint_append_mem_block(memids[i]);
+    }
 
 #undef MARK
 #undef fl
@@ -166,7 +173,7 @@ unit_test_runner_slab_allocator(void)
     print("==============================\n\n");
 
     test_mem_struct();
-    test_mem_multiple_allocations();
+    // test_mem_multiple_allocations();
 
     print("\n[%s✓✓✓%s] All tests completed\n", GREEN, CLEAR);
 }

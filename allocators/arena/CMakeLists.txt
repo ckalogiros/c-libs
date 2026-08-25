@@ -25,13 +25,14 @@ include_project(${root_path}/memory/src/mem_log)
 include_project(${root_path}/allocators/slab_array/src)
 include_project(${root_path}/allocators/slab_array/log)
 include_project(${root_path}/allocators/stack/src)
-#include_project(${root_path}/containers/sparse_array/src)
-#include_project(${root_path}/containers/sparse_array/log)
 include_project(${root_path}/containers/string/src)
 #include_project(${root_path}/perf_timer/src)
 
 # 4. create executable with all the source files
 add_project_executable(arena_allocator main.c)
+
+# Link math library
+target_link_libraries(arena_allocator m)  # "m" is the linker name for libm
 
 # Debug: global properties
 print_all_registered()

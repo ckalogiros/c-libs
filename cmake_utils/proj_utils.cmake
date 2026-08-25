@@ -1,8 +1,8 @@
 # create a root path for all C's cmake projects
 get_filename_component(CURRENT_SCRIPT_DIR ${CMAKE_CURRENT_LIST_FILE} PATH)
-get_filename_component(CLION_ROOT_DIR ${CURRENT_SCRIPT_DIR} DIRECTORY)
+get_filename_component(ROOT_DIR ${CURRENT_SCRIPT_DIR} DIRECTORY)
 # Export as a cache variable so it's available everywhere
-set(CLION_ROOT_DIR ${CLION_ROOT_DIR} CACHE PATH "Root directory for all C projects")
+set(ROOT_DIR ${ROOT_DIR} CACHE PATH "Root directory for all C projects")
 
 
 # Function to register a module

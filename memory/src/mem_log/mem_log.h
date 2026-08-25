@@ -15,6 +15,8 @@ void mem_log_print_terminate_mem(void);
 
 void mem_log_print_mem(const struct mem_block* const mem);
 
+void mem_log_print_mem_handle(const struct memhnd_t memhnd);
+
 void mem_log_print_free_list(const memid_t memid);
 
 void mem_print_mem_alloc(void* released_addr, const struct memhnd_t hnd);
@@ -27,5 +29,5 @@ void logger_to_html_init(void);
 void logger_to_html_destroy(void);
 
 // ERROR handling
-void mem_print_error(enum MEMORY_ERROR_CODE code);
+void mem_print_error(enum MEMORY_DEBUG code);
 #endif //MEMORY_LOGGER_H

@@ -247,8 +247,10 @@ string_format(char** const buf, const uint32 size, const char* format, ...)
                     if(is_formated) k = add_leading_spaces(buf, k, strlen(str), formated[0]);
                     if(str != NULL) {
                         uint32 j = 0;
-                        while(str[j]) (*buf)[k++] = str[j++];
-                        assert(k < size);
+                        while(str[j]) {
+                            (*buf)[k++] = str[j++];
+                            assert(k < size);
+                        }
                     }
                     break;
                 }
