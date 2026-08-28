@@ -9,6 +9,7 @@
 #include "mem_man_structs.h"
 #include "my_macros.h"
 #include "arena_allocator.h"
+#include "arena_allocator_fprint.h"
 #include "mem_fprint_debug.h"
 
 #define TEST_NUM_PAGES 1
@@ -18,7 +19,7 @@
 void
 test_create_instance_basic()
 {
-    memid_t inst_id = arena_allocator_create_new_instance(TEST_NUM_PAGES);
+    arena_table_t inst_id = arena_allocator_create_new_instance(TEST_NUM_PAGES);
     struct arena_allocator_instance* inst = debug_arena_allocator_get_instance(inst_id);
 
     assert(inst->data.start != NULL);
@@ -27,13 +28,15 @@ test_create_instance_basic()
 
     print_test_result("test_create_instance_basic", TRUE, __FILE__, __LINE__, "");
     mem_fprint_append_mem_block(inst_id);
+    struct arena_allocator_instance* arena = debug_arena_allocator_get_instance(inst_id);
+    fprint_arena_mem_data(arena);
 }
 
 /*Single Allocation Tests*/
 void
 test_single_allocation()
 {
-    memid_t inst_id = arena_allocator_create_new_instance(TEST_NUM_PAGES);
+    arena_table_t inst_id = arena_allocator_create_new_instance(TEST_NUM_PAGES);
     size_t alloc_size = 100;
 
     void* ptr = arena_allocator_alloc(inst_id, alloc_size, sizeof(SOME_TYPE));
@@ -43,14 +46,15 @@ test_single_allocation()
     assert(inst->data.used_size == alloc_size);
 
     print_test_result("test_single_allocation", TRUE, __FILE__, __LINE__, "");
-    mem_fprint_append_mem_block(inst_id);
+    struct arena_allocator_instance* arena = debug_arena_allocator_get_instance(inst_id);
+    fprint_arena_mem_data(arena);
 }
 
 /*Multiple Allocations Test*/
 void
 test_multiple_allocations()
 {
-    memid_t inst_id = arena_allocator_create_new_instance(TEST_NUM_PAGES);
+    arena_table_t inst_id = arena_allocator_create_new_instance(TEST_NUM_PAGES);
     size_t sizes[] = {100, 200, 150, 50};
     void* ptrs[4];
 
@@ -70,7 +74,8 @@ test_multiple_allocations()
     assert(inst->data.used_size == total);
 
     print_test_result("test_multiple_allocations", TRUE, __FILE__, __LINE__, "");
-    mem_fprint_append_mem_block(inst_id);
+    struct arena_allocator_instance* arena = debug_arena_allocator_get_instance(inst_id);
+    fprint_arena_mem_data(arena);
 }
 
 /*Release (LIFO) Tests*/
@@ -81,7 +86,7 @@ test_release_lifo_order()
      * TEST NOT COMPATIBLE WITH ARENA MEMORY
      */
 
-    // memid_t inst_id = arena_allocator_create_new_instance(TEST_NUM_PAGES);
+    // arena_table_t inst_id = arena_allocator_create_new_instance(TEST_NUM_PAGES);
     //
     // void* ptr1 = arena_allocator_alloc(inst_id, 100, sizeof(SOME_TYPE));
     // void* ptr2 = arena_allocator_alloc(inst_id, 200, sizeof(SOME_TYPE));
@@ -112,7 +117,7 @@ test_release_lifo_order()
 void
 test_zero_size_allocation()
 {
-    memid_t inst_id = arena_allocator_create_new_instance(TEST_NUM_PAGES);
+    arena_table_t inst_id = arena_allocator_create_new_instance(TEST_NUM_PAGES);
     struct arena_allocator_instance* table = debug_arena_allocator_instance_get_table();
     uint32 before_used = table[inst_id].data.used_size;
 
@@ -123,13 +128,14 @@ test_zero_size_allocation()
     assert(inst->data.used_size == before_used); // Should not change?
 
     print_test_result("test_zero_size_allocation", TRUE, __FILE__, __LINE__, "");
-    mem_fprint_append_mem_block(inst_id);
+    struct arena_allocator_instance* arena = debug_arena_allocator_get_instance(inst_id);
+    fprint_arena_mem_data(arena);
 }
 
 void
 test_release_on_empty_allocator()
 {
-    memid_t inst_id = arena_allocator_create_new_instance(TEST_NUM_PAGES);
+    arena_table_t inst_id = arena_allocator_create_new_instance(TEST_NUM_PAGES);
 
     // should return NULL
     void* ptr = arena_allocator_release(inst_id);
@@ -137,13 +143,14 @@ test_release_on_empty_allocator()
     assert(ptr_value == 0); // ptr is instance->data.start, which should bu NULL
 
     print_test_result("test_release_on_empty_allocator", TRUE, __FILE__, __LINE__, "");
-    mem_fprint_append_mem_block(inst_id);
+    struct arena_allocator_instance* arena = debug_arena_allocator_get_instance(inst_id);
+    fprint_arena_mem_data(arena);
 }
 
 void
 test_allocation_exceeds_capacity()
 {
-    // memid_t inst_id = arena_allocator_create_new_instance(1); // Only 1 page
+    // arena_table_t inst_id = arena_allocator_create_new_instance(1); // Only 1 page
     // size_t too_big = PAGE_SIZE + 1; //// TODO: increment the size
     //
     // // This should fail - maybe return NULL or assert
@@ -158,7 +165,7 @@ test_allocation_exceeds_capacity()
 void
 test_allocation_alignment()
 {
-    memid_t inst_id = arena_allocator_create_new_instance(TEST_NUM_PAGES);
+    arena_table_t inst_id = arena_allocator_create_new_instance(TEST_NUM_PAGES);
 
     void* ptr1 = arena_allocator_alloc(inst_id, sizeof(uint32)*2, sizeof(char));
     *(char*) ptr1 = HACK_LITERAL_STR_TO_NUM("A", char);
@@ -169,14 +176,15 @@ test_allocation_alignment()
     assert(((uintptr_t)ptr2 & (sizeof(uint32) - 1)) == 0);
 
     print_test_result("test_allocation_alignment", TRUE, __FILE__, __LINE__, "");
-    mem_fprint_append_mem_block(inst_id);
+    struct arena_allocator_instance* arena = debug_arena_allocator_get_instance(inst_id);
+    fprint_arena_mem_data(arena);
 }
 
 /*Data Integrity Test*/
 void
 test_data_persistence()
 {
-    memid_t inst_id = arena_allocator_create_new_instance(TEST_NUM_PAGES);
+    arena_table_t inst_id = arena_allocator_create_new_instance(TEST_NUM_PAGES);
 
     // Write pattern to allocations
     char* ptr1 = (char*) arena_allocator_alloc(inst_id, 100, sizeof(char));
@@ -192,16 +200,17 @@ test_data_persistence()
         assert(ptr2[i] == '0' + (i % 10));
 
     print_test_result("test_data_persistence", TRUE, __FILE__, __LINE__, "");
-    mem_fprint_append_mem_block(inst_id);
+    struct arena_allocator_instance* arena = debug_arena_allocator_get_instance(inst_id);
+    fprint_arena_mem_data(arena);
 }
 
 /* Multiple Instances Test */
 void
 test_multiple_instances()
 {
-    memid_t inst1 = arena_allocator_create_new_instance(2);
+    arena_table_t inst1 = arena_allocator_create_new_instance(2);
     // struct memhnd_t hnd1 = memman_page_request(1, inst1);
-    memid_t inst2 = arena_allocator_create_new_instance(TEST_NUM_PAGES);
+    arena_table_t inst2 = arena_allocator_create_new_instance(TEST_NUM_PAGES);
     // struct memhnd_t hnd2 = memman_page_request(1, inst2);
 
     void* ptr1 = arena_allocator_alloc(inst1, 100, sizeof(SOME_TYPE));
@@ -218,8 +227,10 @@ test_multiple_instances()
     assert(table[inst1].data.used_size == 100);
 
     print_test_result("test_multiple_instances", TRUE, __FILE__, __LINE__, "");
-    mem_fprint_append_mem_block(inst1);
-    mem_fprint_append_mem_block(inst2);
+    struct arena_allocator_instance* arena1 = debug_arena_allocator_get_instance(inst1);
+    fprint_arena_mem_data(arena1);
+    struct arena_allocator_instance* arena2 = debug_arena_allocator_get_instance(inst2);
+    fprint_arena_mem_data(arena2);
 }
 
 /*Test Runner*/
@@ -229,15 +240,15 @@ unit_test_runner_arena_allocator(void)
     print("Running Stack Allocator Tests\n");
     print("==============================\n\n");
 
-    // test_create_instance_basic();
-    // test_single_allocation();
-    // test_multiple_allocations();
-    // // test_release_lifo_order();
-    // test_zero_size_allocation();
-    // test_release_on_empty_allocator();
-    // test_allocation_exceeds_capacity(); // TODO: implement realloc()
-    // test_allocation_alignment();
-    // test_data_persistence();
+    test_create_instance_basic();
+    test_single_allocation();
+    test_multiple_allocations();
+    // test_release_lifo_order();
+    test_zero_size_allocation();
+    test_release_on_empty_allocator();
+    test_allocation_exceeds_capacity(); // TODO: implement realloc()
+    test_allocation_alignment();
+    test_data_persistence();
     test_multiple_instances();
 
     print("\n✓ All tests completed\n");

@@ -13,13 +13,12 @@
 #include "mem_man_interface.h"
 #include "my_macros.h"
 #include "queue_allocator.h"
+#include "queue_allocator_fprint.h"
 #include "str_utils.h"
 
-
-void
-test_queue_allocator_typesize_byte(void)
+void test_queue_allocator(void)
 {
-    const memid_t instance_id = queue_allocator_create_new_instance(4);
+    const queue_table_t inst_id = queue_allocator_create_new_instance(1);
 
     const char* some_text[] = {
         "The devices, queues, and other entities in Vulkan are represented by Vulkan objects.",
@@ -34,31 +33,25 @@ test_queue_allocator_typesize_byte(void)
     /* test allocator: push */
     for(uint32 i = 0; i < 7; i++) {
         const uint32 size = strlen(some_text[i]);
-        void* address = queue_allocator_alloc(instance_id, size + 1, sizeof(some_text[0][0]), 0xCD);
+        void* address = queue_allocator_alloc(inst_id, size + 1, sizeof(some_text[0][0]));
         memcpy(address, some_text[i], size);
         *((char*) address + size) = '\0';
 
-        // print("[%u] %s\n", i, address);
-    }
-
-    /* test allocator: pop */
-    for(uint32 i = 0; i < 7; i++) {
-        uint32 size = queue_allocator_get_last_elem_size(instance_id);
-        void* address = queue_allocator_release(instance_id);
-
         print("[%u] %s\n", i, address);
-
-        /* debug-mark released memory with value */
-        memset(address, 0xCD, size);
     }
 
+    /* test allocator: release */
+    void* address = queue_allocator_reset(inst_id);
+    print("FREEING ALLOCATOR: start address: %p\n", address);
+    
 }
+
 
 /// TODO: copy this function to stack allocator too
 void
-test_queue_allocator_typesize_arbitrary(void)
+test_queue_allocator_structs_arbitrary_sizes(void)
 {
-    const memid_t instance_id = queue_allocator_create_new_instance(4);
+    const memid_t instance_id = queue_allocator_create_new_instance(1);
     void* mem_start_cache = NULL;
 
     struct A{int x; int y; float f;};
@@ -81,7 +74,7 @@ test_queue_allocator_typesize_arbitrary(void)
     uint32 size = sizeof(struct A);
     uint32 color_index = 0;
     // void* address = queue_allocator_alloc(instance_id, sizeof(struct A), sizeof(struct A), 0xA);
-    void* address = queue_allocator_alloc(instance_id, size, alignof(struct A), 0xA);
+    void* address = queue_allocator_alloc(instance_id, size, alignof(struct A));
     mem_start_cache = address;
     memcpy(address, &a, size);
     struct A* ptra = (struct A*)address;
@@ -89,7 +82,7 @@ test_queue_allocator_typesize_arbitrary(void)
     print("  x:%d, x:%d, x:%.2f\n", ptra->x, ptra->y, ptra->f);
 
     size = sizeof(struct B);
-    address = queue_allocator_alloc(instance_id, size, alignof(struct B), 0xB);
+    address = queue_allocator_alloc(instance_id, size, alignof(struct B));
     memcpy(address, &b, size);
     struct B* ptrb = (struct B*)address;
     print("-- STRUCT B -- %s size32:%u %s\n", COLOR_ARRAY_GET(color_index++), size/SIZE_I32, CLEAR);
@@ -99,7 +92,7 @@ test_queue_allocator_typesize_arbitrary(void)
     print("  x:%d, ptr:%p\n", ptrb->x, ptrb->ptr);
 
     size = sizeof(struct C);
-    address = queue_allocator_alloc(instance_id, size, alignof(struct C), 0xC);
+    address = queue_allocator_alloc(instance_id, size, alignof(struct C));
     memcpy(address, &c, size);
     struct C* ptrc = (struct C*)address;
     print("-- STRUCT C -- %s size32:%u %s\n", COLOR_ARRAY_GET(color_index++), size/SIZE_I32, CLEAR);
@@ -109,7 +102,7 @@ test_queue_allocator_typesize_arbitrary(void)
     print("\n");
 
     size = sizeof(struct AB);
-    address = queue_allocator_alloc(instance_id, size, alignof(struct AB), 0xAB);
+    address = queue_allocator_alloc(instance_id, size, alignof(struct AB));
     memcpy(address, &ab, size);
     struct AB* ptrab = (struct AB*)address;
     print("-- STRUCT AB -- %s size32:%u %s\n", COLOR_ARRAY_GET(color_index++), size/SIZE_I32, CLEAR);
@@ -119,48 +112,53 @@ test_queue_allocator_typesize_arbitrary(void)
     print("\n");
 
     size = sizeof(struct AC);
-    address = queue_allocator_alloc(instance_id, size, alignof(struct AC), 0xAC);
+    address = queue_allocator_alloc(instance_id, size, alignof(struct AC));
     memcpy(address, &ac, size);
     struct AC* ptrac = (struct AC*)address;
     print("-- STRUCT AC -- %s size32:%u %s\n", COLOR_ARRAY_GET(color_index++), size/SIZE_I32, CLEAR);
 
     size = sizeof(struct BC);
-    address = queue_allocator_alloc(instance_id, size, alignof(struct BC), 0xBC);
+    address = queue_allocator_alloc(instance_id, size, alignof(struct BC));
     memcpy(address, &bc, size);
     struct BC* ptrbc = (struct BC*)address;
     print("-- STRUCT BC -- %s size32:%u %s\n", COLOR_ARRAY_GET(color_index++), size/SIZE_I32, CLEAR);
 
+    struct queue_allocator_instance* queue = debug_queue_allocator_get_instance(instance_id);
+    fprint_queue_mem_data(queue);
 
 
     /* test allocator: pop/dequeue */
     uint32 total_alloc_size = 0;
     size = queue_allocator_get_last_elem_size(instance_id); total_alloc_size += size;
-    address = queue_allocator_release(instance_id);
+    address = queue_allocator_reset(instance_id);
     memset(address, 0xA, size); /// mark memory
 
     size = queue_allocator_get_last_elem_size(instance_id); total_alloc_size += size;
-    address = queue_allocator_release(instance_id);
+    address = queue_allocator_reset(instance_id);
     memset(address, 0xB, size); /// mark memory
 
     size = queue_allocator_get_last_elem_size(instance_id); total_alloc_size += size;
-    address = queue_allocator_release(instance_id);
+    address = queue_allocator_reset(instance_id);
     memset(address, 0xC, size); /// mark memory
 
     size = queue_allocator_get_last_elem_size(instance_id); total_alloc_size += size;
-    address = queue_allocator_release(instance_id);
+    address = queue_allocator_reset(instance_id);
     memset(address, 0xD, size); /// mark memory
 
     size = queue_allocator_get_last_elem_size(instance_id); total_alloc_size += size;
-    address = queue_allocator_release(instance_id);
+    address = queue_allocator_reset(instance_id);
     memset(address, 0xE, size); /// mark memory
 
     size = queue_allocator_get_last_elem_size(instance_id); total_alloc_size += size;
-    address = queue_allocator_release(instance_id);
+    address = queue_allocator_reset(instance_id);
     memset(address, 0xF, size); /// mark memory
+
+    fprint_queue_mem_data(queue);
 
 
     /* print-debug memory */
-    print("\n-- COMPARE THE SIZE OF EACH STRUCT WITH THE SIZE OF THE MEMORY FOOT PRINT --");
+    print("\n-- COMPARE THE SIZE OF EACH STRUCT WITH THE SIZE OF THE MEMORY FOOT PRINT --\n"
+          "AND TAKE INTO CONSIDERATION ANY PADDING\n");
     color_index = 0;
     char* color = COLOR_ARRAY_GET(color_index);
     char* mem_ptr = (char*)mem_start_cache;
@@ -213,50 +211,120 @@ test_queue_allocator_typesize_arbitrary(void)
     test_queue_alignment(ptr, sizeof(type));\
 }
 
+#define test_queue_alignment(ptr, typesize){\
+    uint32 alignment = align_pointer_to_type(ptr, typesize);\
+    assert(alignment == 0);\
+    print_test_result("alignement pass", TRUE, __FILE__, __LINE__, "");\
+}
+
+#define test_queue_equality_value(ptr, val, val1, type) {\
+    val = *(type*)ptr;\
+    print("val:%u == val1:%u\n", val, val1);\
+    assert(val1 == val);\
+    print_test_result("equality pass", TRUE, __FILE__, __LINE__, "");\
+    test_queue_alignment(ptr, sizeof(val1));\
+}
+
+#define test_queue_equality_string(ptr, buf, type) {\
+    const type* str = (type*)ptr;\
+    print("str:%s == buf:%s\n", str, buf);\
+    assert(!strcmp(str, buf));\
+    print_test_result("equality pass", TRUE, __FILE__, __LINE__, "");\
+    test_queue_alignment(ptr, sizeof(char));\
+}
+
+#define test_queue_equality_integer_buffer(ptr, buf, type, size) {\
+    const type* buf0 = (type*)ptr;\
+    print("buf:%d == buf:%d\n", (type)buf0[0], buf[0]);\
+    for(uint32 i = 0; i < size; i++) {\
+        assert((type)buf0[i] == buf[i]);\
+    }\
+    print_test_result("equality pass", TRUE, __FILE__, __LINE__, "");\
+    test_queue_alignment(ptr, sizeof(type));\
+}
+
+#define test_queue_equality_buffer(ptr, buf, type, size) {\
+    const type* buf0 = (type*)ptr;\
+    print("buf:%s == buf:%s\n", buf0, buf);\
+    for(uint32 i = 0; i < size; i++) {\
+        assert(buf0[i] == buf[i]);\
+    }\
+    print_test_result("equality pass", TRUE, __FILE__, __LINE__, "");\
+    test_queue_alignment(ptr, sizeof(type));\
+}
+
 
 void
 test_queue_allocator_alignment(void)
 {
     void* address = NULL;
-    const memid_t instance_id = queue_allocator_create_new_instance(4);
-    char* start_address = debug_get_queue_allocator_instance_start_address(instance_id);
+    char* addr = NULL;
+    const queue_table_t inst_id = queue_allocator_create_new_instance(4);
+    char* start_address = debug_queue_allocator_instance_get_data(inst_id);
     uint32 total_size = 0;
+    struct queue_allocator_instance* queue = debug_queue_allocator_get_instance(inst_id);
+
 
     {
         total_size = 0;
-        uint8  val1 = HACK_LIT_STR_TO_NUM("1", uint8);
-        uint16 val2 = HACK_LIT_STR_TO_NUM("22", uint16);
-        uint32 val3 = HACK_LIT_STR_TO_NUM("4444", uint32);
-        uint64 val4 = HACK_LIT_STR_TO_NUM("88888888", uint64);
-        
+        uint8  val1 = HACK_LITERAL_STR_TO_NUM("1", uint8);
+        uint16 val2 = HACK_LITERAL_STR_TO_NUM("22", uint16);
+        uint32 val3 = HACK_LITERAL_STR_TO_NUM("4444", uint32);
+        uint64 val4 = HACK_LITERAL_STR_TO_NUM("88888888", uint64);
+
         total_size += sizeof(val1);
         total_size += sizeof(val2);
         total_size += sizeof(val3);
         total_size += sizeof(val4);
-        
+
         memset(start_address, 0, total_size);
-        
-        print("-- TEST  integer types mixed --\n   total size:%u\n", total_size);
-        
-        address = queue_allocator_alloc(instance_id, sizeof(val1), sizeof(val1), 0xCD); memcpy(address, &val1, sizeof(val1));
-        address = queue_allocator_alloc(instance_id, sizeof(val2), sizeof(val2), 0xCD); memcpy(address, &val2, sizeof(val2));
-        address = queue_allocator_alloc(instance_id, sizeof(val3), sizeof(val3), 0xCD); memcpy(address, &val3, sizeof(val3));
-        address = queue_allocator_alloc(instance_id, sizeof(val4), sizeof(val4), 0xCD); memcpy(address, &val4, sizeof(val4));
-        
-        /* test allocator: pop */
+
+        print("%s-- TEST  integer types mixed --%s\n   total size:%u\n", ry, CLEAR, total_size);
+
+        addr = queue_allocator_alloc(inst_id, sizeof(val1), sizeof(val1)); memcpy(addr, &val1, sizeof(val1));
+        addr = queue_allocator_alloc(inst_id, sizeof(val2), sizeof(val2)); memcpy(addr, &val2, sizeof(val2));
+        addr = queue_allocator_alloc(inst_id, sizeof(val3), sizeof(val3)); memcpy(addr, &val3, sizeof(val3));
+        addr = queue_allocator_alloc(inst_id, sizeof(val4), sizeof(val4)); memcpy(addr, &val4, sizeof(val4));
+
+        /* test allocator: */
         uint64 val = 0;
-        
-        address = queue_allocator_release(instance_id);
-        test_queue_equality_value(address, val, val4, typeof(val4));
-        address = queue_allocator_release(instance_id);
-        test_queue_equality_value(address, val, val3, typeof(val3));
-        address = queue_allocator_release(instance_id);
-        test_queue_equality_value(address, val, val2, typeof(val2));
-        address = queue_allocator_release(instance_id);
-        test_queue_equality_value(address, val, val1, typeof(val1));
-        
+
+        uint32 prev_size = 0;
+        uint32 unaligned = 0;
+
+        address = start_address;
+
+        address += prev_size;
+        unaligned = align_pointer_to_type(address, sizeof(val1));
+        if(unaligned) {address += unaligned; unaligned = 0; }
+        test_queue_equality_value(address, val, val1, uint8); prev_size = sizeof(val1);
+
+        address += prev_size;
+        unaligned = align_pointer_to_type(address, sizeof(val2));
+        if(unaligned) {address += unaligned; unaligned = 0; }
+        test_queue_equality_value(address, val, val2, uint16); prev_size = sizeof(val2);
+
+        address += prev_size;
+        unaligned = align_pointer_to_type(address, sizeof(val3));
+        if(unaligned) {address += unaligned; unaligned = 0; }
+        test_queue_equality_value(address, val, val3, uint32); prev_size = sizeof(val3);
+
+        address += prev_size; /// Add the previous value's size to the pointer
+        unaligned = align_pointer_to_type(address, sizeof(val4)); /// if ptr is unaligned to the current value's type: align the pointer
+        if(unaligned) {address += unaligned; unaligned = 0; }
+        test_queue_equality_value(address, val, val4, uint64); prev_size = sizeof(val4);
+
+
         /* print memory */
         print_mem_hex(total_size, start_address);
+        fprint_queue_mem_data(queue);
+
+        // address = queue_allocator_reset(inst_id);
+        /* test allocator: pop-dequeue-release */
+        address = queue_allocator_dequeue(inst_id);
+        address = queue_allocator_dequeue(inst_id);
+        address = queue_allocator_dequeue(inst_id);
+        address = queue_allocator_dequeue(inst_id);
     }
 
     /***********************************************************************************************
@@ -264,60 +332,110 @@ test_queue_allocator_alignment(void)
      **********************************************************************************************/
     {
         total_size = 0;
-        uint8  val1 = HACK_LIT_STR_TO_NUM("1", uint8);
-        uint16 val2 = HACK_LIT_STR_TO_NUM("22", uint16);
-        uint32 val3 = HACK_LIT_STR_TO_NUM("4444", uint32);
-        uint64 val4 = HACK_LIT_STR_TO_NUM("88888888", uint64);
-        
+        uint8  val1 = HACK_LITERAL_STR_TO_NUM("1", uint8);
+        uint16 val2 = HACK_LITERAL_STR_TO_NUM("22", uint16);
+        uint32 val3 = HACK_LITERAL_STR_TO_NUM("4444", uint32);
+        uint64 val4 = HACK_LITERAL_STR_TO_NUM("88888888", uint64);
+
         total_size += sizeof(val1);
         total_size += sizeof(val2);
         total_size += sizeof(val3);
         total_size += sizeof(val4);
-        
+
         memset(start_address, 0, total_size);
-        
-        print("-- TEST  integer types mixed --\n total size:%u\n", total_size);
-        
-        
+
+        print("%s-- TEST  integer types mixed --%s\n total size:%u\n", ry, CLEAR,  total_size);
+
+
         /* test allocator: push  */
-        address = queue_allocator_alloc(instance_id, sizeof(val4), sizeof(val4), 0xCD); memcpy(address, &val4, sizeof(val4));
-        address = queue_allocator_alloc(instance_id, sizeof(val3), sizeof(val3), 0xCD); memcpy(address, &val3, sizeof(val3));
-        address = queue_allocator_alloc(instance_id, sizeof(val2), sizeof(val2), 0xCD); memcpy(address, &val2, sizeof(val2));
-        address = queue_allocator_alloc(instance_id, sizeof(val1), sizeof(val1), 0xCD); memcpy(address, &val1, sizeof(val1));
-        address = queue_allocator_alloc(instance_id, sizeof(val1), sizeof(val1), 0xCD); memcpy(address, &val1, sizeof(val1));
-        address = queue_allocator_alloc(instance_id, sizeof(val2), sizeof(val2), 0xCD); memcpy(address, &val2, sizeof(val2));
-        address = queue_allocator_alloc(instance_id, sizeof(val1), sizeof(val1), 0xCD); memcpy(address, &val1, sizeof(val1));
-        address = queue_allocator_alloc(instance_id, sizeof(val3), sizeof(val3), 0xCD); memcpy(address, &val3, sizeof(val3));
-        address = queue_allocator_alloc(instance_id, sizeof(val1), sizeof(val1), 0xCD); memcpy(address, &val1, sizeof(val1));
-        address = queue_allocator_alloc(instance_id, sizeof(val4), sizeof(val4), 0xCD); memcpy(address, &val4, sizeof(val4));
-        
-        /* test allocator: pop */
+        addr = queue_allocator_alloc(inst_id, sizeof(val4), sizeof(val4)); memcpy(addr, &val4, sizeof(val4));
+        addr = queue_allocator_alloc(inst_id, sizeof(val3), sizeof(val3)); memcpy(addr, &val3, sizeof(val3));
+        addr = queue_allocator_alloc(inst_id, sizeof(val2), sizeof(val2)); memcpy(addr, &val2, sizeof(val2));
+        addr = queue_allocator_alloc(inst_id, sizeof(val1), sizeof(val1)); memcpy(addr, &val1, sizeof(val1));
+        addr = queue_allocator_alloc(inst_id, sizeof(val1), sizeof(val1)); memcpy(addr, &val1, sizeof(val1));
+        addr = queue_allocator_alloc(inst_id, sizeof(val2), sizeof(val2)); memcpy(addr, &val2, sizeof(val2));
+        addr = queue_allocator_alloc(inst_id, sizeof(val1), sizeof(val1)); memcpy(addr, &val1, sizeof(val1));
+        addr = queue_allocator_alloc(inst_id, sizeof(val3), sizeof(val3)); memcpy(addr, &val3, sizeof(val3));
+        addr = queue_allocator_alloc(inst_id, sizeof(val1), sizeof(val1)); memcpy(addr, &val1, sizeof(val1));
+        addr = queue_allocator_alloc(inst_id, sizeof(val4), sizeof(val4)); memcpy(addr, &val4, sizeof(val4));
+
+        /* test allocator: alignment: */
         uint64 val = 0;
-        
-        address = queue_allocator_release(instance_id);
-        test_queue_equality_value(address, val, val4, typeof(val4));
-        address = queue_allocator_release(instance_id);
-        test_queue_equality_value(address, val, val1, typeof(val1));
-        address = queue_allocator_release(instance_id);
-        test_queue_equality_value(address, val, val3, typeof(val3));
-        address = queue_allocator_release(instance_id);
-        test_queue_equality_value(address, val, val1, typeof(val1));
-        address = queue_allocator_release(instance_id);
-        test_queue_equality_value(address, val, val2, typeof(val2));
-        address = queue_allocator_release(instance_id);
-        test_queue_equality_value(address, val, val1, typeof(val1));
-        address = queue_allocator_release(instance_id);
-        test_queue_equality_value(address, val, val1, typeof(val1));
-        address = queue_allocator_release(instance_id);
-        test_queue_equality_value(address, val, val2, typeof(val2));
-        address = queue_allocator_release(instance_id);
-        test_queue_equality_value(address, val, val3, typeof(val3));
-        address = queue_allocator_release(instance_id);
-        test_queue_equality_value(address, val, val4, typeof(val4));
-        
+        uint32 prev_size = 0;
+        uint32 unaligned = 0;
+        address = start_address;
+
+        {
+            address += prev_size; /// Add the previous value's size to the pointer
+            unaligned = align_pointer_to_type(address, sizeof(val4)); /// if ptr is unaligned to the current value's type: align the pointer
+            if(unaligned) {address += unaligned; unaligned = 0; }
+            test_queue_equality_value(address, val, val4, uint64); prev_size = sizeof(val4);
+
+            address += prev_size;
+            unaligned = align_pointer_to_type(address, sizeof(val3));
+            if(unaligned) {address += unaligned; unaligned = 0; }
+            test_queue_equality_value(address, val, val3, uint32); prev_size = sizeof(val3);
+
+            address += prev_size;
+            unaligned = align_pointer_to_type(address, sizeof(val2));
+            if(unaligned) {address += unaligned; unaligned = 0; }
+            test_queue_equality_value(address, val, val2, uint16); prev_size = sizeof(val2);
+
+            address += prev_size;
+            unaligned = align_pointer_to_type(address, sizeof(val1));
+            if(unaligned) {address += unaligned; unaligned = 0; }
+            test_queue_equality_value(address, val, val1, uint8); prev_size = sizeof(val1);
+
+            address += prev_size;
+            unaligned = align_pointer_to_type(address, sizeof(val1));
+            if(unaligned) {address += unaligned; unaligned = 0; }
+            test_queue_equality_value(address, val, val1, uint8); prev_size = sizeof(val1);
+
+            address += prev_size;
+            unaligned = align_pointer_to_type(address, sizeof(val2));
+            if(unaligned) {address += unaligned; unaligned = 0; }
+            test_queue_equality_value(address, val, val2, uint16); prev_size = sizeof(val2);
+
+            address += prev_size;
+            unaligned = align_pointer_to_type(address, sizeof(val1));
+            if(unaligned) {address += unaligned; unaligned = 0; }
+            test_queue_equality_value(address, val, val1, uint8); prev_size = sizeof(val1);
+
+            address += prev_size;
+            unaligned = align_pointer_to_type(address, sizeof(val3));
+            if(unaligned) {address += unaligned; unaligned = 0; }
+            test_queue_equality_value(address, val, val3, uint32); prev_size = sizeof(val3);
+
+            address += prev_size;
+            unaligned = align_pointer_to_type(address, sizeof(val1));
+            if(unaligned) {address += unaligned; unaligned = 0; }
+            test_queue_equality_value(address, val, val1, uint8); prev_size = sizeof(val1);
+
+            address += prev_size;
+            unaligned = align_pointer_to_type(address, sizeof(val4));
+            if(unaligned) {address += unaligned; unaligned = 0; }
+            test_queue_equality_value(address, val, val4, uint64); prev_size = sizeof(val4);
+        }
+
+
         /* print memory */
         print_mem_hex(total_size, start_address);
+        fprint_queue_mem_data(queue);
+
+        // address = queue_allocator_reset(inst_id);
+        /* test allocator: pop-dequeue-release */
+        address = queue_allocator_dequeue(inst_id);
+        address = queue_allocator_dequeue(inst_id);
+        address = queue_allocator_dequeue(inst_id);
+        address = queue_allocator_dequeue(inst_id);
+        address = queue_allocator_dequeue(inst_id);
+        address = queue_allocator_dequeue(inst_id);
+        address = queue_allocator_dequeue(inst_id);
+        address = queue_allocator_dequeue(inst_id);
+        address = queue_allocator_dequeue(inst_id);
+        address = queue_allocator_dequeue(inst_id);
     }
+
 
 
     /***********************************************************************************************
@@ -325,44 +443,74 @@ test_queue_allocator_alignment(void)
      **********************************************************************************************/
     {
         total_size = 0;
-        uint8  val1 = HACK_LIT_STR_TO_NUM("1", uint8);
-        uint16 val2 = HACK_LIT_STR_TO_NUM("22", uint16);
-        uint32 val3 = HACK_LIT_STR_TO_NUM("4444", uint32);
-        uint64 val4 = HACK_LIT_STR_TO_NUM("88888888", uint64);
+        uint8  val1 = HACK_LITERAL_STR_TO_NUM("1", uint8);
+        uint16 val2 = HACK_LITERAL_STR_TO_NUM("22", uint16);
+        uint32 val3 = HACK_LITERAL_STR_TO_NUM("4444", uint32);
+        uint64 val4 = HACK_LITERAL_STR_TO_NUM("88888888", uint64);
         char buf16[11] = "123456789a\0";
-        
+
         total_size += sizeof(val1);
         total_size += sizeof(val2);
         total_size += sizeof(val3);
         total_size += sizeof(val4);
         total_size += sizeof(buf16);
-        
+
         memset(start_address, 0, total_size);
-        
-        print("-- TEST integer types mixed--\n   total size:%u\n", total_size);
-        
-        address = queue_allocator_alloc(instance_id, sizeof(val1), sizeof(val1), 0xCD); memcpy(address, &val1, sizeof(val1));
-        address = queue_allocator_alloc(instance_id, sizeof(val3), sizeof(val3), 0xCD); memcpy(address, &val3, sizeof(val3));
-        address = queue_allocator_alloc(instance_id, sizeof(val2), sizeof(val2), 0xCD); memcpy(address, &val2, sizeof(val2));
-        address = queue_allocator_alloc(instance_id, sizeof(buf16), sizeof(char), 0xCD); memcpy(address, &buf16, sizeof(buf16));
-        address = queue_allocator_alloc(instance_id, sizeof(val4), sizeof(val4), 0xCD); memcpy(address, &val4, sizeof(val4));
-        
-        /* test allocator: pop */
+
+        print("%s-- TEST integer types mixed with char buf[] --%s\n   total size:%u\n", ry, CLEAR,  total_size);
+
+        address = queue_allocator_alloc(inst_id, sizeof(val1), sizeof(val1)); memcpy(address, &val1, sizeof(val1));
+        address = queue_allocator_alloc(inst_id, sizeof(val3), sizeof(val3)); memcpy(address, &val3, sizeof(val3));
+        address = queue_allocator_alloc(inst_id, sizeof(val2), sizeof(val2)); memcpy(address, &val2, sizeof(val2));
+        address = queue_allocator_alloc(inst_id, sizeof(buf16), sizeof(char)); memcpy(address, &buf16, sizeof(buf16));
+        address = queue_allocator_alloc(inst_id, sizeof(val4), sizeof(val4)); memcpy(address, &val4, sizeof(val4));
+
+
+        /* test allocator: alignment */
         uint64 val = 0;
-        
-        address = queue_allocator_release(instance_id);
-        test_queue_equality_value(address, val, val4, typeof(val4));
-        address = queue_allocator_release(instance_id);
-        // test_queue_equality_value(address, val, buf16, typeof(char));
-        address = queue_allocator_release(instance_id);
-        test_queue_equality_value(address, val, val2, typeof(val2));
-        address = queue_allocator_release(instance_id);
-        test_queue_equality_value(address, val, val3, typeof(val3));
-        address = queue_allocator_release(instance_id);
-        test_queue_equality_value(address, val, val1, typeof(val1));
-        
+        uint32 prev_size = 0;
+        uint32 unaligned = 0;
+        address = start_address;
+
+        address += prev_size;
+        unaligned = align_pointer_to_type(address, sizeof(val1));
+        if(unaligned) {address += unaligned; unaligned = 0; }
+        test_queue_equality_value(address, val, val1, uint8); prev_size = sizeof(val1);
+
+        address += prev_size;
+        unaligned = align_pointer_to_type(address, sizeof(val3));
+        if(unaligned) {address += unaligned; unaligned = 0; }
+        test_queue_equality_value(address, val, val3, uint32); prev_size = sizeof(val3);
+
+        address += prev_size;
+        unaligned = align_pointer_to_type(address, sizeof(val2));
+        if(unaligned) {address += unaligned; unaligned = 0; }
+        test_queue_equality_value(address, val, val2, uint16); prev_size = sizeof(val2);
+
+        address += prev_size;
+        unaligned = align_pointer_to_type(address, sizeof(buf16[0]));
+        if(unaligned) {address += unaligned; unaligned = 0; }
+        test_queue_equality_value(address, val, buf16[0], char);
+        prev_size = sizeof(buf16);
+
+        address += prev_size;
+        unaligned = align_pointer_to_type(address, sizeof(val4));
+        if(unaligned) {address += unaligned; unaligned = 0; }
+        test_queue_equality_value(address, val, val4, uint64); prev_size = sizeof(val4);
+
+
+
         /* print memory */
         print_mem_hex(total_size, start_address);
+        fprint_queue_mem_data(queue);
+
+        // address = queue_allocator_reset(inst_id);
+        /* test allocator: pop-dequeue-release */
+        address = queue_allocator_dequeue(inst_id);
+        address = queue_allocator_dequeue(inst_id);
+        address = queue_allocator_dequeue(inst_id);
+        address = queue_allocator_dequeue(inst_id);
+        address = queue_allocator_dequeue(inst_id);
     }
 
 
@@ -379,36 +527,58 @@ test_queue_allocator_alignment(void)
         memcpy(buf2, "sssssssssss\0", sizeof(buf2));
         memcpy(buf3, "cc\0", sizeof(buf3));
         memcpy(buf4, "ddddddddddd\0", sizeof(buf4));
-        
+
         total_size += sizeof(buf1);
         total_size += sizeof(buf2);
         total_size += sizeof(buf3);
         total_size += sizeof(buf4);
-        
+
         memset(start_address, 0, total_size);
-        
-        print("-- TEST char buffers --\n   total size:%u\n", total_size);
-        
-        
-        address = queue_allocator_alloc(instance_id, sizeof(buf1), sizeof(char), 0xCD); memcpy(address, buf1, sizeof(buf1));
-        address = queue_allocator_alloc(instance_id, sizeof(buf2), sizeof(char), 0xCD); memcpy(address, buf2, sizeof(buf2));
-        address = queue_allocator_alloc(instance_id, sizeof(buf3), sizeof(char), 0xCD); memcpy(address, buf3, sizeof(buf3));
-        address = queue_allocator_alloc(instance_id, sizeof(buf4), sizeof(char), 0xCD); memcpy(address, buf4, sizeof(buf4));
-        
-        
-        /* test allocator: pop */
-        address = queue_allocator_release(instance_id);
-        test_queue_equality_string(address, buf4, char);
-        address = queue_allocator_release(instance_id);
-        test_queue_equality_string(address, buf3, char);
-        address = queue_allocator_release(instance_id);
-        test_queue_equality_string(address, buf2, char);
-        address = queue_allocator_release(instance_id);
-        test_queue_equality_string(address, buf1, char);
-        
-        
+
+        print("%s-- TEST char buffers[] --%s\n   total size:%u\n", ry, CLEAR,  total_size);
+
+
+        address = queue_allocator_alloc(inst_id, sizeof(buf2), sizeof(char)); memcpy(address, buf2, sizeof(buf2));
+        address = queue_allocator_alloc(inst_id, sizeof(buf4), sizeof(char)); memcpy(address, buf4, sizeof(buf4));
+        address = queue_allocator_alloc(inst_id, sizeof(buf3), sizeof(char)); memcpy(address, buf3, sizeof(buf3));
+        address = queue_allocator_alloc(inst_id, sizeof(buf1), sizeof(char)); memcpy(address, buf1, sizeof(buf1));
+
+        /* test allocator: alignment: */
+        uint32 prev_size = 0;
+        uint32 unaligned = 0;
+        address = start_address;
+
+        address += prev_size;
+        unaligned = align_pointer_to_type(address, sizeof(buf2[0]));
+        if(unaligned) {address += unaligned; unaligned = 0; }
+        test_queue_equality_buffer(address, buf2, uint8, sizeof(buf2)); prev_size = sizeof(buf2);
+
+        address += prev_size;
+        unaligned = align_pointer_to_type(address, sizeof(buf4[0]));
+        if(unaligned) {address += unaligned; unaligned = 0; }
+        test_queue_equality_buffer(address, buf4, uint8, sizeof(buf4)); prev_size = sizeof(buf4);
+
+        address += prev_size;
+        unaligned = align_pointer_to_type(address, sizeof(buf3[0]));
+        if(unaligned) {address += unaligned; unaligned = 0; }
+        test_queue_equality_buffer(address, buf3, uint8, sizeof(buf3)); prev_size = sizeof(buf3);
+
+        address += prev_size;
+        unaligned = align_pointer_to_type(address, sizeof(buf1[0]));
+        if(unaligned) {address += unaligned; unaligned = 0; }
+        test_queue_equality_buffer(address, buf1, uint8, sizeof(buf1)); prev_size = sizeof(buf1);
+
+
         /* print memory */
         print_mem_hex(total_size, start_address);
+        fprint_queue_mem_data(queue);
+
+        // address = queue_allocator_reset(inst_id);
+        /* test allocator: pop-dequeue-release */
+        address = queue_allocator_dequeue(inst_id);
+        address = queue_allocator_dequeue(inst_id);
+        address = queue_allocator_dequeue(inst_id);
+        address = queue_allocator_dequeue(inst_id);
     }
 
 
@@ -417,17 +587,21 @@ test_queue_allocator_alignment(void)
      **********************************************************************************************/
     {
         total_size = 0;
-        uint8  buf1[6] = {0};
-        uint32 buf2[2] = {0};
-        uint8  buf3[2] = {0};
-        uint64 buf4[1] = {0};
+        typedef uint8  b1;
+        typedef uint32 b2;
+        typedef uint8  b3;
+        typedef uint64 b4;
+        b1 buf1[6] = {0};
+        b2 buf2[2] = {0};
+        b3 buf3[2] = {0};
+        b4 buf4[1] = {0};
 
         char* ptr = (char*)buf1;
         uint32 i = 0;
-        for(; i < sizeof(buf1)-1; i++) { ptr[i] = 'a'; } ptr[i] = '\0'; i = 0; ptr = (char*)buf2;
-        for(; i < sizeof(buf2)-1; i++) { ptr[i] = 'b'; } ptr[i] = '\0'; i = 0; ptr = (char*)buf3;
-        for(; i < sizeof(buf3)-1; i++) { ptr[i] = 'c'; } ptr[i] = '\0'; i = 0; ptr = (char*)buf4;
-        for(; i < sizeof(buf4)-1; i++) { ptr[i] = 'd'; } ptr[i] = '\0'; i = 0;
+        for(; i < sizeof(buf1); i++) { ptr[i] = 'a'; } /*ptr[i] = '\0';*/ i = 0; ptr = (char*)buf2;
+        for(; i < sizeof(buf2); i++) { ptr[i] = 'b'; } /*ptr[i] = '\0';*/ i = 0; ptr = (char*)buf3;
+        for(; i < sizeof(buf3); i++) { ptr[i] = 'c'; } /*ptr[i] = '\0';*/ i = 0; ptr = (char*)buf4;
+        for(; i < sizeof(buf4); i++) { ptr[i] = 'd'; } /*ptr[i] = '\0';*/ i = 0;
 
         total_size += sizeof(buf1);
         total_size += sizeof(buf2);
@@ -436,35 +610,65 @@ test_queue_allocator_alignment(void)
 
         memset(start_address, 0, total_size);
 
-        print("-- TEST uint32 buffers --\n   total size:%u\n", total_size);
+        print("%s-- TEST uint32 buffers --%s\n   total size:%u\n", ry, CLEAR,  total_size);
 
 
-        address = queue_allocator_alloc(instance_id, sizeof(buf1), sizeof(uint8 ), 0xCD); memcpy(address, buf1, sizeof(buf1));
-        address = queue_allocator_alloc(instance_id, sizeof(buf2), sizeof(uint32), 0xCD); memcpy(address, buf2, sizeof(buf2));
-        address = queue_allocator_alloc(instance_id, sizeof(buf3), sizeof(uint8 ), 0xCD); memcpy(address, buf3, sizeof(buf3));
-        address = queue_allocator_alloc(instance_id, sizeof(buf4), sizeof(uint64), 0xCD); memcpy(address, buf4, sizeof(buf4));
+        address = queue_allocator_alloc(inst_id, sizeof(buf1), sizeof(buf1[0])); memcpy(address, buf1, sizeof(buf1));
+        address = queue_allocator_alloc(inst_id, sizeof(buf2), sizeof(buf2[0])); memcpy(address, buf2, sizeof(buf2));
+        address = queue_allocator_alloc(inst_id, sizeof(buf3), sizeof(buf3[0])); memcpy(address, buf3, sizeof(buf3));
+        address = queue_allocator_alloc(inst_id, sizeof(buf4), sizeof(buf4[0])); memcpy(address, buf4, sizeof(buf4));
         /* again, insert the first 2 buffers */
-        address = queue_allocator_alloc(instance_id, sizeof(buf1), sizeof(uint8 ), 0xCD); memcpy(address, buf1, sizeof(buf1));
-        address = queue_allocator_alloc(instance_id, sizeof(buf2), sizeof(uint32), 0xCD); memcpy(address, buf2, sizeof(buf2));
+        address = queue_allocator_alloc(inst_id, sizeof(buf1), sizeof(uint8 )); memcpy(address, buf1, sizeof(buf1));
+        address = queue_allocator_alloc(inst_id, sizeof(buf2), sizeof(uint32)); memcpy(address, buf2, sizeof(buf2));
 
-        /* test allocator: pop */
-        address = queue_allocator_release(instance_id);
-        test_queue_equality_buffer(address, buf2, uint32);
-        address = queue_allocator_release(instance_id);
-        test_queue_equality_buffer(address, buf1, uint8);
-        address = queue_allocator_release(instance_id);
-        test_queue_equality_buffer(address, buf4, uint64);
-        address = queue_allocator_release(instance_id);
-        test_queue_equality_buffer(address, buf3, uint8);
-        address = queue_allocator_release(instance_id);
-        test_queue_equality_buffer(address, buf2, uint32);
-        address = queue_allocator_release(instance_id);
-        test_queue_equality_buffer(address, buf1, uint8);
+
+        /* test allocator: alignment: */
+        uint32 prev_size = 0;
+        uint32 unaligned = 0;
+        address = start_address;
+
+        address += prev_size;
+        unaligned = align_pointer_to_type(address, sizeof(buf1[0]));
+        if(unaligned) { address += unaligned; unaligned = 0; }
+        test_queue_equality_integer_buffer(address, buf1, b1, sizeof(buf1)); prev_size = sizeof(buf1);
+
+        address += prev_size;
+        unaligned = align_pointer_to_type(address, sizeof(buf2[0]));
+        if(unaligned) { address += unaligned; unaligned = 0; }
+        test_queue_equality_integer_buffer(address, buf2, b2, sizeof(buf2)/sizeof(b2)); prev_size = sizeof(buf2);
+
+        address += prev_size;
+        unaligned = align_pointer_to_type(address, sizeof(buf3[0]));
+        if(unaligned) { address += unaligned; unaligned = 0; }
+        test_queue_equality_integer_buffer(address, buf3, b3, sizeof(buf3)/sizeof(b3)); prev_size = sizeof(buf3);
+
+        address += prev_size;
+        unaligned = align_pointer_to_type(address, sizeof(buf4[0]));
+        if(unaligned) { address += unaligned; unaligned = 0; }
+        test_queue_equality_integer_buffer(address, buf4, b4, sizeof(buf4)/sizeof(b4)); prev_size = sizeof(buf4);
+
+        address += prev_size;
+        unaligned = align_pointer_to_type(address, sizeof(buf1[0]));
+        if(unaligned) { address += unaligned; unaligned = 0; }
+        test_queue_equality_integer_buffer(address, buf1, b1, sizeof(buf1)); prev_size = sizeof(buf1);
+
+        address += prev_size;
+        unaligned = align_pointer_to_type(address, sizeof(buf2[0]));
+        if(unaligned) { address += unaligned; unaligned = 0; }
+        test_queue_equality_integer_buffer(address, buf2, b2, sizeof(buf2)/sizeof(b2)); prev_size = sizeof(buf2);
 
         /* print memory */
         print_mem_hex(total_size, start_address);
+        fprint_queue_mem_data(queue);
+
+        // address = queue_allocator_reset(inst_id);
+        /* test allocator: pop-dequeue-release */
+        address = queue_allocator_dequeue(inst_id);
+        address = queue_allocator_dequeue(inst_id);
+        address = queue_allocator_dequeue(inst_id);
+        address = queue_allocator_dequeue(inst_id);
+        address = queue_allocator_dequeue(inst_id);
+        address = queue_allocator_dequeue(inst_id);
     }
 
-
-    
 }

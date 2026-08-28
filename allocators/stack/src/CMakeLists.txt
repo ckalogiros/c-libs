@@ -4,6 +4,8 @@ register_module(
         sources
         ${CMAKE_CURRENT_LIST_DIR}/stack_allocator.c
         headers
+        ${CMAKE_CURRENT_LIST_DIR}/stack_allocator_types.h
+        ${CMAKE_CURRENT_LIST_DIR}/stack_allocator_macros.h
         ${CMAKE_CURRENT_LIST_DIR}/stack_allocator_struct.h
         ${CMAKE_CURRENT_LIST_DIR}/stack_allocator.h
         include_dirs

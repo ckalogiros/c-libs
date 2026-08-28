@@ -1,8 +1,8 @@
 /*
  * Created by ckalo on 3/16/26.
  */
-#ifndef ALLOCATORS_SLAB_UNIT_TEST_H
-#define ALLOCATORS_SLAB_UNIT_TEST_H
+#ifndef SLAB_UNIT_TEST_H
+#define SLAB_UNIT_TEST_H
 #include "my_types.h"
 #include "slab_allocator_struct.h"
 
@@ -37,7 +37,7 @@ void check_buffer(void* buffer, const uint32 buffer_size, const char c, const ui
  */
 struct slab_release_ret mem_cache_free_slab_test_debug(struct slab_allocator_mcache* mcache, void* slab_address);
 
-struct slab_release_ret mem_cache_release_buffer_test_debug(const salltable_t inst_id, void* ptr, const slab_elems_t buffer_size, const uint16 type_size);
+struct slab_release_ret mem_cache_release_buffer_test_debug(const slab_table_t inst_id, void* ptr, const slab_elems_t buffer_size, const uint16 type_size);
 
 
-#endif //ALLOCATORS_SLAB_UNIT_TEST_H
+#endif //SLAB_UNIT_TEST_H

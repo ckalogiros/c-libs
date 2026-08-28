@@ -1,6 +1,7 @@
 /*
  * Created by ckalo on 12/29/25.
  */
+#include "mem_fprint_debug.h"
 #include "mem_man_interface.h"
 #include "mem_log.h"
 
@@ -30,6 +31,8 @@ struct memhnd_t
 memman_page_request(const uint16 num_pages, const memid_t memid)
 {
     const struct memhnd_t hnd = mem_inst_request_pages(num_pages, memid);
+    mem_fprint_append_mem_block(hnd.mem_id);
+    // mem_fprint_append_mem_block_poison(hnd.mem_id);
     return hnd;
 }
 

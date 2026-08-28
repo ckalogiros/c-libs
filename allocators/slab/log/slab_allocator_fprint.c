@@ -1,15 +1,12 @@
 /*
- * Created by ckalo on 3/14/26.
+ * Created by ckalo on 8/26/26.
  */
-#ifndef SLAB_ALLOC_FPRINT_DEBUG_H
-#define SLAB_ALLOC_FPRINT_DEBUG_H
 
+#include "slab_allocator_fprint.h"
 #include "my_types.h"
 #include "file_sys_interface.h"
-#include "str_utils.h"
 #include "debug_defines.h"
-#include "string_format.h"
-
+#include "logger.h"
 
 // #define DEBUG_FPRINT_MCACHE
 // #define DEBUG_FPRINT_MCACHES_IN_FILES
@@ -95,36 +92,25 @@
 
 #endif
 
-
-
-
-struct fs_t;
-
 /***************************************************************************************************
  * FOR DEBUG */
-static struct fs_t* fs_flist = NULL;
-/* output a debug file per mcache  */
-static struct fs_t* fs_mcaches[SLAB_ALLOCATOR_MCACHE_SIZES_COUNT] = {NULL};
 /* output one debug file and register all created mcaches  */
-static struct fs_t* fs_register_created_mcaches = NULL;
+static struct fs_t* fs_created_mcaches = NULL;
+static struct fs_t* fs_created_slabs   = NULL;
+static struct fs_t* fs_created_slab    = NULL;
 /* FOR DEBUG
  **************************************************************************************************/
 
-static void mem_fprint_init()
-{
-    /* DEBUG-FPRINT */
-    fs_flist = fs_create("Debug/allocators/slab/slab_flist.txt");
-    fs_register_created_mcaches = fs_create("Debug/allocators/slab/register_created_slab_mcaches.txt");
-    fs_append(fs_register_created_mcaches, "OPERATIONS: "
-              "Create-Allocate-Release operations "
-              "of slab allocator mcaches\n"
-              "________________________________________________________"
-              "________________________________________________________"
-              "________________________________________________________\n"
-    );
-}
+void fprint_mcache(struct slab_allocator_mcache* mcache, const char* operation) {
 
-void fprint_register_mcache(struct fs_t* fs, struct slab_allocator_mcache* mcache, const char* operation) {
+    if(fs_created_mcaches == NULL) {
+        fs_created_mcaches = fs_create("Debug/allocators/slab/mcaches.txt");
+        fs_append(fs_created_mcaches, "OPERATIONS: "
+                  "Create-Allocate-Release operations "
+                  "of slab allocator mcaches\n"
+                  "________________________________________________________\n"
+        );
+    }
 
     uint64 lower = 0, upper = 0;
     if(mcache->slabs_free_list) {
@@ -134,8 +120,9 @@ void fprint_register_mcache(struct fs_t* fs, struct slab_allocator_mcache* mcach
 
     print("");
 
-    fs_append(fs,
-        "%9s | "
+    fs_append(fs_created_mcaches,
+        "%14s | "
+        "id: %3u | "
         "pages: %3u | "
         "capac: %5u slabs | "
         "count: %3u | "
@@ -143,6 +130,7 @@ void fprint_register_mcache(struct fs_t* fs, struct slab_allocator_mcache* mcach
         "flist: %08x %08x | "
         "name: %14s\n",
         operation,
+        mcache->idx,
         mcache->slabs_num_pages,
         mcache->slabs_capacity,
         mcache->slabs_count,
@@ -152,15 +140,63 @@ void fprint_register_mcache(struct fs_t* fs, struct slab_allocator_mcache* mcach
     );
 }
 
-static void slall_fprint_mcaches(struct slab_allocator_mcache* mcache, const char* operation)
-{
-    char buf[INT32_TO_STR_BUFFER_SIZE] = {0};
-    str_conv_int32_to_str(buf, mcache->slab_size);
-    fprint_register_mcache(fs_register_created_mcaches, mcache, operation);
+void fprint_append_all_slabs_of_mcache(struct slab_allocator_mcache* mcache, const char* info) {
+
+    if(fs_created_slabs == NULL) {
+        fs_created_slabs = fs_create("Debug/allocators/slab/slabs_selective.txt");
+        fs_append(fs_created_slabs, "PRINT MEMORY OF ALL SLABS IN MCACHE"
+                  "________________________________________________________\n"
+        );
+    }
+
+    fs_append(fs_created_slabs,
+        "\n"
+        "###################\n"
+        "# info             %s \n"
+        "# name             %s \n"
+        "# slabs_free_list  %016x \n"
+        "# slabs_start      %016x \n"
+        "# last_slab_end    %u \n"
+        "# slab_size        %u \n"
+        "# type_size        %u \n"
+        "# num_elems        %u \n"
+        "# slabs_capacity   %u \n"
+        "# slabs_count      %u \n"
+        "# slabs_num_pages  %u \n"
+        "# idx              %u \n"
+        "# is_active        %u \n"
+        "# mem_handle:     id: %d, page_id: %d, num_pages: %d \n"
+        "###################\n",
+        info,
+        mcache->name,
+        mcache->slabs_free_list,
+        mcache->slabs_start,
+        mcache->last_slab_end,
+        mcache->slab_size,
+        mcache->type_size,
+        mcache->num_elems,
+        mcache->slabs_capacity,
+        mcache->slabs_count,
+        mcache->slabs_num_pages,
+        mcache->idx,
+        mcache->is_active,
+        mcache->mem_handle.mem_id, mcache->mem_handle.page_id, mcache->mem_handle.num_pages
+    );
+    const uint32 data_size = mcache->slab_size * mcache->slabs_count;
+    fs_append_mem(fs_created_slabs, mcache->slabs_start, data_size, "slab allocator:mcache slabs");
+
 }
 
-// fs_write_list(fs_flist, flist_heads_table[mem_id],
-//     "\n--------------------\n  new memory free list\n  head:%x\n", flist_heads_table[mem_id]
-// );
+void fprint_append_a_slab(void* slab_start, const uint32 slab_size, const char* info) {
 
-#endif //SLAB_ALLOC_FPRINT_DEBUG_H
+    if(fs_created_slab == NULL) {
+        fs_created_slab = fs_create("Debug/allocators/slab/slabs_selective.txt");
+        fs_append(fs_created_slab, "PRINT MEMORY OF A SLAB"
+                  "________________________________________________________\n"
+        );
+    }
+
+    fs_append(fs_created_slab, "# info: %s \n", info);
+    fs_append_mem(fs_created_slab, slab_start, slab_size, "slab allocator: a slab");
+
+}

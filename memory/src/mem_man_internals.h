@@ -38,6 +38,8 @@ enum MEMORY_DEBUG {
  **************************************************************************************************/
 enum MEMORY_DEBUG mem_pool_destroy(void);
 
+void mem_pool_realloc(); /// TODO: implement
+
 memid_t mem_create_inst(const uint16 num_pages, const uint32 alignment, const char* info);
 
 memid_t mem_destroy_inst(const memid_t memid);
@@ -79,8 +81,6 @@ void* calc_address_from_page_id(const pageid_t page_id, const memid_t mem_id);
  * DEBUG
  **************************************************************************************************/
 struct mem_block* mem_pool_get();
-
-void mem_pool_realloc(); /// TODO: implement
 
 struct mem_block* debug_mem_get_table();
 

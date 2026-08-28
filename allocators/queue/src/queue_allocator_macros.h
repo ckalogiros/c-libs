@@ -1,0 +1,9 @@
+/*
+ * Created by ckalo on 8/27/26.
+ */
+#ifndef STACK_ALLOCATOR_MACROS_H
+#define STACK_ALLOCATOR_MACROS_H
+
+#define STACK_ALLOCATOR_FPRINT_DEBUG_ENABLED
+
+#endif //STACK_ALLOCATOR_MACROS_H

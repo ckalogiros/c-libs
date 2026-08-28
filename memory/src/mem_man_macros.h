@@ -5,6 +5,7 @@
 #define MEMORY_MACROS_H
 
 #define MEMORY_POISON_SIZE 64
+#define MEM_ALIGNMENT 64
 
 #define CHUNK_FLAGS_FREE     BIT_MASK_FROM_UINT(0) // chunk is not in use
 #define CHUNK_FLAGS_OCCUPIED BIT_MASK_FROM_UINT(1) // chunk is in use but has free pages

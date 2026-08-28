@@ -5,6 +5,7 @@
 #include "slab_allocator_log.h"
 #include "logger.h"
 #include "slab_allocator_internals.h"
+#include "sys_utils.h"
 
 
 void

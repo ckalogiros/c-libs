@@ -7,13 +7,12 @@
 #include "string_struct.h"
 #include "file_sys_interface.h"
 #include "logger.h"
-#include <stdlib.h>
 #include <string.h>
 #include "slab_allocator_internals.h"
-#include "slab_allocator.h"
+#include "slab_allocator_interface.h"
 #include "stringc.h"
 #include "stack_allocator.h"
-
+#include "char_buf.h"
 
 /*******************************************************************************
  *

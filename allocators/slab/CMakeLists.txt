@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.28)
-project(slab_array C)
+project(slab_allocator C)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
@@ -7,7 +7,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
 # 1. include utility functions
 set(cmake_utils "/home/ckalo/data/projects/clion/cmake_utils/proj_utils.cmake")
 include(${cmake_utils})
-set(root_path ${CLION_ROOT_DIR})
+set(root_path ${ROOT_DIR})
 enable_sanitizer()
 
 # 2. add project's sub-directories
@@ -34,10 +34,10 @@ include_project(${root_path}/perf_timer/src)
 
 
 # 4. create executable with all the source files
-add_project_executable(slab_array main.c)
+add_project_executable(slab_allocator main.c)
 
 # Link math library
-target_link_libraries(slab_array m)  # "m" is the linker name for libm
+target_link_libraries(slab_allocator m)  # "m" is the linker name for libm
 
 # Debug: global properties
 print_all_registered()

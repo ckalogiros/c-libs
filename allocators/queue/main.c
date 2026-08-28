@@ -5,13 +5,13 @@
 int
 main(void)
 {
-    memman_init();
+    // test_queue_allocator();
 
-    // test_queue_allocator_typesize_byte();
-    test_queue_allocator_typesize_arbitrary();
-    // test_queue_allocator_alignment();
+    // test_queue_allocator_typesize_arbitrary();
 
-    // unit_test_runner_queue_llocator();
+    test_queue_allocator_alignment();
+
+    // unit_test_runner_queue_allocator();
 
     memman_terminate();
     return 0;

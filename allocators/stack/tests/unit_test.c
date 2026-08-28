@@ -4,37 +4,45 @@
 
 #include "unit_test.h"
 #include <assert.h>
+
+#include "file_sys_interface.h"
 #include "logger.h"
 #include "mem_man_interface.h"
+#include "mem_man_internals.h"
 #include "mem_man_structs.h"
 #include "my_macros.h"
 #include "stack_allocator.h"
+#include "stack_allocator_fprint.h"
 
 #define TEST_NUM_PAGES 1
 #define SOME_TYPE char
 
 /*Basic Creation and Initial State Tests*/
-void
+stack_table_t
 test_create_instance_basic()
 {
-    memid_t inst_id = stack_allocator_create_new_instance(TEST_NUM_PAGES);
+    stack_table_t inst_id = stack_allocator_create_new_instance(TEST_NUM_PAGES);
     struct stack_allocator_instance* inst = debug_get_stack_allocator_instance(inst_id);
 
     assert(inst->data.start != NULL);
     assert(inst->data.size == TEST_NUM_PAGES * PAGE_SIZE);
     assert(inst->data.used_size == 0);
-    assert(inst->stack_ptr_offset == 0);
+    assert(inst->sp_offset == 0);
     assert(inst->offsets_table_count == 0);
-    assert(inst->offsets_table_size == debug_get_stack_allocator_init_instance_num_pages());
+    assert(inst->offsets_table_size == stack_allocator_offsets_table_get_size(inst_id));
 
     print_test_result("test_create_instance_basic", TRUE, __FILE__, __LINE__, "");
+    struct stack_allocator_instance* stack_inst = debug_get_stack_allocator_instance(inst_id);
+    fprint_stack_mem_data(stack_inst);
+
+    return inst_id;
 }
 
 /*Single Allocation Tests*/
 void
 test_single_allocation()
 {
-    memid_t inst_id = stack_allocator_create_new_instance(TEST_NUM_PAGES);
+    stack_table_t inst_id = stack_allocator_create_new_instance(TEST_NUM_PAGES);
     size_t alloc_size = 100;
 
     void* ptr = stack_allocator_alloc(inst_id, alloc_size, sizeof(SOME_TYPE));
@@ -42,17 +50,19 @@ test_single_allocation()
 
     assert(ptr == inst->data.start); // First allocation should be at start
     assert(inst->data.used_size == alloc_size);
-    assert(inst->stack_ptr_offset == alloc_size);
+    assert(inst->sp_offset == alloc_size);
     assert(inst->offsets_table_count == 1);
 
     print_test_result("test_single_allocation", TRUE, __FILE__, __LINE__, "");
+    struct stack_allocator_instance* stack_inst = debug_get_stack_allocator_instance(inst_id);
+    fprint_stack_mem_data(stack_inst);
 }
 
 /*Multiple Allocations Test*/
 void
 test_multiple_allocations()
 {
-    memid_t inst_id = stack_allocator_create_new_instance(TEST_NUM_PAGES);
+    stack_table_t inst_id = stack_allocator_create_new_instance(TEST_NUM_PAGES);
     size_t sizes[] = {100, 200, 150, 50};
     void* ptrs[4];
 
@@ -70,17 +80,19 @@ test_multiple_allocations()
     // Verify total usage
     size_t total = sizes[0] + sizes[1] + sizes[2] + sizes[3];
     assert(inst->data.used_size == total);
-    assert(inst->stack_ptr_offset == total);
+    assert(inst->sp_offset == total);
     assert(inst->offsets_table_count == 4);
 
     print_test_result("test_multiple_allocations", TRUE, __FILE__, __LINE__, "");
+    struct stack_allocator_instance* stack_inst = debug_get_stack_allocator_instance(inst_id);
+    fprint_stack_mem_data(stack_inst);
 }
 
 /*Release (LIFO) Tests*/
 void
 test_release_lifo_order()
 {
-    memid_t inst_id = stack_allocator_create_new_instance(TEST_NUM_PAGES);
+    stack_table_t inst_id = stack_allocator_create_new_instance(TEST_NUM_PAGES);
 
     void* ptr1 = stack_allocator_alloc(inst_id, 100, sizeof(SOME_TYPE));
     void* ptr2 = stack_allocator_alloc(inst_id, 200, sizeof(SOME_TYPE));
@@ -90,30 +102,32 @@ test_release_lifo_order()
     uint32 before_used = inst->data.used_size;
 
     // Release in reverse order (LIFO)
-    void* released3 = stack_allocator_release(inst_id);
+    void* released3 = stack_allocator_pop(inst_id);
     assert(released3 == ptr3);
     assert(inst->data.used_size == before_used - 150);
     assert(inst->offsets_table_count == 2);
 
-    void* released2 = stack_allocator_release(inst_id);
+    void* released2 = stack_allocator_pop(inst_id);
     assert(released2 == ptr2);
     assert(inst->data.used_size == before_used - 350);
     assert(inst->offsets_table_count == 1);
 
-    void* released1 = stack_allocator_release(inst_id);
+    void* released1 = stack_allocator_pop(inst_id);
     assert(released1 == ptr1);
     assert(inst->data.used_size == 0);
     assert(inst->offsets_table_count == 0);
-    assert(inst->stack_ptr_offset == 0);
+    assert(inst->sp_offset == 0);
 
     print_test_result("test_release_lifo_order", TRUE, __FILE__, __LINE__, "");
+    struct stack_allocator_instance* stack_inst = debug_get_stack_allocator_instance(inst_id);
+    fprint_stack_mem_data(stack_inst);
 }
 
 /*Edge Case Tests*/
 void
 test_zero_size_allocation()
 {
-    memid_t inst_id = stack_allocator_create_new_instance(TEST_NUM_PAGES);
+    stack_table_t inst_id = stack_allocator_create_new_instance(TEST_NUM_PAGES);
     struct stack_allocator_instance* table = debug_get_stack_allocator_table();
     uint32 before_used = table[inst_id].data.used_size;
 
@@ -125,24 +139,28 @@ test_zero_size_allocation()
     assert(inst->offsets_table_count == 1); // Should it track zero-size allocations?
 
     print_test_result("test_zero_size_allocation", TRUE, __FILE__, __LINE__, "");
+    struct stack_allocator_instance* stack_inst = debug_get_stack_allocator_instance(inst_id);
+    fprint_stack_mem_data(stack_inst);
 }
 
 void
 test_release_on_empty_allocator()
 {
-    memid_t inst_id = stack_allocator_create_new_instance(TEST_NUM_PAGES);
+    stack_table_t inst_id = stack_allocator_create_new_instance(TEST_NUM_PAGES);
 
     // should return NULL
-    void* ptr = stack_allocator_release(inst_id);
+    void* ptr = stack_allocator_pop(inst_id);
     assert(ptr == NULL); // Or some error indicator
 
     print_test_result("test_release_on_empty_allocator", TRUE, __FILE__, __LINE__, "");
+    struct stack_allocator_instance* stack_inst = debug_get_stack_allocator_instance(inst_id);
+    fprint_stack_mem_data(stack_inst);
 }
 
 void
 test_allocation_exceeds_capacity()
 {
-    // memid_t inst_id = stack_allocator_create_new_instance(1); // Only 1 page
+    // stack_table_t inst_id = stack_allocator_create_new_instance(1); // Only 1 page
     // size_t too_big = PAGE_SIZE + 1; //// TODO: increment the size
     //
     // // This should fail - maybe return NULL or assert
@@ -150,30 +168,34 @@ test_allocation_exceeds_capacity()
     // assert(ptr == NULL); // If you implement error handling
 
     print_test_result("TODO: IMPLEMENT", TRUE, __FILE__, __LINE__, "");
+    // struct stack_allocator_instance* stack_inst = debug_get_stack_allocator_instance(inst_id);
+    // fprint_stack_mem_data(stack_inst);
 }
 
 /*Alignment Tests*/
 void
 test_allocation_alignment()
 {
-    memid_t inst_id = stack_allocator_create_new_instance(TEST_NUM_PAGES);
+    stack_table_t inst_id = stack_allocator_create_new_instance(TEST_NUM_PAGES);
 
     void* ptr1 = stack_allocator_alloc(inst_id, sizeof(uint32)*2, sizeof(char));
-    *(char*) ptr1 = HACK_LIT_STR_TO_NUM("A", char);
+    *(char*) ptr1 = HACK_LITERAL_STR_TO_NUM("A", char);
     assert(((uintptr_t)ptr1 & (sizeof(void*) - 1)) == 0); // Should be pointer-aligned
 
     void* ptr2 = stack_allocator_alloc(inst_id, sizeof(uint32), sizeof(uint32));
-    *((uint32*) ptr2 + 0) = HACK_LIT_STR_TO_NUM("BBB.", uint32);
+    *((uint32*) ptr2 + 0) = HACK_LITERAL_STR_TO_NUM("BBB.", uint32);
     assert(((uintptr_t)ptr2 & (sizeof(uint32) - 1)) == 0);
 
     print_test_result("test_allocation_alignment", TRUE, __FILE__, __LINE__, "");
+    struct stack_allocator_instance* stack_inst = debug_get_stack_allocator_instance(inst_id);
+    fprint_stack_mem_data(stack_inst);
 }
 
 /*Data Integrity Test*/
 void
 test_data_persistence()
 {
-    memid_t inst_id = stack_allocator_create_new_instance(TEST_NUM_PAGES);
+    stack_table_t inst_id = stack_allocator_create_new_instance(TEST_NUM_PAGES);
 
     // Write pattern to allocations
     char* ptr1 = (char*) stack_allocator_alloc(inst_id, 100, sizeof(char));
@@ -189,14 +211,16 @@ test_data_persistence()
         assert(ptr2[i] == '0' + (i % 10));
 
     print_test_result("test_data_persistence", TRUE, __FILE__, __LINE__, "");
+    struct stack_allocator_instance* stack_inst = debug_get_stack_allocator_instance(inst_id);
+    fprint_stack_mem_data(stack_inst);
 }
 
 /*Multiple Instances Test*/
 void
 test_multiple_instances()
 {
-    memid_t inst1 = stack_allocator_create_new_instance(2);
-    memid_t inst2 = stack_allocator_create_new_instance(TEST_NUM_PAGES);
+    stack_table_t inst1 = stack_allocator_create_new_instance(2);
+    stack_table_t inst2 = stack_allocator_create_new_instance(TEST_NUM_PAGES);
 
     void* ptr1 = stack_allocator_alloc(inst1, 100, sizeof(SOME_TYPE));
     void* ptr2 = stack_allocator_alloc(inst2, 200, sizeof(SOME_TYPE));
@@ -208,10 +232,14 @@ test_multiple_instances()
     assert(table[inst2].data.used_size == 200);
 
     // Release from inst2 shouldn't affect inst1
-    stack_allocator_release(inst2);
+    stack_allocator_pop(inst2);
     assert(table[inst1].data.used_size == 100);
 
     print_test_result("test_multiple_instances", TRUE, __FILE__, __LINE__, "");
+    struct stack_allocator_instance* stack_inst1 = debug_get_stack_allocator_instance(inst1);
+    fprint_stack_mem_data(stack_inst1);
+    struct stack_allocator_instance* stack_inst2 = debug_get_stack_allocator_instance(inst2);
+    fprint_stack_mem_data(stack_inst2);
 }
 
 /*Test Runner*/

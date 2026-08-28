@@ -9,17 +9,14 @@
 int
 main(void)
 {
-    memman_init();
-
-    /// test new implementation
-    test_new_implementation();
-
     /***************************************************************************************************
      * SLAB ALLOCATOR TESTS
      **************************************************************************************************/
 
-    // test_mem_cache_alloc_release_slabs();
+    test_slab_allocator(4);
+
     // test_check_alloc_extend_pages(1);
+    // test_mem_cache_alloc_release_slabs();
 
     /* test performance measurements */
     // test_perf_slab_allocation_release();

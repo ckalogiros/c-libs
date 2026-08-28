@@ -1,11 +1,11 @@
 /*
  * Created by ckalo on 1/20/26.
  */
-#ifndef ALLOCATORS_SLAB_ALLOCATOR_STRUCT_H
-#define ALLOCATORS_SLAB_ALLOCATOR_STRUCT_H
+#ifndef SLAB_ALLOCATOR_STRUCT_H
+#define SLAB_ALLOCATOR_STRUCT_H
 
 /*
- * MEMORY IMPLEMENTATION
+ * MEMORY IMPLEMENTATION DETAILS
  *
  * memory manager should malloc()
  *
@@ -32,22 +32,17 @@
  *  Slab 3 (color 32): ----[CPU2][CPU2][CPU2]...  Better distribution
  */
 
-
-#include <stdio.h>
-
-#include "char_buf.h"
 #include "mem_man_interface.h"
-#include "my_types.h"
+#include "slab_allocator_types.h"
 
 
 enum SLAB_ALLOCATOR {
-    SLAB_ALLOCATOR_INSTANCE_INITIAL_COUNT = 8,
+    SLAB_ALLOCATOR_INSTANCE_INITIAL_TABLE_COUNT = 8,
     SLAB_ALLOCATOR_POOL_NUM_PAGES         = 16,
     SLAB_ALLOCATOR_POOL_TABLE_COUNT       = 32,
     SLAB_ALLOCATOR_MCACHE_TABLE_COUNT     = 32,
     SLAB_ALLOCATOR_MEMORY_ALIGNMENT       = 64,
 };
-
 
 enum SLAB_ALLOCATOR_POOL_SIZES {
     /* -1 is for the '\0' character */
@@ -56,6 +51,7 @@ enum SLAB_ALLOCATOR_POOL_SIZES {
     SLAB_ALLOCATOR_POOL_SIZE_LARGE  = 4096 - 1,
     SLAB_ALLOCATOR_POOL_SIZES_COUNT = 3,
 };
+
 enum SLAB_ALLOCATOR_MCACHE_SIZES {
     SLAB_ALLOCATOR_MCACHE_SIZE_8     = 8,
     SLAB_ALLOCATOR_MCACHE_SIZE_16    = 16,
@@ -71,6 +67,7 @@ enum SLAB_ALLOCATOR_MCACHE_SIZES {
     SLAB_ALLOCATOR_MCACHE_SIZE_16384 = 16384,
     SLAB_ALLOCATOR_MCACHE_SIZE_32768 = 32768,
 };
+
 enum SLAB_ALLOCATOR_MCACHE_SIZES_IDXS {
     SLAB_ALLOCATOR_SIZE_8_IDX = 0,
     SLAB_ALLOCATOR_SIZE_16_IDX,
@@ -93,36 +90,9 @@ enum SLAB_ALLOCATOR_ERROR_CODE {
     SLAB_ALLOCATOR_MEMCACHE_NO_INIT,
 };
 
-
-// ISSUES: implement in arena_allocator.h
-#ifndef ARENA_ALLOCATOR_H
-#define ARENA_ALLOCATOR_H
-typedef int32 nameid_t;
-struct bump_allocator_instance {
-    memid_t instance_id;
-    uint32 bump_ptr;
-    uint16 count;
-    uint16 size;
-};
-#endif //ARENA_ALLOCATOR_H
-
-typedef int8 salltable_t;
-typedef uint32 slab_size_t;
-typedef uint16 slab_elems_t; // MAX:65535
-
-struct slab_allocator_instance {
-    struct slab_allocator_pool* pool_table;
-    struct slab_allocator_mcache* mcache_table;
-    uint16   instance_id;
-    uint16   pool_count;
-    uint16   mcache_count;
-    pageid_t reserve_num_pages;
-};
-
-
 /* devide sized mcaches into zones:
  * small, mid, large,
- * each one have its seperate pool of memory */
+ * each one have its separate pool of memory */
 struct slab_allocator_pool {
     memid_t mem_id;
     uint16  min_mcache_size; // denotes the min sized mcache this pool handles
@@ -148,4 +118,13 @@ struct slab_allocator_mcache {
     const char* name; // todo: later use indexed string buffer
 };
 
-#endif // ALLOCATORS_SLAB_ALLOCATOR_STRUCT_H
+struct slab_allocator_instance {
+    struct slab_allocator_pool* pool_table;
+    struct slab_allocator_mcache* mcache_table;
+    uint16   instance_id;
+    uint16   pool_count;
+    uint16   mcache_count;
+    pageid_t reserve_num_pages;
+};
+
+#endif // SLAB_ALLOCATOR_STRUCT_H

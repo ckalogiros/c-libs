@@ -3,7 +3,7 @@
  */
 
 #include "test_performance.h"
-#include "slab_allocator.h"
+#include "slab_allocator_interface.h"
 #include "mem_man_interface.h"
 #include "buffer_arr_internals.h"
 #include "logger.h"
@@ -52,11 +52,11 @@ test_perf_slab_allocation_release()
         const uint32 type_size = sizeof(uint32);
 
         print_test("Slab Allocator",
-            " . Allocate slab buffers\n"
-            " . \"Color\" them with a character\n"
-            " . Check slab buffer insert() function\n"
-            "   that inserts elements (coloring)\n"
-            "   in the boundaries of each slab\n"
+            " * Allocate slab buffers\n"
+            " * Release slab buffers\n"
+            " Check slab buffer insert() function\n"
+            " that inserts elements (coloring)\n"
+            " in the boundaries of each slab\n"
             " slab_size:   %s%u bytes%s\n"
             " type_size:   %s%u bytes%s\n"
             " buffer_arr_size: %s%u%s elems\n"

@@ -7,6 +7,7 @@
 #include "my_types.h"
 #include "sys_utils.h"
 
+
 #define CHAR_BUF_16_CHECK(src, dst)\
 if( !(src->len >= 0 && src->len <= 16) ){\
     my_exit("ERROR:\n in macro:CHAR_BUF_16_CHECK(src, dst)/n"\

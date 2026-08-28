@@ -12,7 +12,7 @@
 #include "buffer_arr_log.h"
 #include "logger.h"
 #include "mem_man_types.h"
-#include "slab_allocator.h"
+#include "slab_allocator_interface.h"
 
 #define BUFFER_ARR_DEBUG_PRINT 1
 #undef BUFFER_ARR_DEBUG_PRINT

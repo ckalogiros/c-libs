@@ -9,7 +9,7 @@
 #include "logger.h"
 #include "mem_man_structs.h"
 #include "my_macros.h"
-#include "slab_allocator.h"
+#include "slab_allocator_interface.h"
 #include "slab_allocator_internals.h"
 #include "mem_man_internals.h"
 #include "slab_allocator_log.h"
@@ -112,7 +112,7 @@ mem_cache_free_slab_test_debug(struct slab_allocator_mcache* mcache, void* slab_
 }
 
 struct slab_release_ret
-mem_cache_release_buffer_test_debug(const salltable_t inst_id, void* ptr, const slab_elems_t buffer_size, const uint16 type_size)
+mem_cache_release_buffer_test_debug(const slab_table_t inst_id, void* ptr, const slab_elems_t buffer_size, const uint16 type_size)
 {
     const slab_size_t slab_size = buffer_size * type_size;
 
@@ -212,9 +212,9 @@ test_slab_mcache_struct()
     assert(mcache->is_active == TRUE);
     assert(mcache->last_slab_end == mcache->slabs_start+mcache->slab_size*mcache->slabs_capacity);
 
-
-    struct mem_block* mem = mem_get_byid(mcache->mem_handle.mem_id);
-    assert(mcache->slabs_start == mem->start);
+    // struct mem_block* mem = mem_pool_get(mcache->mem_handle.mem_id);
+    struct slab_allocator_mcache* cache = slab_allocator_get_cache(inst_id, mcache->num_elems, mcache->type_size);
+    assert(mcache->slabs_start == cache->slabs_start);
     assert(mcache->slabs_free_list == mcache->slabs_start);
     assert(mcache->mem_handle.page_id == calc_page_id_from_address(mcache->slabs_start, mcache->mem_handle.mem_id));
 
@@ -227,8 +227,8 @@ void
 test_slab_single_allocation()
 {
     memid_t inst_id = slab_allocator_create_new_instance(TEST_NUM_PAGES, "test_slab_single_allocation()");
-    size_t alloc_size = 100;
-    uint32 slab_size = alloc_size * sizeof(SOME_TYPE);
+    size_t  alloc_size = 100;
+    uint32  slab_size = alloc_size * sizeof(SOME_TYPE);
 
     void* ptr = slab_allocator_alloc(inst_id, alloc_size, sizeof(SOME_TYPE), "test_slab_single_allocation()");
     struct slab_allocator_instance* inst = slab_allocator_get_instance(inst_id);
@@ -321,7 +321,7 @@ test_slab_release()
 #define fl struct flist
 #define rt struct slab_release_ret
 
-    salltable_t inst_id = slab_allocator_create_new_instance(ALLOCPAGES, "test_slab_release()");
+    slab_table_t inst_id = slab_allocator_create_new_instance(ALLOCPAGES, "test_slab_release()");
 
     mc* mcache_store_for_debug = NULL;
 
@@ -442,7 +442,7 @@ test_slab_release_freelist()
 #define mc struct slab_allocator_mcache
 #define fl struct flist
 
-    salltable_t inst_id = slab_allocator_create_new_instance(TEST_NUM_PAGES, "test_slab_release_freelist()");
+    slab_table_t inst_id = slab_allocator_create_new_instance(TEST_NUM_PAGES, "test_slab_release_freelist()");
 
     // alloc and release in sequence. confirm that the same slab is allocated and released
     fl* first_released = NULL;

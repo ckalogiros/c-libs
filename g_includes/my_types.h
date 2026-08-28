@@ -25,9 +25,13 @@ typedef uint8 bool;
 typedef uint16 typesize_t;
 
 
-#define F4 0xffff
-#define F5 0xfffff
-#define F6 0xffffff
+#define F4  0xffff
+#define F5  0xfffff
+#define F6  0xffffff
+#define F8  0xffffffff
+#define F10 0xffffffffff
+#define F12 0xffffffffffff
+#define F14 0xffffffffffffff
 /// reduce the hex digits of an address
 #define REDUCE_ADDR(addr, hex_mask) ((uint64) (addr) & (hex_mask))
 

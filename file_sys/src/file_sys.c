@@ -258,7 +258,9 @@ fs_append_mem(struct fs_t* fs, const char* ptr, const uint64 size, const char* m
     }
     fprintf(fs->file, "\n");
 
-    const int32 sidx[] = {7, 5, 3, 1, -1, -3, -5, -7};
+    // const int32 sidx[] = {7, 5, 3, 1, -1, -3, -5, -7};
+    // const int32 sidx[] = {7, 5, 3, 1, 1, 3, 5, 7};
+    const int32 sidx[] = {0, 0, 0, 0, 0, 0, 0, 0};
     uint32 cnt = 0;
     for(i = 0; i < size; i++) {
 
@@ -271,13 +273,8 @@ fs_append_mem(struct fs_t* fs, const char* ptr, const uint64 size, const char* m
         }
 
         /* print memory hex values (per line, reverse printing) */
-        if((void*)&(data[i + sidx[cnt]] ) == (void*)0x533000019c07) {
-
-            print("%p\n", data[i + sidx[cnt]]);
-        }
-
         if(i + sidx[cnt] < size) {
-            fprintf(fs->file, "%02x", data[i + sidx[cnt]]);
+            fprintf(fs->file, "%02x ", data[i + sidx[cnt]]);
             cnt++;
             if(cnt == 8) cnt = 0;
             if((i + 1) % (word_size / 2) == 0)

@@ -30,17 +30,17 @@ main(void)
         // test_mem_alloc();
     }
 
-    test_alloc_release_insequence(2);
+    // test_alloc_release_insequence(2);
     // test_alloc_release_insequence(1);
     // test_alloc_release_insequence(1);
     // test_alloc_release_insequence(4);
     //
-    test_alloc_first_release_after(8);
+    // test_alloc_first_release_after(8);
     //
-    test_alloc_first_release_after_backwards(4);
+    // test_alloc_first_release_after_backwards(4);
     //
-    test_alloc_release_mixed_all();
-    test_alloc_release_fragment_mem();
+    // test_alloc_release_mixed_all();
+    // test_alloc_release_fragment_mem();
 
 
     memman_terminate();

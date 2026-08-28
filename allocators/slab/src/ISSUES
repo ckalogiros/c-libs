@@ -18,4 +18,4 @@ Memory poisoning: You use memset(ptr, 0x0, requested_num_pages * PAGE_SIZE) in s
 
 Type safety: You pass type_size and num_elems separately, but slab_size = num_elems * type_size. If type_size is not a multiple of the alignment requirement (e.g., 8-byte alignment for pointers), your slabs may be misaligned. You should round slab_size up to the required alignment for the type.
 
-Instance table growth: Your slab_allocator_table is allocated with a fixed size (SLAB_ALLOCATOR_INSTANCE_INITIAL_COUNT), but you never reallocate if instance_count exceeds that—you'll overflow. Add bounds checking or dynamic growth.
+Instance table growth: Your slab_allocator_table is allocated with a fixed size (STACK_ALLOCATOR_INSTANCE_INITIAL_TABLE_COUNT), but you never reallocate if instance_count exceeds that—you'll overflow. Add bounds checking or dynamic growth.

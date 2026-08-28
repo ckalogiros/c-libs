@@ -22,8 +22,10 @@
 memid_t mem_create_new_instance(const uint16 num_pages, const uint32 alignment, const char* name);
 
 
+
 /***************************************************************************************************
- * MEMORY POOL
+ * STATIC SCOPE VARIABLES
+ * MEMORY INSTANCES POOL
  * local buffer to store all allocated memory requests
  **************************************************************************************************/
 static struct mem_block* mem_pool = NULL;
@@ -35,8 +37,8 @@ mem_pool_init(void)
 {
     const uint32 capacity = MEMORY_INTERNAL_POOL_INITIAL_COUNT;
     const uint32 size = sizeof(struct mem_block)*capacity;
-    const uint32 alloc_size = ALIGN_SIZE(size, 64);
-    mem_pool = aligned_alloc(64, alloc_size);
+    const uint32 alloc_size = ALIGN_SIZE(size, MEM_ALIGNMENT);
+    mem_pool = aligned_alloc(MEM_ALIGNMENT, alloc_size);
     memset(mem_pool, 0x0, alloc_size);
 
     // mem_fprint_append_mem_pool(mem_pool, MEMORY_INTERNAL_POOL_INITIAL_COUNT, size, alloc_size);

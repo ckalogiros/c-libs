@@ -5,7 +5,9 @@ register_module(
             ${CMAKE_CURRENT_LIST_DIR}/slab_allocator.c
             ${CMAKE_CURRENT_LIST_DIR}/slab_allocator_internals.c
         headers
-            ${CMAKE_CURRENT_LIST_DIR}/slab_allocator.h
+            ${CMAKE_CURRENT_LIST_DIR}/slab_allocator_types.h
+            ${CMAKE_CURRENT_LIST_DIR}/slab_allocator_macros.h
+        ${CMAKE_CURRENT_LIST_DIR}/slab_allocator_interface.h
             ${CMAKE_CURRENT_LIST_DIR}/slab_allocator_internals.h
             ${CMAKE_CURRENT_LIST_DIR}/slab_allocator_struct.h
         include_dirs

@@ -10,7 +10,9 @@
 #include "slab_allocator_log.h"
 #include <string.h>
 #include "bits.h"
+#include "file_sys_interface.h"
 #include "logger.h"
+#include "slab_allocator_fprint.h"
 #include "smath.h"
 #include "string_internals.h"
 #include "unit_test.h"
@@ -22,6 +24,81 @@ enum CHAR_ARRAY {
     CHAR_END = 90,
 };
 
+
+void test_slab_allocator(const uint32 num_pages)
+{
+    memid_t inst_id = slab_allocator_create_new_instance(num_pages, "test_slab_allocator()");
+    struct slab_allocator_mcache* mcache = NULL;
+
+    { //
+        typedef uint8 T;
+        uint32 num_elems = 32;
+        uint32 type_size   = sizeof(T);
+        T* buffer = (T*) slab_allocator_alloc(inst_id, num_elems, type_size, "test create buffer uint8");
+        for(uint32 i = 0; i < num_elems; i++) {
+            buffer[i] = i;
+        }
+        // mcache = slab_allocator_get_cache(inst_id, num_elems, type_size);
+        fprint_append_a_slab(buffer, num_elems*type_size, "buffer[0] uint8");
+
+        // slab_allocator_release(inst_id, buffer, num_elems, type_size);
+    }
+    { //
+        typedef uint16 T;
+        uint32 num_elems = 32;
+        uint32 type_size   = sizeof(T);
+        T* buffer = (T*) slab_allocator_alloc(inst_id, num_elems, type_size, "test create buffer uint16");
+        for(uint32 i = 0; i < num_elems; i++) {
+            buffer[i] = i;
+        }
+        fprint_append_a_slab(buffer, num_elems*type_size, "buffer[0] uint16");
+
+        // slab_allocator_release(inst_id, buffer, num_elems, type_size);
+    }
+    { //
+        typedef uint32 T;
+        uint32 num_elems = 32;
+        uint32 type_size   = sizeof(T);
+        T* buffer = (T*) slab_allocator_alloc(inst_id, num_elems, type_size, "test create buffer uint32");
+        for(uint32 i = 0; i < num_elems; i++) {
+            buffer[i] = i;
+        }
+        fprint_append_a_slab(buffer, num_elems*type_size, "buffer[0] uint32");
+
+        slab_allocator_release(inst_id, buffer, num_elems, type_size);
+    }
+    { //
+        typedef uint64 T;
+        uint32 num_elems = 32;
+        uint32 type_size   = sizeof(T);
+        T* buffer = (T*) slab_allocator_alloc(inst_id, num_elems, type_size, "test create buffer uint64");
+        for(uint32 i = 0; i < num_elems; i++) {
+            buffer[i] = i;
+        }
+        fprint_append_a_slab(buffer, num_elems*type_size, "buffer[0] uint64");
+
+        slab_allocator_release(inst_id, buffer, num_elems, type_size);
+    }
+    { //
+        typedef struct v_128 {
+            uint64 a; uint64 b;
+        } T;
+        // typedef struct v_128 T;
+        uint32 num_elems = 16;
+        uint32 type_size   = sizeof(T);
+        T* buffer = (T*) slab_allocator_alloc(inst_id, num_elems, type_size, "test create buffer 128 typesize");
+        for(uint32 i = 0; i < num_elems; i++) {
+            buffer[i].a = i+0x30;
+            // buffer[i].b = i+0x40;
+        }
+        fprint_append_a_slab(buffer, num_elems*type_size, "buffer[0] 128 typesize");
+
+        slab_allocator_release(inst_id, buffer, num_elems, type_size);
+    }
+
+    // fprint_append_all_slabs_of_mcache();
+
+}
 
 
 /***************************************************************************************************
@@ -62,12 +139,14 @@ void test_check_alloc_extend_pages(const uint32 num_pages)
         print("%sAllocating Buffer. index:%u%s | ", ry, i, CLEAR);
         print("address:%s%x%s\n", CYAN, REDUCE_ADDR(buffer[i], F6), CLEAR);
         memset(buffer[i], 'A'+i, buffer_size*type_size); // memset whole buffer slab
+        fprint_append_a_slab(buffer[i], buffer_size*type_size, "test_check_alloc_extend_pages: INITIALIZED");
     }
 
     for(uint32 i = 0; i < num_allocations; i++) {
         print("%sRelease Buffer. index:%u%s | ", ry, i, CLEAR);
         print("address:%s%x%s\n", br3, REDUCE_ADDR(buffer[i], F6), CLEAR);
         slab_allocator_release(slab_inst_id, buffer[i], buffer_size, type_size);
+        fprint_append_a_slab(buffer[i], buffer_size*type_size, "test_check_alloc_extend_pages: RELEASED");
     }
 
 
@@ -116,7 +195,6 @@ void test_check_alloc_extend_pages(const uint32 num_pages)
 
 }
 
-
 void
 test_mem_cache_alloc_release_slabs(void)
 {
@@ -155,9 +233,13 @@ test_mem_cache_alloc_release_slabs(void)
         buffer[i] = (uint8*) slab_allocator_alloc(slab_inst_id, buffer_size, type_size, "test_mem_cache_alloc_release_slabs()");
         memset(buffer[i], (char) c, slab_size);
         check_buffer(buffer[i], slab_size, c, i);
+
+        fprint_append_a_slab(buffer[i], buffer_size*type_size, "test_mem_cache_alloc_release_slabs");
+
         c++;
         if(c > CHAR_END) c = CHAR_A;
     }
+    // fprint_append_a_slab(buffer, total_slabs*buffer_size*type_size, "test_mem_cache_alloc_release_slabs");
 
 
     const char* buffer_start = (*buffer);

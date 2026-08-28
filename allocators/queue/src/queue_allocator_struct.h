@@ -15,32 +15,36 @@
  * ISSUES
  * 1. if the offsets are byte offsets, maybe we need to reconsider int32 type for memoffset_t
  */
-#ifndef ALLOCATORS_QUEUE_ALLOCATOR_STRUCT_H
-#define ALLOCATORS_QUEUE_ALLOCATOR_STRUCT_H
+#ifndef QUEUE_ALLOCATOR_STRUCT_H
+#define QUEUE_ALLOCATOR_STRUCT_H
 
-#include "mem_man_structs.h"
+#include "queue_allocator_types.h"
 
-typedef uint16 memoffset_t;
+enum QUEUE_ALLOCATOR {
+    QUEUE_ALLOCATOR_INSTANCE_INITIAL_TABLE_COUNT = 64,
+    QUEUE_ALLOCATOR_OFFSETS_TABLE_COUNT          = 16,
+    QUEUE_ALLOCATOR_MEMORY_ALIGNMENT             = 64,
+    QUEUE_ALLOCATOR_OFFSETS_INITIAL_NUM_PAGES    = 1,
+};
 
 struct queue_allocator_data {
-    void* start; // allocator's data memory address
-    uint32 size; // total allocated memory block size
-    uint32 used_size; // used size
-    memid_t instance_id; // memory manager's table index
+    void*         start;       // allocator's data memory address
+    queue_size_t  size;        // total allocated memory block size
+    queue_size_t  used_size;   // used size
+    memid_t       mem_id;      // memory manager's table index
 };
 
 struct queue_allocator_instance {
-    void* offsets_table_start; // memory address
-    memid_t instance_id; // memory manager's table index
-    memoffset_t offsets_table_size; // allocated memory block size
-    memoffset_t offsets_table_count; // num allocations
-    // memoffset_t queue_ptr_offset;
-    memoffset_t front_ptr_offset; // the front pointer, as an index offet to the queue buffer
-    memoffset_t front_ptr_offset_index;  // the front pointer's index to the offsets table
-    memoffset_t back_ptr_offset;  // the back pointer, as an index offet to the queue buffer
-    memoffset_t back_ptr_offset_index;  // the back pointer's index to the offsets table
+    void* offsets_table_start;             // memory address
+    queue_table_t instance_id;             // memory manager's table index
+    queue_table_t offsets_table_size;      // allocated memory block size
+    queue_table_t offsets_table_count;     // num allocations
+    queue_table_t front_ptr_offset;        // the front pointer, as an index offet to the queue buffer
+    queue_table_t front_ptr_elems_counter; // the front pointer's index to the offsets table
+    queue_table_t back_ptr_offset;         // the back pointer, as an index offet to the queue buffer
+    queue_table_t back_ptr_elems_counter;  // the back pointer's index to the offsets table
 
     struct queue_allocator_data data;
 };
 
-#endif //ALLOCATORS_QUEUE_ALLOCATOR_STRUCT_H
+#endif //QUEUE_ALLOCATOR_STRUCT_H

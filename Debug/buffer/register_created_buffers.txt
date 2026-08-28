@@ -1,5 +1,0 @@
-CREATE  : |  id:      1 |  tsize:     4 |  capac: 32768 slabs |  count:   0 |  tail:   -1 |  data:  000076f9 6bee8040  flist: 000076f9 6bf08040
-CREATE  : |  id:      2 |  tsize:    12 |  capac:  8192 slabs |  count:   0 |  tail:   -1 |  data:  000076f9 6be77040  flist: 000076f9 6bb8f040
-CREATE  : |  id:      3 |  tsize:     8 |  capac:  8192 slabs |  count:   0 |  tail:   -1 |  data:  000076f9 6bb1e040  flist: 000076f9 6bb8f440
-CREATE  : |  id:      4 |  tsize:    16 |  capac:  8192 slabs |  count:   0 |  tail:   -1 |  data:  000076f9 6bf08040  flist: 000076f9 6bb8f840
-CREATE  : |  id:      5 |  tsize:    36 |  capac:  8192 slabs |  count:   0 |  tail:   -1 |  data:  000076f9 6baad040  flist: 000076f9 6bb8fc40

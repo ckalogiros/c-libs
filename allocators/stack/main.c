@@ -7,10 +7,8 @@
 int
 main(void)
 {
-    memman_init();
-
-    test_stack_allocator();
-    // test_stack_allocator_alignment();
+    // test_stack_allocator();
+    test_stack_allocator_alignment();
 
     // unit_test_runner_stack_allocator();
 

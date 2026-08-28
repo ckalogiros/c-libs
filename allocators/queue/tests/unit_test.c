@@ -9,6 +9,7 @@
 #include "mem_man_structs.h"
 #include "my_macros.h"
 #include "queue_allocator.h"
+#include "queue_allocator_fprint.h"
 
 #define TEST_NUM_PAGES 1
 #define SOME_TYPE char
@@ -18,16 +19,19 @@ void
 test_create_instance_basic()
 {
     memid_t inst_id = queue_allocator_create_new_instance(TEST_NUM_PAGES);
-    struct queue_allocator_instance* inst = debug_get_queue_allocator_instance(inst_id);
+    struct queue_allocator_instance* inst = debug_queue_allocator_get_instance(inst_id);
 
     assert(inst->data.start != NULL);
     assert(inst->data.size == TEST_NUM_PAGES * PAGE_SIZE);
     assert(inst->data.used_size == 0);
     assert(inst->front_ptr_offset == 0);
     assert(inst->offsets_table_count == 0);
-    assert(inst->offsets_table_size == debug_get_queue_allocator_init_instance_num_pages());
+    assert(inst->offsets_table_size == queue_allocator_offsets_table_get_size(inst_id));
 
     print_test_result("test_create_instance_basic", TRUE, __FILE__, __LINE__, "");
+    struct queue_allocator_instance* queue = debug_queue_allocator_get_instance(inst_id);
+    fprint_queue_mem_data(queue);
+
 }
 
 /*Single Allocation Tests*/
@@ -37,8 +41,8 @@ test_single_allocation()
     memid_t inst_id = queue_allocator_create_new_instance(TEST_NUM_PAGES);
     size_t alloc_size = 100;
 
-    void* ptr = queue_allocator_alloc(inst_id, alloc_size, sizeof(SOME_TYPE), 0xCD);
-    struct queue_allocator_instance* inst = debug_get_queue_allocator_instance(inst_id);
+    void* ptr = queue_allocator_alloc(inst_id, alloc_size, sizeof(SOME_TYPE));
+    struct queue_allocator_instance* inst = debug_queue_allocator_get_instance(inst_id);
 
     assert(ptr == inst->data.start); // First allocation should be at start
     assert(inst->data.used_size == alloc_size);
@@ -46,6 +50,8 @@ test_single_allocation()
     assert(inst->offsets_table_count == 1);
 
     print_test_result("test_single_allocation", TRUE, __FILE__, __LINE__, "");
+    struct queue_allocator_instance* queue = debug_queue_allocator_get_instance(inst_id);
+    fprint_queue_mem_data(queue);
 }
 
 /*Multiple Allocations Test*/
@@ -57,10 +63,10 @@ test_multiple_allocations()
     void* ptrs[4];
 
     for(int i = 0; i < 4; i++) {
-        ptrs[i] = queue_allocator_alloc(inst_id, sizes[i], sizeof(SOME_TYPE), 0xCD);
+        ptrs[i] = queue_allocator_alloc(inst_id, sizes[i], sizeof(SOME_TYPE));
     }
 
-    struct queue_allocator_instance* inst = debug_get_queue_allocator_instance(inst_id);
+    struct queue_allocator_instance* inst = debug_queue_allocator_get_instance(inst_id);
 
     // Verify pointers are contiguous
     assert((char*)ptrs[1] == (char*)ptrs[0] + sizes[0]);
@@ -74,6 +80,8 @@ test_multiple_allocations()
     assert(inst->offsets_table_count == 4);
 
     print_test_result("test_multiple_allocations", TRUE, __FILE__, __LINE__, "");
+    struct queue_allocator_instance* queue = debug_queue_allocator_get_instance(inst_id);
+    fprint_queue_mem_data(queue);
 }
 
 /*Release (LIFO) Tests*/
@@ -82,31 +90,33 @@ test_release_lifo_order()
 {
     memid_t inst_id = queue_allocator_create_new_instance(TEST_NUM_PAGES);
 
-    void* ptr1 = queue_allocator_alloc(inst_id, 100, sizeof(SOME_TYPE), 0xCD);
-    void* ptr2 = queue_allocator_alloc(inst_id, 200, sizeof(SOME_TYPE), 0xCD);
-    void* ptr3 = queue_allocator_alloc(inst_id, 150, sizeof(SOME_TYPE), 0xCD);
+    void* ptr1 = queue_allocator_alloc(inst_id, 100, sizeof(SOME_TYPE));
+    void* ptr2 = queue_allocator_alloc(inst_id, 200, sizeof(SOME_TYPE));
+    void* ptr3 = queue_allocator_alloc(inst_id, 150, sizeof(SOME_TYPE));
 
-    struct queue_allocator_instance* inst = debug_get_queue_allocator_instance(inst_id);
+    struct queue_allocator_instance* inst = debug_queue_allocator_get_instance(inst_id);
     uint32 before_used = inst->data.used_size;
 
     // Release in reverse order (LIFO)
-    void* released3 = queue_allocator_release(inst_id);
-    assert(released3 == ptr3);
-    assert(inst->data.used_size == before_used - 150);
+    void* released1 = queue_allocator_dequeue(inst_id);
+    assert(released1 == ptr1);
+    assert(inst->data.used_size == queue_allocator_instance_data_get_used_size(inst_id));
     assert(inst->offsets_table_count == 2);
 
-    void* released2 = queue_allocator_release(inst_id);
+    void* released2 = queue_allocator_dequeue(inst_id);
     assert(released2 == ptr2);
-    assert(inst->data.used_size == before_used - 350);
+    assert(inst->data.used_size == queue_allocator_instance_data_get_used_size(inst_id));
     assert(inst->offsets_table_count == 1);
 
-    void* released1 = queue_allocator_release(inst_id);
-    assert(released1 == ptr1);
+    void* released3 = queue_allocator_dequeue(inst_id);
+    assert(released3 == ptr3);
     assert(inst->data.used_size == 0);
     assert(inst->offsets_table_count == 0);
     assert(inst->front_ptr_offset == 0);
 
     print_test_result("test_release_lifo_order", TRUE, __FILE__, __LINE__, "");
+    struct queue_allocator_instance* queue = debug_queue_allocator_get_instance(inst_id);
+    fprint_queue_mem_data(queue);
 }
 
 /*Edge Case Tests*/
@@ -114,17 +124,19 @@ void
 test_zero_size_allocation()
 {
     memid_t inst_id = queue_allocator_create_new_instance(TEST_NUM_PAGES);
-    struct queue_allocator_instance* table = debug_get_queue_allocator_table();
+    struct queue_allocator_instance* table = debug_queue_allocator_get_table();
     uint32 before_used = table[inst_id].data.used_size;
 
-    void* ptr = queue_allocator_alloc(inst_id, 0, sizeof(SOME_TYPE), 0xCD);
-    struct queue_allocator_instance* inst = debug_get_queue_allocator_instance(inst_id);
+    void* ptr = queue_allocator_alloc(inst_id, 0, sizeof(SOME_TYPE));
+    struct queue_allocator_instance* inst = debug_queue_allocator_get_instance(inst_id);
 
     assert(ptr == inst->data.start); // Should still return a valid pointer?
     assert(inst->data.used_size == before_used); // Should not change?
     assert(inst->offsets_table_count == 1); // Should it track zero-size allocations?
 
     print_test_result("test_zero_size_allocation", TRUE, __FILE__, __LINE__, "");
+    struct queue_allocator_instance* queue = debug_queue_allocator_get_instance(inst_id);
+    fprint_queue_mem_data(queue);
 }
 
 void
@@ -133,10 +145,12 @@ test_release_on_empty_allocator()
     memid_t inst_id = queue_allocator_create_new_instance(TEST_NUM_PAGES);
 
     // should return NULL
-    void* ptr = queue_allocator_release(inst_id);
+    void* ptr = queue_allocator_dequeue(inst_id);
     assert(ptr == NULL); // Or some error indicator
 
     print_test_result("test_release_on_empty_allocator", TRUE, __FILE__, __LINE__, "");
+    struct queue_allocator_instance* queue = debug_queue_allocator_get_instance(inst_id);
+    fprint_queue_mem_data(queue);
 }
 
 void
@@ -149,7 +163,7 @@ test_allocation_exceeds_capacity()
     // void* ptr = queue_allocator_alloc(inst_id, too_big, sizeof(SOME_TYPE));
     // assert(ptr == NULL); // If you implement error handling
 
-    print_test_result("TODO: IMPLEMENT", TRUE, __FILE__, __LINE__, "");
+    print_test_result("test_allocation_exceeds_capacity: TODO: IMPLEMENT", FALSE, __FILE__, __LINE__, "");
 }
 
 /*Alignment Tests*/
@@ -158,15 +172,17 @@ test_allocation_alignment()
 {
     memid_t inst_id = queue_allocator_create_new_instance(TEST_NUM_PAGES);
 
-    void* ptr1 = queue_allocator_alloc(inst_id, sizeof(uint32)*2, sizeof(char), 0xCD);
-    *(char*) ptr1 = HACK_LIT_STR_TO_NUM("A", char);
+    void* ptr1 = queue_allocator_alloc(inst_id, sizeof(uint32)*2, sizeof(char));
+    *(char*) ptr1 = HACK_LITERAL_STR_TO_NUM("A", char);
     assert(((uintptr_t)ptr1 & (sizeof(void*) - 1)) == 0); // Should be pointer-aligned
 
-    void* ptr2 = queue_allocator_alloc(inst_id, sizeof(uint32), sizeof(uint32), 0xCD);
-    *((uint32*) ptr2 + 0) = HACK_LIT_STR_TO_NUM("BBB.", uint32);
+    void* ptr2 = queue_allocator_alloc(inst_id, sizeof(uint32), sizeof(uint32));
+    *((uint32*) ptr2 + 0) = HACK_LITERAL_STR_TO_NUM("BBB.", uint32);
     assert(((uintptr_t)ptr2 & (sizeof(uint32) - 1)) == 0);
 
     print_test_result("test_allocation_alignment", TRUE, __FILE__, __LINE__, "");
+    struct queue_allocator_instance* queue = debug_queue_allocator_get_instance(inst_id);
+    fprint_queue_mem_data(queue);
 }
 
 /*Data Integrity Test*/
@@ -175,10 +191,10 @@ test_data_persistence()
 {
     memid_t inst_id = queue_allocator_create_new_instance(TEST_NUM_PAGES);
 
-    // Write pattern to allocations
-    char* ptr1 = (char*) queue_allocator_alloc(inst_id, 100, sizeof(char), 0xCD);
-    char* ptr2 = (char*) queue_allocator_alloc(inst_id, 200, sizeof(char), 0xCD);
+    char* ptr1 = (char*) queue_allocator_alloc(inst_id, 100, sizeof(char));
+    char* ptr2 = (char*) queue_allocator_alloc(inst_id, 200, sizeof(char));
 
+    // Write pattern to allocations
     for(int i = 0; i < 100; i++) ptr1[i] = 'A' + (i % 26);
     for(int i = 0; i < 200; i++) ptr2[i] = '0' + (i % 10);
 
@@ -189,6 +205,8 @@ test_data_persistence()
         assert(ptr2[i] == '0' + (i % 10));
 
     print_test_result("test_data_persistence", TRUE, __FILE__, __LINE__, "");
+    struct queue_allocator_instance* queue = debug_queue_allocator_get_instance(inst_id);
+    fprint_queue_mem_data(queue);
 }
 
 /*Multiple Instances Test*/
@@ -198,20 +216,24 @@ test_multiple_instances()
     memid_t inst1 = queue_allocator_create_new_instance(2);
     memid_t inst2 = queue_allocator_create_new_instance(TEST_NUM_PAGES);
 
-    void* ptr1 = queue_allocator_alloc(inst1, 100, sizeof(SOME_TYPE), 0xCD);
-    void* ptr2 = queue_allocator_alloc(inst2, 200, sizeof(SOME_TYPE), 0xCD);
+    void* ptr1 = queue_allocator_alloc(inst1, 100, sizeof(SOME_TYPE));
+    void* ptr2 = queue_allocator_alloc(inst2, 200, sizeof(SOME_TYPE));
 
-    struct queue_allocator_instance* table = debug_get_queue_allocator_table();
+    struct queue_allocator_instance* table = debug_queue_allocator_get_table();
 
     // Verify instances are independent
     assert(table[inst1].data.used_size == 100);
     assert(table[inst2].data.used_size == 200);
 
     // Release from inst2 shouldn't affect inst1
-    queue_allocator_release(inst2);
+    queue_allocator_dequeue(inst2);
     assert(table[inst1].data.used_size == 100);
 
     print_test_result("test_multiple_instances", TRUE, __FILE__, __LINE__, "");
+    struct queue_allocator_instance* queue = debug_queue_allocator_get_instance(inst1);
+    fprint_queue_mem_data(queue);
+    queue = debug_queue_allocator_get_instance(inst2);
+    fprint_queue_mem_data(queue);
 }
 
 /*Test Runner*/

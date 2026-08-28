@@ -4,7 +4,9 @@ register_module(
         sources
         ${CMAKE_CURRENT_LIST_DIR}/arena_allocator.c
         headers
+        ${CMAKE_CURRENT_LIST_DIR}/arena_allocator_types.h
         ${CMAKE_CURRENT_LIST_DIR}/arena_allocator_struct.h
+        ${CMAKE_CURRENT_LIST_DIR}/arena_allocator_macros.h
         ${CMAKE_CURRENT_LIST_DIR}/arena_allocator.h
         include_dirs
         ${CMAKE_CURRENT_LIST_DIR}
